@@ -7,6 +7,7 @@ import { LineKey } from "@/components/line-key"
 import { PanelFooter } from "@/components/panel-footer"
 import { PanelHeader } from "@/components/panel-header"
 import { SwitchRow } from "@/components/switch-row"
+import { YearPicker } from "@/components/year-picker"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -136,10 +137,6 @@ export function FiltersPanel() {
   const shownCompanies = allCompanies.filter(
     (c) => needle === "" || c.name.toLocaleLowerCase().includes(needle)
   )
-  const year = (text: string) => {
-    const n = Number.parseInt(text, 10)
-    return Number.isFinite(n) ? n : null
-  }
 
   return (
     <>
@@ -151,7 +148,7 @@ export function FiltersPanel() {
         )}
       </PanelHeader>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
         <Group title="Show on the map">
           <ul className="flex flex-col gap-0.5">
             <LayerRow
@@ -281,34 +278,24 @@ export function FiltersPanel() {
             }
           >
             <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                inputMode="numeric"
-                name="built-from"
-                aria-label="Built from year"
-                placeholder={String(span[0])}
+              <YearPicker
+                label="Built from year"
+                value={builtFrom}
+                onChange={(year) => setBuilt(year, builtTo)}
                 min={span[0]}
-                max={span[1]}
-                value={builtFrom ?? ""}
-                onChange={(event) =>
-                  setBuilt(year(event.target.value), builtTo)
-                }
-                className="tabular-nums"
+                max={builtTo ?? span[1]}
+                first={span[0]}
+                placeholder="From"
               />
               <span className="type-ui-sm text-muted-foreground">to</span>
-              <Input
-                type="number"
-                inputMode="numeric"
-                name="built-to"
-                aria-label="Built to year"
-                placeholder={String(span[1])}
-                min={span[0]}
+              <YearPicker
+                label="Built to year"
+                value={builtTo}
+                onChange={(year) => setBuilt(builtFrom, year)}
+                min={builtFrom ?? span[0]}
+                first={span[0]}
                 max={span[1]}
-                value={builtTo ?? ""}
-                onChange={(event) =>
-                  setBuilt(builtFrom, year(event.target.value))
-                }
-                className="tabular-nums"
+                placeholder="To"
               />
             </div>
           </Group>
