@@ -151,8 +151,18 @@ Where code knowingly differs from the Figma frame:
 - "Edited 4 minutes ago" in the top bar is left out: the data holds no edit time.
 - The Area switch says "The list follows the map"; the frame says "table", and the table
   is not designed.
-- Sections can be ticked one by one or all at once (header box) in the right panel. One
-  pipeline at a time on the left; its header box only clears the selection.
+- The selection is a set of sections and may span pipelines. Left list: a click selects
+  one pipeline, its box adds or removes it (partly selected shows a dash), Shift-click
+  adds a run, the header box selects all shown or none. Right panel: with several
+  pipelines the sections are grouped under a ListGroupHeader per pipeline and the header
+  reads "3 pipelines"; a footer states the size and has "Ask the Agent".
+- The map palette shows Select and Lasso only. Lasso draws a freehand loop; every
+  section it touches is selected (Shift adds). A small bar by the end of the loop
+  (`SelectionBar`) states the size and has "Ask the Agent", which opens the Agent panel
+  with the selection attached and the cursor in the message box. Shift-click on a line
+  adds or removes that section.
+- Agent attachments are one chip per pipeline ("Whole pipeline", "3 of 6 sections"); a
+  single section shows under its own name.
 - Search narrows the same pipeline list (same rows) and lists the sections it found
   under each pipeline; a section row opens that section. It searches inside the filters
   in force, with a bar to widen to the whole edition. The word "unknown" finds sections
@@ -186,7 +196,7 @@ Where code knowingly differs from the Figma frame:
 - Each side panel's header ends with a panel icon (`panel-left`, `panel-right`, added in
   code, not yet on the Icons page) that shuts the panel; while a panel is shut, the same
   icon sits in the top bar on that side to open it.
-- The table button, the "Scanned map" layer row and the tool palette on the map are
+- The table button, the "Scanned map" layer row and the draw tools after Lasso are
   hidden until they do something. The filter badges under the search box each carry a
   remove button (`FilterChip`) and the row shows only filters that are set; the edition
   year and "All pipelines" badges are gone.

@@ -4,19 +4,23 @@ import { cn } from "@/lib/utils"
 
 export type MapTool = "select" | "lasso" | "vertices" | "draw" | "split"
 
-const tools: { value: MapTool; icon: IconName; label: string; key: string }[] =
-  [
-    { value: "select", icon: "tool-select", label: "Select", key: "V" },
-    { value: "lasso", icon: "tool-lasso", label: "Lasso", key: "L" },
-    {
-      value: "vertices",
-      icon: "tool-vertex",
-      label: "Move vertices",
-      key: "A",
-    },
-    { value: "draw", icon: "tool-draw", label: "Draw a section", key: "D" },
-    { value: "split", icon: "tool-split", label: "Split a section", key: "S" },
-  ]
+const allTools: {
+  value: MapTool
+  icon: IconName
+  label: string
+  key: string
+}[] = [
+  { value: "select", icon: "tool-select", label: "Select", key: "V" },
+  { value: "lasso", icon: "tool-lasso", label: "Lasso", key: "L" },
+  {
+    value: "vertices",
+    icon: "tool-vertex",
+    label: "Move vertices",
+    key: "A",
+  },
+  { value: "draw", icon: "tool-draw", label: "Draw a section", key: "D" },
+  { value: "split", icon: "tool-split", label: "Split a section", key: "S" },
+]
 
 /**
  * The map tools, floating bottom centre of the map. Exactly one is active.
@@ -25,12 +29,18 @@ const tools: { value: MapTool; icon: IconName; label: string; key: string }[] =
 export function ToolPalette({
   value,
   onValueChange,
+  only,
   className,
 }: {
   value: MapTool
   onValueChange: (tool: MapTool) => void
+  /** Show just these tools: the ones that work. All of them when left out. */
+  only?: readonly MapTool[]
   className?: string
 }) {
+  const tools = only
+    ? allTools.filter((tool) => only.includes(tool.value))
+    : allTools
   return (
     <ToggleGroup
       aria-label="Map tools"

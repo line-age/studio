@@ -1,6 +1,6 @@
 import "mapbox-gl/dist/mapbox-gl.css"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import MapGL, {
   AttributionControl,
   Layer,
@@ -13,23 +13,31 @@ import MapGL, {
 import { Icon } from "@/components/icons/icon"
 import { MapControl } from "@/components/map-control"
 import { Pin } from "@/components/pin"
+import { ToolPalette } from "@/components/tool-palette"
 import { Button } from "@/components/ui/button"
 import {
   matchesShow,
   matchesCriteria,
   sectionStats,
   sectionsOutsideEdition,
+  selectionSize,
   unionBounds,
   type Bounds,
 } from "@/data/derive"
 import type { Geometry } from "@/data/schema"
 
 import { SEARCH_INPUT_ID } from "../panels/pipelines-panel"
-import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
+import {
+  AddToAgentMenu,
+  useAskAgent,
+  useSelectionAttachments,
+} from "../add-to-agent"
 import { useLeftPanel } from "../left-panel-context"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { useCamera, useStudio } from "../studio-store"
+import { linesInLoop, type Point } from "./lasso"
 import { readMapColors } from "./map-colors"
+import { SelectionBar } from "./selection-bar"
 
 const MAP_STYLE = "mapbox://styles/mapbox/light-v11"
 const HIT_LAYER = "sections-hit"
@@ -52,6 +60,22 @@ const collection = (features: Feature[]) => ({
 const reducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
+/** The tools that do something. The rest of the palette waits for editing. */
+const TOOLS = ["select", "lasso"] as const
+
+/**
+ * Puts the bar beside `point`, on the side with more room, inside the map.
+ */
+function barStyle(point: Point, [width, height]: Point) {
+  const left = point[0] > width / 2
+  const above = point[1] > height / 2
+  return {
+    left: Math.min(Math.max(point[0], 8), Math.max(width - 8, 8)),
+    top: Math.min(Math.max(point[1], 8), Math.max(height - 8, 8)),
+    transform: `translate(${left ? "calc(-100% - 8px)" : "8px"}, ${above ? "calc(-100% - 8px)" : "8px"})`,
+  }
+}
+
 function toBounds(map: MapRef): Bounds | null {
   const b = map.getBounds()
   return b ? [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()] : null
@@ -73,11 +97,46 @@ export function StudioMap({ token }: { token: string }) {
   const selectSection = useStudio((s) => s.selectSection)
   const toggleSelected = useStudio((s) => s.toggleSelected)
   const stepBack = useStudio((s) => s.stepBack)
+  const select = useStudio((s) => s.select)
+  const tool = useStudio((s) => s.tool)
+  const setTool = useStudio((s) => s.setTool)
+  const askAgent = useAskAgent()
+
+  // The loop being drawn with the Lasso, in screen pixels.
+  const [loop, setLoop] = useState<Point[] | null>(null)
+  const loopRef = useRef<Point[] | null>(null)
+  // Where the last loop ended and what it selected: the bar sits there
+  // until the selection changes.
+  const [bar, setBar] = useState<{
+    lngLat: [number, number]
+    point: Point
+    /** The map's width and height when the loop ended. */
+    size: Point
+    selection: ReadonlySet<string>
+  } | null>(null)
+  // A click can follow the release that ends a loop; it must not select.
+  const skipClick = useRef(false)
   const setView = useStudio((s) => s.setView)
   const setCamera = useCamera((s) => s.setCamera)
 
   const selection = useSelectionAttachments()
   const boxRef = useRef<HTMLDivElement>(null)
+
+  // The bar stays by the place on the map where the loop ended, however
+  // the map moves or changes size.
+  const placeBar = useCallback(() => {
+    setBar((b) => {
+      const at = b && mapRef.current?.project(b.lngLat)
+      const box = boxRef.current
+      return b && at && box
+        ? {
+            ...b,
+            point: [at.x, at.y],
+            size: [box.clientWidth, box.clientHeight],
+          }
+        : b
+    })
+  }, [])
   const colors = useMemo(() => readMapColors(), [])
 
   // The side panels slide open and shut, so the map's box changes size on
@@ -97,10 +156,11 @@ export function StudioMap({ token }: { token: string }) {
       const drawNow = (map as unknown as { _render?: (now: number) => void })
         ._render
       if (typeof drawNow === "function") drawNow.call(map, performance.now())
+      placeBar()
     })
     observer.observe(box)
     return () => observer.disconnect()
-  }, [])
+  }, [placeBar])
 
   // The sections of this edition whose pipeline passes the Show filter.
   const current = useMemo(
@@ -186,7 +246,91 @@ export function StudioMap({ token }: { token: string }) {
     setCamera(map.getZoom(), [center.lng, center.lat])
   }
 
+  const cancelLoop = () => {
+    loopRef.current = null
+    setLoop(null)
+  }
+
+  // Releasing the mouse closes the loop: what it touches is selected.
+  const finishLoop = (shift: boolean) => {
+    const points = loopRef.current
+    if (!points) return
+    cancelLoop()
+    skipClick.current = true
+    setTimeout(() => (skipClick.current = false), 0)
+    const map = mapRef.current
+    if (!map || !layers.pipelines) return
+    const lines = current.features.map((feature) => ({
+      id: feature.properties.id,
+      paths: (feature.geometry.type === "LineString"
+        ? [feature.geometry.coordinates]
+        : feature.geometry.coordinates
+      ).map((path) =>
+        path.map((position): Point => {
+          const at = map.project([position[0], position[1]])
+          return [at.x, at.y]
+        })
+      ),
+    }))
+    const caught = linesInLoop(points, lines)
+    // Nothing caught changes nothing; the Lasso stays in hand to try again.
+    if (caught.length === 0) return
+    select(shift ? [...new Set([...selected, ...caught])] : caught)
+    const end = points[points.length - 1]
+    const at = map.unproject([end[0], end[1]])
+    setBar({
+      lngLat: [at.lng, at.lat],
+      point: end,
+      size: [
+        boxRef.current?.clientWidth ?? 0,
+        boxRef.current?.clientHeight ?? 0,
+      ],
+      selection: useStudio.getState().selection,
+    })
+    setTool("select")
+  }
+  const finishRef = useRef(finishLoop)
+  useEffect(() => {
+    finishRef.current = finishLoop
+  })
+
+  // V and L pick the tool; Esc drops a loop, then the bar, then the Lasso.
+  // A release outside the map still ends the loop.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return
+      if (
+        event.target instanceof Element &&
+        event.target.closest("input, textarea, select, [contenteditable]")
+      ) {
+        return
+      }
+      if (event.key === "Escape") {
+        if (loopRef.current) cancelLoop()
+        else if (bar) setBar(null)
+        else setTool("select")
+      } else if (event.key === "v" || event.key === "V") setTool("select")
+      else if (event.key === "l" || event.key === "L") setTool("lasso")
+    }
+    const onMouseUp = (event: MouseEvent) => finishRef.current(event.shiftKey)
+    window.addEventListener("keydown", onKeyDown)
+    window.addEventListener("mouseup", onMouseUp)
+    return () => {
+      window.removeEventListener("keydown", onKeyDown)
+      window.removeEventListener("mouseup", onMouseUp)
+    }
+  }, [bar, setTool])
+
+  const onMouseDown = (event: MapMouseEvent) => {
+    if (tool !== "lasso" || event.originalEvent.button !== 0) return
+    event.preventDefault()
+    loopRef.current = [[event.point.x, event.point.y]]
+    setLoop(loopRef.current)
+  }
+
   const onClick = (event: MapMouseEvent) => {
+    if (skipClick.current || tool === "lasso") return
+    setBar(null)
     const properties = event.features?.[0]?.properties
     if (properties?.id) {
       // Shift adds the section to the selection, or takes it off.
@@ -198,6 +342,16 @@ export function StudioMap({ token }: { token: string }) {
   }
 
   const onMouseMove = (event: MapMouseEvent) => {
+    const points = loopRef.current
+    if (points) {
+      const last = points[points.length - 1]
+      const { x, y } = event.point
+      if (Math.hypot(x - last[0], y - last[1]) >= 2) {
+        loopRef.current = [...points, [x, y]]
+        setLoop(loopRef.current)
+      }
+      return
+    }
     const id = event.features?.[0]?.properties?.id
     setHoveredId(id ? String(id) : null)
   }
@@ -207,6 +361,9 @@ export function StudioMap({ token }: { token: string }) {
     [selected]
   )
   const visibility = (on: boolean) => (on ? "visible" : "none")
+
+  // The bar belongs to the selection the loop made; any change retires it.
+  const barShown = bar !== null && bar.selection === selected
 
   if (failed) {
     throw new Error("The map could not load its style.")
@@ -233,19 +390,25 @@ export function StudioMap({ token }: { token: string }) {
                 : { longitude: 0, latitude: 0, zoom: 1 }
             }
             interactiveLayerIds={[HIT_LAYER]}
-            cursor={hoveredId ? "pointer" : "grab"}
+            cursor={
+              tool === "lasso" ? "crosshair" : hoveredId ? "pointer" : "grab"
+            }
+            dragPan={tool !== "lasso"}
+            boxZoom={false}
+            onMouseDown={onMouseDown}
             logoPosition="top-left"
             attributionControl={false}
             dragRotate={false}
             trackResize={false}
             onLoad={report}
             onMoveEnd={report}
-            onMove={(event) =>
+            onMove={(event) => {
               setCamera(event.viewState.zoom, [
                 event.viewState.longitude,
                 event.viewState.latitude,
               ])
-            }
+              placeBar()
+            }}
             onClick={onClick}
             onMouseMove={onMouseMove}
             onMouseLeave={() => setHoveredId(null)}
@@ -374,6 +537,42 @@ export function StudioMap({ token }: { token: string }) {
           </MapGL>
         </div>
       </AddToAgentMenu>
+
+      {loop && loop.length > 1 && (
+        <svg
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 size-full"
+        >
+          <polygon
+            points={loop.map((p) => p.join(",")).join(" ")}
+            className="fill-map-selected/10 stroke-map-selected"
+            strokeWidth={1.5}
+            strokeDasharray="4 3"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+
+      {barShown && (
+        <SelectionBar
+          label={selectionSize(groups)}
+          onAsk={() => {
+            askAgent(selection)
+            setBar(null)
+          }}
+          style={barStyle(bar.point, bar.size)}
+        />
+      )}
+
+      <div className="pointer-events-none absolute inset-x-3 bottom-3 flex justify-center *:pointer-events-auto">
+        <ToolPalette
+          value={tool}
+          only={TOOLS}
+          onValueChange={(next) => {
+            if (next === "select" || next === "lasso") setTool(next)
+          }}
+        />
+      </div>
 
       <div className="absolute top-3 right-3 flex flex-col gap-2">
         <MapControl>

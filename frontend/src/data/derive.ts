@@ -65,6 +65,12 @@ export function groupSelection(
   return groups
 }
 
+/** "14 sections in 3 pipelines": the size of a selection in words. */
+export function selectionSize(groups: SelectionGroup[]): string {
+  const sections = groups.reduce((n, g) => n + g.sections.length, 0)
+  return `${plural(sections, "section")} in ${plural(groups.length, "pipeline")}`
+}
+
 export function sectionStats(section: Section): Stats {
   let cited = 0
   let proposals = 0

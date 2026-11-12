@@ -42,7 +42,9 @@ export function Composer({
       }}
     >
       {attachments && (
-        <div className="-mb-4 flex flex-wrap gap-1.5">{attachments}</div>
+        <div className="-mb-4 flex max-h-48 flex-wrap gap-1.5 overflow-y-auto">
+          {attachments}
+        </div>
       )}
       <label htmlFor={id} className="sr-only">
         Message to the Agent

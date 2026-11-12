@@ -16,6 +16,7 @@ import {
   geometryBounds,
   plural,
   sectionStats,
+  selectionSize,
   sumStats,
   type SelectionGroup,
 } from "@/data/derive"
@@ -30,12 +31,6 @@ import {
 import { PropertiesToggle } from "../panel-toggle"
 import { useSelectionGroups } from "../studio-data"
 import { useStudio } from "../studio-store"
-
-/** "14 sections in 3 pipelines": the size of a selection in words. */
-export function selectionSize(groups: SelectionGroup[]): string {
-  const sections = groups.reduce((n, g) => n + g.sections.length, 0)
-  return `${plural(sections, "section")} in ${plural(groups.length, "pipeline")}`
-}
 
 export function PropertiesPanel() {
   const groups = useSelectionGroups()
@@ -132,9 +127,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
       <PanelHeader
         icon="line"
         title={multi ? plural(groups.length, "pipeline") : single.name}
-        meta={
-          multi ? plural(checkedCount, "section") : (single.code ?? undefined)
-        }
+        meta={multi ? undefined : (single.code ?? undefined)}
         divider
       >
         {stats.cited > 0 && (
