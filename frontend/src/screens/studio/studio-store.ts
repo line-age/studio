@@ -24,7 +24,10 @@ interface StudioState {
   layers: Record<LayerId, boolean>
   query: string
   selectedPipelineId: string | null
+  /** The one section in focus: set when exactly one is ticked. */
   selectedSectionId: string | null
+  /** The ticked sections of the selected pipeline; null means all of them. */
+  checkedSectionIds: ReadonlySet<string> | null
   selectedAttribute: string | null
   expandedSectionIds: ReadonlySet<string>
   /** The map's current view; null until the map has drawn once. */
@@ -44,6 +47,10 @@ interface StudioState {
     sectionId: string,
     attribute: string
   ) => void
+  /** Tick or untick one section. `allIds` are the pipeline's sections. */
+  toggleSection: (sectionId: string, allIds: readonly string[]) => void
+  /** All ticked becomes none ticked; anything else becomes all. */
+  toggleAllSections: () => void
   toggleExpanded: (sectionId: string) => void
   clearSection: () => void
   setView: (view: Bounds) => void
@@ -67,6 +74,7 @@ export const useStudio = create<StudioState>((set) => ({
   query: "",
   selectedPipelineId: null,
   selectedSectionId: null,
+  checkedSectionIds: null,
   selectedAttribute: null,
   expandedSectionIds: new Set(),
   view: null,
@@ -77,6 +85,7 @@ export const useStudio = create<StudioState>((set) => ({
       editionId,
       selectedPipelineId: null,
       selectedSectionId: null,
+      checkedSectionIds: null,
       selectedAttribute: null,
       expandedSectionIds: new Set(),
     }),
@@ -91,12 +100,14 @@ export const useStudio = create<StudioState>((set) => ({
     set({
       selectedPipelineId: pipelineId,
       selectedSectionId: null,
+      checkedSectionIds: null,
       selectedAttribute: null,
     }),
   selectSection: (pipelineId, sectionId) =>
     set((s) => ({
       selectedPipelineId: pipelineId,
       selectedSectionId: sectionId,
+      checkedSectionIds: new Set([sectionId]),
       selectedAttribute: null,
       expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
     })),
@@ -104,8 +115,28 @@ export const useStudio = create<StudioState>((set) => ({
     set((s) => ({
       selectedPipelineId: pipelineId,
       selectedSectionId: sectionId,
+      checkedSectionIds: new Set([sectionId]),
       selectedAttribute: attribute,
       expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
+    })),
+  toggleSection: (sectionId, allIds) =>
+    set((s) => {
+      const next = new Set(s.checkedSectionIds ?? allIds)
+      if (!next.delete(sectionId)) next.add(sectionId)
+      const all = allIds.every((id) => next.has(id))
+      const only = next.size === 1 ? [...next][0] : null
+      return {
+        checkedSectionIds: all ? null : next,
+        selectedSectionId: only,
+        selectedAttribute:
+          only && only === s.selectedSectionId ? s.selectedAttribute : null,
+      }
+    }),
+  toggleAllSections: () =>
+    set((s) => ({
+      checkedSectionIds: s.checkedSectionIds === null ? new Set() : null,
+      selectedSectionId: null,
+      selectedAttribute: null,
     })),
   toggleExpanded: (sectionId) =>
     set((s) => {
@@ -113,7 +144,12 @@ export const useStudio = create<StudioState>((set) => ({
       if (!next.delete(sectionId)) next.add(sectionId)
       return { expandedSectionIds: next }
     }),
-  clearSection: () => set({ selectedSectionId: null, selectedAttribute: null }),
+  clearSection: () =>
+    set({
+      selectedSectionId: null,
+      checkedSectionIds: null,
+      selectedAttribute: null,
+    }),
   setView: (view) => set({ view }),
   requestFit: (bounds) =>
     set(bounds ? { fit: { bounds, nonce: (nonce += 1) } } : {}),

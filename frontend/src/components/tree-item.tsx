@@ -15,7 +15,10 @@ export function TreeItem({
   trailing,
   expanded,
   selected = false,
+  checked = selected,
   onToggle,
+  onCheck,
+  checkLabel,
   className,
   ...props
 }: {
@@ -23,8 +26,15 @@ export function TreeItem({
   code: ReactNode
   trailing: ReactNode
   expanded: boolean
+  /** The row in focus, drawn with the selected background. */
   selected?: boolean
+  /** Ticked: part of the selection. Several rows can be. */
+  checked?: boolean
   onToggle: () => void
+  /** Makes the box clickable on its own. */
+  onCheck?: () => void
+  /** Accessible name of the box, for example "Select Ash to Birch". */
+  checkLabel?: string
 } & Omit<ComponentProps<"div">, "children">) {
   return (
     <div
@@ -49,7 +59,11 @@ export function TreeItem({
           className="size-3.5"
         />
       </span>
-      <CheckMark value={selected ? "checked" : "unchecked"} />
+      <CheckMark
+        value={checked ? "checked" : "unchecked"}
+        label={checkLabel}
+        onChange={onCheck}
+      />
       <span className="truncate type-ui-sm">{name}</span>
       <span className="shrink-0 type-ui-mono-xs text-muted-foreground">
         {code}

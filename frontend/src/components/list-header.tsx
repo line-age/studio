@@ -10,12 +10,17 @@ export function ListHeader({
   trailing,
   selection = "unchecked",
   sorted = false,
+  onSelectionChange,
+  selectionLabel,
   className,
 }: {
   label: ReactNode
   trailing?: ReactNode
   /** How much of the list is selected: none, some or all. */
   selection?: "unchecked" | "checked" | "indeterminate"
+  /** Makes the box a working "select all". Needs `selectionLabel`. */
+  onSelectionChange?: () => void
+  selectionLabel?: string
   /** Show the sort arrow after the label. */
   sorted?: boolean
   className?: string
@@ -27,7 +32,12 @@ export function ListHeader({
         className
       )}
     >
-      <CheckMark value={selection} />
+      <CheckMark
+        value={selection}
+        label={selectionLabel}
+        onChange={onSelectionChange}
+        tabIndex={0}
+      />
       <span className="flex min-w-0 flex-1 items-center gap-0.5">
         <span className="truncate">{label}</span>
         {sorted && <Icon name="chevron-down" className="size-3" />}

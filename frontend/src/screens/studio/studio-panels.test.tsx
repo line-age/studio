@@ -94,6 +94,30 @@ describe("Studio panels", () => {
     ).toHaveAttribute("aria-selected", "true")
   })
 
+  it("ticks every section of a selected pipeline, and the header box selects all or none", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    act(() => useStudio.getState().selectPipeline("p-1"))
+
+    const all = screen.getByRole("checkbox", { name: "Select all sections" })
+    const tree = screen.getByRole("tree")
+    const boxes = within(tree).getAllByRole("checkbox")
+    expect(all).toBeChecked()
+    boxes.forEach((box) => expect(box).toBeChecked())
+
+    await user.click(boxes[0])
+    expect(boxes[0]).not.toBeChecked()
+    if (boxes.length > 1) expect(all).toHaveAttribute("aria-checked", "mixed")
+
+    await user.click(all)
+    expect(all).toBeChecked()
+    await user.click(all)
+    expect(all).not.toBeChecked()
+    within(tree)
+      .getAllByRole("checkbox")
+      .forEach((box) => expect(box).not.toBeChecked())
+  })
+
   it("moves through the list with the arrow keys and selects with Enter", async () => {
     const user = userEvent.setup()
     await renderPanels()

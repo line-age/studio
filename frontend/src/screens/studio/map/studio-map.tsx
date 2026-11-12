@@ -68,7 +68,7 @@ export function StudioMap({ token }: { token: string }) {
   const layers = useStudio((s) => s.layers)
   const show = useStudio((s) => s.show)
   const selectedPipelineId = useStudio((s) => s.selectedPipelineId)
-  const selectedSectionId = useStudio((s) => s.selectedSectionId)
+  const checkedSectionIds = useStudio((s) => s.checkedSectionIds)
   const fit = useStudio((s) => s.fit)
   const selectSection = useStudio((s) => s.selectSection)
   const clearSection = useStudio((s) => s.clearSection)
@@ -175,8 +175,9 @@ export function StudioMap({ token }: { token: string }) {
     setHoveredId(id ? String(id) : null)
   }
 
-  const selectedFilter = selectedSectionId
-    ? ["==", ["get", "id"], selectedSectionId]
+  // null means every section of the selected pipeline.
+  const selectedFilter = checkedSectionIds
+    ? ["in", ["get", "id"], ["literal", [...checkedSectionIds]]]
     : ["==", ["get", "pipelineId"], selectedPipelineId ?? ""]
   const visibility = (on: boolean) => (on ? "visible" : "none")
 

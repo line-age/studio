@@ -59,6 +59,13 @@ export function FiltersPanel() {
   const clearFilters = useStudio((s) => s.clearFilters)
 
   const counts = useMemo(() => showCounts(summaries), [summaries])
+  // Only notes on sections of this edition are drawn, so only those count.
+  const noteCount = useMemo(() => {
+    const inEdition = new Set(
+      summaries.flatMap((s) => s.sections.map((section) => section.id))
+    )
+    return network.notes.filter((note) => inEdition.has(note.sectionId)).length
+  }, [network.notes, summaries])
   const editions = useMemo(
     () =>
       [...network.editions]
@@ -115,7 +122,7 @@ export function FiltersPanel() {
             />
             <LayerRow
               name="Note pins"
-              meta={plural(network.notes.length, "note")}
+              meta={plural(noteCount, "note")}
               visible={layers.pins}
               onVisibleChange={() => toggleLayer("pins")}
             />

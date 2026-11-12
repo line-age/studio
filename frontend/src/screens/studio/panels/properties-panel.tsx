@@ -42,7 +42,10 @@ function PipelineProperties({ summary }: { summary: PipelineSummary }) {
   const selectedSectionId = useStudio((s) => s.selectedSectionId)
   const selectedAttribute = useStudio((s) => s.selectedAttribute)
   const expanded = useStudio((s) => s.expandedSectionIds)
+  const checkedIds = useStudio((s) => s.checkedSectionIds)
   const selectSection = useStudio((s) => s.selectSection)
+  const toggleSection = useStudio((s) => s.toggleSection)
+  const toggleAllSections = useStudio((s) => s.toggleAllSections)
   const selectAttribute = useStudio((s) => s.selectAttribute)
   const toggleExpanded = useStudio((s) => s.toggleExpanded)
   const requestFit = useStudio((s) => s.requestFit)
@@ -56,6 +59,12 @@ function PipelineProperties({ summary }: { summary: PipelineSummary }) {
       ?.scrollIntoView({ block: "nearest" })
   }, [selectedSectionId])
 
+  // Selecting a pipeline selects all of its sections (checkedIds is null).
+  const sectionIds = summary.sections.map((s) => s.id)
+  const isChecked = (id: string) => checkedIds === null || checkedIds.has(id)
+  const checkedCount = sectionIds.filter(isChecked).length
+  const check = (section: Section) => toggleSection(section.id, sectionIds)
+
   const pick = (section: Section) => {
     selectSection(summary.id, section.id)
     requestFit(geometryBounds(section.geometry))
@@ -66,7 +75,11 @@ function PipelineProperties({ summary }: { summary: PipelineSummary }) {
     section: Section
   ) => {
     const open = expanded.has(section.id)
-    if (isActivate(event)) {
+    if (event.target !== event.currentTarget) return
+    if (event.key === " ") {
+      event.preventDefault()
+      check(section)
+    } else if (event.key === "Enter") {
       event.preventDefault()
       pick(section)
     } else if (event.key === "ArrowRight" && !open) {
@@ -103,8 +116,16 @@ function PipelineProperties({ summary }: { summary: PipelineSummary }) {
       </PanelHeader>
       <ListHeader
         label="Sections"
-        trailing={`${selectedSectionId ? 1 : 0} of ${formatCount(summary.sections.length)} selected`}
-        selection={selectedSectionId ? "indeterminate" : "unchecked"}
+        trailing={`${formatCount(checkedCount)} of ${formatCount(sectionIds.length)} selected`}
+        selection={
+          checkedCount === 0
+            ? "unchecked"
+            : checkedCount === sectionIds.length
+              ? "checked"
+              : "indeterminate"
+        }
+        selectionLabel="Select all sections"
+        onSelectionChange={toggleAllSections}
       />
       <div
         ref={treeRef}
@@ -131,6 +152,9 @@ function PipelineProperties({ summary }: { summary: PipelineSummary }) {
                 code={section.code}
                 expanded={open}
                 selected={selected}
+                checked={isChecked(section.id)}
+                onCheck={() => check(section)}
+                checkLabel={`Select ${section.name}`}
                 trailing={
                   stats.unknown > 0 ? (
                     <StatusLabel status="unknown">
