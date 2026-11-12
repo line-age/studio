@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import {
   UNASSIGNED_ID,
   matchesShow,
+  matchesUnknownIn,
   sectionStats,
   sectionsOutsideEdition,
   unionBounds,
@@ -67,6 +68,7 @@ export function StudioMap({ token }: { token: string }) {
 
   const layers = useStudio((s) => s.layers)
   const show = useStudio((s) => s.show)
+  const unknownIn = useStudio((s) => s.unknownIn)
   const selectedPipelineId = useStudio((s) => s.selectedPipelineId)
   const checkedSectionIds = useStudio((s) => s.checkedSectionIds)
   const fit = useStudio((s) => s.fit)
@@ -83,7 +85,10 @@ export function StudioMap({ token }: { token: string }) {
     () =>
       collection(
         summaries
-          .filter((summary) => matchesShow(summary, show))
+          .filter(
+            (summary) =>
+              matchesShow(summary, show) && matchesUnknownIn(summary, unknownIn)
+          )
           .flatMap((summary) =>
             summary.sections.map((section) => ({
               type: "Feature" as const,
@@ -96,7 +101,7 @@ export function StudioMap({ token }: { token: string }) {
             }))
           )
       ),
-    [summaries, show]
+    [summaries, show, unknownIn]
   )
 
   const ghosts = useMemo(

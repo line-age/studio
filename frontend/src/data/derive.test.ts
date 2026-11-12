@@ -4,8 +4,10 @@ import { testNetwork } from "@/test/network"
 
 import {
   UNASSIGNED_ID,
+  attributeNames,
   geometryBounds,
   inView,
+  matchesUnknownIn,
   intersects,
   search,
   sectionStats,
@@ -85,6 +87,28 @@ describe("filters", () => {
     expect(ids({ show: "unknown", view: null })).toEqual(["p-1", UNASSIGNED_ID])
     expect(ids({ show: "all", view: [-1, 9, 3, 12] })).toEqual(["p-1"])
     expect(ids({ show: "all", view: [100, 0, 101, 1] })).toEqual([])
+  })
+
+  it("narrows to pipelines with an Unknown value for a chosen attribute", () => {
+    const names = attributeNames(summaries)
+    expect(names.length).toBeGreaterThan(0)
+    expect(matchesUnknownIn(summaries[0], [])).toBe(true)
+    for (const name of names) {
+      const expected = summaries
+        .filter((s) =>
+          s.sections.some((sec) =>
+            sec.claims.some((c) => c.attribute === name && c.value === null)
+          )
+        )
+        .map((s) => s.id)
+      expect(
+        visiblePipelines(summaries, {
+          show: "all",
+          view: null,
+          unknownIn: [name],
+        }).map((s) => s.id)
+      ).toEqual(expected)
+    }
   })
 
   it("treats a missing view as everything in view", () => {

@@ -47,6 +47,7 @@ export function PipelinesPanel() {
   const setQuery = useStudio((s) => s.setQuery)
   const show = useStudio((s) => s.show)
   const onlyInView = useStudio((s) => s.onlyInView)
+  const unknownIn = useStudio((s) => s.unknownIn)
   const openHit = useOpenHit()
   const [active, setActive] = useState(0)
 
@@ -140,6 +141,13 @@ export function PipelinesPanel() {
           ) : (
             <>
               <Badge variant="secondary">{showLabels[show]}</Badge>
+              {unknownIn.length > 0 && (
+                <Badge variant="secondary" className="min-w-0 shrink">
+                  <span className="truncate">
+                    Unknown {unknownIn.join(", ").toLocaleLowerCase()}
+                  </span>
+                </Badge>
+              )}
               {onlyInView && <Badge variant="secondary">Map view</Badge>}
             </>
           )}

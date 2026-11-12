@@ -74,9 +74,15 @@ export function useVisiblePipelines(): PipelineSummary[] {
   const show = useStudio((s) => s.show)
   const onlyInView = useStudio((s) => s.onlyInView)
   const view = useStudio((s) => s.view)
+  const unknownIn = useStudio((s) => s.unknownIn)
   return useMemo(
-    () => visiblePipelines(summaries, { show, view: onlyInView ? view : null }),
-    [summaries, show, onlyInView, view]
+    () =>
+      visiblePipelines(summaries, {
+        show,
+        unknownIn,
+        view: onlyInView ? view : null,
+      }),
+    [summaries, show, unknownIn, onlyInView, view]
   )
 }
 

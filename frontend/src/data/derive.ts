@@ -177,6 +177,33 @@ export function matchesShow(
   }
 }
 
+/**
+ * True when the pipeline has a section whose value for one of these
+ * attributes is Unknown. No attributes means no narrowing.
+ */
+export function matchesUnknownIn(
+  summary: PipelineSummary,
+  attributes: readonly string[]
+): boolean {
+  if (attributes.length === 0) return true
+  return summary.sections.some((section) =>
+    section.claims.some(
+      (claim) => claim.value === null && attributes.includes(claim.attribute)
+    )
+  )
+}
+
+/** Every attribute of the edition, in the order sections list them. */
+export function attributeNames(summaries: PipelineSummary[]): string[] {
+  const names = new Set<string>()
+  for (const summary of summaries) {
+    for (const section of summary.sections) {
+      for (const claim of section.claims) names.add(claim.attribute)
+    }
+  }
+  return [...names]
+}
+
 export function showCounts(
   summaries: PipelineSummary[]
 ): Record<ShowFilter, number> {
@@ -204,10 +231,17 @@ export function inView(summary: PipelineSummary, view: Bounds | null): boolean {
 
 export function visiblePipelines(
   summaries: PipelineSummary[],
-  filters: { show: ShowFilter; view: Bounds | null }
+  filters: {
+    show: ShowFilter
+    view: Bounds | null
+    unknownIn?: readonly string[]
+  }
 ): PipelineSummary[] {
   return summaries.filter(
-    (s) => matchesShow(s, filters.show) && inView(s, filters.view)
+    (s) =>
+      matchesShow(s, filters.show) &&
+      matchesUnknownIn(s, filters.unknownIn ?? []) &&
+      inView(s, filters.view)
   )
 }
 

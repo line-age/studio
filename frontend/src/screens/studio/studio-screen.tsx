@@ -132,7 +132,9 @@ function Frame({
   const { panel, open, togglePanel } = useLeftPanel()
   const rightOpen = useStudio((s) => s.selectedPipelineId !== null)
   // Applied means different from how the screen opens (see clearFilters).
-  const filtersApplied = useStudio((s) => s.show !== "all" || !s.onlyInView)
+  const filtersApplied = useStudio(
+    (s) => s.show !== "all" || !s.onlyInView || s.unknownIn.length > 0
+  )
   return (
     <>
       <TopBar networkName={networkName} />

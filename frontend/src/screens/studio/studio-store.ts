@@ -27,6 +27,8 @@ interface StudioState {
   editionId: string | null
   show: ShowFilter
   onlyInView: boolean
+  /** Keep pipelines with an Unknown value for one of these attributes. */
+  unknownIn: readonly string[]
   layers: Record<LayerId, boolean>
   query: string
   selectedPipelineId: string | null
@@ -44,6 +46,7 @@ interface StudioState {
   setEdition: (editionId: string) => void
   setShow: (show: ShowFilter) => void
   setOnlyInView: (on: boolean) => void
+  toggleUnknownIn: (attribute: string) => void
   toggleLayer: (layer: LayerId) => void
   clearFilters: () => void
   setQuery: (query: string) => void
@@ -79,6 +82,7 @@ export const useStudio = create<StudioState>((set) => ({
   editionId: null,
   show: "all",
   onlyInView: true,
+  unknownIn: [],
   layers: defaultLayers,
   query: "",
   selectedPipelineId: null,
@@ -101,10 +105,16 @@ export const useStudio = create<StudioState>((set) => ({
     }),
   setShow: (show) => set({ show }),
   setOnlyInView: (onlyInView) => set({ onlyInView }),
+  toggleUnknownIn: (attribute) =>
+    set((s) => ({
+      unknownIn: s.unknownIn.includes(attribute)
+        ? s.unknownIn.filter((a) => a !== attribute)
+        : [...s.unknownIn, attribute],
+    })),
   toggleLayer: (layer) =>
     set((s) => ({ layers: { ...s.layers, [layer]: !s.layers[layer] } })),
   // Back to how the screen opens: every pipeline, following the map view.
-  clearFilters: () => set({ show: "all", onlyInView: true }),
+  clearFilters: () => set({ show: "all", onlyInView: true, unknownIn: [] }),
   setQuery: (query) => set({ query }),
   selectPipeline: (pipelineId) =>
     set({
