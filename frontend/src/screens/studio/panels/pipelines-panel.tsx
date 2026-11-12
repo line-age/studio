@@ -220,7 +220,12 @@ function PipelineList({
       ?.scrollIntoView({ block: "nearest" })
   }, [selectedId])
 
+  // A click on the selected row takes the selection off again.
   const select = (summary: PipelineSummary) => {
+    if (summary.id === selectedId) {
+      selectPipeline(null)
+      return
+    }
     selectPipeline(summary.id)
     requestFit(summary.bounds)
   }
