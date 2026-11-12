@@ -155,14 +155,17 @@ Where code knowingly differs from the Figma frame:
   pipeline at a time on the left; its header box only clears the selection.
 - Search narrows the same pipeline list (same rows, the second line says why a row
   matched). The grouped SearchResult layout of frame `45:99` is not used.
-- The rail marks the open panel as shadcn Tabs does: the icon sits on a raised
-  white chip with a border, icon in primary, label below in medium; not the light tint. Filters shows a dot when filters are applied; Agent shows a purple dot when
+- The rail follows shadcn SidebarMenuButton in its icon size: a flat 32 square behind the
+  icon, `sidebar-accent` on hover and when open, label below in medium; no blue tint.
+  Filters shows a dot when filters are applied; Agent shows a purple dot when
   proposals are waiting. The numbered note badge is gone.
 - All three left panels share one width. Both side panels can be dragged wider
   (`ResizeHandle`); the width is kept in the browser.
 - Right click on a pipeline row, a section row or the map offers "Add to the Agent
   chat": the item appears as an Attachment in the chat input. The menu is stock shadcn
   Context Menu.
+- The edition label at the bottom left of the map is removed (the Filters panel and the
+  list badges say the edition).
 - These were asked for by the owner on 2026-11-12 ahead of Figma. Figma needs updating.
 - No minimum page width: the map takes the space the panels leave, so the right panel is
   always at the window edge. The frame is drawn at 1728 wide only.

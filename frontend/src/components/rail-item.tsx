@@ -34,21 +34,19 @@ export function RailItem({
       )}
       {...props}
     >
-      {/* Only the icon sits on a chip; the open panel's chip is raised white. */}
+      {/* shadcn SidebarMenuButton in its icon size: flat, accent when open. */}
       <span
         className={cn(
-          "relative flex h-8 w-10 items-center justify-center rounded-lg border transition-colors duration-100 group-focus-visible/rail:outline-2 group-focus-visible/rail:outline-offset-1 group-focus-visible/rail:outline-ring group-focus-visible/rail:outline-solid",
-          active
-            ? "border-border bg-background text-primary shadow-sm"
-            : "border-transparent group-hover/rail:bg-accent group-active/rail:bg-selected"
+          "relative flex size-8 items-center justify-center rounded-md transition-colors duration-100 group-hover/rail:bg-sidebar-accent group-focus-visible/rail:ring-2 group-focus-visible/rail:ring-ring",
+          active && "bg-sidebar-accent text-sidebar-foreground"
         )}
       >
         <Icon name={icon} />
         {indicator && (
           <span
             className={cn(
-              "absolute top-1 right-1.5 size-2 rounded-full ring-2",
-              active ? "ring-background" : "ring-muted",
+              "absolute top-0.5 right-0.5 size-2 rounded-full ring-2",
+              active ? "ring-sidebar-accent" : "ring-muted",
               indicator.tone === "ai" ? "bg-state-ai" : "bg-primary"
             )}
           />

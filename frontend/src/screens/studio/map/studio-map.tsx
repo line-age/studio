@@ -12,7 +12,6 @@ import MapGL, {
 
 import { Icon } from "@/components/icons/icon"
 import { MapControl } from "@/components/map-control"
-import { MapLabel } from "@/components/map-label"
 import { Pin } from "@/components/pin"
 import { ToolPalette } from "@/components/tool-palette"
 import { Button } from "@/components/ui/button"
@@ -393,10 +392,8 @@ export function StudioMap({ token }: { token: string }) {
         </MapControl>
       </div>
 
-      {/* Label left, tools centred; on a narrow map they sit side by side. */}
-      <div className="pointer-events-none absolute inset-x-3 bottom-3 grid grid-cols-[1fr_auto_1fr] items-end gap-2 *:pointer-events-auto">
-        <MapLabel className="justify-self-start">{edition.label}</MapLabel>
-        {/* Only Select does anything yet; the other tools are shown as designed. */}
+      {/* Only Select does anything yet; the other tools are shown as designed. */}
+      <div className="pointer-events-none absolute inset-x-3 bottom-3 flex justify-center *:pointer-events-auto">
         <ToolPalette value="select" onValueChange={() => {}} />
       </div>
     </div>
