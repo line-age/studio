@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button"
 import {
   UNASSIGNED_ID,
   matchesShow,
-  matchesUnknownIn,
+  matchesCriteria,
   sectionStats,
   sectionsOutsideEdition,
   unionBounds,
@@ -29,7 +29,7 @@ import type { Geometry } from "@/data/schema"
 import { SEARCH_INPUT_ID } from "../panels/pipelines-panel"
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { useLeftPanel } from "../left-panel-context"
-import { useStudioData } from "../studio-data"
+import { useCriteria, useStudioData } from "../studio-data"
 import { useCamera, useStudio } from "../studio-store"
 import { readMapColors } from "./map-colors"
 
@@ -68,7 +68,7 @@ export function StudioMap({ token }: { token: string }) {
 
   const layers = useStudio((s) => s.layers)
   const show = useStudio((s) => s.show)
-  const unknownIn = useStudio((s) => s.unknownIn)
+  const criteria = useCriteria()
   const selectedPipelineId = useStudio((s) => s.selectedPipelineId)
   const checkedSectionIds = useStudio((s) => s.checkedSectionIds)
   const fit = useStudio((s) => s.fit)
@@ -87,7 +87,7 @@ export function StudioMap({ token }: { token: string }) {
         summaries
           .filter(
             (summary) =>
-              matchesShow(summary, show) && matchesUnknownIn(summary, unknownIn)
+              matchesShow(summary, show) && matchesCriteria(summary, criteria)
           )
           .flatMap((summary) =>
             summary.sections.map((section) => ({
@@ -101,7 +101,7 @@ export function StudioMap({ token }: { token: string }) {
             }))
           )
       ),
-    [summaries, show, unknownIn]
+    [summaries, show, criteria]
   )
 
   const ghosts = useMemo(

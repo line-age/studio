@@ -1,4 +1,4 @@
-import { useId, useMemo } from "react"
+import { useId, useMemo, useState } from "react"
 
 import { GroupLabel } from "@/components/group-label"
 import { LayerRow } from "@/components/layer-row"
@@ -9,9 +9,12 @@ import { PanelHeader } from "@/components/panel-header"
 import { SwitchRow } from "@/components/switch-row"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   attributeNames,
+  buildYearSpan,
+  companyCounts,
   formatCount,
   matchesUnknownIn,
   plural,
@@ -21,7 +24,7 @@ import {
 import { cn } from "@/lib/utils"
 
 import { useStudioData, useVisiblePipelines } from "../studio-data"
-import { useStudio } from "../studio-store"
+import { filtersApplied, useStudio } from "../studio-store"
 
 const showOptions: { value: ShowFilter; label: string }[] = [
   { value: "all", label: "All pipelines" },
@@ -94,6 +97,14 @@ export function FiltersPanel() {
   const clearFilters = useStudio((s) => s.clearFilters)
   const unknownIn = useStudio((s) => s.unknownIn)
   const toggleUnknownIn = useStudio((s) => s.toggleUnknownIn)
+  const companies = useStudio((s) => s.companies)
+  const toggleCompany = useStudio((s) => s.toggleCompany)
+  const setCompanies = useStudio((s) => s.setCompanies)
+  const builtFrom = useStudio((s) => s.builtFrom)
+  const builtTo = useStudio((s) => s.builtTo)
+  const setBuilt = useStudio((s) => s.setBuilt)
+  const filtered = useStudio(filtersApplied)
+  const [companyQuery, setCompanyQuery] = useState("")
 
   const counts = useMemo(() => showCounts(summaries), [summaries])
   // Only notes on sections of this edition are drawn, so only those count.
@@ -119,7 +130,16 @@ export function FiltersPanel() {
       })),
     [summaries]
   )
-  const filtered = show !== "all" || !onlyInView || unknownIn.length > 0
+  const allCompanies = useMemo(() => companyCounts(summaries), [summaries])
+  const span = useMemo(() => buildYearSpan(summaries), [summaries])
+  const needle = companyQuery.trim().toLocaleLowerCase()
+  const shownCompanies = allCompanies.filter(
+    (c) => needle === "" || c.name.toLocaleLowerCase().includes(needle)
+  )
+  const year = (text: string) => {
+    const n = Number.parseInt(text, 10)
+    return Number.isFinite(n) ? n : null
+  }
 
   return (
     <>
@@ -189,6 +209,111 @@ export function FiltersPanel() {
           </RadioGroup>
         </Group>
 
+        {allCompanies.length > 0 && (
+          <Group
+            title="Company"
+            action={
+              companies.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => setCompanies([])}
+                >
+                  Clear
+                </Button>
+              )
+            }
+          >
+            {/* A long list gets a box to find a company by name. */}
+            {allCompanies.length > 8 && (
+              <Input
+                type="search"
+                name="company-filter"
+                aria-label="Find a company"
+                autoComplete="off"
+                spellCheck={false}
+                placeholder="Find a company"
+                value={companyQuery}
+                onChange={(event) => setCompanyQuery(event.target.value)}
+              />
+            )}
+            <div
+              role="group"
+              aria-label="Company"
+              className="flex max-h-64 flex-col gap-0.5 overflow-y-auto overscroll-contain"
+            >
+              {shownCompanies.map(({ name, count }) => (
+                <OptionRow
+                  key={name}
+                  control={
+                    <Checkbox
+                      checked={companies.includes(name)}
+                      onCheckedChange={() => toggleCompany(name)}
+                    />
+                  }
+                  label={name}
+                  count={count}
+                  selected={companies.includes(name)}
+                />
+              ))}
+              {shownCompanies.length === 0 && (
+                <p className="px-2 type-ui-sm text-muted-foreground">
+                  No company matches “{companyQuery.trim()}”.
+                </p>
+              )}
+            </div>
+          </Group>
+        )}
+
+        {span && (
+          <Group
+            title="Build date"
+            action={
+              (builtFrom !== null || builtTo !== null) && (
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => setBuilt(null, null)}
+                >
+                  Clear
+                </Button>
+              )
+            }
+          >
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                inputMode="numeric"
+                name="built-from"
+                aria-label="Built from year"
+                placeholder={String(span[0])}
+                min={span[0]}
+                max={span[1]}
+                value={builtFrom ?? ""}
+                onChange={(event) =>
+                  setBuilt(year(event.target.value), builtTo)
+                }
+                className="tabular-nums"
+              />
+              <span className="type-ui-sm text-muted-foreground">to</span>
+              <Input
+                type="number"
+                inputMode="numeric"
+                name="built-to"
+                aria-label="Built to year"
+                placeholder={String(span[1])}
+                min={span[0]}
+                max={span[1]}
+                value={builtTo ?? ""}
+                onChange={(event) =>
+                  setBuilt(builtFrom, year(event.target.value))
+                }
+                className="tabular-nums"
+              />
+            </div>
+          </Group>
+        )}
+
         {attributes.length > 0 && (
           <Group
             title="Unknown in"
@@ -224,11 +349,6 @@ export function FiltersPanel() {
                 />
               ))}
             </div>
-            {unknownIn.length > 1 && (
-              <p className="px-2 type-ui-xs text-muted-foreground">
-                Pipelines where any of these is Unknown.
-              </p>
-            )}
           </Group>
         )}
 

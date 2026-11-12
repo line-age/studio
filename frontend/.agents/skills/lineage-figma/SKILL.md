@@ -172,8 +172,10 @@ Where code knowingly differs from the Figma frame:
 - The right panel is shown only while something is selected (no "Nothing selected"
   state on screen). A click on empty map steps the selection back, then clears it. The
   open panel's rail item shuts the left panel. Both slide over 200 ms.
-- The Filters panel has a criterion Figma lacks: "Unknown in", a checkbox per attribute
-  with counts (shadcn Checkbox). It narrows the list and the map, shows as a badge in the
+- The Filters panel has criteria Figma lacks: "Company" (checkboxes from the Owner
+  attribute, with a find box when there are many), "Build date" (from and to year) and
+  "Unknown in", a checkbox per attribute with counts (shadcn Checkbox). A pipeline passes
+  when one of its sections satisfies all of them. It narrows the list and the map, shows as a badge in the
   list, and is cleared by "Clear all".
 - The Edition select is removed from the Filters panel (owner, 2026-11-12). The app
   shows the latest edition; `setEdition` stays in the store but no control calls it.

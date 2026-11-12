@@ -26,7 +26,7 @@ import { PipelinesPanel, SEARCH_INPUT_ID } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
 import { SidePanel } from "./side-panel"
 import { StudioDataProvider, useStudioData } from "./studio-data"
-import { useStudio, type LeftPanel } from "./studio-store"
+import { filtersApplied, useStudio, type LeftPanel } from "./studio-store"
 import { TopBar, type Crumb } from "./top-bar"
 
 /*
@@ -136,9 +136,7 @@ function Frame({
   const { panel, open, togglePanel } = useLeftPanel()
   const rightOpen = useStudio((s) => s.selectedPipelineId !== null)
   // Applied means different from how the screen opens (see clearFilters).
-  const filtersApplied = useStudio(
-    (s) => s.show !== "all" || !s.onlyInView || s.unknownIn.length > 0
-  )
+  const hasFilters = useStudio(filtersApplied)
   return (
     <>
       <TopBar networkName={networkName} trail={trail} onRoot={onHome} />
@@ -156,7 +154,7 @@ function Frame({
           <RailItem
             icon="filter"
             label="Filters"
-            indicator={filtersApplied ? { label: "filters applied" } : null}
+            indicator={hasFilters ? { label: "filters applied" } : null}
             active={open && panel === "filters"}
             onClick={() => togglePanel("filters")}
           />

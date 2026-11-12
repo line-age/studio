@@ -177,6 +177,88 @@ export function matchesShow(
   }
 }
 
+/** The attribute that holds the company, and the one that holds the build year. */
+export const COMPANY_ATTRIBUTE = "Owner"
+export const BUILD_DATE_ATTRIBUTE = "Build date"
+
+/** What a section has to satisfy to pass the filters. Empty parts ask nothing. */
+export interface SectionCriteria {
+  /** One of these attributes is Unknown on the section. */
+  unknownIn: readonly string[]
+  /** The section's company is one of these. */
+  companies: readonly string[]
+  /** The section's build year is in this range, ends included. */
+  builtFrom: number | null
+  builtTo: number | null
+}
+
+export const NO_CRITERIA: SectionCriteria = {
+  unknownIn: [],
+  companies: [],
+  builtFrom: null,
+  builtTo: null,
+}
+
+const valueOf = (section: Section, attribute: string) =>
+  section.claims.find((claim) => claim.attribute === attribute)?.value ?? null
+
+/** The company a section is cited as belonging to; null when Unknown. */
+export function companyOf(section: Section): string | null {
+  return valueOf(section, COMPANY_ATTRIBUTE)
+}
+
+/** The first four-digit year in the section's build date; null when Unknown. */
+export function buildYear(section: Section): number | null {
+  const year = valueOf(section, BUILD_DATE_ATTRIBUTE)?.match(/\d{4}/)?.[0]
+  return year ? Number(year) : null
+}
+
+export function hasCriteria(criteria: SectionCriteria): boolean {
+  return (
+    criteria.unknownIn.length > 0 ||
+    criteria.companies.length > 0 ||
+    criteria.builtFrom !== null ||
+    criteria.builtTo !== null
+  )
+}
+
+/** One section against every part of the criteria at once. */
+export function sectionMatches(
+  section: Section,
+  criteria: SectionCriteria
+): boolean {
+  const { unknownIn, companies, builtFrom, builtTo } = criteria
+  if (
+    unknownIn.length > 0 &&
+    !section.claims.some(
+      (claim) => claim.value === null && unknownIn.includes(claim.attribute)
+    )
+  ) {
+    return false
+  }
+  if (companies.length > 0) {
+    const company = companyOf(section)
+    if (company === null || !companies.includes(company)) return false
+  }
+  if (builtFrom !== null || builtTo !== null) {
+    // An Unknown build date is not in any range.
+    const year = buildYear(section)
+    if (year === null) return false
+    if (builtFrom !== null && year < builtFrom) return false
+    if (builtTo !== null && year > builtTo) return false
+  }
+  return true
+}
+
+/** A pipeline passes when one of its sections satisfies all the criteria. */
+export function matchesCriteria(
+  summary: PipelineSummary,
+  criteria: SectionCriteria
+): boolean {
+  if (!hasCriteria(criteria)) return true
+  return summary.sections.some((section) => sectionMatches(section, criteria))
+}
+
 /**
  * True when the pipeline has a section whose value for one of these
  * attributes is Unknown. No attributes means no narrowing.
@@ -185,12 +267,33 @@ export function matchesUnknownIn(
   summary: PipelineSummary,
   attributes: readonly string[]
 ): boolean {
-  if (attributes.length === 0) return true
-  return summary.sections.some((section) =>
-    section.claims.some(
-      (claim) => claim.value === null && attributes.includes(claim.attribute)
+  return matchesCriteria(summary, { ...NO_CRITERIA, unknownIn: attributes })
+}
+
+/** Each company of the edition with how many pipelines it has a section in. */
+export function companyCounts(
+  summaries: PipelineSummary[]
+): { name: string; count: number }[] {
+  const counts = new Map<string, number>()
+  for (const summary of summaries) {
+    const names = new Set(
+      summary.sections.flatMap((section) => companyOf(section) ?? [])
     )
+    for (const name of names) counts.set(name, (counts.get(name) ?? 0) + 1)
+  }
+  return [...counts]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+}
+
+/** The earliest and latest build year in the edition; null when none is cited. */
+export function buildYearSpan(
+  summaries: PipelineSummary[]
+): [number, number] | null {
+  const years = summaries.flatMap((summary) =>
+    summary.sections.flatMap((section) => buildYear(section) ?? [])
   )
+  return years.length > 0 ? [Math.min(...years), Math.max(...years)] : null
 }
 
 /** Every attribute of the edition, in the order sections list them. */
@@ -231,16 +334,13 @@ export function inView(summary: PipelineSummary, view: Bounds | null): boolean {
 
 export function visiblePipelines(
   summaries: PipelineSummary[],
-  filters: {
-    show: ShowFilter
-    view: Bounds | null
-    unknownIn?: readonly string[]
-  }
+  filters: { show: ShowFilter; view: Bounds | null } & Partial<SectionCriteria>
 ): PipelineSummary[] {
+  const criteria = { ...NO_CRITERIA, ...filters }
   return summaries.filter(
     (s) =>
       matchesShow(s, filters.show) &&
-      matchesUnknownIn(s, filters.unknownIn ?? []) &&
+      matchesCriteria(s, criteria) &&
       inView(s, filters.view)
   )
 }

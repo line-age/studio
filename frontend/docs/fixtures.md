@@ -127,3 +127,16 @@ The types use the project glossary: **section**, **claim**, **citation**. The
 interface says "fact" where the type says claim, because the design does.
 "Pipeline" (a named group of sections), "edition" and "proposal" are the
 design's words and are not in the glossary yet.
+
+## Attributes the filters read
+
+Attribute names are free text, but two of them drive filters in the Filters panel:
+
+- `Owner`: the company. Its values are the choices under "Company", and search finds
+  sections by it.
+- `Build date`: the first four-digit year in the value is the build year for the
+  "Build date" range. `"1934"` and `"Completed 1934"` both read as 1934.
+
+A section where either is Unknown (`"value": null`) is left out when that filter is
+set: Unknown is not a company and is in no range. The names are constants in
+`src/data/derive.ts` (`COMPANY_ATTRIBUTE`, `BUILD_DATE_ATTRIBUTE`).

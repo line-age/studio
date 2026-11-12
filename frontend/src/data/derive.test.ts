@@ -3,8 +3,15 @@ import { describe, expect, it } from "vitest"
 import { testNetwork } from "@/test/network"
 
 import {
+  NO_CRITERIA,
   UNASSIGNED_ID,
   attributeNames,
+  buildYear,
+  buildYearSpan,
+  companyCounts,
+  companyOf,
+  matchesCriteria,
+  sectionMatches,
   geometryBounds,
   inView,
   matchesUnknownIn,
@@ -108,6 +115,40 @@ describe("filters", () => {
           unknownIn: [name],
         }).map((s) => s.id)
       ).toEqual(expected)
+    }
+  })
+
+  it("narrows by company and by build year, on the same section", () => {
+    const companies = companyCounts(summaries)
+    expect(companies.length).toBeGreaterThan(0)
+    for (const { name, count } of companies) {
+      const kept = visiblePipelines(summaries, {
+        show: "all",
+        view: null,
+        companies: [name],
+      })
+      expect(kept).toHaveLength(count)
+      expect(
+        kept.every((s) => s.sections.some((sec) => companyOf(sec) === name))
+      ).toBe(true)
+    }
+
+    const section = network.sections[0]
+    const none = { ...NO_CRITERIA, companies: ["No such company"] }
+    expect(sectionMatches(section, none)).toBe(false)
+    // An Unknown build date is in no range.
+    const unknownBuilt = network.sections.find((s) => buildYear(s) === null)
+    if (unknownBuilt) {
+      expect(
+        sectionMatches(unknownBuilt, { ...NO_CRITERIA, builtFrom: 1000 })
+      ).toBe(false)
+    }
+    const span = buildYearSpan(summaries)
+    if (span) {
+      const inside = { ...NO_CRITERIA, builtFrom: span[0], builtTo: span[1] }
+      const after = { ...NO_CRITERIA, builtFrom: span[1] + 1 }
+      expect(summaries.some((s) => matchesCriteria(s, inside))).toBe(true)
+      expect(summaries.some((s) => matchesCriteria(s, after))).toBe(false)
     }
   })
 

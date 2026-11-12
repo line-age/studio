@@ -29,6 +29,11 @@ interface StudioState {
   onlyInView: boolean
   /** Keep pipelines with an Unknown value for one of these attributes. */
   unknownIn: readonly string[]
+  /** Keep pipelines with a section of one of these companies. */
+  companies: readonly string[]
+  /** Keep pipelines with a section built in this range of years. */
+  builtFrom: number | null
+  builtTo: number | null
   layers: Record<LayerId, boolean>
   query: string
   /** Search past the filters, through every pipeline of the edition. */
@@ -49,6 +54,9 @@ interface StudioState {
   setShow: (show: ShowFilter) => void
   setOnlyInView: (on: boolean) => void
   toggleUnknownIn: (attribute: string) => void
+  toggleCompany: (company: string) => void
+  setCompanies: (companies: readonly string[]) => void
+  setBuilt: (from: number | null, to: number | null) => void
   toggleLayer: (layer: LayerId) => void
   clearFilters: () => void
   setQuery: (query: string) => void
@@ -81,11 +89,23 @@ const defaultLayers: Record<LayerId, boolean> = {
 
 let nonce = 0
 
+/** True when a filter differs from how the screen opens (see clearFilters). */
+export const filtersApplied = (s: StudioState) =>
+  s.show !== "all" ||
+  !s.onlyInView ||
+  s.unknownIn.length > 0 ||
+  s.companies.length > 0 ||
+  s.builtFrom !== null ||
+  s.builtTo !== null
+
 export const useStudio = create<StudioState>((set) => ({
   editionId: null,
   show: "all",
   onlyInView: true,
   unknownIn: [],
+  companies: [],
+  builtFrom: null,
+  builtTo: null,
   layers: defaultLayers,
   query: "",
   searchWholeEdition: false,
@@ -118,7 +138,23 @@ export const useStudio = create<StudioState>((set) => ({
   toggleLayer: (layer) =>
     set((s) => ({ layers: { ...s.layers, [layer]: !s.layers[layer] } })),
   // Back to how the screen opens: every pipeline, following the map view.
-  clearFilters: () => set({ show: "all", onlyInView: true, unknownIn: [] }),
+  toggleCompany: (company) =>
+    set((s) => ({
+      companies: s.companies.includes(company)
+        ? s.companies.filter((c) => c !== company)
+        : [...s.companies, company],
+    })),
+  setCompanies: (companies) => set({ companies }),
+  setBuilt: (builtFrom, builtTo) => set({ builtFrom, builtTo }),
+  clearFilters: () =>
+    set({
+      show: "all",
+      onlyInView: true,
+      unknownIn: [],
+      companies: [],
+      builtFrom: null,
+      builtTo: null,
+    }),
   // A new search starts inside the filters again.
   setQuery: (query) =>
     set((s) => ({

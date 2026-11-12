@@ -56,6 +56,9 @@ export function PipelinesPanel() {
   const show = useStudio((s) => s.show)
   const onlyInView = useStudio((s) => s.onlyInView)
   const unknownIn = useStudio((s) => s.unknownIn)
+  const companies = useStudio((s) => s.companies)
+  const builtFrom = useStudio((s) => s.builtFrom)
+  const builtTo = useStudio((s) => s.builtTo)
   const openHit = useOpenHit()
   const [active, setActive] = useState(0)
 
@@ -154,6 +157,24 @@ export function PipelinesPanel() {
                   <span className="truncate">
                     Unknown {unknownIn.join(", ").toLocaleLowerCase()}
                   </span>
+                </Badge>
+              )}
+              {companies.length > 0 && (
+                <Badge variant="secondary" className="max-w-full">
+                  <span className="truncate">
+                    {companies.length === 1
+                      ? companies[0]
+                      : plural(companies.length, "company", "companies")}
+                  </span>
+                </Badge>
+              )}
+              {(builtFrom !== null || builtTo !== null) && (
+                <Badge variant="secondary">
+                  {builtFrom !== null && builtTo !== null
+                    ? `Built ${builtFrom} to ${builtTo}`
+                    : builtFrom !== null
+                      ? `Built ${builtFrom} or later`
+                      : `Built ${builtTo} or earlier`}
                 </Badge>
               )}
               {onlyInView && <Badge variant="secondary">Map view</Badge>}

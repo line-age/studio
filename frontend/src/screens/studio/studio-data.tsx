@@ -7,6 +7,7 @@ import {
   visiblePipelines,
   type PipelineSummary,
   type SearchHit,
+  type SectionCriteria,
 } from "@/data/derive"
 import type { Edition, Network, Section } from "@/data/schema"
 
@@ -74,15 +75,27 @@ export function useVisiblePipelines(): PipelineSummary[] {
   const show = useStudio((s) => s.show)
   const onlyInView = useStudio((s) => s.onlyInView)
   const view = useStudio((s) => s.view)
-  const unknownIn = useStudio((s) => s.unknownIn)
+  const criteria = useCriteria()
   return useMemo(
     () =>
       visiblePipelines(summaries, {
         show,
-        unknownIn,
+        ...criteria,
         view: onlyInView ? view : null,
       }),
-    [summaries, show, unknownIn, onlyInView, view]
+    [summaries, show, criteria, onlyInView, view]
+  )
+}
+
+/** The section criteria chosen in the Filters panel. */
+export function useCriteria(): SectionCriteria {
+  const unknownIn = useStudio((s) => s.unknownIn)
+  const companies = useStudio((s) => s.companies)
+  const builtFrom = useStudio((s) => s.builtFrom)
+  const builtTo = useStudio((s) => s.builtTo)
+  return useMemo(
+    () => ({ unknownIn, companies, builtFrom, builtTo }),
+    [unknownIn, companies, builtFrom, builtTo]
   )
 }
 
