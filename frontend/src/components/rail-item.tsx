@@ -25,34 +25,38 @@ export function RailItem({
     <button
       type="button"
       aria-pressed={active}
-      className={cn("group/rail w-full px-1 outline-none", className)}
+      className={cn(
+        "group/rail flex w-full flex-col items-center gap-1 py-1 outline-none",
+        active
+          ? "type-ui-2xs-medium text-foreground"
+          : "type-ui-2xs text-muted-foreground hover:text-foreground",
+        className
+      )}
       {...props}
     >
-      {/* As shadcn Tabs on a muted list: the open one is a raised white tile. */}
+      {/* Only the icon sits on a chip; the open panel's chip is raised white. */}
       <span
         className={cn(
-          "flex flex-col items-center gap-1 rounded-lg border px-0.5 pt-2 pb-1.5 transition-colors duration-100 group-focus-visible/rail:outline-2 group-focus-visible/rail:outline-offset-1 group-focus-visible/rail:outline-ring group-focus-visible/rail:outline-solid",
+          "relative flex h-8 w-10 items-center justify-center rounded-lg border transition-colors duration-100 group-focus-visible/rail:outline-2 group-focus-visible/rail:outline-offset-1 group-focus-visible/rail:outline-ring group-focus-visible/rail:outline-solid",
           active
-            ? "border-border-subtle bg-background type-ui-2xs-medium text-foreground shadow-sm"
-            : "border-transparent type-ui-2xs text-muted-foreground group-hover/rail:bg-accent group-hover/rail:text-foreground group-active/rail:bg-selected"
+            ? "border-border bg-background text-primary shadow-sm"
+            : "border-transparent group-hover/rail:bg-accent group-active/rail:bg-selected"
         )}
       >
-        <span className="relative flex">
-          <Icon name={icon} className={cn(active && "text-primary")} />
-          {indicator && (
-            <span
-              className={cn(
-                "absolute -top-1 -right-1.5 size-2 rounded-full ring-2",
-                active ? "ring-background" : "ring-muted",
-                indicator.tone === "ai" ? "bg-state-ai" : "bg-primary"
-              )}
-            />
-          )}
-        </span>
-        <span>
-          {label}
-          {indicator && <span className="sr-only">, {indicator.label}</span>}
-        </span>
+        <Icon name={icon} />
+        {indicator && (
+          <span
+            className={cn(
+              "absolute top-1 right-1.5 size-2 rounded-full ring-2",
+              active ? "ring-background" : "ring-muted",
+              indicator.tone === "ai" ? "bg-state-ai" : "bg-primary"
+            )}
+          />
+        )}
+      </span>
+      <span>
+        {label}
+        {indicator && <span className="sr-only">, {indicator.label}</span>}
       </span>
     </button>
   )
