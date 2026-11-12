@@ -204,8 +204,6 @@ export function FiltersPanel() {
               visible={layers.pins}
               onVisibleChange={() => toggleLayer("pins")}
             />
-            {/* Shown as designed. There is no scan layer yet, so it stays off. */}
-            <LayerRow name="Scanned map" meta="Off" visible={false} />
           </ul>
         </Group>
 

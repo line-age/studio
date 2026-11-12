@@ -7,6 +7,7 @@ import {
 } from "react"
 
 import { formatDateRange } from "@/components/date-range-picker"
+import { FilterChip } from "@/components/filter-chip"
 import { Hint } from "@/components/hint"
 import { Icon } from "@/components/icons/icon"
 import { ListHeader } from "@/components/list-header"
@@ -14,7 +15,6 @@ import { PanelHeader } from "@/components/panel-header"
 import { PipelineRow } from "@/components/pipeline-row"
 import { StatusBar } from "@/components/status-bar"
 import { StatusLabel } from "@/components/status-label"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Kbd } from "@/components/ui/kbd"
@@ -48,7 +48,7 @@ const showLabels: Record<ShowFilter, string> = {
 }
 
 export function PipelinesPanel() {
-  const { edition, summaries } = useStudioData()
+  const { summaries } = useStudioData()
   const visible = useVisiblePipelines()
   const { hits, outside } = useSearchHits()
   const whole = useStudio((s) => s.searchWholeEdition)
@@ -62,11 +62,63 @@ export function PipelinesPanel() {
   const builtFrom = useStudio((s) => s.builtFrom)
   const builtTo = useStudio((s) => s.builtTo)
   const added = useStudio((s) => formatDateRange(s.addedFrom, s.addedTo))
+  const setShow = useStudio((s) => s.setShow)
+  const setOnlyInView = useStudio((s) => s.setOnlyInView)
+  const toggleUnknownIn = useStudio((s) => s.toggleUnknownIn)
+  const setCompanies = useStudio((s) => s.setCompanies)
+  const setBuilt = useStudio((s) => s.setBuilt)
+  const setAdded = useStudio((s) => s.setAdded)
   const openHit = useOpenHit()
   const [active, setActive] = useState(0)
 
   const searching = query.trim().length > 0
   const activeIndex = Math.min(active, Math.max(hits.length - 1, 0))
+
+  // The filters in force, each with the way to take it off. A search stays
+  // inside the filters unless it was widened to the whole edition.
+  const chips: { label: string; remove: () => void }[] = []
+  if (searching && whole) {
+    chips.push({ label: "Whole edition", remove: () => setWhole(false) })
+  } else {
+    if (show !== "all") {
+      chips.push({ label: showLabels[show], remove: () => setShow("all") })
+    }
+    if (unknownIn.length > 0) {
+      chips.push({
+        label: `Unknown ${unknownIn.join(", ").toLocaleLowerCase()}`,
+        remove: () => unknownIn.forEach(toggleUnknownIn),
+      })
+    }
+    if (companies.length > 0) {
+      chips.push({
+        label:
+          companies.length === 1
+            ? companies[0]
+            : plural(companies.length, "company", "companies"),
+        remove: () => setCompanies([]),
+      })
+    }
+    if (builtFrom !== null || builtTo !== null) {
+      chips.push({
+        label:
+          builtFrom !== null && builtTo !== null
+            ? `Built ${builtFrom} to ${builtTo}`
+            : builtFrom !== null
+              ? `Built ${builtFrom} or later`
+              : `Built ${builtTo} or earlier`,
+        remove: () => setBuilt(null, null),
+      })
+    }
+    if (added) {
+      chips.push({
+        label: `Added: ${added}`,
+        remove: () => setAdded(null, null),
+      })
+    }
+    if (onlyInView) {
+      chips.push({ label: "Map view", remove: () => setOnlyInView(false) })
+    }
+  }
 
   function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
@@ -101,14 +153,6 @@ export function PipelinesPanel() {
             : `${formatCount(visible.length)} ${onlyInView ? "in view" : "shown"}`
         }
       >
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Open as a table"
-          className="text-muted-foreground"
-        >
-          <Icon name="table" className="size-3.5" />
-        </Button>
         <LeftPanelToggle />
       </PanelHeader>
 
@@ -144,52 +188,24 @@ export function PipelinesPanel() {
           />
           {!searching && <Kbd className="absolute top-1.5 right-1.5">/</Kbd>}
         </div>
-        <div
-          className="flex flex-wrap items-center gap-1.5"
-          aria-label="Filters in force"
-        >
-          <Icon name="filter" className="size-3.5 text-muted-foreground" />
-          <Badge variant="secondary">{edition.year}</Badge>
-          {/* A search stays inside the filters unless it was widened. */}
-          {searching && whole ? (
-            <Badge variant="secondary">Whole edition</Badge>
-          ) : (
-            <>
-              <Badge variant="secondary">{showLabels[show]}</Badge>
-              {unknownIn.length > 0 && (
-                <Badge variant="secondary" className="max-w-full">
-                  <span className="truncate">
-                    Unknown {unknownIn.join(", ").toLocaleLowerCase()}
-                  </span>
-                </Badge>
-              )}
-              {companies.length > 0 && (
-                <Badge variant="secondary" className="max-w-full">
-                  <span className="truncate">
-                    {companies.length === 1
-                      ? companies[0]
-                      : plural(companies.length, "company", "companies")}
-                  </span>
-                </Badge>
-              )}
-              {(builtFrom !== null || builtTo !== null) && (
-                <Badge variant="secondary">
-                  {builtFrom !== null && builtTo !== null
-                    ? `Built ${builtFrom} to ${builtTo}`
-                    : builtFrom !== null
-                      ? `Built ${builtFrom} or later`
-                      : `Built ${builtTo} or earlier`}
-                </Badge>
-              )}
-              {added && (
-                <Badge variant="secondary" className="max-w-full">
-                  <span className="truncate">Added: {added}</span>
-                </Badge>
-              )}
-              {onlyInView && <Badge variant="secondary">Map view</Badge>}
-            </>
-          )}
-        </div>
+        {chips.length > 0 && (
+          <div
+            role="group"
+            className="flex flex-wrap items-center gap-1.5"
+            aria-label="Filters in force"
+          >
+            <Icon name="filter" className="size-3.5 text-muted-foreground" />
+            {chips.map((chip) => (
+              <FilterChip
+                key={chip.label}
+                removeLabel={`Remove the filter: ${chip.label}`}
+                onRemove={chip.remove}
+              >
+                {chip.label}
+              </FilterChip>
+            ))}
+          </div>
+        )}
       </div>
 
       <PipelineList

@@ -186,6 +186,10 @@ Where code knowingly differs from the Figma frame:
 - Each side panel's header ends with a panel icon (`panel-left`, `panel-right`, added in
   code, not yet on the Icons page) that shuts the panel; while a panel is shut, the same
   icon sits in the top bar on that side to open it.
+- The table button, the "Scanned map" layer row and the tool palette on the map are
+  hidden until they do something. The filter badges under the search box each carry a
+  remove button (`FilterChip`) and the row shows only filters that are set; the edition
+  year and "All pipelines" badges are gone.
 - These were asked for by the owner on 2026-11-12 ahead of Figma. Figma needs updating.
 - No minimum page width: the map takes the space the panels leave, so the right panel is
   always at the window edge. The frame is drawn at 1728 wide only.

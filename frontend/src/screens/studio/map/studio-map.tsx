@@ -13,7 +13,6 @@ import MapGL, {
 import { Icon } from "@/components/icons/icon"
 import { MapControl } from "@/components/map-control"
 import { Pin } from "@/components/pin"
-import { ToolPalette } from "@/components/tool-palette"
 import { Button } from "@/components/ui/button"
 import {
   UNASSIGNED_ID,
@@ -419,11 +418,6 @@ export function StudioMap({ token }: { token: string }) {
             <Icon name="north" />
           </Button>
         </MapControl>
-      </div>
-
-      {/* Only Select does anything yet; the other tools are shown as designed. */}
-      <div className="pointer-events-none absolute inset-x-3 bottom-3 flex justify-center *:pointer-events-auto">
-        <ToolPalette value="select" onValueChange={() => {}} />
       </div>
     </div>
   )
