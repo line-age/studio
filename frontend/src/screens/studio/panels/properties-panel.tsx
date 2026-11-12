@@ -2,31 +2,45 @@ import { Fragment, useEffect, useRef, type KeyboardEvent } from "react"
 
 import { AttributeRow } from "@/components/attribute-row"
 import { Hint } from "@/components/hint"
+import { Icon } from "@/components/icons/icon"
+import { ListGroupHeader } from "@/components/list-group-header"
 import { ListHeader } from "@/components/list-header"
+import { PanelFooter } from "@/components/panel-footer"
 import { PanelHeader } from "@/components/panel-header"
 import { StatusLabel } from "@/components/status-label"
 import { TreeItem } from "@/components/tree-item"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   formatCount,
   geometryBounds,
+  plural,
   sectionStats,
-  type PipelineSummary,
+  sumStats,
+  type SelectionGroup,
 } from "@/data/derive"
 import type { Section } from "@/data/schema"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 
-import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
+import {
+  AddToAgentMenu,
+  useAskAgent,
+  useSelectionAttachments,
+} from "../add-to-agent"
 import { PropertiesToggle } from "../panel-toggle"
-import { useStudioData } from "../studio-data"
+import { useSelectionGroups } from "../studio-data"
 import { useStudio } from "../studio-store"
 
-export function PropertiesPanel() {
-  const { summaryById } = useStudioData()
-  const selectedId = useStudio((s) => s.selectedPipelineId)
-  const summary = selectedId ? summaryById.get(selectedId) : undefined
+/** "14 sections in 3 pipelines": the size of a selection in words. */
+export function selectionSize(groups: SelectionGroup[]): string {
+  const sections = groups.reduce((n, g) => n + g.sections.length, 0)
+  return `${plural(sections, "section")} in ${plural(groups.length, "pipeline")}`
+}
 
-  if (!summary) {
+export function PropertiesPanel() {
+  const groups = useSelectionGroups()
+
+  if (groups.length === 0) {
     return (
       <>
         <PanelHeader title="Nothing selected" divider />
@@ -37,22 +51,28 @@ export function PropertiesPanel() {
       </>
     )
   }
-  return <PipelineProperties summary={summary} />
+  return <SelectionProperties groups={groups} />
 }
 
-function PipelineProperties({ summary }: { summary: PipelineSummary }) {
+/**
+ * The selection as a tree: every section of each pipeline touched, the
+ * selected ones ticked. Several pipelines are listed one under the other.
+ */
+function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const selectedSectionId = useStudio((s) => s.selectedSectionId)
   const selectedAttribute = useStudio((s) => s.selectedAttribute)
   const expanded = useStudio((s) => s.expandedSectionIds)
-  const checkedIds = useStudio((s) => s.checkedSectionIds)
+  const selection = useStudio((s) => s.selection)
+  const select = useStudio((s) => s.select)
   const selectSection = useStudio((s) => s.selectSection)
-  const toggleSection = useStudio((s) => s.toggleSection)
-  const toggleAllSections = useStudio((s) => s.toggleAllSections)
+  const focusSection = useStudio((s) => s.focusSection)
+  const toggleSelected = useStudio((s) => s.toggleSelected)
   const selectAttribute = useStudio((s) => s.selectAttribute)
   const toggleExpanded = useStudio((s) => s.toggleExpanded)
   const requestFit = useStudio((s) => s.requestFit)
   const treeRef = useRef<HTMLDivElement>(null)
-  const selection = useSelectionAttachments()
+  const attachments = useSelectionAttachments()
+  const askAgent = useAskAgent()
 
   // A section picked on the map can be off screen in the tree: bring it in.
   useEffect(() => {
@@ -62,14 +82,23 @@ function PipelineProperties({ summary }: { summary: PipelineSummary }) {
       ?.scrollIntoView({ block: "nearest" })
   }, [selectedSectionId])
 
-  // Selecting a pipeline selects all of its sections (checkedIds is null).
-  const sectionIds = summary.sections.map((s) => s.id)
-  const isChecked = (id: string) => checkedIds === null || checkedIds.has(id)
-  const checkedCount = sectionIds.filter(isChecked).length
-  const check = (section: Section) => toggleSection(section.id, sectionIds)
+  const multi = groups.length > 1
+  const single = groups[0].summary
+  const allSections = groups.flatMap((g) => g.summary.sections)
+  const allIds = allSections.map((s) => s.id)
+  const isChecked = (id: string) => selection.has(id)
+  const checkedCount = selection.size
+  const stats = multi
+    ? sumStats(groups.flatMap((g) => g.sections))
+    : single.stats
+  const check = (section: Section) => toggleSelected([section.id])
 
+  // With one pipeline a click narrows the selection to that section. With
+  // several it only opens the section, so the selection survives reading.
+  const keep = (section: Section) => multi && isChecked(section.id)
   const pick = (section: Section) => {
-    selectSection(summary.id, section.id)
+    if (keep(section)) focusSection(section.id)
+    else selectSection(section.id)
     requestFit(geometryBounds(section.geometry))
   }
 
@@ -94,136 +123,163 @@ function PipelineProperties({ summary }: { summary: PipelineSummary }) {
     }
   }
 
-  const tabStop = summary.sections.some((s) => s.id === selectedSectionId)
+  const tabStop = allSections.some((s) => s.id === selectedSectionId)
     ? selectedSectionId
-    : summary.sections[0]?.id
+    : allSections[0]?.id
 
   return (
     <>
       <PanelHeader
         icon="line"
-        title={summary.name}
-        meta={summary.code ?? undefined}
+        title={multi ? plural(groups.length, "pipeline") : single.name}
+        meta={
+          multi ? plural(checkedCount, "section") : (single.code ?? undefined)
+        }
         divider
       >
-        {summary.stats.cited > 0 && (
-          <Badge variant="cited">
-            {formatCount(summary.stats.cited)} cited
-          </Badge>
+        {stats.cited > 0 && (
+          <Badge variant="cited">{formatCount(stats.cited)} cited</Badge>
         )}
-        {summary.stats.unknown > 0 && (
-          <Badge variant="unknown">
-            {formatCount(summary.stats.unknown)} Unknown
-          </Badge>
+        {stats.unknown > 0 && (
+          <Badge variant="unknown">{formatCount(stats.unknown)} Unknown</Badge>
         )}
         <PropertiesToggle />
       </PanelHeader>
       <ListHeader
         label="Sections"
-        trailing={`${formatCount(checkedCount)} of ${formatCount(sectionIds.length)} selected`}
-        selection={
-          checkedCount === 0
-            ? "unchecked"
-            : checkedCount === sectionIds.length
-              ? "checked"
-              : "indeterminate"
-        }
+        trailing={`${formatCount(checkedCount)} of ${formatCount(allIds.length)} selected`}
+        selection={checkedCount === allIds.length ? "checked" : "indeterminate"}
         selectionLabel="Select all sections"
-        onSelectionChange={toggleAllSections}
+        onSelectionChange={() =>
+          select(checkedCount === allIds.length ? [] : allIds)
+        }
       />
       <div
         ref={treeRef}
         role="tree"
-        aria-label={`Sections of ${summary.name}`}
+        aria-label={
+          multi ? "Sections of the selection" : `Sections of ${single.name}`
+        }
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         onKeyDown={moveRovingFocus}
       >
-        {summary.sections.map((section) => {
-          const stats = sectionStats(section)
-          const open = expanded.has(section.id)
-          const selected = section.id === selectedSectionId
-          return (
-            <Fragment key={section.id}>
-              {/* Right click on a ticked row offers the whole selection. */}
-              <AddToAgentMenu
-                items={
-                  isChecked(section.id)
-                    ? selection
-                    : [{ kind: "section", id: section.id }]
-                }
+        {groups.map((group) => (
+          <Fragment key={group.summary.id}>
+            {multi && (
+              <ListGroupHeader
+                count={`${group.sections.length} of ${group.summary.sections.length}`}
               >
-                <TreeItem
-                  role="treeitem"
-                  aria-level={1}
-                  aria-expanded={open}
-                  aria-selected={selected}
-                  data-roving
-                  data-section={section.id}
-                  tabIndex={section.id === tabStop ? 0 : -1}
-                  name={section.name}
-                  code={section.code}
-                  expanded={open}
-                  selected={selected}
-                  checked={isChecked(section.id)}
-                  onCheck={() => check(section)}
-                  checkLabel={`Select ${section.name}`}
-                  trailing={
-                    stats.unknown > 0 ? (
-                      <StatusLabel status="unknown">
-                        {formatCount(stats.unknown)} Unknown
-                      </StatusLabel>
-                    ) : (
-                      `${stats.cited} of ${stats.total}`
-                    )
-                  }
-                  onToggle={() => toggleExpanded(section.id)}
-                  onClick={() => pick(section)}
-                  onKeyDown={(event) => onSectionKeyDown(event, section)}
-                />
-              </AddToAgentMenu>
-              {open && (
-                <div role="group" aria-label={`Facts of ${section.name}`}>
-                  {section.claims.map((claim) => {
-                    const chosen =
-                      selected && claim.attribute === selectedAttribute
-                    const choose = () =>
-                      selectAttribute(summary.id, section.id, claim.attribute)
-                    return (
-                      <AttributeRow
-                        key={claim.attribute}
-                        role="treeitem"
-                        aria-level={2}
-                        aria-selected={chosen}
-                        data-roving
-                        tabIndex={-1}
-                        label={claim.attribute}
-                        value={claim.value}
-                        sources={claim.citations.length}
-                        proposals={claim.proposals.length}
-                        selected={chosen}
-                        onClick={choose}
-                        onKeyDown={(event) => {
-                          if (isActivate(event)) {
-                            event.preventDefault()
-                            choose()
-                          } else if (event.key === "ArrowLeft") {
-                            event.preventDefault()
-                            treeRef.current
-                              ?.querySelector<HTMLElement>(
-                                `[data-section="${CSS.escape(section.id)}"]`
-                              )
-                              ?.focus()
-                          }
-                        }}
-                      />
-                    )
-                  })}
-                </div>
-              )}
-            </Fragment>
-          )
-        })}
+                {group.summary.name}
+              </ListGroupHeader>
+            )}
+            {group.summary.sections.map((section) => {
+              const stats = sectionStats(section)
+              const open = expanded.has(section.id)
+              const selected = section.id === selectedSectionId
+              return (
+                <Fragment key={section.id}>
+                  {/* Right click on a ticked row offers the whole selection. */}
+                  <AddToAgentMenu
+                    items={
+                      isChecked(section.id)
+                        ? attachments
+                        : [
+                            {
+                              pipelineId: group.summary.id,
+                              sectionIds: [section.id],
+                            },
+                          ]
+                    }
+                  >
+                    <TreeItem
+                      role="treeitem"
+                      aria-level={1}
+                      aria-expanded={open}
+                      aria-selected={selected}
+                      data-roving
+                      data-section={section.id}
+                      tabIndex={section.id === tabStop ? 0 : -1}
+                      name={section.name}
+                      code={section.code}
+                      expanded={open}
+                      selected={selected}
+                      checked={isChecked(section.id)}
+                      onCheck={() => check(section)}
+                      checkLabel={`Select ${section.name}`}
+                      trailing={
+                        stats.unknown > 0 ? (
+                          <StatusLabel status="unknown">
+                            {formatCount(stats.unknown)} Unknown
+                          </StatusLabel>
+                        ) : (
+                          `${stats.cited} of ${stats.total}`
+                        )
+                      }
+                      onToggle={() => toggleExpanded(section.id)}
+                      onClick={() => pick(section)}
+                      onKeyDown={(event) => onSectionKeyDown(event, section)}
+                    />
+                  </AddToAgentMenu>
+                  {open && (
+                    <div role="group" aria-label={`Facts of ${section.name}`}>
+                      {section.claims.map((claim) => {
+                        const chosen =
+                          selected && claim.attribute === selectedAttribute
+                        const choose = () =>
+                          selectAttribute(
+                            section.id,
+                            claim.attribute,
+                            keep(section)
+                          )
+                        return (
+                          <AttributeRow
+                            key={claim.attribute}
+                            role="treeitem"
+                            aria-level={2}
+                            aria-selected={chosen}
+                            data-roving
+                            tabIndex={-1}
+                            label={claim.attribute}
+                            value={claim.value}
+                            sources={claim.citations.length}
+                            proposals={claim.proposals.length}
+                            selected={chosen}
+                            onClick={choose}
+                            onKeyDown={(event) => {
+                              if (isActivate(event)) {
+                                event.preventDefault()
+                                choose()
+                              } else if (event.key === "ArrowLeft") {
+                                event.preventDefault()
+                                treeRef.current
+                                  ?.querySelector<HTMLElement>(
+                                    `[data-section="${CSS.escape(section.id)}"]`
+                                  )
+                                  ?.focus()
+                              }
+                            }}
+                          />
+                        )
+                      })}
+                    </div>
+                  )}
+                </Fragment>
+              )
+            })}
+          </Fragment>
+        ))}
       </div>
+      <PanelFooter className="justify-between gap-2">
+        <span className="truncate">{selectionSize(groups)}</span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => askAgent(attachments)}
+        >
+          <Icon name="ask" />
+          Ask the Agent
+        </Button>
+      </PanelFooter>
     </>
   )
 }

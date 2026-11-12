@@ -36,6 +36,35 @@ export interface PipelineSummary {
   bounds: Bounds | null
 }
 
+/** The selected sections of one pipeline. */
+export interface SelectionGroup {
+  summary: PipelineSummary
+  /** The selected ones, in the pipeline's order. */
+  sections: Section[]
+  /** Every section of the pipeline is selected. */
+  whole: boolean
+}
+
+/** A selection of sections, sorted into the pipelines they belong to. */
+export function groupSelection(
+  summaries: PipelineSummary[],
+  selection: ReadonlySet<string>
+): SelectionGroup[] {
+  if (selection.size === 0) return []
+  const groups: SelectionGroup[] = []
+  for (const summary of summaries) {
+    const sections = summary.sections.filter((s) => selection.has(s.id))
+    if (sections.length > 0) {
+      groups.push({
+        summary,
+        sections,
+        whole: sections.length === summary.sections.length,
+      })
+    }
+  }
+  return groups
+}
+
 export function sectionStats(section: Section): Stats {
   let cited = 0
   let proposals = 0

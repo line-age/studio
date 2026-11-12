@@ -33,6 +33,7 @@ import { AddToAgentMenu } from "../add-to-agent"
 import { LeftPanelToggle } from "../panel-toggle"
 import {
   useSearchHits,
+  useSelectionGroups,
   useStudioData,
   useVisiblePipelines,
 } from "../studio-data"
@@ -239,7 +240,7 @@ export function PipelinesPanel() {
 /** Opening a search hit selects it, moves the map to it and ends the search. */
 function useOpenHit() {
   const { sectionById } = useStudioData()
-  const selectPipeline = useStudio((s) => s.selectPipeline)
+  const select = useStudio((s) => s.select)
   const selectSection = useStudio((s) => s.selectSection)
   const requestFit = useStudio((s) => s.requestFit)
   const setQuery = useStudio((s) => s.setQuery)
@@ -249,10 +250,10 @@ function useOpenHit() {
     const target = sectionId ?? only
     const section = target ? sectionById.get(target) : undefined
     if (section) {
-      selectSection(hit.summary.id, section.id)
+      selectSection(section.id)
       requestFit(geometryBounds(section.geometry))
     } else {
-      selectPipeline(hit.summary.id)
+      select(hit.summary.sections.map((s) => s.id))
       requestFit(hit.summary.bounds)
     }
     setQuery("")
@@ -285,30 +286,35 @@ function PipelineList({
   search: ListSearch | null
 }) {
   const { edition } = useStudioData()
-  const selectedId = useStudio((s) => s.selectedPipelineId)
-  const selectPipeline = useStudio((s) => s.selectPipeline)
+  const groups = useSelectionGroups()
+  const select = useStudio((s) => s.select)
+  const addToSelection = useStudio((s) => s.addToSelection)
+  const toggleSelected = useStudio((s) => s.toggleSelected)
   const requestFit = useStudio((s) => s.requestFit)
   const onlyInView = useStudio((s) => s.onlyInView)
   const [descending, setDescending] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
+  /** The row last clicked or ticked: where a Shift-click run starts. */
+  const anchor = useRef<string | null>(null)
+
+  // How much of each pipeline is selected: all of it, or some sections.
+  const checkedOf = new Map(
+    groups.map((g) => [
+      g.summary.id,
+      g.whole ? ("checked" as const) : ("indeterminate" as const),
+    ])
+  )
+  const only = groups.length === 1 ? groups[0] : null
+  const onlyId = only?.summary.id ?? null
+  const idsOf = (summary: PipelineSummary) => summary.sections.map((s) => s.id)
 
   // A selection made on the map can be off screen in the list: bring it in.
   useEffect(() => {
-    if (!selectedId) return
+    if (!onlyId) return
     listRef.current
-      ?.querySelector(`[data-pipeline="${CSS.escape(selectedId)}"]`)
+      ?.querySelector(`[data-pipeline="${CSS.escape(onlyId)}"]`)
       ?.scrollIntoView({ block: "nearest" })
-  }, [selectedId])
-
-  // A click on the selected row takes the selection off again.
-  const select = (summary: PipelineSummary) => {
-    if (summary.id === selectedId) {
-      selectPipeline(null)
-      return
-    }
-    selectPipeline(summary.id)
-    requestFit(summary.bounds)
-  }
+  }, [onlyId])
 
   const rows = search
     ? search.hits.map((hit) => ({
@@ -324,9 +330,31 @@ function PipelineList({
     )
   }
   const activeHit = search?.hits[search.activeIndex]
-  const tabStop = rows.some((row) => row.summary.id === selectedId)
-    ? selectedId
-    : rows[0]?.summary.id
+  const tabStop =
+    rows.find((row) => checkedOf.has(row.summary.id))?.summary.id ??
+    rows[0]?.summary.id
+
+  // A click selects just this pipeline; on the only selected one it takes
+  // the selection off again. With Shift it adds the run from the last row.
+  const pick = (summary: PipelineSummary, shift = false) => {
+    const from = rows.findIndex((row) => row.summary.id === anchor.current)
+    const to = rows.findIndex((row) => row.summary.id === summary.id)
+    if (shift && from !== -1 && to !== -1) {
+      const run = rows.slice(Math.min(from, to), Math.max(from, to) + 1)
+      addToSelection(run.flatMap((row) => idsOf(row.summary)))
+      return
+    }
+    anchor.current = summary.id
+    if (only?.whole && onlyId === summary.id) {
+      select([])
+      return
+    }
+    select(idsOf(summary))
+    requestFit(summary.bounds)
+  }
+  const allShown =
+    rows.length > 0 &&
+    rows.every((row) => checkedOf.get(row.summary.id) === "checked")
 
   return (
     <>
@@ -336,9 +364,19 @@ function PipelineList({
         sortLabel={`Pipeline order: ${descending ? "last first" : "first first"}. Reverse it`}
         onSort={() => setDescending((d) => !d)}
         trailing="Facts"
-        selection={selectedId ? "indeterminate" : "unchecked"}
-        selectionLabel="Clear the selection"
-        onSelectionChange={() => selectPipeline(null)}
+        selection={
+          groups.length === 0
+            ? "unchecked"
+            : allShown
+              ? "checked"
+              : "indeterminate"
+        }
+        selectionLabel="Select all pipelines shown"
+        onSelectionChange={() =>
+          select(
+            groups.length === 0 ? rows.flatMap((row) => idsOf(row.summary)) : []
+          )
+        }
       />
       <div
         ref={listRef}
@@ -349,8 +387,9 @@ function PipelineList({
         onKeyDown={moveRovingFocus}
       >
         {rows.map(({ summary, hit }) => {
-          const open = () =>
-            hit && search ? search.open(hit) : select(summary)
+          const open = (shift = false) =>
+            hit && search ? search.open(hit) : pick(summary, shift)
+          const checked = checkedOf.get(summary.id) ?? "unchecked"
           const sections = plural(summary.sections.length, "section")
           const found = hit?.sections ?? []
           const meta = [
@@ -364,23 +403,22 @@ function PipelineList({
           return (
             <Fragment key={summary.id}>
               <AddToAgentMenu
-                items={
-                  summary.unassigned
-                    ? summary.sections.map((s) => ({
-                        kind: "section",
-                        id: s.id,
-                      }))
-                    : [{ kind: "pipeline", id: summary.id }]
-                }
+                items={[{ pipelineId: summary.id, sectionIds: "all" }]}
               >
                 <PipelineRow
                   id={hit ? `search-hit-${summary.id}` : undefined}
                   role="option"
-                  aria-selected={summary.id === selectedId}
+                  aria-selected={checked !== "unchecked"}
                   data-roving
                   data-pipeline={summary.id}
                   tabIndex={summary.id === tabStop ? 0 : -1}
-                  selected={summary.id === selectedId}
+                  selected={checked !== "unchecked"}
+                  checked={checked}
+                  checkLabel={`Select ${summary.name}`}
+                  onCheck={() => {
+                    anchor.current = summary.id
+                    toggleSelected(idsOf(summary))
+                  }}
                   className={cn(hit && hit === activeHit && "bg-muted")}
                   name={summary.name}
                   meta={meta}
@@ -394,8 +432,9 @@ function PipelineList({
                     )
                   }
                   facts={`${formatCount(summary.stats.cited)} of ${formatCount(summary.stats.total)} facts`}
-                  onClick={open}
+                  onClick={(event) => open(event.shiftKey)}
                   onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return
                     if (isActivate(event)) {
                       event.preventDefault()
                       open()
@@ -409,7 +448,9 @@ function PipelineList({
                 found.slice(0, SECTION_ROWS).map((match) => (
                   <AddToAgentMenu
                     key={match.sectionId}
-                    items={[{ kind: "section", id: match.sectionId }]}
+                    items={[
+                      { pipelineId: summary.id, sectionIds: [match.sectionId] },
+                    ]}
                   >
                     <div
                       role="option"

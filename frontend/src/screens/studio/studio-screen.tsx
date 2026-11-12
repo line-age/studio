@@ -14,7 +14,7 @@ import { LoadBar } from "@/components/load-bar"
 import { PanelHeader } from "@/components/panel-header"
 import { RailItem } from "@/components/rail-item"
 import { Button } from "@/components/ui/button"
-import { matchesShow, unionBounds } from "@/data/derive"
+import { matchesShow, plural, unionBounds } from "@/data/derive"
 import { fixtureUrl, loadNetwork } from "@/data/load-network"
 import { FixtureError } from "@/data/schema"
 
@@ -25,7 +25,11 @@ import { FiltersPanel } from "./panels/filters-panel"
 import { PipelinesPanel, SEARCH_INPUT_ID } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
 import { SidePanel } from "./side-panel"
-import { StudioDataProvider, useStudioData } from "./studio-data"
+import {
+  StudioDataProvider,
+  useSelectionGroups,
+  useStudioData,
+} from "./studio-data"
 import { filtersApplied, useStudio, type LeftPanel } from "./studio-store"
 import { TopBar, type Crumb } from "./top-bar"
 
@@ -135,7 +139,7 @@ function Frame({
   children?: ReactNode
 }) {
   const { panel, open, togglePanel, toggleOpen } = useLeftPanel()
-  const hasSelection = useStudio((s) => s.selectedPipelineId !== null)
+  const hasSelection = useStudio((s) => s.selection.size > 0)
   const propertiesHidden = useStudio((s) => s.propertiesHidden)
   const toggleProperties = useStudio((s) => s.toggleProperties)
   const rightOpen = hasSelection && !propertiesHidden
@@ -220,27 +224,31 @@ function Frame({
  * `home` clears the selection and shows the whole network again.
  */
 function useTrail(): { trail: Crumb[]; home: () => void } {
-  const { summaries, summaryById, sectionById } = useStudioData()
-  const pipelineId = useStudio((s) => s.selectedPipelineId)
+  const { summaries, sectionById } = useStudioData()
+  const groups = useSelectionGroups()
   const sectionId = useStudio((s) => s.selectedSectionId)
-  const selectPipeline = useStudio((s) => s.selectPipeline)
+  const select = useStudio((s) => s.select)
   const requestFit = useStudio((s) => s.requestFit)
 
-  const pipeline = pipelineId ? summaryById.get(pipelineId) : undefined
   const section = sectionId ? sectionById.get(sectionId) : undefined
   const trail: Crumb[] = []
-  if (pipeline) {
-    trail.push({
-      label: pipeline.name,
-      onClick: () => {
-        selectPipeline(pipeline.id)
-        requestFit(pipeline.bounds)
-      },
-    })
+  // Back to the whole of every pipeline touched.
+  const whole = () => {
+    select(groups.flatMap((g) => g.summary.sections.map((s) => s.id)))
+    requestFit(
+      unionBounds(
+        groups.flatMap((g) => (g.summary.bounds ? [g.summary.bounds] : []))
+      )
+    )
   }
-  if (pipeline && section) trail.push({ label: section.name })
+  if (groups.length === 1) {
+    trail.push({ label: groups[0].summary.name, onClick: whole })
+  } else if (groups.length > 1) {
+    trail.push({ label: plural(groups.length, "pipeline"), onClick: whole })
+  }
+  if (groups.length > 0 && section) trail.push({ label: section.name })
   const home = () => {
-    selectPipeline(null)
+    select([])
     requestFit(
       unionBounds(summaries.flatMap((s) => (s.bounds ? [s.bounds] : [])))
     )

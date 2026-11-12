@@ -17,11 +17,17 @@ export interface FitRequest {
   nonce: number
 }
 
-/** A pipeline or section attached to the next question for the Agent. */
+/**
+ * Sections of one pipeline attached to the next question for the Agent:
+ * some of them, or "all". One attachment per pipeline.
+ */
 export interface AgentAttachment {
-  kind: "pipeline" | "section"
-  id: string
+  pipelineId: string
+  sectionIds: readonly string[] | "all"
 }
+
+/** The map tool in hand. Select clicks sections; Lasso draws a loop round them. */
+export type MapTool = "select" | "lasso"
 
 interface StudioState {
   editionId: string | null
@@ -41,11 +47,14 @@ interface StudioState {
   query: string
   /** Search past the filters, through every pipeline of the edition. */
   searchWholeEdition: boolean
-  selectedPipelineId: string | null
-  /** The one section in focus: set when exactly one is ticked. */
+  /** The selected sections. They may belong to several pipelines. */
+  selection: ReadonlySet<string>
+  /**
+   * The one section in focus: the only selected one, or the one opened in
+   * the properties panel while several are selected.
+   */
   selectedSectionId: string | null
-  /** The ticked sections of the selected pipeline; null means all of them. */
-  checkedSectionIds: ReadonlySet<string> | null
+  tool: MapTool
   selectedAttribute: string | null
   expandedSectionIds: ReadonlySet<string>
   /** The map's current view; null until the map has drawn once. */
@@ -54,6 +63,8 @@ interface StudioState {
   /** The person has shut the properties panel. Selecting something opens it again. */
   propertiesHidden: boolean
   agentAttachments: AgentAttachment[]
+  /** Goes up each time something is handed to the Agent; the chat takes focus. */
+  agentAsked: number
 
   setEdition: (editionId: string) => void
   setShow: (show: ShowFilter) => void
@@ -67,24 +78,68 @@ interface StudioState {
   clearFilters: () => void
   setQuery: (query: string) => void
   setSearchWholeEdition: (on: boolean) => void
-  selectPipeline: (pipelineId: string | null) => void
-  selectSection: (pipelineId: string, sectionId: string) => void
+  /** Select exactly these sections; none clears the selection. */
+  select: (sectionIds: readonly string[]) => void
+  /** Add these sections to what is selected. */
+  addToSelection: (sectionIds: readonly string[]) => void
+  /** All of these selected: take them off. Otherwise add them. */
+  toggleSelected: (sectionIds: readonly string[]) => void
+  /** Select exactly this one section and open it. */
+  selectSection: (sectionId: string) => void
+  /** Open one of several selected sections without changing the selection. */
+  focusSection: (sectionId: string) => void
+  /** Choose a fact. `keep` leaves a selection of several sections as it is. */
   selectAttribute: (
-    pipelineId: string,
     sectionId: string,
-    attribute: string
+    attribute: string,
+    keep?: boolean
   ) => void
-  /** Tick or untick one section. `allIds` are the pipeline's sections. */
-  toggleSection: (sectionId: string, allIds: readonly string[]) => void
-  /** All ticked becomes none ticked; anything else becomes all. */
-  toggleAllSections: () => void
   toggleExpanded: (sectionId: string) => void
-  clearSection: () => void
+  /**
+   * Step the selection back: from some sections to their whole pipelines
+   * (`wholeIds`: every section of the pipelines touched), then to nothing.
+   */
+  stepBack: (wholeIds: readonly string[]) => void
+  setTool: (tool: MapTool) => void
   setView: (view: Bounds) => void
   requestFit: (bounds: Bounds | null) => void
   toggleProperties: () => void
   attachToAgent: (items: AgentAttachment[]) => void
-  detachFromAgent: (item: AgentAttachment) => void
+  /** Attach, and ask the chat to take the cursor. */
+  askAgent: (items: AgentAttachment[]) => void
+  detachFromAgent: (pipelineId: string) => void
+}
+
+function mergeAttachments(
+  had: AgentAttachment[],
+  items: AgentAttachment[]
+): AgentAttachment[] {
+  const next = [...had]
+  for (const item of items) {
+    const at = next.findIndex((a) => a.pipelineId === item.pipelineId)
+    if (at === -1) {
+      next.push(item)
+      continue
+    }
+    const before = next[at].sectionIds
+    next[at] = {
+      pipelineId: item.pipelineId,
+      sectionIds:
+        before === "all" || item.sectionIds === "all"
+          ? "all"
+          : [...new Set([...before, ...item.sectionIds])],
+    }
+  }
+  return next
+}
+
+/** The section in focus follows the selection: the only one, or none. */
+const selected = (ids: Iterable<string>) => {
+  const selection = new Set(ids)
+  return {
+    selection,
+    selectedSectionId: selection.size === 1 ? [...selection][0] : null,
+  }
 }
 
 const defaultLayers: Record<LayerId, boolean> = {
@@ -120,22 +175,21 @@ export const useStudio = create<StudioState>((set) => ({
   layers: defaultLayers,
   query: "",
   searchWholeEdition: false,
-  selectedPipelineId: null,
+  selection: new Set(),
   selectedSectionId: null,
-  checkedSectionIds: null,
+  tool: "select",
   selectedAttribute: null,
   expandedSectionIds: new Set(),
   view: null,
   fit: null,
   propertiesHidden: false,
   agentAttachments: [],
+  agentAsked: 0,
 
   setEdition: (editionId) =>
     set({
       editionId,
-      selectedPipelineId: null,
-      selectedSectionId: null,
-      checkedSectionIds: null,
+      ...selected([]),
       selectedAttribute: null,
       expandedSectionIds: new Set(),
     }),
@@ -177,50 +231,56 @@ export const useStudio = create<StudioState>((set) => ({
       searchWholeEdition: query.trim() === "" ? false : s.searchWholeEdition,
     })),
   setSearchWholeEdition: (searchWholeEdition) => set({ searchWholeEdition }),
-  selectPipeline: (pipelineId) =>
+  select: (sectionIds) =>
     set({
-      selectedPipelineId: pipelineId,
-      selectedSectionId: null,
-      checkedSectionIds: null,
+      ...selected(sectionIds),
       propertiesHidden: false,
       selectedAttribute: null,
     }),
-  selectSection: (pipelineId, sectionId) =>
+  addToSelection: (sectionIds) =>
     set((s) => ({
-      selectedPipelineId: pipelineId,
-      selectedSectionId: sectionId,
-      checkedSectionIds: new Set([sectionId]),
+      ...selected([...s.selection, ...sectionIds]),
+      propertiesHidden: false,
+      selectedAttribute: null,
+    })),
+  toggleSelected: (sectionIds) =>
+    set((s) => {
+      const next = new Set(s.selection)
+      if (sectionIds.every((id) => next.has(id))) {
+        sectionIds.forEach((id) => next.delete(id))
+      } else {
+        sectionIds.forEach((id) => next.add(id))
+      }
+      const settled = selected(next)
+      return {
+        ...settled,
+        propertiesHidden: false,
+        selectedAttribute:
+          settled.selectedSectionId &&
+          settled.selectedSectionId === s.selectedSectionId
+            ? s.selectedAttribute
+            : null,
+      }
+    }),
+  selectSection: (sectionId) =>
+    set((s) => ({
+      ...selected([sectionId]),
       propertiesHidden: false,
       selectedAttribute: null,
       expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
     })),
-  selectAttribute: (pipelineId, sectionId, attribute) =>
+  focusSection: (sectionId) =>
     set((s) => ({
-      selectedPipelineId: pipelineId,
       selectedSectionId: sectionId,
-      checkedSectionIds: new Set([sectionId]),
+      selectedAttribute: null,
+      expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
+    })),
+  selectAttribute: (sectionId, attribute, keep = false) =>
+    set((s) => ({
+      ...(keep ? { selectedSectionId: sectionId } : selected([sectionId])),
       propertiesHidden: false,
       selectedAttribute: attribute,
       expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
-    })),
-  toggleSection: (sectionId, allIds) =>
-    set((s) => {
-      const next = new Set(s.checkedSectionIds ?? allIds)
-      if (!next.delete(sectionId)) next.add(sectionId)
-      const all = allIds.every((id) => next.has(id))
-      const only = next.size === 1 ? [...next][0] : null
-      return {
-        checkedSectionIds: all ? null : next,
-        selectedSectionId: only,
-        selectedAttribute:
-          only && only === s.selectedSectionId ? s.selectedAttribute : null,
-      }
-    }),
-  toggleAllSections: () =>
-    set((s) => ({
-      checkedSectionIds: s.checkedSectionIds === null ? new Set() : null,
-      selectedSectionId: null,
-      selectedAttribute: null,
     })),
   toggleExpanded: (sectionId) =>
     set((s) => {
@@ -228,37 +288,32 @@ export const useStudio = create<StudioState>((set) => ({
       if (!next.delete(sectionId)) next.add(sectionId)
       return { expandedSectionIds: next }
     }),
-  // A click on empty map steps back: from some sections to the whole
-  // pipeline, and from the whole pipeline to nothing selected.
-  clearSection: () =>
+  stepBack: (wholeIds) =>
     set((s) => ({
-      selectedPipelineId:
-        s.checkedSectionIds === null ? null : s.selectedPipelineId,
-      selectedSectionId: null,
-      checkedSectionIds: null,
+      ...selected(s.selection.size < wholeIds.length ? wholeIds : []),
       selectedAttribute: null,
     })),
+  setTool: (tool) => set({ tool }),
   setView: (view) => set({ view }),
   requestFit: (bounds) =>
     set(bounds ? { fit: { bounds, nonce: (nonce += 1) } } : {}),
   toggleProperties: () =>
     set((s) => ({ propertiesHidden: !s.propertiesHidden })),
+  // One attachment per pipeline: adding to a pipeline already attached
+  // widens that attachment.
   attachToAgent: (items) =>
     set((s) => ({
-      agentAttachments: [
-        ...s.agentAttachments,
-        ...items.filter(
-          (item) =>
-            !s.agentAttachments.some(
-              (a) => a.kind === item.kind && a.id === item.id
-            )
-        ),
-      ],
+      agentAttachments: mergeAttachments(s.agentAttachments, items),
     })),
-  detachFromAgent: (item) =>
+  askAgent: (items) =>
+    set((s) => ({
+      agentAttachments: mergeAttachments(s.agentAttachments, items),
+      agentAsked: s.agentAsked + 1,
+    })),
+  detachFromAgent: (pipelineId) =>
     set((s) => ({
       agentAttachments: s.agentAttachments.filter(
-        (a) => !(a.kind === item.kind && a.id === item.id)
+        (a) => a.pipelineId !== pipelineId
       ),
     })),
 }))

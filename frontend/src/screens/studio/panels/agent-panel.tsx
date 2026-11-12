@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react"
+
 import { Attachment } from "@/components/attachment"
 import { Bubble } from "@/components/bubble"
 import { Composer } from "@/components/composer"
@@ -68,13 +70,7 @@ function ThreadEntry({ item }: { item: ThreadItem }) {
       ))}
       {target && item.proposal && proposals > 0 && (
         <ProposalLink
-          onClick={() =>
-            selectAttribute(
-              target.pipelineId ?? "unassigned",
-              target.id,
-              item.proposal!.attribute
-            )
-          }
+          onClick={() => selectAttribute(target.id, item.proposal!.attribute)}
         >
           {plural(proposals, "proposal")} in the property panel
         </ProposalLink>
@@ -108,36 +104,61 @@ function PendingAttachments() {
   const detach = useStudio((s) => s.detachFromAgent)
   if (items.length === 0) return null
   return items.map((item) => {
-    const key = `${item.kind}-${item.id}`
-    if (item.kind === "pipeline") {
-      const summary = summaryById.get(item.id)
-      if (!summary) return null
-      const sections = plural(summary.sections.length, "section")
+    const summary = summaryById.get(item.pipelineId)
+    if (!summary) return null
+    const remove = () => detach(item.pipelineId)
+    const total = summary.sections.length
+    const count = item.sectionIds === "all" ? total : item.sectionIds.length
+    // One section reads best by its own name.
+    const only =
+      item.sectionIds !== "all" && count === 1
+        ? sectionById.get(item.sectionIds[0])
+        : undefined
+    if (only) {
       return (
         <Attachment
-          key={key}
-          icon="line"
-          title={summary.name}
-          meta={summary.code ? `${summary.code} · ${sections}` : sections}
-          onRemove={() => detach(item)}
+          key={item.pipelineId}
+          title={only.name}
+          meta={[only.code, summary.unassigned ? null : summary.name]
+            .filter(Boolean)
+            .join(" · ")}
+          onRemove={remove}
         />
       )
     }
-    const section = sectionById.get(item.id)
-    if (!section) return null
     return (
       <Attachment
-        key={key}
-        title={section.name}
-        meta={section.code}
-        onRemove={() => detach(item)}
+        key={item.pipelineId}
+        icon="line"
+        title={summary.name}
+        meta={
+          summary.unassigned
+            ? plural(count, "section")
+            : count === total
+              ? "Whole pipeline"
+              : `${count} of ${plural(total, "section")}`
+        }
+        onRemove={remove}
       />
     )
   })
 }
 
+/** The last hand-over the message box took the cursor for. */
+let askHandled = 0
+
 export function AgentPanel() {
   const { network } = useStudioData()
+  const asked = useStudio((s) => s.agentAsked)
+  const messageRef = useRef<HTMLTextAreaElement>(null)
+
+  // "Ask the Agent" hands over references and expects to type next.
+  useEffect(() => {
+    if (asked === askHandled) return
+    askHandled = asked
+    messageRef.current?.focus()
+  }, [asked])
+
   return (
     <>
       <PanelHeader
@@ -163,6 +184,7 @@ export function AgentPanel() {
         <Composer
           placeholder="Ask about a section. Type # to pick one."
           attachments={<PendingAttachments />}
+          inputRef={messageRef}
         />
       </div>
     </>

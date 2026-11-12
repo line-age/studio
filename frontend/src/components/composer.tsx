@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from "react"
+import { useId, useState, type ReactNode, type Ref } from "react"
 
 import { Icon } from "@/components/icons/icon"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ export function Composer({
   onSend,
   onAttach,
   attachments,
+  inputRef,
   className,
 }: {
   placeholder: string
@@ -21,6 +22,8 @@ export function Composer({
   onAttach?: () => void
   /** Attachment chips for the message being written, shown above it. */
   attachments?: ReactNode
+  /** The message box, for moving the cursor into it. */
+  inputRef?: Ref<HTMLTextAreaElement>
   className?: string
 }) {
   const id = useId()
@@ -46,6 +49,7 @@ export function Composer({
       </label>
       <textarea
         id={id}
+        ref={inputRef}
         name="message"
         rows={1}
         autoComplete="off"

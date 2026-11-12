@@ -15,7 +15,6 @@ import { MapControl } from "@/components/map-control"
 import { Pin } from "@/components/pin"
 import { Button } from "@/components/ui/button"
 import {
-  UNASSIGNED_ID,
   matchesShow,
   matchesCriteria,
   sectionStats,
@@ -28,7 +27,7 @@ import type { Geometry } from "@/data/schema"
 import { SEARCH_INPUT_ID } from "../panels/pipelines-panel"
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { useLeftPanel } from "../left-panel-context"
-import { useCriteria, useStudioData } from "../studio-data"
+import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { useCamera, useStudio } from "../studio-store"
 import { readMapColors } from "./map-colors"
 
@@ -68,11 +67,12 @@ export function StudioMap({ token }: { token: string }) {
   const layers = useStudio((s) => s.layers)
   const show = useStudio((s) => s.show)
   const criteria = useCriteria()
-  const selectedPipelineId = useStudio((s) => s.selectedPipelineId)
-  const checkedSectionIds = useStudio((s) => s.checkedSectionIds)
+  const selected = useStudio((s) => s.selection)
+  const groups = useSelectionGroups()
   const fit = useStudio((s) => s.fit)
   const selectSection = useStudio((s) => s.selectSection)
-  const clearSection = useStudio((s) => s.clearSection)
+  const toggleSelected = useStudio((s) => s.toggleSelected)
+  const stepBack = useStudio((s) => s.stepBack)
   const setView = useStudio((s) => s.setView)
   const setCamera = useCamera((s) => s.setCamera)
 
@@ -189,12 +189,11 @@ export function StudioMap({ token }: { token: string }) {
   const onClick = (event: MapMouseEvent) => {
     const properties = event.features?.[0]?.properties
     if (properties?.id) {
-      selectSection(
-        String(properties.pipelineId ?? UNASSIGNED_ID),
-        String(properties.id)
-      )
+      // Shift adds the section to the selection, or takes it off.
+      if (event.originalEvent.shiftKey) toggleSelected([String(properties.id)])
+      else selectSection(String(properties.id))
     } else {
-      clearSection()
+      stepBack(groups.flatMap((g) => g.summary.sections.map((s) => s.id)))
     }
   }
 
@@ -203,10 +202,10 @@ export function StudioMap({ token }: { token: string }) {
     setHoveredId(id ? String(id) : null)
   }
 
-  // null means every section of the selected pipeline.
-  const selectedFilter = checkedSectionIds
-    ? ["in", ["get", "id"], ["literal", [...checkedSectionIds]]]
-    : ["==", ["get", "pipelineId"], selectedPipelineId ?? ""]
+  const selectedFilter = useMemo(
+    () => ["in", ["get", "id"], ["literal", [...selected]]],
+    [selected]
+  )
   const visibility = (on: boolean) => (on ? "visible" : "none")
 
   if (failed) {

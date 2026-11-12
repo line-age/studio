@@ -1,6 +1,7 @@
 import { createContext, use, useMemo, type ReactNode } from "react"
 
 import {
+  groupSelection,
   inView,
   search,
   summarise,
@@ -8,6 +9,7 @@ import {
   type PipelineSummary,
   type SearchHit,
   type SectionCriteria,
+  type SelectionGroup,
 } from "@/data/derive"
 import type { Edition, Network, Section } from "@/data/schema"
 
@@ -84,6 +86,16 @@ export function useVisiblePipelines(): PipelineSummary[] {
         view: onlyInView ? view : null,
       }),
     [summaries, show, criteria, onlyInView, view]
+  )
+}
+
+/** What is selected, sorted into pipelines. Empty when nothing is. */
+export function useSelectionGroups(): SelectionGroup[] {
+  const { summaries } = useStudioData()
+  const selection = useStudio((s) => s.selection)
+  return useMemo(
+    () => groupSelection(summaries, selection),
+    [summaries, selection]
   )
 }
 

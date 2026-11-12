@@ -9,16 +9,28 @@ import {
 } from "@/components/ui/context-menu"
 
 import { useLeftPanel } from "./left-panel-context"
+import { useSelectionGroups } from "./studio-data"
 import { useStudio, type AgentAttachment } from "./studio-store"
 
-/** What is selected now, as things that can be attached to a question. */
+/** What is selected now, as attachments: one per pipeline touched. */
 export function useSelectionAttachments(): AgentAttachment[] {
-  const pipelineId = useStudio((s) => s.selectedPipelineId)
-  const checked = useStudio((s) => s.checkedSectionIds)
-  if (!pipelineId) return []
-  // null means the whole pipeline is selected.
-  if (checked === null) return [{ kind: "pipeline", id: pipelineId }]
-  return [...checked].map((id) => ({ kind: "section", id }))
+  return useSelectionGroups().map((group) => ({
+    pipelineId: group.summary.id,
+    sectionIds: group.whole ? "all" : group.sections.map((s) => s.id),
+  }))
+}
+
+/**
+ * Hands `items` to the Agent: attaches them to the next question, opens the
+ * Agent panel and puts the cursor in the message box.
+ */
+export function useAskAgent(): (items: AgentAttachment[]) => void {
+  const ask = useStudio((s) => s.askAgent)
+  const { openPanel } = useLeftPanel()
+  return (items) => {
+    ask(items)
+    openPanel("agent")
+  }
 }
 
 /**
@@ -33,18 +45,14 @@ export function AddToAgentMenu({
   items: AgentAttachment[]
   children: ReactElement
 }) {
-  const attach = useStudio((s) => s.attachToAgent)
-  const { openPanel } = useLeftPanel()
+  const askAgent = useAskAgent()
   return (
     <ContextMenu>
       <ContextMenuTrigger render={children} />
       <ContextMenuContent>
         <ContextMenuItem
           disabled={items.length === 0}
-          onClick={() => {
-            attach(items)
-            openPanel("agent")
-          }}
+          onClick={() => askAgent(items)}
         >
           <Icon name="ask" />
           Add to the Agent chat

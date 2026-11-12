@@ -13,6 +13,9 @@ export function PipelineRow({
   status,
   facts,
   selected = false,
+  checked = selected ? "checked" : "unchecked",
+  onCheck,
+  checkLabel,
   className,
   ...props
 }: {
@@ -24,6 +27,12 @@ export function PipelineRow({
   /** "38 of 42 facts". */
   facts: ReactNode
   selected?: boolean
+  /** How much of the pipeline is selected. Defaults to follow `selected`. */
+  checked?: "unchecked" | "checked" | "indeterminate"
+  /** Makes the box a real checkbox that adds or removes this pipeline. */
+  onCheck?: () => void
+  /** Accessible name of the box, needed with `onCheck`. */
+  checkLabel?: string
 } & Omit<ComponentProps<"div">, "children">) {
   return (
     <div
@@ -37,7 +46,7 @@ export function PipelineRow({
       )}
       {...props}
     >
-      <CheckMark value={selected ? "checked" : "unchecked"} />
+      <CheckMark value={checked} label={checkLabel} onChange={onCheck} />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate type-ui-sm-medium">{name}</span>
         <span className="truncate type-ui-xs text-muted-foreground">

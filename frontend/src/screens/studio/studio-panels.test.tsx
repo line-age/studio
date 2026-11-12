@@ -94,7 +94,7 @@ describe("Studio panels", () => {
 
   it("follows a selection made elsewhere, as the map does", async () => {
     await renderPanels()
-    act(() => useStudio.getState().selectSection("p-2", "s-3"))
+    act(() => useStudio.getState().selectSection("s-3"))
 
     expect(screen.getByRole("option", { name: /South line/ })).toHaveAttribute(
       "aria-selected",
@@ -108,7 +108,7 @@ describe("Studio panels", () => {
   it("ticks every section of a selected pipeline, and the header box selects all or none", async () => {
     const user = userEvent.setup()
     await renderPanels()
-    act(() => useStudio.getState().selectPipeline("p-1"))
+    act(() => useStudio.getState().select(["s-1", "s-2"]))
 
     const all = screen.getByRole("checkbox", { name: "Select all sections" })
     const tree = screen.getByRole("tree")
@@ -122,11 +122,99 @@ describe("Studio panels", () => {
 
     await user.click(all)
     expect(all).toBeChecked()
+    // Nothing ticked is nothing selected: the panel has no more to show.
     await user.click(all)
-    expect(all).not.toBeChecked()
-    within(tree)
-      .getAllByRole("checkbox")
-      .forEach((box) => expect(box).not.toBeChecked())
+    expect(useStudio.getState().selection.size).toBe(0)
+    expect(
+      screen.getByRole("heading", { name: "Nothing selected" })
+    ).toBeInTheDocument()
+  })
+
+  it("adds pipelines by their boxes and lists them grouped on the right", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    const list = screen.getByRole("listbox", { name: "Pipelines" })
+
+    await user.click(
+      within(list).getByRole("checkbox", { name: "Select North line" })
+    )
+    await user.click(
+      within(list).getByRole("checkbox", { name: "Select South line" })
+    )
+    expect([...useStudio.getState().selection].sort()).toEqual([
+      "s-1",
+      "s-2",
+      "s-3",
+    ])
+    expect(
+      screen.getByRole("heading", { name: "2 pipelines" })
+    ).toBeInTheDocument()
+    expect(screen.getByText("3 sections in 2 pipelines")).toBeInTheDocument()
+
+    // Unticking one section leaves its pipeline partly selected.
+    const tree = screen.getByRole("tree")
+    await user.click(within(tree).getAllByRole("checkbox")[0])
+    expect(
+      within(list).getByRole("checkbox", { name: "Select North line" })
+    ).toHaveAttribute("aria-checked", "mixed")
+
+    // A plain click on a row replaces the selection with that pipeline.
+    await user.click(within(list).getByRole("option", { name: /South line/ }))
+    expect([...useStudio.getState().selection]).toEqual(["s-3"])
+  })
+
+  it("selects a run of rows with Shift, and all or none with the header box", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    const list = screen.getByRole("listbox", { name: "Pipelines" })
+    const rows = within(list).getAllByRole("option")
+
+    await user.click(rows[0])
+    await user.keyboard("{Shift>}")
+    await user.click(rows[2])
+    await user.keyboard("{/Shift}")
+    expect(useStudio.getState().selection.size).toBe(4)
+
+    const all = screen.getByRole("checkbox", {
+      name: "Select all pipelines shown",
+    })
+    expect(all).toBeChecked()
+    await user.click(all)
+    expect(useStudio.getState().selection.size).toBe(0)
+    await user.click(all)
+    expect(useStudio.getState().selection.size).toBe(4)
+  })
+
+  it("hands the selection to the Agent as one attachment per pipeline", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    act(() => useStudio.getState().select(["s-1", "s-3"]))
+
+    await user.click(screen.getByRole("button", { name: "Ask the Agent" }))
+    expect(useStudio.getState().agentAttachments).toEqual([
+      { pipelineId: "p-1", sectionIds: ["s-1"] },
+      { pipelineId: "p-2", sectionIds: "all" },
+    ])
+
+    // Attaching more of a pipeline widens its attachment; it is not doubled.
+    act(() =>
+      useStudio
+        .getState()
+        .attachToAgent([{ pipelineId: "p-1", sectionIds: ["s-2"] }])
+    )
+    expect(useStudio.getState().agentAttachments[0]).toEqual({
+      pipelineId: "p-1",
+      sectionIds: ["s-1", "s-2"],
+    })
+  })
+
+  it("steps a selection back: some sections, whole pipelines, nothing", () => {
+    const whole = ["s-1", "s-2", "s-3"]
+    act(() => useStudio.getState().select(["s-1", "s-3"]))
+    act(() => useStudio.getState().stepBack(whole))
+    expect([...useStudio.getState().selection]).toEqual(whole)
+    act(() => useStudio.getState().stepBack(whole))
+    expect(useStudio.getState().selection.size).toBe(0)
   })
 
   it("moves through the list with the arrow keys and selects with Enter", async () => {
@@ -138,7 +226,7 @@ describe("Studio panels", () => {
     await user.keyboard("{ArrowDown}")
     expect(rows[1]).toHaveFocus()
     await user.keyboard("{Enter}")
-    expect(useStudio.getState().selectedPipelineId).toBe("p-2")
+    expect([...useStudio.getState().selection]).toEqual(["s-3"])
   })
 
   it("searches every pipeline and opens the first hit with Enter", async () => {
@@ -155,7 +243,7 @@ describe("Studio panels", () => {
 
     await user.keyboard("{Enter}")
     expect(useStudio.getState()).toMatchObject({
-      selectedPipelineId: "p-1",
+      selection: new Set(["s-2"]),
       selectedSectionId: "s-2",
       query: "",
     })
