@@ -194,8 +194,9 @@ Where code knowingly differs from the Figma frame:
   earlier crumbs step back. The network name is not shown (owner, 2026-11-12); Figma
   shows app and network.
 - Each side panel's header ends with a panel icon (`panel-left`, `panel-right`, added in
-  code, not yet on the Icons page) that shuts the panel; while a panel is shut, the same
-  icon sits in the top bar on that side to open it.
+  code, not yet on the Icons page) that shuts the panel; while the right panel is shut, the same
+  icon sits at the right of the top bar to open it. The left panel is opened again from
+  the rail.
 - The table button, the "Scanned map" layer row and the draw tools after Lasso are
   hidden until they do something. The filter badges under the search box each carry a
   remove button (`FilterChip`) and the row shows only filters that are set; the edition

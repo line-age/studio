@@ -138,7 +138,7 @@ function Frame({
   /** The centre: the map, or a message. */
   children?: ReactNode
 }) {
-  const { panel, open, togglePanel, toggleOpen } = useLeftPanel()
+  const { panel, open, togglePanel } = useLeftPanel()
   const hasSelection = useStudio((s) => s.selection.size > 0)
   const propertiesHidden = useStudio((s) => s.propertiesHidden)
   const toggleProperties = useStudio((s) => s.toggleProperties)
@@ -151,8 +151,6 @@ function Frame({
         networkName={networkName}
         trail={trail}
         onRoot={onHome}
-        leftOpen={open}
-        onToggleLeft={toggleOpen}
         rightOpen={rightOpen}
         rightAvailable={hasSelection}
         onToggleRight={toggleProperties}

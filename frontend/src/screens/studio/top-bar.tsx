@@ -25,8 +25,6 @@ export function TopBar({
   networkName,
   trail = [],
   onRoot,
-  leftOpen,
-  onToggleLeft,
   rightOpen,
   rightAvailable,
   onToggleRight,
@@ -36,8 +34,6 @@ export function TopBar({
   trail?: Crumb[]
   /** Clears the selection: what the app name does when there is a trail. */
   onRoot?: () => void
-  leftOpen: boolean
-  onToggleLeft: () => void
   rightOpen: boolean
   /** False while nothing is selected: there are no properties to show. */
   rightAvailable: boolean
@@ -58,16 +54,6 @@ export function TopBar({
         <TopbarButton kind="icon" aria-label="Menu">
           <Icon name="menu" />
         </TopbarButton>
-        {!leftOpen && (
-          <TopbarButton
-            kind="icon"
-            aria-label="Show the left panel"
-            onClick={onToggleLeft}
-            className="-ml-2.5"
-          >
-            <Icon name="panel-left" />
-          </TopbarButton>
-        )}
         <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
           <Icon name="section" />
         </span>
