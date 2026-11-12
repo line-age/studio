@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from "react"
+import { useId, useMemo } from "react"
 
 import { GroupLabel } from "@/components/group-label"
 import { LayerRow } from "@/components/layer-row"
@@ -10,7 +10,18 @@ import { SwitchRow } from "@/components/switch-row"
 import { YearPicker } from "@/components/year-picker"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxValue,
+  useComboboxAnchor,
+} from "@/components/ui/combobox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   attributeNames,
@@ -99,13 +110,11 @@ export function FiltersPanel() {
   const unknownIn = useStudio((s) => s.unknownIn)
   const toggleUnknownIn = useStudio((s) => s.toggleUnknownIn)
   const companies = useStudio((s) => s.companies)
-  const toggleCompany = useStudio((s) => s.toggleCompany)
   const setCompanies = useStudio((s) => s.setCompanies)
   const builtFrom = useStudio((s) => s.builtFrom)
   const builtTo = useStudio((s) => s.builtTo)
   const setBuilt = useStudio((s) => s.setBuilt)
   const filtered = useStudio(filtersApplied)
-  const [companyQuery, setCompanyQuery] = useState("")
 
   const counts = useMemo(() => showCounts(summaries), [summaries])
   // Only notes on sections of this edition are drawn, so only those count.
@@ -133,10 +142,15 @@ export function FiltersPanel() {
   )
   const allCompanies = useMemo(() => companyCounts(summaries), [summaries])
   const span = useMemo(() => buildYearSpan(summaries), [summaries])
-  const needle = companyQuery.trim().toLocaleLowerCase()
-  const shownCompanies = allCompanies.filter(
-    (c) => needle === "" || c.name.toLocaleLowerCase().includes(needle)
+  const companyNames = useMemo(
+    () => allCompanies.map((c) => c.name),
+    [allCompanies]
   )
+  const companyCount = useMemo(
+    () => new Map(allCompanies.map((c) => [c.name, c.count])),
+    [allCompanies]
+  )
+  const companyAnchor = useComboboxAnchor()
 
   return (
     <>
@@ -221,44 +235,48 @@ export function FiltersPanel() {
               )
             }
           >
-            {/* A long list gets a box to find a company by name. */}
-            {allCompanies.length > 8 && (
-              <Input
-                type="search"
-                name="company-filter"
-                aria-label="Find a company"
-                autoComplete="off"
-                spellCheck={false}
-                placeholder="Find a company"
-                value={companyQuery}
-                onChange={(event) => setCompanyQuery(event.target.value)}
-              />
-            )}
-            <div
-              role="group"
-              aria-label="Company"
-              className="flex max-h-64 flex-col gap-0.5 overflow-y-auto overscroll-contain"
+            {/* Type to find a company; the chosen ones stay as chips. */}
+            <Combobox
+              multiple
+              autoHighlight
+              limit={50}
+              items={companyNames}
+              value={companies as string[]}
+              onValueChange={(next) => setCompanies(next)}
             >
-              {shownCompanies.map(({ name, count }) => (
-                <OptionRow
-                  key={name}
-                  control={
-                    <Checkbox
-                      checked={companies.includes(name)}
-                      onCheckedChange={() => toggleCompany(name)}
-                    />
-                  }
-                  label={name}
-                  count={count}
-                  selected={companies.includes(name)}
-                />
-              ))}
-              {shownCompanies.length === 0 && (
-                <p className="px-2 type-ui-sm text-muted-foreground">
-                  No company matches “{companyQuery.trim()}”.
-                </p>
-              )}
-            </div>
+              <ComboboxChips ref={companyAnchor} className="w-full">
+                <ComboboxValue>
+                  {(chosen: string[]) => (
+                    <>
+                      {chosen.map((name) => (
+                        <ComboboxChip key={name} aria-label={name}>
+                          <span className="max-w-44 truncate">{name}</span>
+                        </ComboboxChip>
+                      ))}
+                      <ComboboxChipsInput
+                        aria-label="Search companies"
+                        placeholder={
+                          chosen.length === 0 ? "Search companies" : ""
+                        }
+                      />
+                    </>
+                  )}
+                </ComboboxValue>
+              </ComboboxChips>
+              <ComboboxContent anchor={companyAnchor}>
+                <ComboboxEmpty>No company matches.</ComboboxEmpty>
+                <ComboboxList>
+                  {(name: string) => (
+                    <ComboboxItem key={name} value={name}>
+                      <span className="min-w-0 flex-1 truncate">{name}</span>
+                      <span className="type-ui-mono-xs text-muted-foreground">
+                        {formatCount(companyCount.get(name) ?? 0)}
+                      </span>
+                    </ComboboxItem>
+                  )}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
           </Group>
         )}
 
