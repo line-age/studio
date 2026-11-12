@@ -155,8 +155,8 @@ Where code knowingly differs from the Figma frame:
   pipeline at a time on the left; its header box only clears the selection.
 - Search narrows the same pipeline list (same rows, the second line says why a row
   matched). The grouped SearchResult layout of frame `45:99` is not used.
-- The rail marks the open panel with a solid primary chip behind the icon, not the light
-  tint. Filters shows a dot when filters are applied; Agent shows a purple dot when
+- The rail marks the open panel as shadcn Tabs does: a white tile with a soft shadow
+  around icon and label, the icon in primary; not the light tint on the icon. Filters shows a dot when filters are applied; Agent shows a purple dot when
   proposals are waiting. The numbered note badge is gone.
 - All three left panels share one width. Both side panels can be dragged wider
   (`ResizeHandle`); the width is kept in the browser.

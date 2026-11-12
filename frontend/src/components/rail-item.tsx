@@ -3,7 +3,7 @@ import type { ComponentProps } from "react"
 import { Icon, type IconName } from "@/components/icons/icon"
 import { cn } from "@/lib/utils"
 
-/** One entry on the left icon rail. Active marks the open panel. */
+/** One entry on the left icon rail: icon over label. Active marks the open panel. */
 export function RailItem({
   icon,
   label,
@@ -25,40 +25,34 @@ export function RailItem({
     <button
       type="button"
       aria-pressed={active}
-      className={cn(
-        "group/rail flex w-full flex-col items-center gap-1 py-1 outline-none",
-        active
-          ? "type-ui-2xs-medium text-foreground"
-          : "type-ui-2xs text-muted-foreground hover:text-foreground",
-        className
-      )}
+      className={cn("group/rail w-full px-1 outline-none", className)}
       {...props}
     >
-      {/* The open panel's icon sits on a solid primary chip. */}
+      {/* As shadcn Tabs on a muted list: the open one is a raised white tile. */}
       <span
         className={cn(
-          "relative flex h-8 w-10 items-center justify-center rounded-lg transition-colors duration-100 group-focus-visible/rail:shadow-focus-ring",
+          "flex flex-col items-center gap-1 rounded-lg border px-0.5 pt-2 pb-1.5 transition-colors duration-100 group-focus-visible/rail:outline-2 group-focus-visible/rail:outline-offset-1 group-focus-visible/rail:outline-ring group-focus-visible/rail:outline-solid",
           active
-            ? "bg-primary text-primary-foreground group-hover/rail:bg-primary-hover group-active/rail:bg-primary-pressed"
-            : "group-hover/rail:bg-accent group-active/rail:bg-selected"
+            ? "border-border-subtle bg-background type-ui-2xs-medium text-foreground shadow-sm"
+            : "border-transparent type-ui-2xs text-muted-foreground group-hover/rail:bg-accent group-hover/rail:text-foreground group-active/rail:bg-selected"
         )}
       >
         <span className="relative flex">
-          <Icon name={icon} />
+          <Icon name={icon} className={cn(active && "text-primary")} />
           {indicator && (
             <span
               className={cn(
                 "absolute -top-1 -right-1.5 size-2 rounded-full ring-2",
-                active ? "ring-primary" : "ring-muted",
+                active ? "ring-background" : "ring-muted",
                 indicator.tone === "ai" ? "bg-state-ai" : "bg-primary"
               )}
             />
           )}
         </span>
-      </span>
-      <span>
-        {label}
-        {indicator && <span className="sr-only">, {indicator.label}</span>}
+        <span>
+          {label}
+          {indicator && <span className="sr-only">, {indicator.label}</span>}
+        </span>
       </span>
     </button>
   )
