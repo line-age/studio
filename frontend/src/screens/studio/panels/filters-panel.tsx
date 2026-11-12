@@ -11,14 +11,6 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   attributeNames,
   formatCount,
   matchesUnknownIn,
@@ -99,7 +91,6 @@ export function FiltersPanel() {
   const setShow = useStudio((s) => s.setShow)
   const onlyInView = useStudio((s) => s.onlyInView)
   const setOnlyInView = useStudio((s) => s.setOnlyInView)
-  const setEdition = useStudio((s) => s.setEdition)
   const clearFilters = useStudio((s) => s.clearFilters)
   const unknownIn = useStudio((s) => s.unknownIn)
   const toggleUnknownIn = useStudio((s) => s.toggleUnknownIn)
@@ -112,13 +103,6 @@ export function FiltersPanel() {
     )
     return network.notes.filter((note) => inEdition.has(note.sectionId)).length
   }, [network.notes, summaries])
-  const editions = useMemo(
-    () =>
-      [...network.editions]
-        .sort((a, b) => b.year - a.year)
-        .map((e) => ({ value: e.id, label: e.label })),
-    [network.editions]
-  )
   const otherYears = network.editions
     .filter((e) => e.id !== edition.id)
     .map((e) => e.year)
@@ -184,29 +168,6 @@ export function FiltersPanel() {
             {/* Shown as designed. There is no scan layer yet, so it stays off. */}
             <LayerRow name="Scanned map" meta="Off" visible={false} />
           </ul>
-        </Group>
-
-        <Group title="Edition">
-          <Select
-            items={editions}
-            value={edition.id}
-            onValueChange={(value) => {
-              if (value) setEdition(value)
-            }}
-          >
-            <SelectTrigger className="w-full" aria-label="Edition">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {editions.map((e) => (
-                  <SelectItem key={e.value} value={e.value}>
-                    {e.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
         </Group>
 
         <Group title="Show">
