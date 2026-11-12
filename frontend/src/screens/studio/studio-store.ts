@@ -1,0 +1,133 @@
+import { create } from "zustand"
+
+import type { Bounds, ShowFilter } from "@/data/derive"
+
+/*
+ * What the person has chosen on the Studio screen. Data lives in the network
+ * (src/data); this is only selection and filters.
+ */
+
+export type LeftPanel = "pipelines" | "filters" | "agent"
+
+export type LayerId = "pipelines" | "proposed" | "ghost" | "pins"
+
+export interface FitRequest {
+  bounds: Bounds
+  /** Changes on every request so the map reacts even to the same bounds. */
+  nonce: number
+}
+
+interface StudioState {
+  editionId: string | null
+  show: ShowFilter
+  onlyInView: boolean
+  layers: Record<LayerId, boolean>
+  query: string
+  selectedPipelineId: string | null
+  selectedSectionId: string | null
+  selectedAttribute: string | null
+  expandedSectionIds: ReadonlySet<string>
+  /** The map's current view; null until the map has drawn once. */
+  view: Bounds | null
+  fit: FitRequest | null
+
+  setEdition: (editionId: string) => void
+  setShow: (show: ShowFilter) => void
+  setOnlyInView: (on: boolean) => void
+  toggleLayer: (layer: LayerId) => void
+  clearFilters: () => void
+  setQuery: (query: string) => void
+  selectPipeline: (pipelineId: string | null) => void
+  selectSection: (pipelineId: string, sectionId: string) => void
+  selectAttribute: (
+    pipelineId: string,
+    sectionId: string,
+    attribute: string
+  ) => void
+  toggleExpanded: (sectionId: string) => void
+  clearSection: () => void
+  setView: (view: Bounds) => void
+  requestFit: (bounds: Bounds | null) => void
+}
+
+const defaultLayers: Record<LayerId, boolean> = {
+  pipelines: true,
+  proposed: true,
+  ghost: true,
+  pins: true,
+}
+
+let nonce = 0
+
+export const useStudio = create<StudioState>((set) => ({
+  editionId: null,
+  show: "all",
+  onlyInView: true,
+  layers: defaultLayers,
+  query: "",
+  selectedPipelineId: null,
+  selectedSectionId: null,
+  selectedAttribute: null,
+  expandedSectionIds: new Set(),
+  view: null,
+  fit: null,
+
+  setEdition: (editionId) =>
+    set({
+      editionId,
+      selectedPipelineId: null,
+      selectedSectionId: null,
+      selectedAttribute: null,
+      expandedSectionIds: new Set(),
+    }),
+  setShow: (show) => set({ show }),
+  setOnlyInView: (onlyInView) => set({ onlyInView }),
+  toggleLayer: (layer) =>
+    set((s) => ({ layers: { ...s.layers, [layer]: !s.layers[layer] } })),
+  // Back to how the screen opens: every pipeline, following the map view.
+  clearFilters: () => set({ show: "all", onlyInView: true }),
+  setQuery: (query) => set({ query }),
+  selectPipeline: (pipelineId) =>
+    set({
+      selectedPipelineId: pipelineId,
+      selectedSectionId: null,
+      selectedAttribute: null,
+    }),
+  selectSection: (pipelineId, sectionId) =>
+    set((s) => ({
+      selectedPipelineId: pipelineId,
+      selectedSectionId: sectionId,
+      selectedAttribute: null,
+      expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
+    })),
+  selectAttribute: (pipelineId, sectionId, attribute) =>
+    set((s) => ({
+      selectedPipelineId: pipelineId,
+      selectedSectionId: sectionId,
+      selectedAttribute: attribute,
+      expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
+    })),
+  toggleExpanded: (sectionId) =>
+    set((s) => {
+      const next = new Set(s.expandedSectionIds)
+      if (!next.delete(sectionId)) next.add(sectionId)
+      return { expandedSectionIds: next }
+    }),
+  clearSection: () => set({ selectedSectionId: null, selectedAttribute: null }),
+  setView: (view) => set({ view }),
+  requestFit: (bounds) =>
+    set(bounds ? { fit: { bounds, nonce: (nonce += 1) } } : {}),
+}))
+
+/** Zoom and centre change on every frame of a pan, so they get their own store. */
+interface CameraState {
+  zoom: number | null
+  center: [number, number] | null
+  setCamera: (zoom: number, center: [number, number]) => void
+}
+
+export const useCamera = create<CameraState>((set) => ({
+  zoom: null,
+  center: null,
+  setCamera: (zoom, center) => set({ zoom, center }),
+}))

@@ -1,21 +1,32 @@
 # Composer frontend
 
-The React app for Composer, the Lineage review desk. Foundation only so far: the theme
-exported from Figma and one shell page that shows it.
+The React app for Composer, the Lineage review desk. So far: the theme exported from
+Figma and one screen, Studio, read-only on fixture data. There is no API yet.
 
 ## Run
 
 ```sh
 pnpm install
+cp .env.example .env.local   # then put your Mapbox public token in it
 pnpm dev
 ```
 
 Needs Node 22 and pnpm 10.
 
+The map is Mapbox GL JS and needs a Mapbox public access token
+(`VITE_MAPBOX_TOKEN` in `.env.local`, which git ignores). Use of the map is under
+Mapbox's terms and is billed to the account the token belongs to. Without a token the
+app still runs; the lists and panels work and the map area says what is missing.
+
+## Data
+
+The app reads `public/fixtures/sample.json`, a small invented network. To use your own
+file without changing code, see `docs/fixtures.md`.
+
 ## Check
 
 ```sh
-pnpm check   # tokens, types, lint, format
+pnpm check   # tokens, types, lint, format, tests
 pnpm build
 ```
 

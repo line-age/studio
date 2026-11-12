@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local fixture files may hold real names. Never commit them.
+public/fixtures/local/

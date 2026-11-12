@@ -134,6 +134,27 @@ These are intended. Do not "fix" them back to shadcn defaults.
 - Sample data is invented. No real section, company, source, map, sheet or person name.
 - Nothing of Mapbox's: no icons, fonts or artwork. Icons are our own set (Icons page).
 
+## What is built in code
+
+As of 2026-11-12 the Studio screen (`24:3`) and its three state panels are built in
+`src/screens/studio/`, read-only, on fixture data. Lineage parts are in
+`src/components/`, icons in `src/components/icons/icon.tsx` (path data copied from the
+Icons page). Not built, because nothing on the screen uses them: MapHandle, ProposalCard,
+Citation.
+
+Where code knowingly differs from the Figma frame:
+
+- The map is a live Mapbox light basemap, not the yellow fill. Lines use the `map/*`
+  tokens. The selected halo is `map/selected` at 25% opacity, 9 wide, as in the frame.
+- When a pipeline is selected and no section is, all its sections get the halo. Figma
+  only shows the single-section case.
+- "Edited 4 minutes ago" in the top bar is left out: the data holds no edit time.
+- The Area switch says "The list follows the map"; the frame says "table", and the table
+  is not designed.
+- Rows show the Checkbox look but selection is one at a time; selecting several is not
+  designed.
+- The Mapbox logo sits top left and its attribution bottom right, as its terms require.
+
 ## Not designed yet
 
 Do not invent these in code; ask or design in Figma first: the fact detail area (where

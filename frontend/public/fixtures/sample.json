@@ -1,0 +1,3168 @@
+{
+  "version": 1,
+  "name": "Calder Valley network",
+  "editions": [
+    {
+      "id": "ed-1931",
+      "year": 1931,
+      "label": "1931 edition"
+    },
+    {
+      "id": "ed-1937",
+      "year": 1937,
+      "label": "1937 edition"
+    }
+  ],
+  "pipelines": [
+    {
+      "id": "p-012",
+      "code": "P-012",
+      "name": "Calder Valley"
+    },
+    {
+      "id": "p-013",
+      "code": "P-013",
+      "name": "Tolland"
+    },
+    {
+      "id": "p-014",
+      "code": "P-014",
+      "name": "Adair trunk"
+    },
+    {
+      "id": "p-015",
+      "code": "P-015",
+      "name": "Wexley lateral"
+    },
+    {
+      "id": "p-016",
+      "code": "P-016",
+      "name": "Marsh Fork gathering"
+    },
+    {
+      "id": "p-017",
+      "code": "P-017",
+      "name": "Brecken loop"
+    },
+    {
+      "id": "p-041",
+      "code": "P-041",
+      "name": "Harlow lateral"
+    }
+  ],
+  "sections": [
+    {
+      "id": "s-0140",
+      "code": "S-0140",
+      "name": "Marsh Fork to Calder Jct",
+      "pipelineId": "p-012",
+      "editionIds": ["ed-1931", "ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.95, 36.62],
+          [-97.7802, 36.5732],
+          [-97.62, 36.5]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Calder Valley Gas Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Calder Valley Gas Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "12 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-5",
+              "quote": "\"12 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. D-5"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-5"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1934",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-5"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0141",
+      "code": "S-0141",
+      "name": "Marsh Fork to Harlow",
+      "pipelineId": "p-012",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.95, 36.62],
+          [-97.79387, 36.46267],
+          [-97.55613, 36.43733],
+          [-97.4, 36.28]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Calder Valley Gas Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Calder Valley Gas Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "12 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-6",
+              "quote": "\"12 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-6"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-6"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1934",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "4 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-6"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0142",
+      "code": "S-0142",
+      "name": "Harlow to Brecken",
+      "pipelineId": "p-012",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.4, 36.28],
+          [-97.2346, 36.414],
+          [-97.05, 36.52]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": null,
+          "citations": [],
+          "proposals": [
+            {
+              "value": "12 in",
+              "citation": {
+                "source": "1937 edition",
+                "locator": "grid ref. F-7",
+                "quote": "\"12 IN.\""
+              }
+            }
+          ]
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. F-7"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. F-7"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. F-7"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": true
+    },
+    {
+      "id": "s-0143",
+      "code": "S-0143",
+      "name": "Calder Jct to Wexley",
+      "pipelineId": "p-012",
+      "editionIds": ["ed-1931", "ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.62, 36.5],
+          [-97.33733, 36.52667],
+          [-97.10267, 36.31333],
+          [-96.82, 36.34]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Calder Valley Gas Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Calder Valley Gas Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "12 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-6",
+              "quote": "\"12 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. E-6"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-6"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1934",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "4 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-6"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0144",
+      "code": "S-0144",
+      "name": "Wexley to Adair",
+      "pipelineId": "p-012",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-96.82, 36.34],
+          [-96.7504, 36.2248],
+          [-96.7, 36.1]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Calder Valley Gas Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Calder Valley Gas Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "12 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-8",
+              "quote": "\"12 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-8"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-8"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-8"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0145",
+      "code": "S-0145",
+      "name": "Adair spur",
+      "pipelineId": "p-012",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-96.7, 36.1],
+          [-96.6132, 36.1472],
+          [-96.52, 36.18]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Calder Valley Gas Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Calder Valley Gas Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "8 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-9",
+              "quote": "\"8 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-9"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-9"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1934",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-9"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0146",
+      "code": "S-0146",
+      "name": "Tolland to Pell",
+      "pipelineId": "p-013",
+      "editionIds": ["ed-1931", "ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-98.1, 36.2],
+          [-97.944, 36.137],
+          [-97.8, 36.05]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "10 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-8",
+              "quote": "\"10 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. B-8"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-8"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1929",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-8"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0147",
+      "code": "S-0147",
+      "name": "Pell to Dunmore",
+      "pipelineId": "p-013",
+      "editionIds": ["ed-1931", "ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.8, 36.05],
+          [-97.646, 36.012],
+          [-97.5, 35.95]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "10 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. C-9",
+              "quote": "\"10 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. C-9"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. C-9"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. C-9"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0148",
+      "code": "S-0148",
+      "name": "Dunmore to Orrin",
+      "pipelineId": "p-013",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.5, 35.95],
+          [-97.298, 35.941],
+          [-97.1, 35.9]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Tolland Fuel Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Tolland Fuel Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-10"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-10"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1929",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-10"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0149",
+      "code": "S-0149",
+      "name": "Tolland spur",
+      "pipelineId": "p-013",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-98.1, 36.2],
+          [-98.329, 36.232],
+          [-98.55, 36.3]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Tolland Fuel Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Tolland Fuel Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "10 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. A-7",
+              "quote": "\"10 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. A-7"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. A-7"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. A-7"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0150",
+      "code": "S-0150",
+      "name": "Adair to Orrin",
+      "pipelineId": "p-014",
+      "editionIds": ["ed-1931", "ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-96.7, 36.1],
+          [-96.82533, 36.01733],
+          [-96.97467, 35.98267],
+          [-97.1, 35.9]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Adair Pipe Line Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Adair Pipe Line Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "16 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. F-10",
+              "quote": "\"16 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. F-10"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. F-10"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1930",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "4 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. F-10"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0151",
+      "code": "S-0151",
+      "name": "Orrin to Tarn",
+      "pipelineId": "p-014",
+      "editionIds": ["ed-1931", "ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.1, 35.9],
+          [-96.748, 35.903],
+          [-96.4, 35.85]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Harlow Gas Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Harlow Gas Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "16 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-10",
+              "quote": "\"16 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. H-10"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-10"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1930",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-10"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0152",
+      "code": "S-0152",
+      "name": "Tarn to Ashby",
+      "pipelineId": "p-014",
+      "editionIds": ["ed-1931", "ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-96.4, 35.85],
+          [-96.256, 35.937],
+          [-96.1, 36]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Harlow Gas Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Harlow Gas Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "16 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-9",
+              "quote": "\"16 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. H-9"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-9"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1930",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-9"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0153",
+      "code": "S-0153",
+      "name": "Ashby to Merrow",
+      "pipelineId": "p-014",
+      "editionIds": ["ed-1931", "ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-96.1, 36],
+          [-96.01, 36.133],
+          [-95.9, 36.25]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Adair Pipe Line Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Adair Pipe Line Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "16 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-8",
+              "quote": "\"16 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. H-8"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-8"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1930",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-8"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0154",
+      "code": "S-0154",
+      "name": "Merrow to Coyle",
+      "pipelineId": "p-014",
+      "editionIds": ["ed-1931", "ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-95.9, 36.25],
+          [-95.835, 36.381],
+          [-95.75, 36.5]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Adair Pipe Line Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Adair Pipe Line Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "16 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-7",
+              "quote": "\"16 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. H-7"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-7"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1930",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-7"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0155",
+      "code": "S-0155",
+      "name": "Adair to Tarn",
+      "pipelineId": "p-014",
+      "editionIds": ["ed-1931", "ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-96.7, 36.1],
+          [-96.575, 35.945],
+          [-96.4, 35.85]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Adair Pipe Line Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Adair Pipe Line Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "16 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-10",
+              "quote": "\"16 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. G-10"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-10"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1930",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-10"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0156",
+      "code": "S-0156",
+      "name": "Coyle to Venn",
+      "pipelineId": "p-014",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-95.75, 36.5],
+          [-96.0468, 36.436],
+          [-96.35, 36.42]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Adair Pipe Line Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Adair Pipe Line Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "16 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. J-6",
+              "quote": "\"16 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. J-6"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. J-6"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1930",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. J-6"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0157",
+      "code": "S-0157",
+      "name": "Venn to Castell",
+      "pipelineId": "p-014",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-96.35, 36.42],
+          [-96.4572, 36.502],
+          [-96.55, 36.6]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Adair Pipe Line Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Adair Pipe Line Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "16 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. I-5",
+              "quote": "\"16 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. I-5"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. I-5"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1930",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. I-5"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0158",
+      "code": "S-0158",
+      "name": "Merrow spur",
+      "pipelineId": "p-014",
+      "editionIds": ["ed-1931", "ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-95.9, 36.25],
+          [-95.7948, 36.193],
+          [-95.7, 36.12]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Adair Pipe Line Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Adair Pipe Line Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "8 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. K-8",
+              "quote": "\"8 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. K-8"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. K-8"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1930",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. K-8"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0159",
+      "code": "S-0159",
+      "name": "Wexley to Castell",
+      "pipelineId": "p-015",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-96.82, 36.34],
+          [-96.6954, 36.4808],
+          [-96.55, 36.6]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-6"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. H-6"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0160",
+      "code": "S-0160",
+      "name": "Wexley to Venn",
+      "pipelineId": "p-015",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-96.82, 36.34],
+          [-96.5802, 36.3518],
+          [-96.35, 36.42]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. I-7"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. I-7"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0161",
+      "code": "S-0161",
+      "name": "Lowry to Marsh Fork",
+      "pipelineId": "p-016",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-98.25, 36.75],
+          [-98.0948, 36.697],
+          [-97.95, 36.62]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Marsh Fork Gathering Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Marsh Fork Gathering Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "6 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-4",
+              "quote": "\"6 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-4"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-4"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-4"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0162",
+      "code": "S-0162",
+      "name": "Hask to Marsh Fork",
+      "pipelineId": "p-016",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-98, 36.92],
+          [-97.963, 36.772],
+          [-97.95, 36.62]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Marsh Fork Gathering Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Marsh Fork Gathering Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. C-3"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. C-3"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1935",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. C-3"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0163",
+      "code": "S-0163",
+      "name": "Hask to Sorrel",
+      "pipelineId": "p-016",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-98, 36.92],
+          [-97.76507, 36.93467],
+          [-97.53493, 36.86533],
+          [-97.3, 36.88]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Marsh Fork Gathering Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Marsh Fork Gathering Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "6 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-3",
+              "quote": "\"6 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-3"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-3"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1935",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "4 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-3"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0164",
+      "code": "S-0164",
+      "name": "Lowry to Hask",
+      "pipelineId": "p-016",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-98.25, 36.75],
+          [-98.1318, 36.845],
+          [-98, 36.92]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "6 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-3",
+              "quote": "\"6 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-3"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-3"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1935",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-3"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0165",
+      "code": "S-0165",
+      "name": "Garrick to Lowry",
+      "pipelineId": "p-016",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-98.55, 36.3],
+          [-98.436, 36.549],
+          [-98.25, 36.75]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Marsh Fork Gathering Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Marsh Fork Gathering Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "6 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. A-5",
+              "quote": "\"6 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. A-5"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. A-5"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. A-5"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0166",
+      "code": "S-0166",
+      "name": "Brecken to Quill",
+      "pipelineId": "p-017",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.05, 36.52],
+          [-96.9862, 36.666],
+          [-96.9, 36.8]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Brecken Light and Fuel Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Brecken Light and Fuel Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "8 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. F-4",
+              "quote": "\"8 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. F-4"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. F-4"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1933",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. F-4"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0167",
+      "code": "S-0167",
+      "name": "Quill to Sorrel",
+      "pipelineId": "p-017",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-96.9, 36.8],
+          [-97.1032, 36.824],
+          [-97.3, 36.88]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Brecken Light and Fuel Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Brecken Light and Fuel Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "8 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-3",
+              "quote": "\"8 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-3"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-3"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1933",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-3"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0168",
+      "code": "S-0168",
+      "name": "Sorrel to Brecken",
+      "pipelineId": "p-017",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.3, 36.88],
+          [-97.211, 36.675],
+          [-97.05, 36.52]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Brecken Light and Fuel Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Brecken Light and Fuel Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "8 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-4",
+              "quote": "\"8 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-4"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-4"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1933",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-4"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0410",
+      "code": "S-0410",
+      "name": "Harlow to Dunmore",
+      "pipelineId": "p-041",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.4, 36.28],
+          [-97.4368, 36.111],
+          [-97.5, 35.95]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Harlow Gas Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Harlow Gas Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "8 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-8",
+              "quote": "\"8 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-8"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-8"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-8"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0411",
+      "code": "S-0411",
+      "name": "Dunmore to Fenn",
+      "pipelineId": "p-041",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.5, 35.95],
+          [-97.798, 35.89733],
+          [-98.102, 35.95267],
+          [-98.4, 35.9]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Harlow Gas Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Harlow Gas Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "8 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-10",
+              "quote": "\"8 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-10"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-10"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "4 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. B-10"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0412",
+      "code": "S-0412",
+      "name": "Harlow to Pell",
+      "pipelineId": "p-041",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.4, 36.28],
+          [-97.6115, 36.185],
+          [-97.8, 36.05]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": "Harlow Gas Co.",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 214",
+              "quote": "operated by the Harlow Gas Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": "8 in",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-8",
+              "quote": "\"8 IN.\""
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-8"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-8"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": "1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "locator": "p. 215"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. D-8"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0900",
+      "code": "S-0900",
+      "name": "Unnamed section near Castell",
+      "pipelineId": null,
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-96.55, 36.6],
+          [-96.146, 36.582],
+          [-95.75, 36.5]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. J-5"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. J-5"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. J-5"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0901",
+      "code": "S-0901",
+      "name": "Unnamed section near Quill",
+      "pipelineId": null,
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-96.9, 36.8],
+          [-96.711, 36.7245],
+          [-96.55, 36.6]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-4"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-4"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. G-4"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0902",
+      "code": "S-0902",
+      "name": "Unnamed section near Fenn",
+      "pipelineId": null,
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-98.4, 35.9],
+          [-98.262, 36.062],
+          [-98.1, 36.2]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. A-9"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. A-9"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0903",
+      "code": "S-0903",
+      "name": "Unnamed section near Orrin",
+      "pipelineId": null,
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.1, 35.9],
+          [-97.1678, 35.804],
+          [-97.25, 35.72]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-11"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1937 edition",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-11"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1937 edition",
+              "locator": "grid ref. E-11"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0904",
+      "code": "S-0904",
+      "name": "Harlow to Brecken, earlier route",
+      "pipelineId": "p-012",
+      "editionIds": ["ed-1931"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.4, 36.28],
+          [-97.24493, 36.304],
+          [-97.20507, 36.496],
+          [-97.05, 36.52]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. F-7"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. F-7"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "4 points, traced",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. F-7"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    },
+    {
+      "id": "s-0905",
+      "code": "S-0905",
+      "name": "Unnamed section near Dunmore",
+      "pipelineId": null,
+      "editionIds": ["ed-1931"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.5, 35.95],
+          [-97.406, 36.033],
+          [-97.3, 36.1]
+        ]
+      },
+      "claims": [
+        {
+          "attribute": "Owner",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Diameter",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "First seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. E-9"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Last seen",
+          "value": "1931 edition",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. E-9"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "attribute": "Build date",
+          "value": null,
+          "citations": [],
+          "proposals": []
+        },
+        {
+          "attribute": "Geometry",
+          "value": "3 points, traced",
+          "citations": [
+            {
+              "source": "1931 edition",
+              "locator": "grid ref. E-9"
+            }
+          ],
+          "proposals": []
+        }
+      ],
+      "changedSinceReview": false
+    }
+  ],
+  "proposedPaths": [
+    {
+      "id": "pp-001",
+      "sectionId": "s-0142",
+      "editionIds": ["ed-1937"],
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-97.4, 36.28],
+          [-97.3, 36.54],
+          [-97.05, 36.52]
+        ]
+      }
+    }
+  ],
+  "notes": [
+    {
+      "id": "n-001",
+      "number": 1,
+      "sectionId": "s-0142",
+      "position": [-97.2346, 36.414],
+      "text": "The 1937 edition letters the diameter along this section.",
+      "quote": "\"12 IN.\"",
+      "source": "1937 edition, grid ref. F-7"
+    }
+  ],
+  "agentThread": [
+    {
+      "kind": "marker",
+      "text": "12 Nov 2026",
+      "separator": true
+    },
+    {
+      "kind": "user",
+      "text": "Find a source for the diameter of this section.",
+      "attachment": {
+        "sectionId": "s-0142",
+        "attribute": "Diameter"
+      }
+    },
+    {
+      "kind": "marker",
+      "text": "Read the 1937 and 1931 editions"
+    },
+    {
+      "kind": "assistant",
+      "text": "One edition states it. The other shows the line with no lettering.",
+      "noteIds": ["n-001"],
+      "proposal": {
+        "sectionId": "s-0142",
+        "attribute": "Diameter"
+      }
+    },
+    {
+      "kind": "marker",
+      "text": "Nothing has been changed."
+    }
+  ]
+}

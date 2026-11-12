@@ -39,6 +39,24 @@
     @apply font-sans;
   }
   body {
-    @apply bg-background type-ui-sm text-foreground;
+    @apply bg-background type-ui-sm text-foreground antialiased;
+  }
+}
+
+/*
+ * View transitions (panel switch, data arriving) use the same short fade as
+ * hover states, and none at all for people who ask for reduced motion.
+ */
+::view-transition-group(*),
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: 100ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

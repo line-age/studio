@@ -2,8 +2,9 @@
 
 The web app for reviewing traced pipelines: a map desk where a person checks sections,
 attaches cited facts and decides on what the AI proposes. This directory is the React
-app. State as of 2026-11-12: foundation only. The theme is exported from Figma and one
-shell page shows it. No product screens exist yet.
+app. State as of 2026-11-12: the theme exported from Figma and one screen, **Studio**,
+working read-only on fixture data (no API yet). More screens will follow; each gets its
+own directory under `src/screens/`.
 
 The workspace `AGENTS.md` two levels up holds the project-wide rules and the full Figma
 notes. This file wins for anything inside this directory.
@@ -15,6 +16,10 @@ notes. This file wins for anything inside this directory.
 - Tailwind v4, configured in CSS (`src/index.css`); there is no `tailwind.config`.
 - shadcn/ui, style **base-nova** (Base UI primitives, not Radix). `components.json` is
   the record.
+- Map: Mapbox GL JS through `react-map-gl/mapbox`, stock light style. Needs a public
+  token in `.env.local` (see `.env.example`); without it the app runs and says so.
+- State: one small zustand store per screen. Data validated with zod.
+- Tests: Vitest and Testing Library.
 - pnpm. Node 22.
 
 ## Commands
@@ -28,6 +33,8 @@ notes. This file wins for anything inside this directory.
 | `pnpm typecheck`                    | `tsc -b`                                                           |
 | `pnpm lint`                         | ESLint                                                             |
 | `pnpm format:check` / `pnpm format` | Prettier                                                           |
+| `pnpm test`                         | Vitest, once                                                       |
+| `pnpm fixtures:sample`              | Rebuild the invented sample `public/fixtures/sample.json`          |
 | `pnpm tokens:build`                 | Regenerate `src/styles/tokens.css` from `tokens/figma-tokens.json` |
 
 ## Layout
@@ -35,7 +42,12 @@ notes. This file wins for anything inside this directory.
 | Path                       | What                                                 |
 | -------------------------- | ---------------------------------------------------- |
 | `src/components/ui/`       | shadcn components, added by the CLI                  |
-| `src/components/`          | Our components (Lineage parts), one per file         |
+| `src/components/`          | Lineage parts any screen can use, one per file       |
+| `src/components/icons/`    | Our icon set, from the Figma Icons page              |
+| `src/screens/<screen>/`    | One screen: its layout, panels, map and store        |
+| `src/data/`                | Schema, loader and derived values. The API seam      |
+| `public/fixtures/`         | `sample.json` (invented). `local/` is git-ignored    |
+| `docs/fixtures.md`         | The fixture format                                   |
 | `src/styles/tokens.css`    | Generated theme. Never edit                          |
 | `src/index.css`            | Tailwind entry, imports, base layer                  |
 | `tokens/figma-tokens.json` | What was read from Figma                             |
@@ -96,6 +108,21 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - After `shadcn add`, check `src/index.css`: the CLI may write colour variables back
   into it. Remove them; `tokens.css` owns the values. Then run `pnpm tokens:check`.
 
+**Structure**
+
+- A screen lives in `src/screens/<name>/`. Things only that screen uses stay there
+  (panels, map, store). A part moves to `src/components/` when a second screen needs it.
+- Components never read a fixture or call `fetch`. They get data from the screen's
+  data provider (`studio-data.tsx`), which gets it from `src/data/load-network.ts`. When
+  the API arrives, that loader is what changes.
+- Counts and statuses are derived in `src/data/derive.ts`, never stored or hard-coded.
+- The map cannot read CSS variables: colours go through `map/map-colors.ts`, which reads
+  the tokens. No raw colour in map code either.
+- Not designed means not built: no tooltip, menu, popover, tab or table until Figma has
+  it. Use `aria-label` on icon-only buttons.
+- Top bar actions, the table button, the "Scanned map" eye and the draw tools are shown as designed and do
+  nothing yet (the owner's choice, 2026-11-12). Do not wire them to invented behaviour.
+
 **Code**
 
 - React 19: `ref` is a prop (no `forwardRef`), `use()` over `useContext`.
@@ -103,12 +130,17 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - Named exports. One component per file. Files in kebab-case.
 - Words come from `controlplane/glossary.md` in the workspace. Section, segment, edge
   and pipeline are not interchangeable. Check before a term reaches the UI or a type.
+  Types use the glossary word (`Claim`, `Citation`, `Section`); the interface says "fact"
+  where the type says claim, because Figma does. "Pipeline" as a group of sections,
+  "edition" and "proposal" are Figma's words and not in the glossary yet.
 
 **Data and privacy**
 
 - Sample data is invented. No real section, company, source, map, sheet or person name,
   no hostnames, cluster names or environment settings. This code may become public.
-- No credentials in the repo. No `.env` committed.
+- No credentials in the repo. No `.env` committed. The Mapbox token goes in `.env.local`.
+- A fixture with real names goes in `public/fixtures/local/` (ignored) and is selected
+  with `VITE_FIXTURE_URL`. Only `sample.json` is committed, and it is invented.
 
 **Writing**
 
