@@ -8,11 +8,14 @@ export function Attachment({
   title,
   meta,
   icon = "section",
+  onRemove,
   className,
 }: {
   title: ReactNode
   meta?: ReactNode
   icon?: IconName
+  /** Shows a small remove button, for an attachment not sent yet. */
+  onRemove?: () => void
   className?: string
 }) {
   return (
@@ -33,6 +36,16 @@ export function Attachment({
           </span>
         )}
       </span>
+      {onRemove && (
+        <button
+          type="button"
+          aria-label={`Remove ${typeof title === "string" ? title : "attachment"}`}
+          onClick={onRemove}
+          className="-mr-1 flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors duration-100 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid"
+        >
+          <Icon name="close" className="size-3" />
+        </button>
+      )}
     </div>
   )
 }

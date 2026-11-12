@@ -118,8 +118,9 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - Counts and statuses are derived in `src/data/derive.ts`, never stored or hard-coded.
 - The map cannot read CSS variables: colours go through `map/map-colors.ts`, which reads
   the tokens. No raw colour in map code either.
-- Not designed means not built: no tooltip, menu, popover, tab or table until Figma has
-  it. Use `aria-label` on icon-only buttons.
+- Not designed means not built: no tooltip, popover, tab or table until Figma has
+  it. The one menu is the right-click "Add to the Agent chat" (stock shadcn Context
+  Menu, the owner's request). Use `aria-label` on icon-only buttons.
 - Top bar actions, the table button, the "Scanned map" eye and the draw tools are shown as designed and do
   nothing yet (the owner's choice, 2026-11-12). Do not wire them to invented behaviour.
 

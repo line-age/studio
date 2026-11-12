@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it } from "vitest"
 
 import { testNetwork } from "@/test/network"
 
+import { LeftPanelContext } from "./left-panel-context"
 import { PipelinesPanel } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
 import { StudioDataProvider } from "./studio-data"
@@ -15,14 +16,16 @@ async function renderPanels() {
   await act(async () => {
     render(
       <Suspense fallback="Loading">
-        <StudioDataProvider network={network}>
-          <div>
-            <PipelinesPanel />
-          </div>
-          <div>
-            <PropertiesPanel />
-          </div>
-        </StudioDataProvider>
+        <LeftPanelContext value={{ panel: "pipelines", openPanel: () => {} }}>
+          <StudioDataProvider network={network}>
+            <div>
+              <PipelinesPanel />
+            </div>
+            <div>
+              <PropertiesPanel />
+            </div>
+          </StudioDataProvider>
+        </LeftPanelContext>
       </Suspense>
     )
   })

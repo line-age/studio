@@ -27,6 +27,7 @@ import {
 import type { Geometry } from "@/data/schema"
 
 import { SEARCH_INPUT_ID } from "../panels/pipelines-panel"
+import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { useLeftPanel } from "../left-panel-context"
 import { useStudioData } from "../studio-data"
 import { useCamera, useStudio } from "../studio-store"
@@ -75,6 +76,7 @@ export function StudioMap({ token }: { token: string }) {
   const setView = useStudio((s) => s.setView)
   const setCamera = useCamera((s) => s.setCamera)
 
+  const selection = useSelectionAttachments()
   const colors = useMemo(() => readMapColors(), [])
 
   // The sections of this edition whose pipeline passes the Show filter.
@@ -187,160 +189,165 @@ export function StudioMap({ token }: { token: string }) {
 
   return (
     <div className="absolute inset-0">
-      <MapGL
-        ref={mapRef}
-        mapboxAccessToken={token}
-        mapStyle={MAP_STYLE}
-        initialViewState={
-          initialBounds
-            ? {
-                bounds: [
-                  [initialBounds[0], initialBounds[1]],
-                  [initialBounds[2], initialBounds[3]],
-                ],
-                fitBoundsOptions: { padding: 64 },
-              }
-            : { longitude: 0, latitude: 0, zoom: 1 }
-        }
-        interactiveLayerIds={[HIT_LAYER]}
-        cursor={hoveredId ? "pointer" : "grab"}
-        logoPosition="top-left"
-        attributionControl={false}
-        dragRotate={false}
-        onLoad={report}
-        onMoveEnd={report}
-        onMove={(event) =>
-          setCamera(event.viewState.zoom, [
-            event.viewState.longitude,
-            event.viewState.latitude,
-          ])
-        }
-        onClick={onClick}
-        onMouseMove={onMouseMove}
-        onMouseLeave={() => setHoveredId(null)}
-        onError={(event) => {
-          console.error(event.error)
-          if (!mapRef.current?.isStyleLoaded()) setFailed(true)
-        }}
-        style={{ width: "100%", height: "100%" }}
-      >
-        <AttributionControl compact position="bottom-right" />
+      {/* Right click on the map offers what is selected to the Agent. */}
+      <AddToAgentMenu items={selection}>
+        <div className="absolute inset-0">
+          <MapGL
+            ref={mapRef}
+            mapboxAccessToken={token}
+            mapStyle={MAP_STYLE}
+            initialViewState={
+              initialBounds
+                ? {
+                    bounds: [
+                      [initialBounds[0], initialBounds[1]],
+                      [initialBounds[2], initialBounds[3]],
+                    ],
+                    fitBoundsOptions: { padding: 64 },
+                  }
+                : { longitude: 0, latitude: 0, zoom: 1 }
+            }
+            interactiveLayerIds={[HIT_LAYER]}
+            cursor={hoveredId ? "pointer" : "grab"}
+            logoPosition="top-left"
+            attributionControl={false}
+            dragRotate={false}
+            onLoad={report}
+            onMoveEnd={report}
+            onMove={(event) =>
+              setCamera(event.viewState.zoom, [
+                event.viewState.longitude,
+                event.viewState.latitude,
+              ])
+            }
+            onClick={onClick}
+            onMouseMove={onMouseMove}
+            onMouseLeave={() => setHoveredId(null)}
+            onError={(event) => {
+              console.error(event.error)
+              if (!mapRef.current?.isStyleLoaded()) setFailed(true)
+            }}
+            style={{ width: "100%", height: "100%" }}
+          >
+            <AttributionControl compact position="bottom-right" />
 
-        <Source id="ghosts" type="geojson" data={ghosts}>
-          <Layer
-            id="ghost-lines"
-            type="line"
-            layout={{ visibility: visibility(layers.ghost) }}
-            paint={{ "line-color": colors.ghost, "line-width": 1 }}
-          />
-        </Source>
+            <Source id="ghosts" type="geojson" data={ghosts}>
+              <Layer
+                id="ghost-lines"
+                type="line"
+                layout={{ visibility: visibility(layers.ghost) }}
+                paint={{ "line-color": colors.ghost, "line-width": 1 }}
+              />
+            </Source>
 
-        <Source id="sections" type="geojson" data={current}>
-          <Layer
-            id="sections-selected-halo"
-            type="line"
-            filter={selectedFilter}
-            layout={{
-              visibility: visibility(layers.pipelines),
-              "line-cap": "round",
-              "line-join": "round",
-            }}
-            paint={{
-              "line-color": colors.selected,
-              "line-width": 9,
-              "line-opacity": 0.25,
-            }}
-          />
-          <Layer
-            id="sections-hover"
-            type="line"
-            filter={["==", ["get", "id"], hoveredId ?? ""]}
-            layout={{
-              visibility: visibility(layers.pipelines),
-              "line-cap": "round",
-            }}
-            paint={{
-              "line-color": colors.line,
-              "line-width": 6,
-              "line-opacity": 0.15,
-            }}
-          />
-          <Layer
-            id="sections-cited"
-            type="line"
-            filter={["==", ["get", "status"], "cited"]}
-            layout={{
-              visibility: visibility(layers.pipelines),
-              "line-join": "round",
-            }}
-            paint={{
-              "line-color": [
-                "case",
-                selectedFilter,
-                colors.selected,
-                colors.line,
-              ],
-              "line-width": 2,
-            }}
-          />
-          <Layer
-            id="sections-unknown"
-            type="line"
-            filter={["==", ["get", "status"], "unknown"]}
-            layout={{
-              visibility: visibility(layers.pipelines),
-              "line-cap": "round",
-              "line-join": "round",
-            }}
-            paint={{
-              "line-color": [
-                "case",
-                selectedFilter,
-                colors.selected,
-                colors.line,
-              ],
-              "line-width": 2.5,
-              "line-dasharray": DOTTED,
-            }}
-          />
-          <Layer
-            id={HIT_LAYER}
-            type="line"
-            layout={{ visibility: visibility(layers.pipelines) }}
-            paint={{
-              "line-color": colors.line,
-              "line-width": 14,
-              "line-opacity": 0,
-            }}
-          />
-        </Source>
+            <Source id="sections" type="geojson" data={current}>
+              <Layer
+                id="sections-selected-halo"
+                type="line"
+                filter={selectedFilter}
+                layout={{
+                  visibility: visibility(layers.pipelines),
+                  "line-cap": "round",
+                  "line-join": "round",
+                }}
+                paint={{
+                  "line-color": colors.selected,
+                  "line-width": 9,
+                  "line-opacity": 0.25,
+                }}
+              />
+              <Layer
+                id="sections-hover"
+                type="line"
+                filter={["==", ["get", "id"], hoveredId ?? ""]}
+                layout={{
+                  visibility: visibility(layers.pipelines),
+                  "line-cap": "round",
+                }}
+                paint={{
+                  "line-color": colors.line,
+                  "line-width": 6,
+                  "line-opacity": 0.15,
+                }}
+              />
+              <Layer
+                id="sections-cited"
+                type="line"
+                filter={["==", ["get", "status"], "cited"]}
+                layout={{
+                  visibility: visibility(layers.pipelines),
+                  "line-join": "round",
+                }}
+                paint={{
+                  "line-color": [
+                    "case",
+                    selectedFilter,
+                    colors.selected,
+                    colors.line,
+                  ],
+                  "line-width": 2,
+                }}
+              />
+              <Layer
+                id="sections-unknown"
+                type="line"
+                filter={["==", ["get", "status"], "unknown"]}
+                layout={{
+                  visibility: visibility(layers.pipelines),
+                  "line-cap": "round",
+                  "line-join": "round",
+                }}
+                paint={{
+                  "line-color": [
+                    "case",
+                    selectedFilter,
+                    colors.selected,
+                    colors.line,
+                  ],
+                  "line-width": 2.5,
+                  "line-dasharray": DOTTED,
+                }}
+              />
+              <Layer
+                id={HIT_LAYER}
+                type="line"
+                layout={{ visibility: visibility(layers.pipelines) }}
+                paint={{
+                  "line-color": colors.line,
+                  "line-width": 14,
+                  "line-opacity": 0,
+                }}
+              />
+            </Source>
 
-        <Source id="proposed" type="geojson" data={proposed}>
-          <Layer
-            id="proposed-paths"
-            type="line"
-            layout={{ visibility: visibility(layers.proposed) }}
-            paint={{
-              "line-color": colors.proposed,
-              "line-width": 2,
-              "line-dasharray": DASHED,
-            }}
-          />
-        </Source>
+            <Source id="proposed" type="geojson" data={proposed}>
+              <Layer
+                id="proposed-paths"
+                type="line"
+                layout={{ visibility: visibility(layers.proposed) }}
+                paint={{
+                  "line-color": colors.proposed,
+                  "line-width": 2,
+                  "line-dasharray": DASHED,
+                }}
+              />
+            </Source>
 
-        {layers.pins &&
-          pins.map((note) => (
-            <Marker
-              key={note.id}
-              longitude={note.position[0]}
-              latitude={note.position[1]}
-              anchor="center"
-            >
-              <span className="sr-only">Note</span>
-              <Pin number={note.number} />
-            </Marker>
-          ))}
-      </MapGL>
+            {layers.pins &&
+              pins.map((note) => (
+                <Marker
+                  key={note.id}
+                  longitude={note.position[0]}
+                  latitude={note.position[1]}
+                  anchor="center"
+                >
+                  <span className="sr-only">Note</span>
+                  <Pin number={note.number} />
+                </Marker>
+              ))}
+          </MapGL>
+        </div>
+      </AddToAgentMenu>
 
       <div className="absolute top-3 right-3 flex flex-col gap-2">
         <MapControl>

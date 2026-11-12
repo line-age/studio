@@ -17,6 +17,12 @@ export interface FitRequest {
   nonce: number
 }
 
+/** A pipeline or section attached to the next question for the Agent. */
+export interface AgentAttachment {
+  kind: "pipeline" | "section"
+  id: string
+}
+
 interface StudioState {
   editionId: string | null
   show: ShowFilter
@@ -33,6 +39,7 @@ interface StudioState {
   /** The map's current view; null until the map has drawn once. */
   view: Bounds | null
   fit: FitRequest | null
+  agentAttachments: AgentAttachment[]
 
   setEdition: (editionId: string) => void
   setShow: (show: ShowFilter) => void
@@ -55,6 +62,8 @@ interface StudioState {
   clearSection: () => void
   setView: (view: Bounds) => void
   requestFit: (bounds: Bounds | null) => void
+  attachToAgent: (items: AgentAttachment[]) => void
+  detachFromAgent: (item: AgentAttachment) => void
 }
 
 const defaultLayers: Record<LayerId, boolean> = {
@@ -79,6 +88,7 @@ export const useStudio = create<StudioState>((set) => ({
   expandedSectionIds: new Set(),
   view: null,
   fit: null,
+  agentAttachments: [],
 
   setEdition: (editionId) =>
     set({
@@ -153,6 +163,24 @@ export const useStudio = create<StudioState>((set) => ({
   setView: (view) => set({ view }),
   requestFit: (bounds) =>
     set(bounds ? { fit: { bounds, nonce: (nonce += 1) } } : {}),
+  attachToAgent: (items) =>
+    set((s) => ({
+      agentAttachments: [
+        ...s.agentAttachments,
+        ...items.filter(
+          (item) =>
+            !s.agentAttachments.some(
+              (a) => a.kind === item.kind && a.id === item.id
+            )
+        ),
+      ],
+    })),
+  detachFromAgent: (item) =>
+    set((s) => ({
+      agentAttachments: s.agentAttachments.filter(
+        (a) => !(a.kind === item.kind && a.id === item.id)
+      ),
+    })),
 }))
 
 /** Zoom and centre change on every frame of a pan, so they get their own store. */

@@ -1,4 +1,4 @@
-import { useId, useState } from "react"
+import { useId, useState, type ReactNode } from "react"
 
 import { Icon } from "@/components/icons/icon"
 import { Button } from "@/components/ui/button"
@@ -13,11 +13,14 @@ export function Composer({
   placeholder,
   onSend,
   onAttach,
+  attachments,
   className,
 }: {
   placeholder: string
   onSend?: (message: string) => void
   onAttach?: () => void
+  /** Attachment chips for the message being written, shown above it. */
+  attachments?: ReactNode
   className?: string
 }) {
   const id = useId()
@@ -35,6 +38,9 @@ export function Composer({
         if (!empty) onSend?.(message)
       }}
     >
+      {attachments && (
+        <div className="-mb-4 flex flex-wrap gap-1.5">{attachments}</div>
+      )}
       <label htmlFor={id} className="sr-only">
         Message to the Agent
       </label>

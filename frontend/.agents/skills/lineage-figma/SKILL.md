@@ -151,14 +151,28 @@ Where code knowingly differs from the Figma frame:
 - "Edited 4 minutes ago" in the top bar is left out: the data holds no edit time.
 - The Area switch says "The list follows the map"; the frame says "table", and the table
   is not designed.
-- Rows show the Checkbox look but selection is one at a time; selecting several is not
-  designed.
+- Sections can be ticked one by one or all at once (header box) in the right panel. One
+  pipeline at a time on the left; its header box only clears the selection.
+- Search narrows the same pipeline list (same rows, the second line says why a row
+  matched). The grouped SearchResult layout of frame `45:99` is not used.
+- The rail marks the open panel with a solid primary chip behind the icon, not the light
+  tint. Filters shows a dot when filters are applied; Agent shows a purple dot when
+  proposals are waiting. The numbered note badge is gone.
+- All three left panels share one width. Both side panels can be dragged wider
+  (`ResizeHandle`); the width is kept in the browser.
+- Right click on a pipeline row, a section row or the map offers "Add to the Agent
+  chat": the item appears as an Attachment in the chat input. The menu is stock shadcn
+  Context Menu.
+- These were asked for by the owner on 2026-11-12 ahead of Figma. Figma needs updating.
 - No minimum page width: the map takes the space the panels leave, so the right panel is
   always at the window edge. The frame is drawn at 1728 wide only.
 - The Mapbox logo sits top left and its attribution bottom right, as its terms require.
 
 ## Not designed yet
 
-Do not invent these in code; ask or design in Figma first: the fact detail area (where
-ProposalCard and Citation go), selecting several sections, the full-width table, linking
+The fact detail area is designed as a first draft and not built: Studio page frames
+`112:566` (Unknown fact, proposal waiting) and `112:786` (cited fact). It docks at the
+bottom of the right panel when a fact row is selected.
+
+Do not invent these in code; ask or design in Figma first: the full-width table, linking
 sections into a pipeline, Tooltip, Popover, Dropdown Menu, Tabs, Table.

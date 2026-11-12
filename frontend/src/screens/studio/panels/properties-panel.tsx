@@ -16,6 +16,7 @@ import {
 import type { Section } from "@/data/schema"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 
+import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
 
@@ -50,6 +51,7 @@ function PipelineProperties({ summary }: { summary: PipelineSummary }) {
   const toggleExpanded = useStudio((s) => s.toggleExpanded)
   const requestFit = useStudio((s) => s.requestFit)
   const treeRef = useRef<HTMLDivElement>(null)
+  const selection = useSelectionAttachments()
 
   // A section picked on the map can be off screen in the tree: bring it in.
   useEffect(() => {
@@ -140,34 +142,43 @@ function PipelineProperties({ summary }: { summary: PipelineSummary }) {
           const selected = section.id === selectedSectionId
           return (
             <Fragment key={section.id}>
-              <TreeItem
-                role="treeitem"
-                aria-level={1}
-                aria-expanded={open}
-                aria-selected={selected}
-                data-roving
-                data-section={section.id}
-                tabIndex={section.id === tabStop ? 0 : -1}
-                name={section.name}
-                code={section.code}
-                expanded={open}
-                selected={selected}
-                checked={isChecked(section.id)}
-                onCheck={() => check(section)}
-                checkLabel={`Select ${section.name}`}
-                trailing={
-                  stats.unknown > 0 ? (
-                    <StatusLabel status="unknown">
-                      {formatCount(stats.unknown)} Unknown
-                    </StatusLabel>
-                  ) : (
-                    `${stats.cited} of ${stats.total}`
-                  )
+              {/* Right click on a ticked row offers the whole selection. */}
+              <AddToAgentMenu
+                items={
+                  isChecked(section.id)
+                    ? selection
+                    : [{ kind: "section", id: section.id }]
                 }
-                onToggle={() => toggleExpanded(section.id)}
-                onClick={() => pick(section)}
-                onKeyDown={(event) => onSectionKeyDown(event, section)}
-              />
+              >
+                <TreeItem
+                  role="treeitem"
+                  aria-level={1}
+                  aria-expanded={open}
+                  aria-selected={selected}
+                  data-roving
+                  data-section={section.id}
+                  tabIndex={section.id === tabStop ? 0 : -1}
+                  name={section.name}
+                  code={section.code}
+                  expanded={open}
+                  selected={selected}
+                  checked={isChecked(section.id)}
+                  onCheck={() => check(section)}
+                  checkLabel={`Select ${section.name}`}
+                  trailing={
+                    stats.unknown > 0 ? (
+                      <StatusLabel status="unknown">
+                        {formatCount(stats.unknown)} Unknown
+                      </StatusLabel>
+                    ) : (
+                      `${stats.cited} of ${stats.total}`
+                    )
+                  }
+                  onToggle={() => toggleExpanded(section.id)}
+                  onClick={() => pick(section)}
+                  onKeyDown={(event) => onSectionKeyDown(event, section)}
+                />
+              </AddToAgentMenu>
               {open && (
                 <div role="group" aria-label={`Facts of ${section.name}`}>
                   {section.claims.map((claim) => {

@@ -100,6 +100,41 @@ function ThreadEntry({ item }: { item: ThreadItem }) {
   )
 }
 
+/** The pipelines and sections added to the question being written. */
+function PendingAttachments() {
+  const { summaryById, sectionById } = useStudioData()
+  const items = useStudio((s) => s.agentAttachments)
+  const detach = useStudio((s) => s.detachFromAgent)
+  if (items.length === 0) return null
+  return items.map((item) => {
+    const key = `${item.kind}-${item.id}`
+    if (item.kind === "pipeline") {
+      const summary = summaryById.get(item.id)
+      if (!summary) return null
+      const sections = plural(summary.sections.length, "section")
+      return (
+        <Attachment
+          key={key}
+          icon="line"
+          title={summary.name}
+          meta={summary.code ? `${summary.code} · ${sections}` : sections}
+          onRemove={() => detach(item)}
+        />
+      )
+    }
+    const section = sectionById.get(item.id)
+    if (!section) return null
+    return (
+      <Attachment
+        key={key}
+        title={section.name}
+        meta={section.code}
+        onRemove={() => detach(item)}
+      />
+    )
+  })
+}
+
 export function AgentPanel() {
   const { network } = useStudioData()
   return (
@@ -122,7 +157,10 @@ export function AgentPanel() {
         )}
       </div>
       <div className="shrink-0 px-3 pb-3">
-        <Composer placeholder="Ask about a section. Type # to pick one." />
+        <Composer
+          placeholder="Ask about a section. Type # to pick one."
+          attachments={<PendingAttachments />}
+        />
       </div>
     </>
   )

@@ -16,17 +16,19 @@ import {
   plural,
   type PipelineSummary,
   type SearchHit,
+  type SearchMatch,
   type ShowFilter,
 } from "@/data/derive"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
+import { cn } from "@/lib/utils"
 
+import { AddToAgentMenu } from "../add-to-agent"
 import {
   useSearchHits,
   useStudioData,
   useVisiblePipelines,
 } from "../studio-data"
 import { useCamera, useStudio } from "../studio-store"
-import { SearchResults } from "./search-results"
 
 export const SEARCH_INPUT_ID = "pipeline-search"
 
@@ -126,34 +128,29 @@ export function PipelinesPanel() {
           />
           {!searching && <Kbd className="absolute top-1.5 right-1.5">/</Kbd>}
         </div>
-        {searching ? (
-          <Hint>
-            Searching all {plural(summaries.length, "pipeline")} in the{" "}
-            {edition.label}, not only the map view.
-          </Hint>
-        ) : (
-          <div
-            className="flex items-center gap-1.5"
-            aria-label="Filters in force"
-          >
-            <Icon name="filter" className="size-3.5 text-muted-foreground" />
-            <Badge variant="secondary">{edition.year}</Badge>
-            <Badge variant="secondary">{showLabels[show]}</Badge>
-            {onlyInView && <Badge variant="secondary">Map view</Badge>}
-          </div>
-        )}
+        <div
+          className="flex items-center gap-1.5"
+          aria-label="Filters in force"
+        >
+          <Icon name="filter" className="size-3.5 text-muted-foreground" />
+          <Badge variant="secondary">{edition.year}</Badge>
+          {/* A search looks through the whole edition, whatever the filters say. */}
+          {searching ? (
+            <Badge variant="secondary">Whole edition</Badge>
+          ) : (
+            <>
+              <Badge variant="secondary">{showLabels[show]}</Badge>
+              {onlyInView && <Badge variant="secondary">Map view</Badge>}
+            </>
+          )}
+        </div>
       </div>
 
-      {searching ? (
-        <SearchResults
-          hits={hits}
-          activeIndex={activeIndex}
-          onOpen={openHit}
-          query={query}
-        />
-      ) : (
-        <PipelineList visible={visible} total={summaries.length} />
-      )}
+      <PipelineList
+        visible={visible}
+        total={summaries.length}
+        search={searching ? { hits, activeIndex, query, open: openHit } : null}
+      />
 
       <CameraStatus />
     </>
@@ -175,17 +172,44 @@ function useOpenHit() {
   }
 }
 
+/** Why a pipeline is in the search results, when it is not its own name. */
+function matchReason(matches: SearchMatch[]): string | null {
+  for (const match of matches) {
+    if (match.kind === "section") return `Section ${match.name}`
+    if (match.kind === "sections") {
+      return `${plural(match.count, "section")} match`
+    }
+    if (match.kind === "claim") return `${match.attribute}: ${match.value}`
+  }
+  return null
+}
+
+interface ListSearch {
+  hits: SearchHit[]
+  activeIndex: number
+  query: string
+  open: (hit: SearchHit) => void
+}
+
+/**
+ * The pipeline list. A search narrows the same list to its hits and says on
+ * the second line why each one matched; the rows look the same either way.
+ */
 function PipelineList({
   visible,
   total,
+  search,
 }: {
   visible: PipelineSummary[]
   total: number
+  search: ListSearch | null
 }) {
+  const { edition } = useStudioData()
   const selectedId = useStudio((s) => s.selectedPipelineId)
   const selectPipeline = useStudio((s) => s.selectPipeline)
   const requestFit = useStudio((s) => s.requestFit)
   const onlyInView = useStudio((s) => s.onlyInView)
+  const [descending, setDescending] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
 
   // A selection made on the map can be off screen in the list: bring it in.
@@ -200,63 +224,108 @@ function PipelineList({
     selectPipeline(summary.id)
     requestFit(summary.bounds)
   }
-  const tabStop = visible.some((s) => s.id === selectedId)
+
+  const rows = search
+    ? search.hits.map((hit) => ({
+        summary: hit.summary,
+        hit,
+        reason: matchReason(hit.matches),
+      }))
+    : visible.map((summary) => ({ summary, hit: null, reason: null }))
+  // "Not in a pipeline" stays last whichever way the list runs.
+  if (descending) {
+    rows.reverse()
+    rows.sort(
+      (a, b) => Number(a.summary.unassigned) - Number(b.summary.unassigned)
+    )
+  }
+  const activeHit = search?.hits[search.activeIndex]
+  const tabStop = rows.some((row) => row.summary.id === selectedId)
     ? selectedId
-    : visible[0]?.id
+    : rows[0]?.summary.id
 
   return (
     <>
-      <ListHeader label="Pipeline" sorted trailing="Facts" />
+      <ListHeader
+        label="Pipeline"
+        sorted={descending ? "descending" : "ascending"}
+        sortLabel={`Pipeline order: ${descending ? "last first" : "first first"}. Reverse it`}
+        onSort={() => setDescending((d) => !d)}
+        trailing="Facts"
+        selection={selectedId ? "indeterminate" : "unchecked"}
+        selectionLabel="Clear the selection"
+        onSelectionChange={() => selectPipeline(null)}
+      />
       <div
         ref={listRef}
+        id="pipeline-search-results"
         role="listbox"
-        aria-label="Pipelines"
+        aria-label={search ? "Search results" : "Pipelines"}
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         onKeyDown={moveRovingFocus}
       >
-        {visible.map((summary) => (
-          <PipelineRow
-            key={summary.id}
-            role="option"
-            aria-selected={summary.id === selectedId}
-            data-roving
-            data-pipeline={summary.id}
-            tabIndex={summary.id === tabStop ? 0 : -1}
-            selected={summary.id === selectedId}
-            name={summary.name}
-            meta={
-              summary.code
-                ? `${summary.code} · ${plural(summary.sections.length, "section")}`
-                : plural(summary.sections.length, "section")
-            }
-            status={
-              summary.stats.unknown > 0 ? (
-                <StatusLabel status="unknown">
-                  {formatCount(summary.stats.unknown)} Unknown
-                </StatusLabel>
-              ) : (
-                <StatusLabel status="cited" />
-              )
-            }
-            facts={`${formatCount(summary.stats.cited)} of ${formatCount(summary.stats.total)} facts`}
-            onClick={() => select(summary)}
-            onKeyDown={(event) => {
-              if (isActivate(event)) {
-                event.preventDefault()
-                select(summary)
+        {rows.map(({ summary, hit, reason }) => {
+          const open = () =>
+            hit && search ? search.open(hit) : select(summary)
+          const sections = plural(summary.sections.length, "section")
+          return (
+            <AddToAgentMenu
+              key={summary.id}
+              items={
+                summary.unassigned
+                  ? summary.sections.map((s) => ({ kind: "section", id: s.id }))
+                  : [{ kind: "pipeline", id: summary.id }]
               }
-            }}
-          />
-        ))}
-        {visible.length === 0 && (
-          <Hint className="p-3">
-            {total === 0
-              ? "This edition has no pipelines."
-              : onlyInView
-                ? "No pipelines in the map view. Zoom out or pan, or switch off the map view filter in Filters."
-                : "No pipelines match the filters."}
-          </Hint>
-        )}
+            >
+              <PipelineRow
+                id={hit ? `search-hit-${summary.id}` : undefined}
+                role="option"
+                aria-selected={summary.id === selectedId}
+                data-roving
+                data-pipeline={summary.id}
+                tabIndex={summary.id === tabStop ? 0 : -1}
+                selected={summary.id === selectedId}
+                className={cn(hit && hit === activeHit && "bg-muted")}
+                name={summary.name}
+                meta={
+                  reason ??
+                  (summary.code ? `${summary.code} · ${sections}` : sections)
+                }
+                status={
+                  summary.stats.unknown > 0 ? (
+                    <StatusLabel status="unknown">
+                      {formatCount(summary.stats.unknown)} Unknown
+                    </StatusLabel>
+                  ) : (
+                    <StatusLabel status="cited" />
+                  )
+                }
+                facts={`${formatCount(summary.stats.cited)} of ${formatCount(summary.stats.total)} facts`}
+                onClick={open}
+                onKeyDown={(event) => {
+                  if (isActivate(event)) {
+                    event.preventDefault()
+                    open()
+                  }
+                }}
+              />
+            </AddToAgentMenu>
+          )
+        })}
+        {rows.length === 0 &&
+          (search ? (
+            <Hint className="p-3" role="status">
+              Nothing in the {edition.label} matches “{search.query.trim()}”.
+            </Hint>
+          ) : (
+            <Hint className="p-3">
+              {total === 0
+                ? "This edition has no pipelines."
+                : onlyInView
+                  ? "No pipelines in the map view. Zoom out or pan, or switch off the map view filter in Filters."
+                  : "No pipelines match the filters."}
+            </Hint>
+          ))}
       </div>
     </>
   )

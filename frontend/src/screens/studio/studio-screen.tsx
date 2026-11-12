@@ -13,10 +13,11 @@ import { Hint } from "@/components/hint"
 import { LoadBar } from "@/components/load-bar"
 import { PanelHeader } from "@/components/panel-header"
 import { RailItem } from "@/components/rail-item"
+import { ResizeHandle } from "@/components/resize-handle"
 import { Button } from "@/components/ui/button"
+import { matchesShow } from "@/data/derive"
 import { fixtureUrl, loadNetwork } from "@/data/load-network"
 import { FixtureError } from "@/data/schema"
-import { cn } from "@/lib/utils"
 
 import { LeftPanelContext, useLeftPanel } from "./left-panel-context"
 import { MapArea } from "./map/map-area"
@@ -25,7 +26,7 @@ import { FiltersPanel } from "./panels/filters-panel"
 import { PipelinesPanel, SEARCH_INPUT_ID } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
 import { StudioDataProvider, useStudioData } from "./studio-data"
-import type { LeftPanel } from "./studio-store"
+import { useStudio, type LeftPanel } from "./studio-store"
 import { TopBar } from "./top-bar"
 
 /*
@@ -100,14 +101,15 @@ export function StudioScreen() {
 /** The screen's frame. Used empty while loading and around a load error. */
 function Frame({
   networkName,
-  notes = 0,
+  agentWaiting = false,
   left,
   right,
   busy = false,
   children,
 }: {
   networkName?: string
-  notes?: number
+  /** The Agent has proposals the person has not decided on. */
+  agentWaiting?: boolean
   left?: ReactNode
   right?: ReactNode
   busy?: boolean
@@ -115,6 +117,16 @@ function Frame({
   children?: ReactNode
 }) {
   const { panel, openPanel } = useLeftPanel()
+  const leftWidth = usePanelWidth(
+    "studio.left-panel-width",
+    "--layout-panel-left"
+  )
+  const rightWidth = usePanelWidth(
+    "studio.right-panel-width",
+    "--layout-panel-right"
+  )
+  // Applied means different from how the screen opens (see clearFilters).
+  const filtersApplied = useStudio((s) => s.show !== "all" || !s.onlyInView)
   return (
     <>
       <TopBar networkName={networkName} />
@@ -132,25 +144,36 @@ function Frame({
           <RailItem
             icon="filter"
             label="Filters"
+            indicator={filtersApplied ? { label: "filters applied" } : null}
             active={panel === "filters"}
             onClick={() => openPanel("filters")}
           />
           <RailItem
             icon="ask"
             label="Agent"
-            badge={notes}
+            indicator={
+              agentWaiting ? { label: "waiting for you", tone: "ai" } : null
+            }
             active={panel === "agent"}
             onClick={() => openPanel("agent")}
           />
         </nav>
         <aside
           aria-label={panel}
-          className={cn(
-            "flex shrink-0 flex-col border-r border-sidebar-border bg-sidebar",
-            panel === "agent" ? "w-110" : "w-panel-left"
-          )}
+          style={
+            leftWidth.width === null ? undefined : { width: leftWidth.width }
+          }
+          className="relative flex w-panel-left shrink-0 flex-col border-r border-sidebar-border bg-sidebar"
         >
           {left}
+          <ResizeHandle
+            label="Left panel width"
+            width={leftWidth.width ?? leftWidth.min}
+            min={leftWidth.min}
+            max={leftWidth.max()}
+            onResize={leftWidth.setWidth}
+            onReset={() => leftWidth.setWidth(null)}
+          />
         </aside>
         <main
           id="map"
@@ -162,8 +185,20 @@ function Frame({
         </main>
         <aside
           aria-label="Properties"
-          className="flex w-panel-right shrink-0 flex-col border-l bg-background"
+          style={
+            rightWidth.width === null ? undefined : { width: rightWidth.width }
+          }
+          className="relative flex w-panel-right shrink-0 flex-col border-l bg-background"
         >
+          <ResizeHandle
+            edge="left"
+            label="Right panel width"
+            width={rightWidth.width ?? rightWidth.min}
+            min={rightWidth.min}
+            max={rightWidth.max()}
+            onResize={rightWidth.setWidth}
+            onReset={() => rightWidth.setWidth(null)}
+          />
           {right}
         </aside>
       </div>
@@ -171,13 +206,52 @@ function Frame({
   )
 }
 
+/**
+ * A side panel opens at its token width and the person can drag it wider,
+ * up to two fifths of the window. The choice is kept in this browser.
+ */
+function usePanelWidth(storageKey: string, token: string) {
+  const [min] = useState(
+    () =>
+      parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue(token)
+      ) || 0
+  )
+  const [width, setWidthState] = useState<number | null>(() => {
+    try {
+      const stored = Number(localStorage.getItem(storageKey))
+      return stored > min ? stored : null
+    } catch {
+      return null
+    }
+  })
+  const max = () => Math.max(min, window.innerWidth * 0.4)
+  const setWidth = (next: number | null) => {
+    const value = next !== null && next > min ? next : null
+    setWidthState(value)
+    try {
+      if (value === null) localStorage.removeItem(storageKey)
+      else localStorage.setItem(storageKey, String(value))
+    } catch {
+      // Storage can be blocked; the width then lasts for this visit only.
+    }
+  }
+  return {
+    width: width === null ? null : Math.min(width, max()),
+    min,
+    max,
+    setWidth,
+  }
+}
+
 function Loaded() {
-  const { network } = useStudioData()
+  const { network, summaries } = useStudioData()
   const { panel } = useLeftPanel()
+  const agentWaiting = summaries.some((s) => matchesShow(s, "proposals"))
   return (
     <Frame
       networkName={network.name}
-      notes={network.notes.length}
+      agentWaiting={agentWaiting}
       left={
         <ViewTransition key={panel}>
           <div className="flex min-h-0 flex-1 flex-col">
