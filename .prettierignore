@@ -5,3 +5,7 @@ pnpm-lock.yaml
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+dist/
+tokens/figma-tokens.json
+src/styles/tokens.css
+.agents/skills/

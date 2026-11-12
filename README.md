@@ -1,21 +1,36 @@
-# React + TypeScript + Vite + shadcn/ui
+# Composer frontend
 
-This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
+The React app for Composer, the Lineage review desk. Foundation only so far: the theme
+exported from Figma and one shell page that shows it.
 
-## Adding components
+## Run
 
-To add components to your app, run the following command:
-
-```bash
-npx shadcn@latest add button
+```sh
+pnpm install
+pnpm dev
 ```
 
-This will place the ui components in the `src/components` directory.
+Needs Node 22 and pnpm 10.
 
-## Using components
+## Check
 
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button"
+```sh
+pnpm check   # tokens, types, lint, format
+pnpm build
 ```
+
+## Design tokens
+
+`src/styles/tokens.css` is generated from `tokens/figma-tokens.json`, which is a reading
+of the Figma variables. To refresh: re-read the variables from Figma into the JSON (the
+`lineage-figma` skill says how), then
+
+```sh
+pnpm tokens:build
+pnpm tokens:check
+```
+
+## For agents
+
+Rules are in `AGENTS.md`. Skills are in `.agents/skills/`; `SOURCES.md` there lists where
+each came from.
