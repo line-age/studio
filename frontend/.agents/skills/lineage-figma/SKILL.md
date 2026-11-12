@@ -177,6 +177,8 @@ Where code knowingly differs from the Figma frame:
   list, and is cleared by "Clear all".
 - The Edition select is removed from the Filters panel (owner, 2026-11-12). The app
   shows the latest edition; `setEdition` stays in the store but no control calls it.
+- The breadcrumb follows the selection: network, pipeline, section. Earlier crumbs step
+  back. Figma shows only app and network.
 - These were asked for by the owner on 2026-11-12 ahead of Figma. Figma needs updating.
 - No minimum page width: the map takes the space the panels leave, so the right panel is
   always at the window edge. The frame is drawn at 1728 wide only.

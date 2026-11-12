@@ -14,7 +14,7 @@ import { LoadBar } from "@/components/load-bar"
 import { PanelHeader } from "@/components/panel-header"
 import { RailItem } from "@/components/rail-item"
 import { Button } from "@/components/ui/button"
-import { matchesShow } from "@/data/derive"
+import { matchesShow, unionBounds } from "@/data/derive"
 import { fixtureUrl, loadNetwork } from "@/data/load-network"
 import { FixtureError } from "@/data/schema"
 
@@ -27,7 +27,7 @@ import { PropertiesPanel } from "./panels/properties-panel"
 import { SidePanel } from "./side-panel"
 import { StudioDataProvider, useStudioData } from "./studio-data"
 import { useStudio, type LeftPanel } from "./studio-store"
-import { TopBar } from "./top-bar"
+import { TopBar, type Crumb } from "./top-bar"
 
 /*
  * Studio: the map desk. Top bar, rail, one left panel (Pipelines, Filters or
@@ -114,6 +114,7 @@ export function StudioScreen() {
 /** The screen's frame. Used empty while loading and around a load error. */
 function Frame({
   networkName,
+  trail,
   agentWaiting = false,
   left,
   right,
@@ -121,6 +122,7 @@ function Frame({
   children,
 }: {
   networkName?: string
+  trail?: Crumb[]
   /** The Agent has proposals the person has not decided on. */
   agentWaiting?: boolean
   left?: ReactNode
@@ -137,7 +139,7 @@ function Frame({
   )
   return (
     <>
-      <TopBar networkName={networkName} />
+      <TopBar networkName={networkName} trail={trail} />
       <div className="flex min-h-0 flex-1" aria-busy={busy}>
         <nav
           aria-label="Panels"
@@ -200,13 +202,50 @@ function Frame({
   )
 }
 
+/** The breadcrumb: network, selected pipeline, selected section. */
+function useTrail(): Crumb[] {
+  const { network, summaries, summaryById, sectionById } = useStudioData()
+  const pipelineId = useStudio((s) => s.selectedPipelineId)
+  const sectionId = useStudio((s) => s.selectedSectionId)
+  const selectPipeline = useStudio((s) => s.selectPipeline)
+  const requestFit = useStudio((s) => s.requestFit)
+
+  const pipeline = pipelineId ? summaryById.get(pipelineId) : undefined
+  const section = sectionId ? sectionById.get(sectionId) : undefined
+  const trail: Crumb[] = [
+    {
+      label: network.name,
+      // Back to the whole network: nothing selected, everything in view.
+      onClick: () => {
+        selectPipeline(null)
+        requestFit(
+          unionBounds(summaries.flatMap((s) => (s.bounds ? [s.bounds] : [])))
+        )
+      },
+    },
+  ]
+  if (pipeline) {
+    trail.push({
+      label: pipeline.name,
+      onClick: () => {
+        selectPipeline(pipeline.id)
+        requestFit(pipeline.bounds)
+      },
+    })
+  }
+  if (pipeline && section) trail.push({ label: section.name })
+  return trail
+}
+
 function Loaded() {
   const { network, summaries } = useStudioData()
   const { panel } = useLeftPanel()
   const agentWaiting = summaries.some((s) => matchesShow(s, "proposals"))
+  const trail = useTrail()
   return (
     <Frame
       networkName={network.name}
+      trail={trail}
       agentWaiting={agentWaiting}
       left={
         <ViewTransition key={panel}>
