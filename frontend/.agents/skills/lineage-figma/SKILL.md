@@ -183,6 +183,8 @@ Where code knowingly differs from the Figma frame:
 - The breadcrumb is the app name, then the selected pipeline, then the selected section;
   earlier crumbs step back. The network name is not shown (owner, 2026-11-12); Figma
   shows app and network.
+- Each side panel has a small tab on its map-side edge, halfway down, that closes it
+  and opens it again (the right one only while something is selected).
 - The top bar has two panel toggles (icons `panel-left`, `panel-right`, added in code,
   not yet on the Icons page): hide and show the left panel, and the properties panel.
 - These were asked for by the owner on 2026-11-12 ahead of Figma. Figma needs updating.
