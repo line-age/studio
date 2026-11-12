@@ -185,12 +185,14 @@ describe("Studio panels", () => {
     expect(useStudio.getState().selection.size).toBe(4)
   })
 
-  it("hands the selection to the Agent as one attachment per pipeline", async () => {
-    const user = userEvent.setup()
-    await renderPanels()
-    act(() => useStudio.getState().select(["s-1", "s-3"]))
-
-    await user.click(screen.getByRole("button", { name: "Ask the Agent" }))
+  it("hands sections to the Agent as one attachment per pipeline", () => {
+    act(() =>
+      useStudio.getState().askAgent([
+        { pipelineId: "p-1", sectionIds: ["s-1"] },
+        { pipelineId: "p-2", sectionIds: "all" },
+      ])
+    )
+    expect(useStudio.getState().agentAsked).toBe(1)
     expect(useStudio.getState().agentAttachments).toEqual([
       { pipelineId: "p-1", sectionIds: ["s-1"] },
       { pipelineId: "p-2", sectionIds: "all" },

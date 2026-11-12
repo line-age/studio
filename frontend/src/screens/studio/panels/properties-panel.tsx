@@ -2,7 +2,6 @@ import { Fragment, useEffect, useRef, type KeyboardEvent } from "react"
 
 import { AttributeRow } from "@/components/attribute-row"
 import { Hint } from "@/components/hint"
-import { Icon } from "@/components/icons/icon"
 import { ListGroupHeader } from "@/components/list-group-header"
 import { ListHeader } from "@/components/list-header"
 import { PanelFooter } from "@/components/panel-footer"
@@ -10,7 +9,6 @@ import { PanelHeader } from "@/components/panel-header"
 import { StatusLabel } from "@/components/status-label"
 import { TreeItem } from "@/components/tree-item"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   formatCount,
   geometryBounds,
@@ -23,11 +21,7 @@ import {
 import type { Section } from "@/data/schema"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 
-import {
-  AddToAgentMenu,
-  useAskAgent,
-  useSelectionAttachments,
-} from "../add-to-agent"
+import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { PropertiesToggle } from "../panel-toggle"
 import { useSelectionGroups } from "../studio-data"
 import { useStudio } from "../studio-store"
@@ -67,7 +61,6 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const requestFit = useStudio((s) => s.requestFit)
   const treeRef = useRef<HTMLDivElement>(null)
   const attachments = useSelectionAttachments()
-  const askAgent = useAskAgent()
 
   // A section picked on the map can be off screen in the tree: bring it in.
   useEffect(() => {
@@ -262,16 +255,8 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
           </Fragment>
         ))}
       </div>
-      <PanelFooter className="justify-between gap-2">
+      <PanelFooter>
         <span className="truncate">{selectionSize(groups)}</span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => askAgent(attachments)}
-        >
-          <Icon name="ask" />
-          Ask the Agent
-        </Button>
       </PanelFooter>
     </>
   )

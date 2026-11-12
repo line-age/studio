@@ -155,7 +155,7 @@ Where code knowingly differs from the Figma frame:
   one pipeline, its box adds or removes it (partly selected shows a dash), Shift-click
   adds a run, the header box selects all shown or none. Right panel: with several
   pipelines the sections are grouped under a ListGroupHeader per pipeline and the header
-  reads "3 pipelines"; a footer states the size and has "Ask the Agent".
+  reads "3 pipelines"; a footer states the size.
 - The map palette shows Select and Lasso only. Lasso draws a freehand loop; every
   section it touches is selected (Shift adds). A small bar by the end of the loop
   (`SelectionBar`) states the size and has "Ask the Agent", which opens the Agent panel
