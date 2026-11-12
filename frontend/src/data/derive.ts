@@ -250,17 +250,33 @@ export type SearchMatch =
   | { kind: "section"; sectionId: string; name: string; code: string }
   | { kind: "sections"; count: number }
   | { kind: "claim"; attribute: string; value: string; sections: number }
+  | { kind: "unknown"; attributes: string[]; sections: number }
+
+/** One section a search found, and why when it was not its own name. */
+export interface SectionMatch {
+  sectionId: string
+  name: string
+  code: string
+  /** "Owner: Alder Gas Co." or "Owner: Unknown"; null for a name or code match. */
+  reason: string | null
+}
 
 export interface SearchHit {
   summary: PipelineSummary
   matches: SearchMatch[]
+  /** Every section that matched, in the pipeline's order. */
+  sections: SectionMatch[]
   /** The first matching section, so opening the hit can go straight to it. */
   firstSectionId: string | null
 }
 
 const fold = (text: string) => text.toLocaleLowerCase()
 
-/** Search every pipeline of the edition, whatever the other filters say. */
+/**
+ * Search the given pipelines: by pipeline name or code, section name or code,
+ * and cited value. A query with the word "unknown" finds sections with an
+ * Unknown fact instead; more words narrow it to an attribute ("unknown owner").
+ */
 export function search(
   summaries: PipelineSummary[],
   query: string
@@ -268,6 +284,47 @@ export function search(
   const needle = fold(query.trim())
   if (needle.length === 0) return []
   const hits: SearchHit[] = []
+
+  const words = needle.split(/\s+/)
+  if (words.includes("unknown")) {
+    const rest = words.filter((word) => word !== "unknown").join(" ")
+    for (const summary of summaries) {
+      const sections: SectionMatch[] = []
+      const attributes = new Set<string>()
+      for (const section of summary.sections) {
+        const unknown = section.claims
+          .filter(
+            (claim) =>
+              claim.value === null &&
+              (rest === "" || fold(claim.attribute).includes(rest))
+          )
+          .map((claim) => claim.attribute)
+        if (unknown.length === 0) continue
+        unknown.forEach((attribute) => attributes.add(attribute))
+        sections.push({
+          sectionId: section.id,
+          name: section.name,
+          code: section.code,
+          reason: `${unknown.join(", ")}: Unknown`,
+        })
+      }
+      if (sections.length > 0) {
+        hits.push({
+          summary,
+          matches: [
+            {
+              kind: "unknown",
+              attributes: [...attributes],
+              sections: sections.length,
+            },
+          ],
+          sections,
+          firstSectionId: sections[0].sectionId,
+        })
+      }
+    }
+    return hits
+  }
 
   for (const summary of summaries) {
     const matches: SearchMatch[] = []
@@ -317,10 +374,28 @@ export function search(
     }
     matches.push(...claims.values())
 
+    const sections: SectionMatch[] = []
+    for (const section of summary.sections) {
+      const byName =
+        fold(section.name).includes(needle) ||
+        fold(section.code).includes(needle)
+      const claim = section.claims.find(
+        (c) => c.value !== null && fold(c.value).includes(needle)
+      )
+      if (!byName && !claim) continue
+      sections.push({
+        sectionId: section.id,
+        name: section.name,
+        code: section.code,
+        reason: byName || !claim ? null : `${claim.attribute}: ${claim.value}`,
+      })
+    }
+
     if (matches.length > 0) {
       hits.push({
         summary,
         matches: matches.slice(0, 3),
+        sections,
         firstSectionId: matched[0]?.id ?? firstClaimSection,
       })
     }

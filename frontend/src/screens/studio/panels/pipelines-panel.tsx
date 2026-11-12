@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from "react"
+import {
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react"
 
 import { Hint } from "@/components/hint"
 import { Icon } from "@/components/icons/icon"
@@ -13,10 +19,10 @@ import { Input } from "@/components/ui/input"
 import { Kbd } from "@/components/ui/kbd"
 import {
   formatCount,
+  geometryBounds,
   plural,
   type PipelineSummary,
   type SearchHit,
-  type SearchMatch,
   type ShowFilter,
 } from "@/data/derive"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
@@ -42,7 +48,9 @@ const showLabels: Record<ShowFilter, string> = {
 export function PipelinesPanel() {
   const { edition, summaries } = useStudioData()
   const visible = useVisiblePipelines()
-  const hits = useSearchHits()
+  const { hits, outside } = useSearchHits()
+  const whole = useStudio((s) => s.searchWholeEdition)
+  const setWhole = useStudio((s) => s.setSearchWholeEdition)
   const query = useStudio((s) => s.query)
   const setQuery = useStudio((s) => s.setQuery)
   const show = useStudio((s) => s.show)
@@ -130,19 +138,19 @@ export function PipelinesPanel() {
           {!searching && <Kbd className="absolute top-1.5 right-1.5">/</Kbd>}
         </div>
         <div
-          className="flex items-center gap-1.5"
+          className="flex flex-wrap items-center gap-1.5"
           aria-label="Filters in force"
         >
           <Icon name="filter" className="size-3.5 text-muted-foreground" />
           <Badge variant="secondary">{edition.year}</Badge>
-          {/* A search looks through the whole edition, whatever the filters say. */}
-          {searching ? (
+          {/* A search stays inside the filters unless it was widened. */}
+          {searching && whole ? (
             <Badge variant="secondary">Whole edition</Badge>
           ) : (
             <>
               <Badge variant="secondary">{showLabels[show]}</Badge>
               {unknownIn.length > 0 && (
-                <Badge variant="secondary" className="min-w-0 shrink">
+                <Badge variant="secondary" className="max-w-full">
                   <span className="truncate">
                     Unknown {unknownIn.join(", ").toLocaleLowerCase()}
                   </span>
@@ -157,8 +165,25 @@ export function PipelinesPanel() {
       <PipelineList
         visible={visible}
         total={summaries.length}
-        search={searching ? { hits, activeIndex, query, open: openHit } : null}
+        search={
+          searching
+            ? { hits, outside, activeIndex, query, open: openHit }
+            : null
+        }
       />
+
+      {searching && (whole || outside > 0) && (
+        <div className="flex shrink-0 items-center justify-between gap-2 border-t px-3 py-1.5">
+          <Hint>
+            {whole
+              ? "Searching the whole edition."
+              : `${plural(outside, "more pipeline")} ${outside === 1 ? "matches" : "match"} outside the filters.`}
+          </Hint>
+          <Button variant="ghost" size="xs" onClick={() => setWhole(!whole)}>
+            {whole ? "Search inside the filters" : "Search the whole edition"}
+          </Button>
+        </div>
+      )}
 
       <CameraStatus />
     </>
@@ -167,41 +192,42 @@ export function PipelinesPanel() {
 
 /** Opening a search hit selects it, moves the map to it and ends the search. */
 function useOpenHit() {
+  const { sectionById } = useStudioData()
   const selectPipeline = useStudio((s) => s.selectPipeline)
   const selectSection = useStudio((s) => s.selectSection)
   const requestFit = useStudio((s) => s.requestFit)
   const setQuery = useStudio((s) => s.setQuery)
-  return (hit: SearchHit) => {
-    const sectionMatch = hit.matches.find((m) => m.kind === "section")
-    if (sectionMatch) selectSection(hit.summary.id, sectionMatch.sectionId)
-    else selectPipeline(hit.summary.id)
-    requestFit(hit.summary.bounds)
+  /** With a section id the hit opens on that section, else on the pipeline. */
+  return (hit: SearchHit, sectionId?: string) => {
+    const only = hit.sections.length === 1 ? hit.sections[0].sectionId : null
+    const target = sectionId ?? only
+    const section = target ? sectionById.get(target) : undefined
+    if (section) {
+      selectSection(hit.summary.id, section.id)
+      requestFit(geometryBounds(section.geometry))
+    } else {
+      selectPipeline(hit.summary.id)
+      requestFit(hit.summary.bounds)
+    }
     setQuery("")
   }
 }
 
-/** Why a pipeline is in the search results, when it is not its own name. */
-function matchReason(matches: SearchMatch[]): string | null {
-  for (const match of matches) {
-    if (match.kind === "section") return `Section ${match.name}`
-    if (match.kind === "sections") {
-      return `${plural(match.count, "section")} match`
-    }
-    if (match.kind === "claim") return `${match.attribute}: ${match.value}`
-  }
-  return null
-}
+/** Most sections listed under one hit before the rest are counted. */
+const SECTION_ROWS = 6
 
 interface ListSearch {
   hits: SearchHit[]
+  /** How many more pipelines match beyond the filters. */
+  outside: number
   activeIndex: number
   query: string
-  open: (hit: SearchHit) => void
+  open: (hit: SearchHit, sectionId?: string) => void
 }
 
 /**
- * The pipeline list. A search narrows the same list to its hits and says on
- * the second line why each one matched; the rows look the same either way.
+ * The pipeline list. A search narrows the same list to its hits and lists
+ * the sections it found under each one; the rows look the same either way.
  */
 function PipelineList({
   visible,
@@ -242,9 +268,8 @@ function PipelineList({
     ? search.hits.map((hit) => ({
         summary: hit.summary,
         hit,
-        reason: matchReason(hit.matches),
       }))
-    : visible.map((summary) => ({ summary, hit: null, reason: null }))
+    : visible.map((summary) => ({ summary, hit: null }))
   // "Not in a pipeline" stays last whichever way the list runs.
   if (descending) {
     rows.reverse()
@@ -277,58 +302,121 @@ function PipelineList({
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         onKeyDown={moveRovingFocus}
       >
-        {rows.map(({ summary, hit, reason }) => {
+        {rows.map(({ summary, hit }) => {
           const open = () =>
             hit && search ? search.open(hit) : select(summary)
           const sections = plural(summary.sections.length, "section")
+          const found = hit?.sections ?? []
+          const meta = [
+            summary.code,
+            found.length > 0
+              ? `${plural(found.length, "section")} ${found.length === 1 ? "matches" : "match"}`
+              : sections,
+          ]
+            .filter(Boolean)
+            .join(" · ")
           return (
-            <AddToAgentMenu
-              key={summary.id}
-              items={
-                summary.unassigned
-                  ? summary.sections.map((s) => ({ kind: "section", id: s.id }))
-                  : [{ kind: "pipeline", id: summary.id }]
-              }
-            >
-              <PipelineRow
-                id={hit ? `search-hit-${summary.id}` : undefined}
-                role="option"
-                aria-selected={summary.id === selectedId}
-                data-roving
-                data-pipeline={summary.id}
-                tabIndex={summary.id === tabStop ? 0 : -1}
-                selected={summary.id === selectedId}
-                className={cn(hit && hit === activeHit && "bg-muted")}
-                name={summary.name}
-                meta={
-                  reason ??
-                  (summary.code ? `${summary.code} · ${sections}` : sections)
+            <Fragment key={summary.id}>
+              <AddToAgentMenu
+                items={
+                  summary.unassigned
+                    ? summary.sections.map((s) => ({
+                        kind: "section",
+                        id: s.id,
+                      }))
+                    : [{ kind: "pipeline", id: summary.id }]
                 }
-                status={
-                  summary.stats.unknown > 0 ? (
-                    <StatusLabel status="unknown">
-                      {formatCount(summary.stats.unknown)} Unknown
-                    </StatusLabel>
-                  ) : (
-                    <StatusLabel status="cited" />
-                  )
-                }
-                facts={`${formatCount(summary.stats.cited)} of ${formatCount(summary.stats.total)} facts`}
-                onClick={open}
-                onKeyDown={(event) => {
-                  if (isActivate(event)) {
-                    event.preventDefault()
-                    open()
+              >
+                <PipelineRow
+                  id={hit ? `search-hit-${summary.id}` : undefined}
+                  role="option"
+                  aria-selected={summary.id === selectedId}
+                  data-roving
+                  data-pipeline={summary.id}
+                  tabIndex={summary.id === tabStop ? 0 : -1}
+                  selected={summary.id === selectedId}
+                  className={cn(hit && hit === activeHit && "bg-muted")}
+                  name={summary.name}
+                  meta={meta}
+                  status={
+                    summary.stats.unknown > 0 ? (
+                      <StatusLabel status="unknown">
+                        {formatCount(summary.stats.unknown)} Unknown
+                      </StatusLabel>
+                    ) : (
+                      <StatusLabel status="cited" />
+                    )
                   }
-                }}
-              />
-            </AddToAgentMenu>
+                  facts={`${formatCount(summary.stats.cited)} of ${formatCount(summary.stats.total)} facts`}
+                  onClick={open}
+                  onKeyDown={(event) => {
+                    if (isActivate(event)) {
+                      event.preventDefault()
+                      open()
+                    }
+                  }}
+                />
+              </AddToAgentMenu>
+              {/* The sections the search found, each one a way straight in. */}
+              {hit &&
+                search &&
+                found.slice(0, SECTION_ROWS).map((match) => (
+                  <AddToAgentMenu
+                    key={match.sectionId}
+                    items={[{ kind: "section", id: match.sectionId }]}
+                  >
+                    <div
+                      role="option"
+                      aria-selected={false}
+                      data-roving
+                      tabIndex={-1}
+                      onClick={() => search.open(hit, match.sectionId)}
+                      onKeyDown={(event) => {
+                        if (isActivate(event)) {
+                          event.preventDefault()
+                          search.open(hit, match.sectionId)
+                        }
+                      }}
+                      className="flex cursor-default items-center gap-2 border-b border-border-subtle py-1.5 pr-3 pl-9.5 transition-colors duration-100 select-none hover:bg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid"
+                    >
+                      <Icon
+                        name="section"
+                        className="size-3.5 text-muted-foreground"
+                      />
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="flex items-center gap-2">
+                          <span className="truncate type-ui-sm">
+                            {match.name}
+                          </span>
+                          <span className="shrink-0 type-ui-mono-xs text-muted-foreground">
+                            {match.code}
+                          </span>
+                        </span>
+                        {match.reason && (
+                          <span className="truncate type-ui-xs text-muted-foreground">
+                            {match.reason}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </AddToAgentMenu>
+                ))}
+              {found.length > SECTION_ROWS && (
+                <p className="border-b border-border-subtle py-1.5 pr-3 pl-9.5 type-ui-xs text-muted-foreground">
+                  and {plural(found.length - SECTION_ROWS, "more section")}
+                </p>
+              )}
+            </Fragment>
           )
         })}
         {rows.length === 0 &&
           (search ? (
             <Hint className="p-3" role="status">
-              Nothing in the {edition.label} matches “{search.query.trim()}”.
+              Nothing{" "}
+              {search.outside > 0
+                ? "inside the filters"
+                : `in the ${edition.label}`}{" "}
+              matches “{search.query.trim()}”.
             </Hint>
           ) : (
             <Hint className="p-3">

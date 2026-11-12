@@ -153,8 +153,11 @@ Where code knowingly differs from the Figma frame:
   is not designed.
 - Sections can be ticked one by one or all at once (header box) in the right panel. One
   pipeline at a time on the left; its header box only clears the selection.
-- Search narrows the same pipeline list (same rows, the second line says why a row
-  matched). The grouped SearchResult layout of frame `45:99` is not used.
+- Search narrows the same pipeline list (same rows) and lists the sections it found
+  under each pipeline; a section row opens that section. It searches inside the filters
+  in force, with a bar to widen to the whole edition. The word "unknown" finds sections
+  with Unknown facts ("unknown owner"). The grouped SearchResult layout of frame `45:99`
+  is not used.
 - The rail follows shadcn SidebarMenuButton in its icon size: a flat 32 square behind the
   icon, `sidebar-accent` on hover and when open, label below in medium; no blue tint.
   Filters shows a dot when filters are applied; Agent shows a purple dot when

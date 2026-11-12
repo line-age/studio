@@ -165,7 +165,29 @@ describe("search", () => {
     ])
   })
 
-  it("never matches an Unknown value", () => {
-    expect(search(summaries, "unknown")).toEqual([])
+  it("lists every section that matched, with the fact when it was a value", () => {
+    const [hit] = search(summaries, "birch")
+    expect(hit.sections.map((s) => s.reason)).toEqual([null, null])
+    const byValue = search(summaries, "alder gas")[1]
+    expect(byValue.sections).toHaveLength(1)
+    expect(byValue.sections[0].reason).toBe("Owner: Alder Gas Co.")
+  })
+
+  it("finds sections with Unknown facts for the word unknown", () => {
+    const hits = search(summaries, "unknown")
+    expect(hits.length).toBeGreaterThan(0)
+    for (const hit of hits) {
+      expect(hit.matches[0].kind).toBe("unknown")
+      expect(hit.sections.every((s) => s.reason?.endsWith(": Unknown"))).toBe(
+        true
+      )
+    }
+    const owner = search(summaries, "unknown owner")
+    expect(
+      owner.every((hit) =>
+        hit.sections.every((s) => s.reason?.includes("Owner"))
+      )
+    ).toBe(true)
+    expect(search(summaries, "unknown zzz")).toEqual([])
   })
 })

@@ -87,18 +87,26 @@ export function useVisiblePipelines(): PipelineSummary[] {
 }
 
 /**
- * Search hits across the whole edition, whatever the other filters say.
- * Hits in the map view come first, which is also the order they are listed.
+ * Search hits inside the filters in force, or through the whole edition when
+ * the person asked for that. `outside` is how many more pipelines match
+ * beyond the filters. Hits in the map view are listed first.
  */
-export function useSearchHits(): SearchHit[] {
+export function useSearchHits(): { hits: SearchHit[]; outside: number } {
   const { summaries } = useStudioData()
+  const visible = useVisiblePipelines()
   const query = useStudio((s) => s.query)
+  const whole = useStudio((s) => s.searchWholeEdition)
   const view = useStudio((s) => s.view)
   return useMemo(() => {
-    const hits = search(summaries, query)
-    return [
-      ...hits.filter((hit) => inView(hit.summary, view)),
-      ...hits.filter((hit) => !inView(hit.summary, view)),
-    ]
-  }, [summaries, query, view])
+    const all = search(summaries, query)
+    const inside = new Set(visible.map((s) => s.id))
+    const hits = whole ? all : all.filter((hit) => inside.has(hit.summary.id))
+    return {
+      hits: [
+        ...hits.filter((hit) => inView(hit.summary, view)),
+        ...hits.filter((hit) => !inView(hit.summary, view)),
+      ],
+      outside: all.length - hits.length,
+    }
+  }, [summaries, visible, query, whole, view])
 }

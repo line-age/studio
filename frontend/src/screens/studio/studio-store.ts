@@ -31,6 +31,8 @@ interface StudioState {
   unknownIn: readonly string[]
   layers: Record<LayerId, boolean>
   query: string
+  /** Search past the filters, through every pipeline of the edition. */
+  searchWholeEdition: boolean
   selectedPipelineId: string | null
   /** The one section in focus: set when exactly one is ticked. */
   selectedSectionId: string | null
@@ -50,6 +52,7 @@ interface StudioState {
   toggleLayer: (layer: LayerId) => void
   clearFilters: () => void
   setQuery: (query: string) => void
+  setSearchWholeEdition: (on: boolean) => void
   selectPipeline: (pipelineId: string | null) => void
   selectSection: (pipelineId: string, sectionId: string) => void
   selectAttribute: (
@@ -85,6 +88,7 @@ export const useStudio = create<StudioState>((set) => ({
   unknownIn: [],
   layers: defaultLayers,
   query: "",
+  searchWholeEdition: false,
   selectedPipelineId: null,
   selectedSectionId: null,
   checkedSectionIds: null,
@@ -115,7 +119,13 @@ export const useStudio = create<StudioState>((set) => ({
     set((s) => ({ layers: { ...s.layers, [layer]: !s.layers[layer] } })),
   // Back to how the screen opens: every pipeline, following the map view.
   clearFilters: () => set({ show: "all", onlyInView: true, unknownIn: [] }),
-  setQuery: (query) => set({ query }),
+  // A new search starts inside the filters again.
+  setQuery: (query) =>
+    set((s) => ({
+      query,
+      searchWholeEdition: query.trim() === "" ? false : s.searchWholeEdition,
+    })),
+  setSearchWholeEdition: (searchWholeEdition) => set({ searchWholeEdition }),
   selectPipeline: (pipelineId) =>
     set({
       selectedPipelineId: pipelineId,

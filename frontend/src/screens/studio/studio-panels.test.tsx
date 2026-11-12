@@ -147,8 +147,10 @@ describe("Studio panels", () => {
 
     await user.type(input, "cedar")
     const results = screen.getByRole("listbox", { name: "Search results" })
-    expect(within(results).getAllByRole("option")).toHaveLength(1)
-    expect(results).toHaveTextContent("Birch to Cedar")
+    // The pipeline that holds the match, then the matching section under it.
+    const found = within(results).getAllByRole("option")
+    expect(found).toHaveLength(2)
+    expect(found[1]).toHaveTextContent("Birch to Cedar")
 
     await user.keyboard("{Enter}")
     expect(useStudio.getState()).toMatchObject({
