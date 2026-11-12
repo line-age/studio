@@ -187,7 +187,6 @@ function Frame({
           label={panel}
           storageKey="studio.left-panel-width"
           widthToken="--layout-panel-left"
-          onToggle={toggleOpen}
           className="border-sidebar-border bg-sidebar"
         >
           {left}
@@ -207,7 +206,6 @@ function Frame({
           label="Properties"
           storageKey="studio.right-panel-width"
           widthToken="--layout-panel-right"
-          onToggle={hasSelection ? toggleProperties : undefined}
           className="bg-background"
         >
           {right}

@@ -30,6 +30,7 @@ import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
 import { AddToAgentMenu } from "../add-to-agent"
+import { LeftPanelToggle } from "../panel-toggle"
 import {
   useSearchHits,
   useStudioData,
@@ -108,6 +109,7 @@ export function PipelinesPanel() {
         >
           <Icon name="table" className="size-3.5" />
         </Button>
+        <LeftPanelToggle />
       </PanelHeader>
 
       <div className="flex shrink-0 flex-col gap-2 border-b px-3 pb-2.5">

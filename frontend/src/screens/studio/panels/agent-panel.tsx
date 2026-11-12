@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { plural } from "@/data/derive"
 import type { ThreadItem } from "@/data/schema"
 
+import { LeftPanelToggle } from "../panel-toggle"
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
 
@@ -143,7 +144,9 @@ export function AgentPanel() {
         title="Agent"
         meta={plural(network.notes.length, "note")}
         divider
-      />
+      >
+        <LeftPanelToggle />
+      </PanelHeader>
       <div
         role="log"
         aria-label="Conversation with the Agent"

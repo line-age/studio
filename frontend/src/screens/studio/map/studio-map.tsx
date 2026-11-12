@@ -78,7 +78,30 @@ export function StudioMap({ token }: { token: string }) {
   const setCamera = useCamera((s) => s.setCamera)
 
   const selection = useSelectionAttachments()
+  const boxRef = useRef<HTMLDivElement>(null)
   const colors = useMemo(() => readMapColors(), [])
+
+  // The side panels slide open and shut, so the map's box changes size on
+  // every frame of the slide. Changing a canvas's size clears it, and Mapbox
+  // draws again only on the next frame, which shows as flicker. So Mapbox's
+  // own resize tracking is off (trackResize) and this does it: resize, then
+  // draw at once, inside the same frame.
+  useEffect(() => {
+    const box = boxRef.current
+    if (!box) return
+    const observer = new ResizeObserver(() => {
+      const map = mapRef.current?.getMap()
+      if (!map) return
+      map.resize()
+      // Not in Mapbox's public API; without it the map falls back to
+      // drawing a frame late, which is only the flicker again.
+      const drawNow = (map as unknown as { _render?: (now: number) => void })
+        ._render
+      if (typeof drawNow === "function") drawNow.call(map, performance.now())
+    })
+    observer.observe(box)
+    return () => observer.disconnect()
+  }, [])
 
   // The sections of this edition whose pipeline passes the Show filter.
   const current = useMemo(
@@ -192,7 +215,7 @@ export function StudioMap({ token }: { token: string }) {
   }
 
   return (
-    <div className="absolute inset-0">
+    <div ref={boxRef} className="absolute inset-0">
       {/* Right click on the map offers what is selected to the Agent. */}
       <AddToAgentMenu items={selection}>
         <div className="absolute inset-0">
@@ -216,6 +239,7 @@ export function StudioMap({ token }: { token: string }) {
             logoPosition="top-left"
             attributionControl={false}
             dragRotate={false}
+            trackResize={false}
             onLoad={report}
             onMoveEnd={report}
             onMove={(event) =>

@@ -51,7 +51,7 @@ interface StudioState {
   /** The map's current view; null until the map has drawn once. */
   view: Bounds | null
   fit: FitRequest | null
-  /** The person has shut the properties panel; a selection does not reopen it. */
+  /** The person has shut the properties panel. Selecting something opens it again. */
   propertiesHidden: boolean
   agentAttachments: AgentAttachment[]
 
@@ -182,6 +182,7 @@ export const useStudio = create<StudioState>((set) => ({
       selectedPipelineId: pipelineId,
       selectedSectionId: null,
       checkedSectionIds: null,
+      propertiesHidden: false,
       selectedAttribute: null,
     }),
   selectSection: (pipelineId, sectionId) =>
@@ -189,6 +190,7 @@ export const useStudio = create<StudioState>((set) => ({
       selectedPipelineId: pipelineId,
       selectedSectionId: sectionId,
       checkedSectionIds: new Set([sectionId]),
+      propertiesHidden: false,
       selectedAttribute: null,
       expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
     })),
@@ -197,6 +199,7 @@ export const useStudio = create<StudioState>((set) => ({
       selectedPipelineId: pipelineId,
       selectedSectionId: sectionId,
       checkedSectionIds: new Set([sectionId]),
+      propertiesHidden: false,
       selectedAttribute: attribute,
       expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
     })),

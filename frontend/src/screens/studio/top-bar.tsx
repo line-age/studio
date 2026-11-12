@@ -10,7 +10,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 
 /*
  * The dark bar across the top. Its actions have nothing behind them yet; they
@@ -59,15 +58,16 @@ export function TopBar({
         <TopbarButton kind="icon" aria-label="Menu">
           <Icon name="menu" />
         </TopbarButton>
-        <TopbarButton
-          kind="icon"
-          aria-label={leftOpen ? "Hide the left panel" : "Show the left panel"}
-          aria-pressed={leftOpen}
-          onClick={onToggleLeft}
-          className={cn("-ml-2.5", !leftOpen && "opacity-70")}
-        >
-          <Icon name="panel-left" />
-        </TopbarButton>
+        {!leftOpen && (
+          <TopbarButton
+            kind="icon"
+            aria-label="Show the left panel"
+            onClick={onToggleLeft}
+            className="-ml-2.5"
+          >
+            <Icon name="panel-left" />
+          </TopbarButton>
+        )}
         <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
           <Icon name="section" />
         </span>
@@ -127,24 +127,17 @@ export function TopBar({
         </TopbarButton>
         <TopbarButton>Settings</TopbarButton>
         <TopbarButton>Export</TopbarButton>
-        <Button className="mx-2.5">Review changes</Button>
-        <TopbarButton
-          kind="icon"
-          aria-label={
-            rightOpen
-              ? "Hide the properties panel"
-              : "Show the properties panel"
-          }
-          aria-pressed={rightOpen}
-          disabled={!rightAvailable}
-          onClick={onToggleRight}
-          className={cn(
-            "disabled:pointer-events-none disabled:opacity-40",
-            rightAvailable && !rightOpen && "opacity-70"
-          )}
-        >
-          <Icon name="panel-right" />
-        </TopbarButton>
+        <Button className="ml-2.5">Review changes</Button>
+        {rightAvailable && !rightOpen && (
+          <TopbarButton
+            kind="icon"
+            aria-label="Show the properties panel"
+            onClick={onToggleRight}
+            className="ml-2.5"
+          >
+            <Icon name="panel-right" />
+          </TopbarButton>
+        )}
       </div>
     </header>
   )
