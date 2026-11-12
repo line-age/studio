@@ -349,7 +349,6 @@ export function FiltersPanel() {
               onChange={setAdded}
               min={added[0]}
               max={added[1]}
-              placeholder="Any date"
             />
           </Group>
         )}

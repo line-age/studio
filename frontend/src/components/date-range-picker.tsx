@@ -44,7 +44,8 @@ export function formatDateRange(
 }
 
 /**
- * A from-to range of days, picked on one calendar. Built on shadcn Popover
+ * A from-to range of days: two fields, From and To, that open one calendar.
+ * Built on shadcn Popover
  * and Calendar; not in Figma yet (the owner asked for it, 2026-11-12).
  */
 export function DateRangePicker({
@@ -54,7 +55,6 @@ export function DateRangePicker({
   onChange,
   min,
   max,
-  placeholder,
   className,
 }: {
   /** Accessible name, such as "Added to Lineage". */
@@ -66,7 +66,6 @@ export function DateRangePicker({
   /** The first and last day that can be picked. */
   min?: string
   max?: string
-  placeholder: string
   className?: string
 }) {
   const [open, setOpen] = useState(false)
@@ -74,21 +73,22 @@ export function DateRangePicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
+      {/* One control drawn as two fields, so it reads as from and to. */}
       <PopoverTrigger
         render={
-          <Button
-            variant="outline"
+          <button
+            type="button"
             aria-label={text ? `${label}: ${text}` : label}
             className={cn(
-              "w-full justify-between bg-background px-2.5 font-normal tabular-nums",
-              !text && "text-muted-foreground",
+              "group/range flex w-full items-center gap-2 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring",
               className
             )}
           />
         }
       >
-        <span className="truncate">{text ?? placeholder}</span>
-        <Icon name="chevron-down" className="size-3.5 text-muted-foreground" />
+        <RangeEnd value={from} placeholder="From" />
+        <span className="type-ui-sm text-muted-foreground">to</span>
+        <RangeEnd value={to} placeholder="To" />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-1">
         <Calendar
@@ -125,5 +125,31 @@ export function DateRangePicker({
         )}
       </PopoverContent>
     </Popover>
+  )
+}
+
+/** One end of the range, drawn like an outline button. */
+function RangeEnd({
+  value,
+  placeholder,
+}: {
+  value: string | null
+  placeholder: string
+}) {
+  return (
+    <span
+      className={cn(
+        "flex h-control min-w-0 flex-1 items-center justify-between gap-1 rounded-lg border border-border bg-background px-2.5 type-ui-sm tabular-nums transition-colors group-hover/range:bg-muted group-aria-expanded/range:bg-muted",
+        value === null && "text-muted-foreground"
+      )}
+    >
+      <span className="truncate">
+        {value === null ? placeholder : dayFormat.format(toDate(value))}
+      </span>
+      <Icon
+        name="chevron-down"
+        className="size-3.5 shrink-0 text-muted-foreground"
+      />
+    </span>
   )
 }

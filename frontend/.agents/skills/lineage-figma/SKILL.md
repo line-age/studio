@@ -173,8 +173,8 @@ Where code knowingly differs from the Figma frame:
   state on screen). A click on empty map steps the selection back, then clears it. The
   open panel's rail item shuts the left panel. Both slide over 200 ms.
 - The Filters panel has criteria Figma lacks: "Company" (shadcn Combobox, multiple: type to
-  find, chosen ones are chips; values from the Owner attribute), "Build date" (from and to, each a `YearPicker`: shadcn Popover with a grid of twelve years) "Added to Lineage" (a
-  day range on one shadcn Calendar, over the section's `addedAt`) and "Unknown in", a
+  find, chosen ones are chips; values from the Owner attribute), "Build date" (from and to, each a `YearPicker`: shadcn Popover with a grid of twelve years) "Added to Lineage" (From and
+  To fields, drawn like Build date, that open one shadcn Calendar in range mode, over the section's `addedAt`) and "Unknown in", a
   checkbox per attribute with counts (shadcn Checkbox). A pipeline passes
   when one of its sections satisfies all of them. It narrows the list and the map, shows as a badge in the
   list, and is cleared by "Clear all".
