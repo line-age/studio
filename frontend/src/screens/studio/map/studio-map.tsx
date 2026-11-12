@@ -154,6 +154,8 @@ export function StudioMap({ token }: { token: string }) {
     if (!map) return
     const view = toBounds(map)
     if (view) setView(view)
+    const center = map.getCenter()
+    setCamera(map.getZoom(), [center.lng, center.lat])
   }
 
   const onClick = (event: MapMouseEvent) => {
@@ -383,14 +385,12 @@ export function StudioMap({ token }: { token: string }) {
         </MapControl>
       </div>
 
-      <MapLabel className="absolute bottom-3 left-3">{edition.label}</MapLabel>
-
-      {/* Only Select does anything yet; the other tools are shown as designed. */}
-      <ToolPalette
-        value="select"
-        onValueChange={() => {}}
-        className="absolute bottom-3 left-1/2 -translate-x-1/2"
-      />
+      {/* Label left, tools centred; on a narrow map they sit side by side. */}
+      <div className="pointer-events-none absolute inset-x-3 bottom-3 grid grid-cols-[1fr_auto_1fr] items-end gap-2 *:pointer-events-auto">
+        <MapLabel className="justify-self-start">{edition.label}</MapLabel>
+        {/* Only Select does anything yet; the other tools are shown as designed. */}
+        <ToolPalette value="select" onValueChange={() => {}} />
+      </div>
     </div>
   )
 }

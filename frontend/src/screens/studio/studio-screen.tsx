@@ -77,7 +77,7 @@ export function StudioScreen() {
 
   return (
     <LeftPanelContext value={leftPanel}>
-      <div className="relative flex h-svh min-w-320 flex-col">
+      <div className="relative flex h-svh flex-col overflow-hidden">
         <LoadBar loading={loading} />
         <ErrorBoundary
           fallback={(error) => (

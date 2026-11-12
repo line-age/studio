@@ -153,6 +153,8 @@ Where code knowingly differs from the Figma frame:
   is not designed.
 - Rows show the Checkbox look but selection is one at a time; selecting several is not
   designed.
+- No minimum page width: the map takes the space the panels leave, so the right panel is
+  always at the window edge. The frame is drawn at 1728 wide only.
 - The Mapbox logo sits top left and its attribution bottom right, as its terms require.
 
 ## Not designed yet

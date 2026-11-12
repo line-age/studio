@@ -7,7 +7,7 @@ export function MapLabel({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "inline-flex items-center rounded-md border bg-background px-2 py-1 type-ui-mono-xs shadow-map-control",
+        "inline-flex items-center rounded-md border bg-background px-2 py-1 type-ui-mono-xs whitespace-nowrap shadow-map-control",
         className
       )}
       {...props}
