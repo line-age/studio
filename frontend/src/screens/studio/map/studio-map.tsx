@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import MapGL, {
   AttributionControl,
   Layer,
-  Marker,
   Source,
   type MapMouseEvent,
   type MapRef,
@@ -12,7 +11,6 @@ import MapGL, {
 
 import { Icon } from "@/components/icons/icon"
 import { MapControl } from "@/components/map-control"
-import { Pin } from "@/components/pin"
 import { ToolPalette } from "@/components/tool-palette"
 import { Button } from "@/components/ui/button"
 import {
@@ -176,13 +174,6 @@ export function StudioMap({ token }: { token: string }) {
       ),
     [network, edition.id]
   )
-
-  const pins = useMemo(() => {
-    const inEdition = new Set(
-      summaries.flatMap((s) => s.sections.map((section) => section.id))
-    )
-    return network.notes.filter((note) => inEdition.has(note.sectionId))
-  }, [network.notes, summaries])
 
   const initialBounds = useMemo(
     () => unionBounds(summaries.flatMap((s) => (s.bounds ? [s.bounds] : []))),
@@ -482,19 +473,6 @@ export function StudioMap({ token }: { token: string }) {
                 }}
               />
             </Source>
-
-            {layers.pins &&
-              pins.map((note) => (
-                <Marker
-                  key={note.id}
-                  longitude={note.position[0]}
-                  latitude={note.position[1]}
-                  anchor="center"
-                >
-                  <span className="sr-only">Note</span>
-                  <Pin number={note.number} />
-                </Marker>
-              ))}
           </MapGL>
         </div>
       </AddToAgentMenu>

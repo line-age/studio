@@ -161,11 +161,7 @@ export function AgentPanel() {
 
   return (
     <>
-      <PanelHeader
-        title="Agent"
-        meta={plural(network.notes.length, "note")}
-        divider
-      >
+      <PanelHeader title="Agent" divider>
         <LeftPanelToggle />
       </PanelHeader>
       <div

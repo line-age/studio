@@ -202,6 +202,9 @@ Where code knowingly differs from the Figma frame:
   hidden until they do something. The filter badges under the search box each carry a
   remove button (`FilterChip`) and the row shows only filters that are set; the edition
   year and "All pipelines" badges are gone.
+- Notes are off the map for now (owner, 2026-11-12): no note pins, no "Note pins" layer
+  row, no note count in the Agent header. The fixture still holds notes and the Agent
+  conversation still shows the ones it mentions.
 - These were asked for by the owner on 2026-11-12 ahead of Figma. Figma needs updating.
 - No minimum page width: the map takes the space the panels leave, so the right panel is
   always at the window edge. The frame is drawn at 1728 wide only.

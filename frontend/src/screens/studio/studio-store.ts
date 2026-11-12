@@ -9,7 +9,7 @@ import type { Bounds, ShowFilter } from "@/data/derive"
 
 export type LeftPanel = "pipelines" | "filters" | "agent"
 
-export type LayerId = "pipelines" | "proposed" | "ghost" | "pins"
+export type LayerId = "pipelines" | "proposed" | "ghost"
 
 export interface FitRequest {
   bounds: Bounds
@@ -146,7 +146,6 @@ const defaultLayers: Record<LayerId, boolean> = {
   pipelines: true,
   proposed: true,
   ghost: true,
-  pins: true,
 }
 
 let nonce = 0
