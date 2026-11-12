@@ -10,6 +10,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 /*
  * The dark bar across the top. Its actions have nothing behind them yet; they
@@ -25,12 +26,23 @@ export function TopBar({
   networkName,
   trail = [],
   onRoot,
+  leftOpen,
+  onToggleLeft,
+  rightOpen,
+  rightAvailable,
+  onToggleRight,
 }: {
   networkName?: string
   /** The selected pipeline, then the selected section. */
   trail?: Crumb[]
   /** Clears the selection: what the app name does when there is a trail. */
   onRoot?: () => void
+  leftOpen: boolean
+  onToggleLeft: () => void
+  rightOpen: boolean
+  /** False while nothing is selected: there are no properties to show. */
+  rightAvailable: boolean
+  onToggleRight: () => void
 }) {
   return (
     <header className="flex h-topbar shrink-0 items-center justify-between bg-topbar px-3 text-topbar-foreground">
@@ -46,6 +58,15 @@ export function TopBar({
       <div className="flex min-w-0 items-center gap-3">
         <TopbarButton kind="icon" aria-label="Menu">
           <Icon name="menu" />
+        </TopbarButton>
+        <TopbarButton
+          kind="icon"
+          aria-label={leftOpen ? "Hide the left panel" : "Show the left panel"}
+          aria-pressed={leftOpen}
+          onClick={onToggleLeft}
+          className={cn("-ml-2.5", !leftOpen && "opacity-70")}
+        >
+          <Icon name="panel-left" />
         </TopbarButton>
         <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
           <Icon name="section" />
@@ -106,7 +127,24 @@ export function TopBar({
         </TopbarButton>
         <TopbarButton>Settings</TopbarButton>
         <TopbarButton>Export</TopbarButton>
-        <Button className="ml-2.5">Review changes</Button>
+        <Button className="mx-2.5">Review changes</Button>
+        <TopbarButton
+          kind="icon"
+          aria-label={
+            rightOpen
+              ? "Hide the properties panel"
+              : "Show the properties panel"
+          }
+          aria-pressed={rightOpen}
+          disabled={!rightAvailable}
+          onClick={onToggleRight}
+          className={cn(
+            "disabled:pointer-events-none disabled:opacity-40",
+            rightAvailable && !rightOpen && "opacity-70"
+          )}
+        >
+          <Icon name="panel-right" />
+        </TopbarButton>
       </div>
     </header>
   )

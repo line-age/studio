@@ -14,6 +14,8 @@ interface LeftPanelValue {
   openPanel: (panel: LeftPanel) => void
   /** The rail: the open panel's own item shuts the left side. */
   togglePanel: (panel: LeftPanel) => void
+  /** Show or hide the left side, keeping the panel that was open. */
+  toggleOpen: () => void
 }
 
 export const LeftPanelContext = createContext<LeftPanelValue | null>(null)

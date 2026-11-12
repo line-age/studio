@@ -22,6 +22,7 @@ async function renderPanels() {
             open: true,
             openPanel: () => {},
             togglePanel: () => {},
+            toggleOpen: () => {},
           }}
         >
           <StudioDataProvider network={network}>

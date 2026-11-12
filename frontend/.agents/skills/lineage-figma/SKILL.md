@@ -182,6 +182,8 @@ Where code knowingly differs from the Figma frame:
 - The breadcrumb is the app name, then the selected pipeline, then the selected section;
   earlier crumbs step back. The network name is not shown (owner, 2026-11-12); Figma
   shows app and network.
+- The top bar has two panel toggles (icons `panel-left`, `panel-right`, added in code,
+  not yet on the Icons page): hide and show the left panel, and the properties panel.
 - These were asked for by the owner on 2026-11-12 ahead of Figma. Figma needs updating.
 - No minimum page width: the map takes the space the panels leave, so the right panel is
   always at the window edge. The frame is drawn at 1728 wide only.

@@ -66,6 +66,7 @@ export function StudioScreen() {
           startTransition(() => setPanel(next))
         }
       },
+      toggleOpen: () => setLeftOpen((open) => !open),
     }),
     [panel, leftOpen]
   )
@@ -133,13 +134,25 @@ function Frame({
   /** The centre: the map, or a message. */
   children?: ReactNode
 }) {
-  const { panel, open, togglePanel } = useLeftPanel()
-  const rightOpen = useStudio((s) => s.selectedPipelineId !== null)
+  const { panel, open, togglePanel, toggleOpen } = useLeftPanel()
+  const hasSelection = useStudio((s) => s.selectedPipelineId !== null)
+  const propertiesHidden = useStudio((s) => s.propertiesHidden)
+  const toggleProperties = useStudio((s) => s.toggleProperties)
+  const rightOpen = hasSelection && !propertiesHidden
   // Applied means different from how the screen opens (see clearFilters).
   const hasFilters = useStudio(filtersApplied)
   return (
     <>
-      <TopBar networkName={networkName} trail={trail} onRoot={onHome} />
+      <TopBar
+        networkName={networkName}
+        trail={trail}
+        onRoot={onHome}
+        leftOpen={open}
+        onToggleLeft={toggleOpen}
+        rightOpen={rightOpen}
+        rightAvailable={hasSelection}
+        onToggleRight={toggleProperties}
+      />
       <div className="flex min-h-0 flex-1" aria-busy={busy}>
         <nav
           aria-label="Panels"

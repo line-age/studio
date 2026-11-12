@@ -48,6 +48,8 @@ interface StudioState {
   /** The map's current view; null until the map has drawn once. */
   view: Bounds | null
   fit: FitRequest | null
+  /** The person has shut the properties panel; a selection does not reopen it. */
+  propertiesHidden: boolean
   agentAttachments: AgentAttachment[]
 
   setEdition: (editionId: string) => void
@@ -76,6 +78,7 @@ interface StudioState {
   clearSection: () => void
   setView: (view: Bounds) => void
   requestFit: (bounds: Bounds | null) => void
+  toggleProperties: () => void
   attachToAgent: (items: AgentAttachment[]) => void
   detachFromAgent: (item: AgentAttachment) => void
 }
@@ -116,6 +119,7 @@ export const useStudio = create<StudioState>((set) => ({
   expandedSectionIds: new Set(),
   view: null,
   fit: null,
+  propertiesHidden: false,
   agentAttachments: [],
 
   setEdition: (editionId) =>
@@ -223,6 +227,8 @@ export const useStudio = create<StudioState>((set) => ({
   setView: (view) => set({ view }),
   requestFit: (bounds) =>
     set(bounds ? { fit: { bounds, nonce: (nonce += 1) } } : {}),
+  toggleProperties: () =>
+    set((s) => ({ propertiesHidden: !s.propertiesHidden })),
   attachToAgent: (items) =>
     set((s) => ({
       agentAttachments: [
