@@ -115,6 +115,7 @@ export function StudioScreen() {
 function Frame({
   networkName,
   trail,
+  onHome,
   agentWaiting = false,
   left,
   right,
@@ -123,6 +124,7 @@ function Frame({
 }: {
   networkName?: string
   trail?: Crumb[]
+  onHome?: () => void
   /** The Agent has proposals the person has not decided on. */
   agentWaiting?: boolean
   left?: ReactNode
@@ -139,7 +141,7 @@ function Frame({
   )
   return (
     <>
-      <TopBar networkName={networkName} trail={trail} />
+      <TopBar networkName={networkName} trail={trail} onRoot={onHome} />
       <div className="flex min-h-0 flex-1" aria-busy={busy}>
         <nav
           aria-label="Panels"
@@ -202,9 +204,12 @@ function Frame({
   )
 }
 
-/** The breadcrumb: network, selected pipeline, selected section. */
-function useTrail(): Crumb[] {
-  const { network, summaries, summaryById, sectionById } = useStudioData()
+/**
+ * The breadcrumb after the app name: selected pipeline, selected section.
+ * `home` clears the selection and shows the whole network again.
+ */
+function useTrail(): { trail: Crumb[]; home: () => void } {
+  const { summaries, summaryById, sectionById } = useStudioData()
   const pipelineId = useStudio((s) => s.selectedPipelineId)
   const sectionId = useStudio((s) => s.selectedSectionId)
   const selectPipeline = useStudio((s) => s.selectPipeline)
@@ -212,18 +217,7 @@ function useTrail(): Crumb[] {
 
   const pipeline = pipelineId ? summaryById.get(pipelineId) : undefined
   const section = sectionId ? sectionById.get(sectionId) : undefined
-  const trail: Crumb[] = [
-    {
-      label: network.name,
-      // Back to the whole network: nothing selected, everything in view.
-      onClick: () => {
-        selectPipeline(null)
-        requestFit(
-          unionBounds(summaries.flatMap((s) => (s.bounds ? [s.bounds] : [])))
-        )
-      },
-    },
-  ]
+  const trail: Crumb[] = []
   if (pipeline) {
     trail.push({
       label: pipeline.name,
@@ -234,18 +228,25 @@ function useTrail(): Crumb[] {
     })
   }
   if (pipeline && section) trail.push({ label: section.name })
-  return trail
+  const home = () => {
+    selectPipeline(null)
+    requestFit(
+      unionBounds(summaries.flatMap((s) => (s.bounds ? [s.bounds] : [])))
+    )
+  }
+  return { trail, home }
 }
 
 function Loaded() {
   const { network, summaries } = useStudioData()
   const { panel } = useLeftPanel()
   const agentWaiting = summaries.some((s) => matchesShow(s, "proposals"))
-  const trail = useTrail()
+  const { trail, home } = useTrail()
   return (
     <Frame
       networkName={network.name}
       trail={trail}
+      onHome={home}
       agentWaiting={agentWaiting}
       left={
         <ViewTransition key={panel}>

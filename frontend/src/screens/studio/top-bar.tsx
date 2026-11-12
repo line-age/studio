@@ -24,10 +24,13 @@ export interface Crumb {
 export function TopBar({
   networkName,
   trail = [],
+  onRoot,
 }: {
   networkName?: string
-  /** Network, then the selected pipeline, then the selected section. */
+  /** The selected pipeline, then the selected section. */
   trail?: Crumb[]
+  /** Clears the selection: what the app name does when there is a trail. */
+  onRoot?: () => void
 }) {
   return (
     <header className="flex h-topbar shrink-0 items-center justify-between bg-topbar px-3 text-topbar-foreground">
@@ -49,8 +52,21 @@ export function TopBar({
         </span>
         <Breadcrumb className="min-w-0 px-2">
           <BreadcrumbList className="flex-nowrap type-ui-sm text-topbar-foreground">
-            <BreadcrumbItem className="opacity-70">
-              Lineage Studio
+            {/* With something selected, the app name steps back to nothing. */}
+            <BreadcrumbItem>
+              {trail.length > 0 && onRoot ? (
+                <button
+                  type="button"
+                  onClick={onRoot}
+                  className="rounded-sm opacity-70 transition-opacity duration-100 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid"
+                >
+                  Lineage Studio
+                </button>
+              ) : (
+                <BreadcrumbPage className="text-topbar-foreground">
+                  Lineage Studio
+                </BreadcrumbPage>
+              )}
             </BreadcrumbItem>
             {trail.map((crumb, i) => {
               const last = i === trail.length - 1
