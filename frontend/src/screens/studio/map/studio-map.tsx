@@ -105,8 +105,8 @@ export function StudioMap({ token }: { token: string }) {
   // The loop being drawn with the Lasso, in screen pixels.
   const [loop, setLoop] = useState<Point[] | null>(null)
   const loopRef = useRef<Point[] | null>(null)
-  // Where the last loop ended and what it selected: the bar sits there
-  // until the selection changes.
+  // Where the last click or loop on the map was and what it selected: the
+  // bar sits there until the selection changes.
   const [bar, setBar] = useState<{
     lngLat: [number, number]
     point: Point
@@ -336,6 +336,19 @@ export function StudioMap({ token }: { token: string }) {
       // Shift adds the section to the selection, or takes it off.
       if (event.originalEvent.shiftKey) toggleSelected([String(properties.id)])
       else selectSection(String(properties.id))
+      // Every selection made on the map offers the Agent, by the click.
+      const selection = useStudio.getState().selection
+      if (selection.size > 0) {
+        setBar({
+          lngLat: [event.lngLat.lng, event.lngLat.lat],
+          point: [event.point.x, event.point.y],
+          size: [
+            boxRef.current?.clientWidth ?? 0,
+            boxRef.current?.clientHeight ?? 0,
+          ],
+          selection,
+        })
+      }
     } else {
       stepBack(groups.flatMap((g) => g.summary.sections.map((s) => s.id)))
     }
@@ -555,7 +568,12 @@ export function StudioMap({ token }: { token: string }) {
 
       {barShown && (
         <SelectionBar
-          label={selectionSize(groups)}
+          label={
+            // One section goes by its name.
+            groups.length === 1 && groups[0].sections.length === 1
+              ? groups[0].sections[0].name
+              : selectionSize(groups)
+          }
           onAsk={() => {
             askAgent(selection)
             setBar(null)
