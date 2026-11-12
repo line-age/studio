@@ -6,6 +6,12 @@ app. State as of 2026-11-12: the theme exported from Figma and one screen, **Stu
 working read-only on fixture data (no API yet). More screens will follow; each gets its
 own directory under `src/screens/`.
 
+What Studio does today: lists pipelines with search and filters; selects sections
+across pipelines by row boxes, clicks on the map or a Lasso; shows the selection's
+facts grouped in the right panel; hands a selection to the Agent chat as references.
+Nothing can be edited and the Agent does not answer yet. The repo `README.md` one level
+up shows it with screenshots; keep those current when the screen changes visibly.
+
 The workspace `AGENTS.md` two levels up holds the project-wide rules and the full Figma
 notes. This file wins for anything inside this directory.
 
@@ -120,7 +126,16 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   the tokens. No raw colour in map code either.
 - Not designed means not built: no tooltip, popover, tab or table until Figma has
   it. The one menu is the right-click "Add to the Agent chat" (stock shadcn Context
-  Menu, the owner's request).
+  Menu, the owner's request). Tooltips are only on the filter icon and the filter chips
+  above the pipeline list (stock shadcn Tooltip, same).
+- On the map a click adds a section to the selection and a click on a selected one takes
+  it off; a click on empty map steps the selection back. Every selection made on the map
+  shows the `SelectionBar` ("Ask the Agent") at the top centre of the map.
+- A move the app makes to show a selection is quiet (`requestFit` without `follow`): it
+  does not change the "in view" list. Pass `follow` only when the person asked to go
+  somewhere (search hit, the app name in the breadcrumb).
+- Notes are off the screen for now (owner, 2026-11-12): no pins, no layer row. The
+  fixture still holds them. Do not bring them back without being asked.
 - The selection is a set of sections (`selection` in the Studio store) and may span
   pipelines. Derive pipelines from it with `groupSelection`; do not store a selected
   pipeline. Use `aria-label` on icon-only buttons.

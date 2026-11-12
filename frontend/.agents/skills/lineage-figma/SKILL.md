@@ -205,6 +205,11 @@ Where code knowingly differs from the Figma frame:
 - Notes are off the map for now (owner, 2026-11-12): no note pins, no "Note pins" layer
   row, no note count in the Agent header. The fixture still holds notes and the Agent
   conversation still shows the ones it mentions.
+- The filter icon and each filter chip above the pipeline list carry a tooltip (stock
+  shadcn Tooltip) that says what the filter does.
+- Zooming the map to a clicked pipeline does not narrow the "in view" list; the list
+  follows only when the person moves the map, opens a search hit or goes home.
+- Build date pickers run up to the current year.
 - These were asked for by the owner on 2026-11-12 ahead of Figma. Figma needs updating.
 - No minimum page width: the map takes the space the panels leave, so the right panel is
   always at the window edge. The frame is drawn at 1728 wide only.

@@ -15,6 +15,11 @@ export interface FitRequest {
   bounds: Bounds
   /** Changes on every request so the map reacts even to the same bounds. */
   nonce: number
+  /**
+   * The pipeline list follows the map to the new view. Off for a move that
+   * only shows a selection: the list stays as the person left it.
+   */
+  follow: boolean
 }
 
 /**
@@ -102,7 +107,8 @@ interface StudioState {
   stepBack: (wholeIds: readonly string[]) => void
   setTool: (tool: MapTool) => void
   setView: (view: Bounds) => void
-  requestFit: (bounds: Bounds | null) => void
+  /** `follow` also moves the "in view" list to the new place. */
+  requestFit: (bounds: Bounds | null, follow?: boolean) => void
   toggleProperties: () => void
   attachToAgent: (items: AgentAttachment[]) => void
   /** Attach, and ask the chat to take the cursor. */
@@ -294,8 +300,8 @@ export const useStudio = create<StudioState>((set) => ({
     })),
   setTool: (tool) => set({ tool }),
   setView: (view) => set({ view }),
-  requestFit: (bounds) =>
-    set(bounds ? { fit: { bounds, nonce: (nonce += 1) } } : {}),
+  requestFit: (bounds, follow = false) =>
+    set(bounds ? { fit: { bounds, nonce: (nonce += 1), follow } } : {}),
   toggleProperties: () =>
     set((s) => ({ propertiesHidden: !s.propertiesHidden })),
   // One attachment per pipeline: adding to a pipeline already attached

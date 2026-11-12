@@ -248,7 +248,8 @@ function useTrail(): { trail: Crumb[]; home: () => void } {
   const home = () => {
     select([])
     requestFit(
-      unionBounds(summaries.flatMap((s) => (s.bounds ? [s.bounds] : [])))
+      unionBounds(summaries.flatMap((s) => (s.bounds ? [s.bounds] : []))),
+      true
     )
   }
   return { trail, home }

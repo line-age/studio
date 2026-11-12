@@ -19,6 +19,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Kbd } from "@/components/ui/kbd"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
   formatCount,
   geometryBounds,
   plural,
@@ -46,6 +51,13 @@ const showLabels: Record<ShowFilter, string> = {
   unknown: "With Unknown facts",
   proposals: "With proposals waiting",
   changed: "Changed since last review",
+}
+
+const showHints: Record<ShowFilter, string> = {
+  all: "Every pipeline of the edition.",
+  unknown: "Only pipelines with at least one Unknown fact.",
+  proposals: "Only pipelines with a proposal from the Agent waiting for you.",
+  changed: "Only pipelines changed since the last review.",
 }
 
 export function PipelinesPanel() {
@@ -77,16 +89,25 @@ export function PipelinesPanel() {
 
   // The filters in force, each with the way to take it off. A search stays
   // inside the filters unless it was widened to the whole edition.
-  const chips: { label: string; remove: () => void }[] = []
+  const chips: { label: string; hint: string; remove: () => void }[] = []
   if (searching && whole) {
-    chips.push({ label: "Whole edition", remove: () => setWhole(false) })
+    chips.push({
+      label: "Whole edition",
+      hint: "The search looks through every pipeline of the edition, not only the ones the filters leave.",
+      remove: () => setWhole(false),
+    })
   } else {
     if (show !== "all") {
-      chips.push({ label: showLabels[show], remove: () => setShow("all") })
+      chips.push({
+        label: showLabels[show],
+        hint: showHints[show],
+        remove: () => setShow("all"),
+      })
     }
     if (unknownIn.length > 0) {
       chips.push({
         label: `Unknown ${unknownIn.join(", ").toLocaleLowerCase()}`,
+        hint: "Only pipelines with a section where one of these facts is Unknown.",
         remove: () => unknownIn.forEach(toggleUnknownIn),
       })
     }
@@ -96,6 +117,7 @@ export function PipelinesPanel() {
           companies.length === 1
             ? companies[0]
             : plural(companies.length, "company", "companies"),
+        hint: `Only pipelines with a section owned by ${companies.join(", ")}.`,
         remove: () => setCompanies([]),
       })
     }
@@ -107,17 +129,23 @@ export function PipelinesPanel() {
             : builtFrom !== null
               ? `Built ${builtFrom} or later`
               : `Built ${builtTo} or earlier`,
+        hint: "Only pipelines with a section built in these years. Sections with an Unknown build date are left out.",
         remove: () => setBuilt(null, null),
       })
     }
     if (added) {
       chips.push({
         label: `Added: ${added}`,
+        hint: "Only pipelines with a section added to Lineage on these days.",
         remove: () => setAdded(null, null),
       })
     }
     if (onlyInView) {
-      chips.push({ label: "Map view", remove: () => setOnlyInView(false) })
+      chips.push({
+        label: "Map view",
+        hint: "Only pipelines in the part of the map you are looking at. Move the map and the list follows.",
+        remove: () => setOnlyInView(false),
+      })
     }
   }
 
@@ -195,10 +223,29 @@ export function PipelinesPanel() {
             className="flex flex-wrap items-center gap-1.5"
             aria-label="Filters in force"
           >
-            <Icon name="filter" className="size-3.5 text-muted-foreground" />
+            {/* Says what the row is: stock shadcn Tooltip (owner, 2026-11-12). */}
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <span
+                    tabIndex={0}
+                    className="flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                }
+              >
+                <Icon
+                  name="filter"
+                  className="size-3.5 text-muted-foreground"
+                />
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="start">
+                Filters applied to this list
+              </TooltipContent>
+            </Tooltip>
             {chips.map((chip) => (
               <FilterChip
                 key={chip.label}
+                hint={chip.hint}
                 removeLabel={`Remove the filter: ${chip.label}`}
                 onRemove={chip.remove}
               >
@@ -250,11 +297,12 @@ function useOpenHit() {
     const target = sectionId ?? only
     const section = target ? sectionById.get(target) : undefined
     if (section) {
+      // A search hit can be anywhere: the list follows the map to it.
       selectSection(section.id)
-      requestFit(geometryBounds(section.geometry))
+      requestFit(geometryBounds(section.geometry), true)
     } else {
       select(hit.summary.sections.map((s) => s.id))
-      requestFit(hit.summary.bounds)
+      requestFit(hit.summary.bounds, true)
     }
     setQuery("")
   }

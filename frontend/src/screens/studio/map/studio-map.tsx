@@ -189,15 +189,21 @@ export function StudioMap({ token }: { token: string }) {
         [west, south],
         [east, north],
       ],
-      { padding: 96, maxZoom: 11, duration: reducedMotion() ? 0 : 500 }
+      { padding: 96, maxZoom: 11, duration: reducedMotion() ? 0 : 500 },
+      // Read back in report(): a quiet move does not change the list.
+      { quiet: !fit.follow }
     )
   }, [fit])
 
-  const report = () => {
+  // Tells the list what the map shows. A move the app made to show a
+  // selection is quiet: zooming to one pipeline must not drop the others
+  // from the "in view" list. The next move by hand brings the list along.
+  const report = (event?: object) => {
     const map = mapRef.current
     if (!map) return
+    const quiet = event !== undefined && "quiet" in event && event.quiet
     const view = toBounds(map)
-    if (view) setView(view)
+    if (view && !quiet) setView(view)
     const center = map.getCenter()
     setCamera(map.getZoom(), [center.lng, center.lat])
   }
