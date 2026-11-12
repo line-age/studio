@@ -100,6 +100,9 @@ function OptionRow({
   )
 }
 
+/** Build years can be picked up to the present, whatever the data holds. */
+const THIS_YEAR = new Date().getFullYear()
+
 export function FiltersPanel() {
   const { network, edition, summaries } = useStudioData()
   const visible = useVisiblePipelines()
@@ -294,7 +297,7 @@ export function FiltersPanel() {
                 value={builtFrom}
                 onChange={(year) => setBuilt(year, builtTo)}
                 min={span[0]}
-                max={builtTo ?? span[1]}
+                max={builtTo ?? THIS_YEAR}
                 first={span[0]}
                 placeholder="From"
               />
@@ -305,7 +308,7 @@ export function FiltersPanel() {
                 onChange={(year) => setBuilt(builtFrom, year)}
                 min={builtFrom ?? span[0]}
                 first={span[0]}
-                max={span[1]}
+                max={THIS_YEAR}
                 placeholder="To"
               />
             </div>
