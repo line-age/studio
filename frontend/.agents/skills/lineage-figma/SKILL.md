@@ -157,10 +157,11 @@ Where code knowingly differs from the Figma frame:
   pipelines the sections are grouped under a ListGroupHeader per pipeline and the header
   reads "3 pipelines"; a footer states the size.
 - The map palette shows Select and Lasso only. Lasso draws a freehand loop; every
-  section it touches is selected (Shift adds). A small bar by the click or the end of the loop
+  section it touches is selected (Shift adds). A small bar at the top centre of the map
   (`SelectionBar`, shown after every selection made on the map) states the size and has "Ask the Agent", which opens the Agent panel
-  with the selection attached and the cursor in the message box. Shift-click on a line
-  adds or removes that section.
+  with the selection attached and the cursor in the message box. A click on a line adds that
+  section to the selection, a click on a selected line takes it off, and a click on
+  empty map steps the selection back.
 - Agent attachments are one chip per pipeline ("Whole pipeline", "3 of 6 sections"); a
   single section shows under its own name.
 - Search narrows the same pipeline list (same rows) and lists the sections it found

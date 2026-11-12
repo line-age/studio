@@ -1,6 +1,6 @@
 import "mapbox-gl/dist/mapbox-gl.css"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import MapGL, {
   AttributionControl,
   Layer,
@@ -63,19 +63,6 @@ const reducedMotion = () =>
 /** The tools that do something. The rest of the palette waits for editing. */
 const TOOLS = ["select", "lasso"] as const
 
-/**
- * Puts the bar beside `point`, on the side with more room, inside the map.
- */
-function barStyle(point: Point, [width, height]: Point) {
-  const left = point[0] > width / 2
-  const above = point[1] > height / 2
-  return {
-    left: Math.min(Math.max(point[0], 8), Math.max(width - 8, 8)),
-    top: Math.min(Math.max(point[1], 8), Math.max(height - 8, 8)),
-    transform: `translate(${left ? "calc(-100% - 8px)" : "8px"}, ${above ? "calc(-100% - 8px)" : "8px"})`,
-  }
-}
-
 function toBounds(map: MapRef): Bounds | null {
   const b = map.getBounds()
   return b ? [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()] : null
@@ -96,6 +83,7 @@ export function StudioMap({ token }: { token: string }) {
   const fit = useStudio((s) => s.fit)
   const selectSection = useStudio((s) => s.selectSection)
   const toggleSelected = useStudio((s) => s.toggleSelected)
+  const focusSection = useStudio((s) => s.focusSection)
   const stepBack = useStudio((s) => s.stepBack)
   const select = useStudio((s) => s.select)
   const tool = useStudio((s) => s.tool)
@@ -105,15 +93,9 @@ export function StudioMap({ token }: { token: string }) {
   // The loop being drawn with the Lasso, in screen pixels.
   const [loop, setLoop] = useState<Point[] | null>(null)
   const loopRef = useRef<Point[] | null>(null)
-  // Where the last click or loop on the map was and what it selected: the
-  // bar sits there until the selection changes.
-  const [bar, setBar] = useState<{
-    lngLat: [number, number]
-    point: Point
-    /** The map's width and height when the loop ended. */
-    size: Point
-    selection: ReadonlySet<string>
-  } | null>(null)
+  // What the last click or loop on the map selected: the bar at the top of
+  // the map offers the Agent for it until the selection changes.
+  const [bar, setBar] = useState<ReadonlySet<string> | null>(null)
   // A click can follow the release that ends a loop; it must not select.
   const skipClick = useRef(false)
   const setView = useStudio((s) => s.setView)
@@ -121,22 +103,6 @@ export function StudioMap({ token }: { token: string }) {
 
   const selection = useSelectionAttachments()
   const boxRef = useRef<HTMLDivElement>(null)
-
-  // The bar stays by the place on the map where the loop ended, however
-  // the map moves or changes size.
-  const placeBar = useCallback(() => {
-    setBar((b) => {
-      const at = b && mapRef.current?.project(b.lngLat)
-      const box = boxRef.current
-      return b && at && box
-        ? {
-            ...b,
-            point: [at.x, at.y],
-            size: [box.clientWidth, box.clientHeight],
-          }
-        : b
-    })
-  }, [])
   const colors = useMemo(() => readMapColors(), [])
 
   // The side panels slide open and shut, so the map's box changes size on
@@ -156,11 +122,10 @@ export function StudioMap({ token }: { token: string }) {
       const drawNow = (map as unknown as { _render?: (now: number) => void })
         ._render
       if (typeof drawNow === "function") drawNow.call(map, performance.now())
-      placeBar()
     })
     observer.observe(box)
     return () => observer.disconnect()
-  }, [placeBar])
+  }, [])
 
   // The sections of this edition whose pipeline passes the Show filter.
   const current = useMemo(
@@ -276,17 +241,7 @@ export function StudioMap({ token }: { token: string }) {
     // Nothing caught changes nothing; the Lasso stays in hand to try again.
     if (caught.length === 0) return
     select(shift ? [...new Set([...selected, ...caught])] : caught)
-    const end = points[points.length - 1]
-    const at = map.unproject([end[0], end[1]])
-    setBar({
-      lngLat: [at.lng, at.lat],
-      point: end,
-      size: [
-        boxRef.current?.clientWidth ?? 0,
-        boxRef.current?.clientHeight ?? 0,
-      ],
-      selection: useStudio.getState().selection,
-    })
+    setBar(useStudio.getState().selection)
     setTool("select")
   }
   const finishRef = useRef(finishLoop)
@@ -333,22 +288,16 @@ export function StudioMap({ token }: { token: string }) {
     setBar(null)
     const properties = event.features?.[0]?.properties
     if (properties?.id) {
-      // Shift adds the section to the selection, or takes it off.
-      if (event.originalEvent.shiftKey) toggleSelected([String(properties.id)])
-      else selectSection(String(properties.id))
-      // Every selection made on the map offers the Agent, by the click.
+      // Each click adds a section to the selection; a click on a selected
+      // one takes it off. The first one opens as the only selection.
+      const id = String(properties.id)
+      if (selected.size === 0) selectSection(id)
+      else toggleSelected([id])
+      // Every selection made on the map offers the Agent.
       const selection = useStudio.getState().selection
-      if (selection.size > 0) {
-        setBar({
-          lngLat: [event.lngLat.lng, event.lngLat.lat],
-          point: [event.point.x, event.point.y],
-          size: [
-            boxRef.current?.clientWidth ?? 0,
-            boxRef.current?.clientHeight ?? 0,
-          ],
-          selection,
-        })
-      }
+      // Of several, the one just added is the one opened on the right.
+      if (selection.size > 1 && selection.has(id)) focusSection(id)
+      if (selection.size > 0) setBar(selection)
     } else {
       stepBack(groups.flatMap((g) => g.summary.sections.map((s) => s.id)))
     }
@@ -376,7 +325,7 @@ export function StudioMap({ token }: { token: string }) {
   const visibility = (on: boolean) => (on ? "visible" : "none")
 
   // The bar belongs to the selection the loop made; any change retires it.
-  const barShown = bar !== null && bar.selection === selected
+  const barShown = bar !== null && bar === selected
 
   if (failed) {
     throw new Error("The map could not load its style.")
@@ -420,7 +369,6 @@ export function StudioMap({ token }: { token: string }) {
                 event.viewState.longitude,
                 event.viewState.latitude,
               ])
-              placeBar()
             }}
             onClick={onClick}
             onMouseMove={onMouseMove}
@@ -578,7 +526,6 @@ export function StudioMap({ token }: { token: string }) {
             askAgent(selection)
             setBar(null)
           }}
-          style={barStyle(bar.point, bar.size)}
         />
       )}
 
