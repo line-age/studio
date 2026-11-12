@@ -13,7 +13,6 @@ import { Hint } from "@/components/hint"
 import { LoadBar } from "@/components/load-bar"
 import { PanelHeader } from "@/components/panel-header"
 import { RailItem } from "@/components/rail-item"
-import { ResizeHandle } from "@/components/resize-handle"
 import { Button } from "@/components/ui/button"
 import { matchesShow } from "@/data/derive"
 import { fixtureUrl, loadNetwork } from "@/data/load-network"
@@ -25,6 +24,7 @@ import { AgentPanel } from "./panels/agent-panel"
 import { FiltersPanel } from "./panels/filters-panel"
 import { PipelinesPanel, SEARCH_INPUT_ID } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
+import { SidePanel } from "./side-panel"
 import { StudioDataProvider, useStudioData } from "./studio-data"
 import { useStudio, type LeftPanel } from "./studio-store"
 import { TopBar } from "./top-bar"
@@ -38,6 +38,7 @@ export function StudioScreen() {
   const [network] = useState(() => loadNetwork())
   const [loading, setLoading] = useState(true)
   const [panel, setPanel] = useState<LeftPanel>("pipelines")
+  const [leftOpen, setLeftOpen] = useState(true)
 
   useEffect(() => {
     let current = true
@@ -53,9 +54,20 @@ export function StudioScreen() {
   const leftPanel = useMemo(
     () => ({
       panel,
-      openPanel: (next: LeftPanel) => startTransition(() => setPanel(next)),
+      open: leftOpen,
+      openPanel: (next: LeftPanel) => {
+        setLeftOpen(true)
+        startTransition(() => setPanel(next))
+      },
+      togglePanel: (next: LeftPanel) => {
+        if (leftOpen && next === panel) setLeftOpen(false)
+        else {
+          setLeftOpen(true)
+          startTransition(() => setPanel(next))
+        }
+      },
     }),
-    [panel]
+    [panel, leftOpen]
   )
 
   // "/" jumps to the pipeline search from anywhere outside a text field.
@@ -67,6 +79,7 @@ export function StudioScreen() {
       const target = event.target as HTMLElement | null
       if (target?.closest("input, textarea, select, [contenteditable]")) return
       event.preventDefault()
+      setLeftOpen(true)
       setPanel("pipelines")
       requestAnimationFrame(() =>
         document.getElementById(SEARCH_INPUT_ID)?.focus()
@@ -116,15 +129,8 @@ function Frame({
   /** The centre: the map, or a message. */
   children?: ReactNode
 }) {
-  const { panel, openPanel } = useLeftPanel()
-  const leftWidth = usePanelWidth(
-    "studio.left-panel-width",
-    "--layout-panel-left"
-  )
-  const rightWidth = usePanelWidth(
-    "studio.right-panel-width",
-    "--layout-panel-right"
-  )
+  const { panel, open, togglePanel } = useLeftPanel()
+  const rightOpen = useStudio((s) => s.selectedPipelineId !== null)
   // Applied means different from how the screen opens (see clearFilters).
   const filtersApplied = useStudio((s) => s.show !== "all" || !s.onlyInView)
   return (
@@ -138,15 +144,15 @@ function Frame({
           <RailItem
             icon="line"
             label="Pipelines"
-            active={panel === "pipelines"}
-            onClick={() => openPanel("pipelines")}
+            active={open && panel === "pipelines"}
+            onClick={() => togglePanel("pipelines")}
           />
           <RailItem
             icon="filter"
             label="Filters"
             indicator={filtersApplied ? { label: "filters applied" } : null}
-            active={panel === "filters"}
-            onClick={() => openPanel("filters")}
+            active={open && panel === "filters"}
+            onClick={() => togglePanel("filters")}
           />
           <RailItem
             icon="ask"
@@ -154,27 +160,20 @@ function Frame({
             indicator={
               agentWaiting ? { label: "waiting for you", tone: "ai" } : null
             }
-            active={panel === "agent"}
-            onClick={() => openPanel("agent")}
+            active={open && panel === "agent"}
+            onClick={() => togglePanel("agent")}
           />
         </nav>
-        <aside
-          aria-label={panel}
-          style={
-            leftWidth.width === null ? undefined : { width: leftWidth.width }
-          }
-          className="relative flex w-panel-left shrink-0 flex-col border-r border-sidebar-border bg-sidebar"
+        <SidePanel
+          side="left"
+          open={open}
+          label={panel}
+          storageKey="studio.left-panel-width"
+          widthToken="--layout-panel-left"
+          className="border-sidebar-border bg-sidebar"
         >
           {left}
-          <ResizeHandle
-            label="Left panel width"
-            width={leftWidth.width ?? leftWidth.min}
-            min={leftWidth.min}
-            max={leftWidth.max()}
-            onResize={leftWidth.setWidth}
-            onReset={() => leftWidth.setWidth(null)}
-          />
-        </aside>
+        </SidePanel>
         <main
           id="map"
           tabIndex={-1}
@@ -183,65 +182,20 @@ function Frame({
         >
           {children}
         </main>
-        <aside
-          aria-label="Properties"
-          style={
-            rightWidth.width === null ? undefined : { width: rightWidth.width }
-          }
-          className="relative flex w-panel-right shrink-0 flex-col border-l bg-background"
+        {/* The properties panel is there only while something is selected. */}
+        <SidePanel
+          side="right"
+          open={rightOpen}
+          label="Properties"
+          storageKey="studio.right-panel-width"
+          widthToken="--layout-panel-right"
+          className="bg-background"
         >
-          <ResizeHandle
-            edge="left"
-            label="Right panel width"
-            width={rightWidth.width ?? rightWidth.min}
-            min={rightWidth.min}
-            max={rightWidth.max()}
-            onResize={rightWidth.setWidth}
-            onReset={() => rightWidth.setWidth(null)}
-          />
           {right}
-        </aside>
+        </SidePanel>
       </div>
     </>
   )
-}
-
-/**
- * A side panel opens at its token width and the person can drag it wider,
- * up to two fifths of the window. The choice is kept in this browser.
- */
-function usePanelWidth(storageKey: string, token: string) {
-  const [min] = useState(
-    () =>
-      parseFloat(
-        getComputedStyle(document.documentElement).getPropertyValue(token)
-      ) || 0
-  )
-  const [width, setWidthState] = useState<number | null>(() => {
-    try {
-      const stored = Number(localStorage.getItem(storageKey))
-      return stored > min ? stored : null
-    } catch {
-      return null
-    }
-  })
-  const max = () => Math.max(min, window.innerWidth * 0.4)
-  const setWidth = (next: number | null) => {
-    const value = next !== null && next > min ? next : null
-    setWidthState(value)
-    try {
-      if (value === null) localStorage.removeItem(storageKey)
-      else localStorage.setItem(storageKey, String(value))
-    } catch {
-      // Storage can be blocked; the width then lasts for this visit only.
-    }
-  }
-  return {
-    width: width === null ? null : Math.min(width, max()),
-    min,
-    max,
-    setWidth,
-  }
 }
 
 function Loaded() {

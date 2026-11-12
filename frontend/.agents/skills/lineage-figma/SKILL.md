@@ -166,6 +166,9 @@ Where code knowingly differs from the Figma frame:
   Context Menu.
 - The edition label at the bottom left of the map is removed (the Filters panel and the
   list badges say the edition).
+- The right panel is shown only while something is selected (no "Nothing selected"
+  state on screen). A click on empty map steps the selection back, then clears it. The
+  open panel's rail item shuts the left panel. Both slide over 200 ms.
 - These were asked for by the owner on 2026-11-12 ahead of Figma. Figma needs updating.
 - No minimum page width: the map takes the space the panels leave, so the right panel is
   always at the window edge. The frame is drawn at 1728 wide only.

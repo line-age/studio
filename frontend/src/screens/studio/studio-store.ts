@@ -154,12 +154,16 @@ export const useStudio = create<StudioState>((set) => ({
       if (!next.delete(sectionId)) next.add(sectionId)
       return { expandedSectionIds: next }
     }),
+  // A click on empty map steps back: from some sections to the whole
+  // pipeline, and from the whole pipeline to nothing selected.
   clearSection: () =>
-    set({
+    set((s) => ({
+      selectedPipelineId:
+        s.checkedSectionIds === null ? null : s.selectedPipelineId,
       selectedSectionId: null,
       checkedSectionIds: null,
       selectedAttribute: null,
-    }),
+    })),
   setView: (view) => set({ view }),
   requestFit: (bounds) =>
     set(bounds ? { fit: { bounds, nonce: (nonce += 1) } } : {}),

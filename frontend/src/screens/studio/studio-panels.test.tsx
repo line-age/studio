@@ -16,7 +16,14 @@ async function renderPanels() {
   await act(async () => {
     render(
       <Suspense fallback="Loading">
-        <LeftPanelContext value={{ panel: "pipelines", openPanel: () => {} }}>
+        <LeftPanelContext
+          value={{
+            panel: "pipelines",
+            open: true,
+            openPanel: () => {},
+            togglePanel: () => {},
+          }}
+        >
           <StudioDataProvider network={network}>
             <div>
               <PipelinesPanel />
