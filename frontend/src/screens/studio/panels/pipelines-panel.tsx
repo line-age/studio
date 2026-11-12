@@ -435,7 +435,12 @@ function PipelineList({
                   onClick={(event) => open(event.shiftKey)}
                   onKeyDown={(event) => {
                     if (event.target !== event.currentTarget) return
-                    if (isActivate(event)) {
+                    // Space ticks the box; Enter selects just this pipeline.
+                    if (event.key === " ") {
+                      event.preventDefault()
+                      anchor.current = summary.id
+                      toggleSelected(idsOf(summary))
+                    } else if (isActivate(event)) {
                       event.preventDefault()
                       open()
                     }
