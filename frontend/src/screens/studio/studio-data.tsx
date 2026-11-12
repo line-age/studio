@@ -93,9 +93,11 @@ export function useCriteria(): SectionCriteria {
   const companies = useStudio((s) => s.companies)
   const builtFrom = useStudio((s) => s.builtFrom)
   const builtTo = useStudio((s) => s.builtTo)
+  const addedFrom = useStudio((s) => s.addedFrom)
+  const addedTo = useStudio((s) => s.addedTo)
   return useMemo(
-    () => ({ unknownIn, companies, builtFrom, builtTo }),
-    [unknownIn, companies, builtFrom, builtTo]
+    () => ({ unknownIn, companies, builtFrom, builtTo, addedFrom, addedTo }),
+    [unknownIn, companies, builtFrom, builtTo, addedFrom, addedTo]
   )
 }
 

@@ -5,6 +5,7 @@ import { testNetwork } from "@/test/network"
 import {
   NO_CRITERIA,
   UNASSIGNED_ID,
+  addedSpan,
   attributeNames,
   buildYear,
   buildYearSpan,
@@ -150,6 +151,21 @@ describe("filters", () => {
       expect(summaries.some((s) => matchesCriteria(s, inside))).toBe(true)
       expect(summaries.some((s) => matchesCriteria(s, after))).toBe(false)
     }
+  })
+
+  it("narrows by the day a record was added; no day means in no range", () => {
+    const dated = network.sections.find((s) => s.addedAt === "2026-10-05")!
+    const undated = network.sections.find((s) => !s.addedAt)!
+    const on = (from: string | null, to: string | null) => ({
+      ...NO_CRITERIA,
+      addedFrom: from,
+      addedTo: to,
+    })
+    expect(sectionMatches(dated, on("2026-10-05", "2026-10-05"))).toBe(true)
+    expect(sectionMatches(dated, on("2026-10-06", null))).toBe(false)
+    expect(sectionMatches(dated, on(null, "2026-10-04"))).toBe(false)
+    expect(sectionMatches(undated, on("2000-01-01", null))).toBe(false)
+    expect(addedSpan(summaries)).toEqual(["2026-10-05", "2026-10-05"])
   })
 
   it("treats a missing view as everything in view", () => {

@@ -6,6 +6,7 @@ import {
   type KeyboardEvent,
 } from "react"
 
+import { formatDateRange } from "@/components/date-range-picker"
 import { Hint } from "@/components/hint"
 import { Icon } from "@/components/icons/icon"
 import { ListHeader } from "@/components/list-header"
@@ -59,6 +60,7 @@ export function PipelinesPanel() {
   const companies = useStudio((s) => s.companies)
   const builtFrom = useStudio((s) => s.builtFrom)
   const builtTo = useStudio((s) => s.builtTo)
+  const added = useStudio((s) => formatDateRange(s.addedFrom, s.addedTo))
   const openHit = useOpenHit()
   const [active, setActive] = useState(0)
 
@@ -175,6 +177,11 @@ export function PipelinesPanel() {
                     : builtFrom !== null
                       ? `Built ${builtFrom} or later`
                       : `Built ${builtTo} or earlier`}
+                </Badge>
+              )}
+              {added && (
+                <Badge variant="secondary" className="max-w-full">
+                  <span className="truncate">Added: {added}</span>
                 </Badge>
               )}
               {onlyInView && <Badge variant="secondary">Map view</Badge>}

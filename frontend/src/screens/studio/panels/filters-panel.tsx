@@ -1,5 +1,6 @@
 import { useId, useMemo } from "react"
 
+import { DateRangePicker } from "@/components/date-range-picker"
 import { GroupLabel } from "@/components/group-label"
 import { LayerRow } from "@/components/layer-row"
 import { LegendItem } from "@/components/legend-item"
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/combobox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
+  addedSpan,
   attributeNames,
   buildYearSpan,
   companyCounts,
@@ -114,6 +116,9 @@ export function FiltersPanel() {
   const builtFrom = useStudio((s) => s.builtFrom)
   const builtTo = useStudio((s) => s.builtTo)
   const setBuilt = useStudio((s) => s.setBuilt)
+  const addedFrom = useStudio((s) => s.addedFrom)
+  const addedTo = useStudio((s) => s.addedTo)
+  const setAdded = useStudio((s) => s.setAdded)
   const filtered = useStudio(filtersApplied)
 
   const counts = useMemo(() => showCounts(summaries), [summaries])
@@ -142,6 +147,7 @@ export function FiltersPanel() {
   )
   const allCompanies = useMemo(() => companyCounts(summaries), [summaries])
   const span = useMemo(() => buildYearSpan(summaries), [summaries])
+  const added = useMemo(() => addedSpan(summaries), [summaries])
   const companyNames = useMemo(
     () => allCompanies.map((c) => c.name),
     [allCompanies]
@@ -316,6 +322,33 @@ export function FiltersPanel() {
                 placeholder="To"
               />
             </div>
+          </Group>
+        )}
+
+        {added && (
+          <Group
+            title="Added to Lineage"
+            action={
+              (addedFrom !== null || addedTo !== null) && (
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => setAdded(null, null)}
+                >
+                  Clear
+                </Button>
+              )
+            }
+          >
+            <DateRangePicker
+              label="Added to Lineage"
+              from={addedFrom}
+              to={addedTo}
+              onChange={setAdded}
+              min={added[0]}
+              max={added[1]}
+              placeholder="Any date"
+            />
           </Group>
         )}
 

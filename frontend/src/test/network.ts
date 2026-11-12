@@ -60,6 +60,7 @@ export function testNetwork(): Network {
           },
         ],
         changedSinceReview: true,
+        addedAt: "2026-10-05",
       },
       {
         id: "s-3",

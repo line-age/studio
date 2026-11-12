@@ -91,6 +91,8 @@ const section = z.object({
   geometry,
   claims: z.array(claim),
   changedSinceReview: z.boolean().default(false),
+  /** The day the section's record was added to Lineage, "2026-11-12". */
+  addedAt: z.iso.date().optional(),
 })
 
 const proposedPath = z.object({

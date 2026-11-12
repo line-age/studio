@@ -34,6 +34,9 @@ interface StudioState {
   /** Keep pipelines with a section built in this range of years. */
   builtFrom: number | null
   builtTo: number | null
+  /** Keep pipelines with a section added to Lineage in this range of days. */
+  addedFrom: string | null
+  addedTo: string | null
   layers: Record<LayerId, boolean>
   query: string
   /** Search past the filters, through every pipeline of the edition. */
@@ -59,6 +62,7 @@ interface StudioState {
   toggleCompany: (company: string) => void
   setCompanies: (companies: readonly string[]) => void
   setBuilt: (from: number | null, to: number | null) => void
+  setAdded: (from: string | null, to: string | null) => void
   toggleLayer: (layer: LayerId) => void
   clearFilters: () => void
   setQuery: (query: string) => void
@@ -99,7 +103,9 @@ export const filtersApplied = (s: StudioState) =>
   s.unknownIn.length > 0 ||
   s.companies.length > 0 ||
   s.builtFrom !== null ||
-  s.builtTo !== null
+  s.builtTo !== null ||
+  s.addedFrom !== null ||
+  s.addedTo !== null
 
 export const useStudio = create<StudioState>((set) => ({
   editionId: null,
@@ -109,6 +115,8 @@ export const useStudio = create<StudioState>((set) => ({
   companies: [],
   builtFrom: null,
   builtTo: null,
+  addedFrom: null,
+  addedTo: null,
   layers: defaultLayers,
   query: "",
   searchWholeEdition: false,
@@ -150,6 +158,7 @@ export const useStudio = create<StudioState>((set) => ({
     })),
   setCompanies: (companies) => set({ companies }),
   setBuilt: (builtFrom, builtTo) => set({ builtFrom, builtTo }),
+  setAdded: (addedFrom, addedTo) => set({ addedFrom, addedTo }),
   clearFilters: () =>
     set({
       show: "all",
@@ -158,6 +167,8 @@ export const useStudio = create<StudioState>((set) => ({
       companies: [],
       builtFrom: null,
       builtTo: null,
+      addedFrom: null,
+      addedTo: null,
     }),
   // A new search starts inside the filters again.
   setQuery: (query) =>

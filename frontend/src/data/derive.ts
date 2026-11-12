@@ -190,6 +190,9 @@ export interface SectionCriteria {
   /** The section's build year is in this range, ends included. */
   builtFrom: number | null
   builtTo: number | null
+  /** The section's record was added in this range of ISO days, ends included. */
+  addedFrom: string | null
+  addedTo: string | null
 }
 
 export const NO_CRITERIA: SectionCriteria = {
@@ -197,6 +200,8 @@ export const NO_CRITERIA: SectionCriteria = {
   companies: [],
   builtFrom: null,
   builtTo: null,
+  addedFrom: null,
+  addedTo: null,
 }
 
 const valueOf = (section: Section, attribute: string) =>
@@ -218,7 +223,9 @@ export function hasCriteria(criteria: SectionCriteria): boolean {
     criteria.unknownIn.length > 0 ||
     criteria.companies.length > 0 ||
     criteria.builtFrom !== null ||
-    criteria.builtTo !== null
+    criteria.builtTo !== null ||
+    criteria.addedFrom !== null ||
+    criteria.addedTo !== null
   )
 }
 
@@ -227,7 +234,8 @@ export function sectionMatches(
   section: Section,
   criteria: SectionCriteria
 ): boolean {
-  const { unknownIn, companies, builtFrom, builtTo } = criteria
+  const { unknownIn, companies, builtFrom, builtTo, addedFrom, addedTo } =
+    criteria
   if (
     unknownIn.length > 0 &&
     !section.claims.some(
@@ -246,6 +254,13 @@ export function sectionMatches(
     if (year === null) return false
     if (builtFrom !== null && year < builtFrom) return false
     if (builtTo !== null && year > builtTo) return false
+  }
+  if (addedFrom !== null || addedTo !== null) {
+    // ISO days sort as text. A record with no added day is in no range.
+    const added = section.addedAt
+    if (!added) return false
+    if (addedFrom !== null && added < addedFrom) return false
+    if (addedTo !== null && added > addedTo) return false
   }
   return true
 }
@@ -284,6 +299,18 @@ export function companyCounts(
   return [...counts]
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => a.name.localeCompare(b.name))
+}
+
+/** The first and last day a record of the edition was added; null when none says. */
+export function addedSpan(
+  summaries: PipelineSummary[]
+): [string, string] | null {
+  const days = summaries
+    .flatMap((summary) =>
+      summary.sections.flatMap((section) => section.addedAt ?? [])
+    )
+    .sort()
+  return days.length > 0 ? [days[0], days[days.length - 1]] : null
 }
 
 /** The earliest and latest build year in the edition; null when none is cited. */

@@ -125,6 +125,12 @@ function claims({
 let serial = 139
 const sections = []
 
+/** An invented day each record was added: spread over ten weeks from 1 Sept 2026. */
+function addedDay(index) {
+  const day = new Date(Date.UTC(2026, 8, 1 + ((index * 5) % 70)))
+  return day.toISOString().slice(0, 10)
+}
+
 function add(pipelineId, name, from, to, options = {}) {
   serial += 1
   const editionIds = options.editionIds ?? LATER
@@ -147,6 +153,7 @@ function add(pipelineId, name, from, to, options = {}) {
       unknown: options.unknown,
     }),
     changedSinceReview: options.changed ?? false,
+    addedAt: addedDay(sections.length),
   }
   sections.push(section)
   return section

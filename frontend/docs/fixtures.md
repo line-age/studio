@@ -140,3 +140,11 @@ Attribute names are free text, but two of them drive filters in the Filters pane
 A section where either is Unknown (`"value": null`) is left out when that filter is
 set: Unknown is not a company and is in no range. The names are constants in
 `src/data/derive.ts` (`COMPANY_ATTRIBUTE`, `BUILD_DATE_ATTRIBUTE`).
+
+## When a record was added
+
+A section may carry `"addedAt": "2026-11-12"`: the day its record was added to Lineage
+(traced or imported), as an ISO day with no time. It is optional. The "Added to Lineage"
+filter is a from-to range of days over it; a section without `addedAt` is left out
+while that filter is set. This is not the build date and not the edition a line first
+appears in; those are facts with sources.
