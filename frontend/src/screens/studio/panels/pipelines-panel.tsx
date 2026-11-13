@@ -47,21 +47,23 @@ import { useCamera, useStudio } from "../studio-store"
 export const SEARCH_INPUT_ID = "pipeline-search"
 
 const showLabels: Record<ShowFilter, string> = {
-  all: "All pipelines",
+  all: "All",
   unknown: "With Unknown facts",
   proposals: "With proposals waiting",
   changed: "Changed since last review",
 }
 
-const showHints: Record<ShowFilter, string> = {
-  all: "Every pipeline of the edition.",
-  unknown: "Only pipelines with at least one Unknown fact.",
-  proposals: "Only pipelines with a proposal from the Agent waiting for you.",
-  changed: "Only pipelines changed since the last review.",
-}
+/** `many` is what the list holds: "pipelines", or "editions". */
+const showHint = (show: ShowFilter, many: string): string =>
+  ({
+    all: `All the ${many}.`,
+    unknown: `Only ${many} with at least one Unknown fact.`,
+    proposals: `Only ${many} with a proposal from the Agent waiting for you.`,
+    changed: `Only ${many} changed since the last review.`,
+  })[show]
 
 export function PipelinesPanel() {
-  const { summaries } = useStudioData()
+  const { summaries, nouns } = useStudioData()
   const visible = useVisiblePipelines()
   const { hits, outside } = useSearchHits()
   const whole = useStudio((s) => s.searchWholeEdition)
@@ -93,21 +95,21 @@ export function PipelinesPanel() {
   if (searching && whole) {
     chips.push({
       label: "Whole edition",
-      hint: "The search looks through every pipeline of the edition, not only the ones the filters leave.",
+      hint: `The search looks through all the ${nouns.many}, not only the ones the filters leave.`,
       remove: () => setWhole(false),
     })
   } else {
     if (show !== "all") {
       chips.push({
         label: showLabels[show],
-        hint: showHints[show],
+        hint: showHint(show, nouns.many),
         remove: () => setShow("all"),
       })
     }
     if (unknownIn.length > 0) {
       chips.push({
         label: `Unknown ${unknownIn.join(", ").toLocaleLowerCase()}`,
-        hint: "Only pipelines with a section where one of these facts is Unknown.",
+        hint: `Only ${nouns.many} with a section where one of these facts is Unknown.`,
         remove: () => unknownIn.forEach(toggleUnknownIn),
       })
     }
@@ -117,7 +119,7 @@ export function PipelinesPanel() {
           companies.length === 1
             ? companies[0]
             : plural(companies.length, "company", "companies"),
-        hint: `Only pipelines with a section owned by ${companies.join(", ")}.`,
+        hint: `Only ${nouns.many} with a section owned by ${companies.join(", ")}.`,
         remove: () => setCompanies([]),
       })
     }
@@ -129,21 +131,21 @@ export function PipelinesPanel() {
             : builtFrom !== null
               ? `Built ${builtFrom} or later`
               : `Built ${builtTo} or earlier`,
-        hint: "Only pipelines with a section built in these years. Sections with an Unknown build date are left out.",
+        hint: `Only ${nouns.many} with a section built in these years. Sections with an Unknown build date are left out.`,
         remove: () => setBuilt(null, null),
       })
     }
     if (added) {
       chips.push({
         label: `Added: ${added}`,
-        hint: "Only pipelines with a section added to Lineage on these days.",
+        hint: `Only ${nouns.many} with a section added to Lineage on these days.`,
         remove: () => setAdded(null, null),
       })
     }
     if (onlyInView) {
       chips.push({
         label: "Map view",
-        hint: "Only pipelines in the part of the map you are looking at. Move the map and the list follows.",
+        hint: `Only ${nouns.many} in the part of the map you are looking at. Move the map and the list follows.`,
         remove: () => setOnlyInView(false),
       })
     }
@@ -175,7 +177,7 @@ export function PipelinesPanel() {
   return (
     <>
       <PanelHeader
-        title="Pipelines"
+        title={nouns.title}
         meta={
           searching
             ? `${formatCount(hits.length)} match`
@@ -196,7 +198,7 @@ export function PipelinesPanel() {
             type="search"
             name="pipeline-search"
             role="combobox"
-            aria-label="Search pipelines"
+            aria-label={`Search ${nouns.many}`}
             aria-expanded={searching}
             aria-controls="pipeline-search-results"
             aria-activedescendant={
@@ -206,7 +208,7 @@ export function PipelinesPanel() {
             }
             autoComplete="off"
             spellCheck={false}
-            placeholder="Search pipelines"
+            placeholder={`Search ${nouns.many}`}
             value={query}
             onChange={(event) => {
               setQuery(event.target.value)
@@ -271,7 +273,7 @@ export function PipelinesPanel() {
           <Hint>
             {whole
               ? "Searching the whole edition."
-              : `${plural(outside, "more pipeline")} ${outside === 1 ? "matches" : "match"} outside the filters.`}
+              : `${plural(outside, `more ${nouns.one}`)} ${outside === 1 ? "matches" : "match"} outside the filters.`}
           </Hint>
           <Button variant="ghost" size="xs" onClick={() => setWhole(!whole)}>
             {whole ? "Search inside the filters" : "Search the whole edition"}
@@ -333,7 +335,7 @@ function PipelineList({
   total: number
   search: ListSearch | null
 }) {
-  const { edition } = useStudioData()
+  const { edition, nouns } = useStudioData()
   const groups = useSelectionGroups()
   const select = useStudio((s) => s.select)
   const addToSelection = useStudio((s) => s.addToSelection)
@@ -407,9 +409,9 @@ function PipelineList({
   return (
     <>
       <ListHeader
-        label="Pipeline"
+        label={capitalise(nouns.one)}
         sorted={descending ? "descending" : "ascending"}
-        sortLabel={`Pipeline order: ${descending ? "last first" : "first first"}. Reverse it`}
+        sortLabel={`${capitalise(nouns.one)} order: ${descending ? "last first" : "first first"}. Reverse it`}
         onSort={() => setDescending((d) => !d)}
         trailing="Facts"
         selection={
@@ -419,7 +421,7 @@ function PipelineList({
               ? "checked"
               : "indeterminate"
         }
-        selectionLabel="Select all pipelines shown"
+        selectionLabel={`Select all ${nouns.many} shown`}
         onSelectionChange={() =>
           select(
             groups.length === 0 ? rows.flatMap((row) => idsOf(row.summary)) : []
@@ -430,7 +432,7 @@ function PipelineList({
         ref={listRef}
         id="pipeline-search-results"
         role="listbox"
-        aria-label={search ? "Search results" : "Pipelines"}
+        aria-label={search ? "Search results" : capitalise(nouns.many)}
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         onKeyDown={moveRovingFocus}
       >
@@ -528,9 +530,11 @@ function PipelineList({
                           <span className="truncate type-ui-sm">
                             {match.name}
                           </span>
-                          <span className="shrink-0 type-ui-mono-xs text-muted-foreground">
-                            {match.code}
-                          </span>
+                          {match.code && (
+                            <span className="shrink-0 type-ui-mono-xs text-muted-foreground">
+                              {match.code}
+                            </span>
+                          )}
                         </span>
                         {match.reason && (
                           <span className="truncate type-ui-xs text-muted-foreground">
@@ -561,16 +565,19 @@ function PipelineList({
           ) : (
             <Hint className="p-3">
               {total === 0
-                ? "This edition has no pipelines."
+                ? "This edition has no sections."
                 : onlyInView
-                  ? "No pipelines in the map view. Zoom out or pan, or switch off the map view filter in Filters."
-                  : "No pipelines match the filters."}
+                  ? `No ${nouns.many} in the map view. Zoom out or pan, or switch off the map view filter in Filters.`
+                  : `No ${nouns.many} match the filters.`}
             </Hint>
           ))}
       </div>
     </>
   )
 }
+
+const capitalise = (word: string) =>
+  word.charAt(0).toLocaleUpperCase() + word.slice(1)
 
 function CameraStatus() {
   const zoom = useCamera((s) => s.zoom)

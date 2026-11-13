@@ -1,4 +1,4 @@
-import type { Geometry, Network, Position, Section } from "./schema"
+import type { Edition, Geometry, Network, Position, Section } from "./schema"
 
 /*
  * Everything the screen shows that is not stored: counts, status, what is in
@@ -24,9 +24,39 @@ export interface Stats {
   proposals: number
 }
 
+/** What a group of sections in the list is. */
+export type GroupKind = Network["groupBy"]
+
+/** The words for a group: a pipeline, or an edition when there are none yet. */
+export interface GroupNouns {
+  one: string
+  many: string
+  /** The title of the list of groups. */
+  title: string
+}
+
+const NOUNS: Record<GroupKind, GroupNouns> = {
+  pipeline: { one: "pipeline", many: "pipelines", title: "Pipelines" },
+  edition: { one: "edition", many: "editions", title: "Sections" },
+}
+
+export function groupNouns(kind: GroupKind): GroupNouns {
+  return NOUNS[kind]
+}
+
+/** What a section goes by in words: its name, or its code when it has none. */
+export function sectionLabel(section: Section): string {
+  return section.name ?? section.code
+}
+
+/**
+ * One group of the list: a pipeline with its sections or, in data that has no
+ * pipelines yet, an edition with the sections it is the first to show.
+ */
 export interface PipelineSummary {
   id: string
-  /** null for the "Not in a pipeline" group. */
+  kind: GroupKind
+  /** null for the "Not in a pipeline" group and for an edition. */
   code: string | null
   name: string
   unassigned: boolean
@@ -68,7 +98,8 @@ export function groupSelection(
 /** "14 sections in 3 pipelines": the size of a selection in words. */
 export function selectionSize(groups: SelectionGroup[]): string {
   const sections = groups.reduce((n, g) => n + g.sections.length, 0)
-  return `${plural(sections, "section")} in ${plural(groups.length, "pipeline")}`
+  const nouns = groupNouns(groups[0]?.summary.kind ?? "pipeline")
+  return `${plural(sections, "section")} in ${plural(groups.length, nouns.one, nouns.many)}`
 }
 
 export function sectionStats(section: Section): Stats {
@@ -147,14 +178,98 @@ export function sectionsOutsideEdition(
   return network.sections.filter((s) => !s.editionIds.includes(editionId))
 }
 
+/** The earliest edition that shows the section: where it is first seen. */
+export function firstEdition(
+  network: Network,
+  section: Section
+): Edition | null {
+  let first: Edition | null = null
+  for (const edition of network.editions) {
+    if (!section.editionIds.includes(edition.id)) continue
+    if (first === null || edition.year < first.year) first = edition
+  }
+  return first
+}
+
+/** The id of the group that holds the sections first seen in an edition. */
+export function editionGroupId(editionId: string): string {
+  return `edition:${editionId}`
+}
+
+/** How far the work on one edition's sections has come. */
+export interface EditionProgress {
+  edition: Edition
+  /** Sections this edition is the first to show. */
+  sections: number
+  /** How many of those are placed in a pipeline. */
+  placed: number
+}
+
+/** Every edition, oldest first, with its own sections counted. */
+export function editionProgress(network: Network): EditionProgress[] {
+  const rows = new Map<string, EditionProgress>(
+    [...network.editions]
+      .sort((a, b) => a.year - b.year)
+      .map((edition) => [edition.id, { edition, sections: 0, placed: 0 }])
+  )
+  for (const section of network.sections) {
+    const first = firstEdition(network, section)
+    const row = first ? rows.get(first.id) : undefined
+    if (!row) continue
+    row.sections += 1
+    if (section.pipelineId !== null) row.placed += 1
+  }
+  return [...rows.values()]
+}
+
 /**
- * One summary per pipeline that has a section in the edition, in file order,
- * then the sections that are in no pipeline, as one last group.
+ * The groups of the list for the edition in force. With pipelines: one
+ * summary per pipeline that has a section in the edition, in file order, then
+ * the sections that are in no pipeline, as one last group. Grouped by edition:
+ * one summary per edition, oldest first, holding the sections it is the first
+ * to show.
  */
 export function summarise(
   network: Network,
   editionId: string
 ): PipelineSummary[] {
+  const build = (
+    id: string,
+    code: string | null,
+    name: string,
+    sections: Section[],
+    unassigned = false
+  ): PipelineSummary => ({
+    id,
+    kind: network.groupBy,
+    code,
+    name,
+    unassigned,
+    sections,
+    stats: sumStats(sections),
+    changed: sections.some((s) => s.changedSinceReview),
+    bounds: unionBounds(sections.map((s) => geometryBounds(s.geometry))),
+  })
+
+  if (network.groupBy === "edition") {
+    const byEdition = new Map<string, Section[]>()
+    for (const section of sectionsInEdition(network, editionId)) {
+      const first = firstEdition(network, section)
+      if (!first) continue
+      const list = byEdition.get(first.id)
+      if (list) list.push(section)
+      else byEdition.set(first.id, [section])
+    }
+    return [...network.editions]
+      .sort((a, b) => a.year - b.year)
+      .flatMap((edition) => {
+        const sections = byEdition.get(edition.id)
+        return sections
+          ? [build(editionGroupId(edition.id), null, edition.label, sections)]
+          : []
+      })
+  }
+
   const byPipeline = new Map<string, Section[]>()
   const unassigned: Section[] = []
   for (const section of sectionsInEdition(network, editionId)) {
@@ -167,22 +282,6 @@ export function summarise(
     else byPipeline.set(section.pipelineId, [section])
   }
 
-  const build = (
-    id: string,
-    code: string | null,
-    name: string,
-    sections: Section[]
-  ): PipelineSummary => ({
-    id,
-    code,
-    name,
-    unassigned: code === null,
-    sections,
-    stats: sumStats(sections),
-    changed: sections.some((s) => s.changedSinceReview),
-    bounds: unionBounds(sections.map((s) => geometryBounds(s.geometry))),
-  })
-
   const out: PipelineSummary[] = []
   for (const pipeline of network.pipelines) {
     const sections = byPipeline.get(pipeline.id)
@@ -191,7 +290,7 @@ export function summarise(
     }
   }
   if (unassigned.length > 0) {
-    out.push(build(UNASSIGNED_ID, null, "Not in a pipeline", unassigned))
+    out.push(build(UNASSIGNED_ID, null, "Not in a pipeline", unassigned, true))
   }
   return out
 }
@@ -409,7 +508,7 @@ export function visiblePipelines(
 
 export type SearchMatch =
   | { kind: "pipeline"; sections: number }
-  | { kind: "section"; sectionId: string; name: string; code: string }
+  | { kind: "section"; sectionId: string; name: string; code: string | null }
   | { kind: "sections"; count: number }
   | { kind: "claim"; attribute: string; value: string; sections: number }
   | { kind: "unknown"; attributes: string[]; sections: number }
@@ -417,8 +516,10 @@ export type SearchMatch =
 /** One section a search found, and why when it was not its own name. */
 export interface SectionMatch {
   sectionId: string
+  /** The section's name, or its code when it has none. */
   name: string
-  code: string
+  /** The code beside the name; null when the name is the code. */
+  code: string | null
   /** "Owner: Alder Gas Co." or "Owner: Unknown"; null for a name or code match. */
   reason: string | null
 }
@@ -433,6 +534,16 @@ export interface SearchHit {
 }
 
 const fold = (text: string) => text.toLocaleLowerCase()
+
+const named = (section: Section, needle: string) =>
+  fold(section.name ?? "").includes(needle) ||
+  fold(section.code).includes(needle)
+
+/** A section's name and code as a search result shows them. */
+const titleOf = (section: Section) => ({
+  name: sectionLabel(section),
+  code: section.name === null ? null : section.code,
+})
 
 /**
  * Search the given pipelines: by pipeline name or code, section name or code,
@@ -465,8 +576,7 @@ export function search(
         unknown.forEach((attribute) => attributes.add(attribute))
         sections.push({
           sectionId: section.id,
-          name: section.name,
-          code: section.code,
+          ...titleOf(section),
           reason: `${unknown.join(", ")}: Unknown`,
         })
       }
@@ -498,17 +608,10 @@ export function search(
       matches.push({ kind: "pipeline", sections: summary.sections.length })
     }
 
-    const matched = summary.sections.filter(
-      (s) => fold(s.name).includes(needle) || fold(s.code).includes(needle)
-    )
+    const matched = summary.sections.filter((s) => named(s, needle))
     if (matched.length === 1) {
       const [s] = matched
-      matches.push({
-        kind: "section",
-        sectionId: s.id,
-        name: s.name,
-        code: s.code,
-      })
+      matches.push({ kind: "section", sectionId: s.id, ...titleOf(s) })
     } else if (matched.length > 1) {
       matches.push({ kind: "sections", count: matched.length })
     }
@@ -538,17 +641,14 @@ export function search(
 
     const sections: SectionMatch[] = []
     for (const section of summary.sections) {
-      const byName =
-        fold(section.name).includes(needle) ||
-        fold(section.code).includes(needle)
+      const byName = named(section, needle)
       const claim = section.claims.find(
         (c) => c.value !== null && fold(c.value).includes(needle)
       )
       if (!byName && !claim) continue
       sections.push({
         sectionId: section.id,
-        name: section.name,
-        code: section.code,
+        ...titleOf(section),
         reason: byName || !claim ? null : `${claim.attribute}: ${claim.value}`,
       })
     }

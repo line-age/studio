@@ -26,6 +26,7 @@ committed.
 {
   "version": 1,
   "name": "Calder Valley network", // shown in the top bar
+  "groupBy": "pipeline", // or "edition": see "No pipelines yet"; optional
 
   "editions": [
     // the map editions, any order
@@ -41,7 +42,7 @@ committed.
     {
       "id": "s-0142",
       "code": "S-0142",
-      "name": "Harlow to Brecken",
+      "name": "Harlow to Brecken", // or null: it goes by its code
       "pipelineId": "p-012", // or null: not in a pipeline yet
       "editionIds": ["ed-1937"], // the editions that show it
       "geometry": {
@@ -148,3 +149,11 @@ A section may carry `"addedAt": "2026-11-12"`: the day its record was added to L
 filter is a from-to range of days over it; a section without `addedAt` is left out
 while that filter is set. This is not the build date and not the edition a line first
 appears in; those are facts with sources.
+
+## No pipelines yet
+
+Data that has only sections sets `"groupBy": "edition"` and leaves `pipelines` empty. The
+list is then titled "Sections" and has one group per edition, holding the sections that
+edition is the first to show. The Editions panel counts, per edition, how many of its
+sections have a `pipelineId`. This is how data read from the Lineage store looks today;
+see "Real data from store" in the repo `README.md`.

@@ -14,6 +14,7 @@ import {
   geometryBounds,
   plural,
   sectionStats,
+  sectionLabel,
   selectionSize,
   sumStats,
   type SelectionGroup,
@@ -23,19 +24,21 @@ import { isActivate, moveRovingFocus } from "@/lib/roving"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { PropertiesToggle } from "../panel-toggle"
-import { useSelectionGroups } from "../studio-data"
+import { useSelectionGroups, useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
 
 export function PropertiesPanel() {
   const groups = useSelectionGroups()
+  const { nouns } = useStudioData()
 
   if (groups.length === 0) {
     return (
       <>
         <PanelHeader title="Nothing selected" divider />
         <Hint className="p-3">
-          Select a pipeline in the list, or a section on the map, to see its
-          sections and which of their facts are cited.
+          Select {nouns.one === "edition" ? "an" : "a"} {nouns.one} in the list,
+          or a section on the map, to see its sections and which of their facts
+          are cited.
         </Hint>
       </>
     )
@@ -61,6 +64,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const requestFit = useStudio((s) => s.requestFit)
   const treeRef = useRef<HTMLDivElement>(null)
   const attachments = useSelectionAttachments()
+  const { nouns } = useStudioData()
 
   // A section picked on the map can be off screen in the tree: bring it in.
   useEffect(() => {
@@ -119,7 +123,9 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
     <>
       <PanelHeader
         icon="line"
-        title={multi ? plural(groups.length, "pipeline") : single.name}
+        title={
+          multi ? plural(groups.length, nouns.one, nouns.many) : single.name
+        }
         meta={multi ? undefined : (single.code ?? undefined)}
         divider
       >
@@ -185,13 +191,13 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                       data-roving
                       data-section={section.id}
                       tabIndex={section.id === tabStop ? 0 : -1}
-                      name={section.name}
-                      code={section.code}
+                      name={sectionLabel(section)}
+                      code={section.name === null ? null : section.code}
                       expanded={open}
                       selected={selected}
                       checked={isChecked(section.id)}
                       onCheck={() => check(section)}
-                      checkLabel={`Select ${section.name}`}
+                      checkLabel={`Select ${sectionLabel(section)}`}
                       trailing={
                         stats.unknown > 0 ? (
                           <StatusLabel status="unknown">
@@ -207,7 +213,10 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                     />
                   </AddToAgentMenu>
                   {open && (
-                    <div role="group" aria-label={`Facts of ${section.name}`}>
+                    <div
+                      role="group"
+                      aria-label={`Facts of ${sectionLabel(section)}`}
+                    >
                       {section.claims.map((claim) => {
                         const chosen =
                           selected && claim.attribute === selectedAttribute

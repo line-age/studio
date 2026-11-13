@@ -14,13 +14,15 @@ import { LoadBar } from "@/components/load-bar"
 import { PanelHeader } from "@/components/panel-header"
 import { RailItem } from "@/components/rail-item"
 import { Button } from "@/components/ui/button"
-import { matchesShow, plural, unionBounds } from "@/data/derive"
-import { fixtureUrl, loadNetwork } from "@/data/load-network"
+import { matchesShow, plural, sectionLabel, unionBounds } from "@/data/derive"
+import { dataSource, fixtureUrl, loadNetwork } from "@/data/load-network"
 import { FixtureError } from "@/data/schema"
+import { StoreError } from "@/data/store/client"
 
 import { LeftPanelContext, useLeftPanel } from "./left-panel-context"
 import { MapArea } from "./map/map-area"
 import { AgentPanel } from "./panels/agent-panel"
+import { EditionsPanel } from "./panels/editions-panel"
 import { FiltersPanel } from "./panels/filters-panel"
 import { PipelinesPanel, SEARCH_INPUT_ID } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
@@ -122,6 +124,7 @@ function Frame({
   trail,
   onHome,
   agentWaiting = false,
+  listTitle = dataSource() === "store" ? "Sections" : "Pipelines",
   left,
   right,
   busy = false,
@@ -132,6 +135,8 @@ function Frame({
   onHome?: () => void
   /** The Agent has proposals the person has not decided on. */
   agentWaiting?: boolean
+  /** What the list of groups is called: "Pipelines", or "Sections". */
+  listTitle?: string
   left?: ReactNode
   right?: ReactNode
   busy?: boolean
@@ -162,9 +167,15 @@ function Frame({
         >
           <RailItem
             icon="line"
-            label="Pipelines"
+            label={listTitle}
             active={open && panel === "pipelines"}
             onClick={() => togglePanel("pipelines")}
+          />
+          <RailItem
+            icon="source"
+            label="Editions"
+            active={open && panel === "editions"}
+            onClick={() => togglePanel("editions")}
           />
           <RailItem
             icon="filter"
@@ -222,7 +233,7 @@ function Frame({
  * `home` clears the selection and shows the whole network again.
  */
 function useTrail(): { trail: Crumb[]; home: () => void } {
-  const { summaries, sectionById } = useStudioData()
+  const { summaries, sectionById, nouns } = useStudioData()
   const groups = useSelectionGroups()
   const sectionId = useStudio((s) => s.selectedSectionId)
   const select = useStudio((s) => s.select)
@@ -242,9 +253,12 @@ function useTrail(): { trail: Crumb[]; home: () => void } {
   if (groups.length === 1) {
     trail.push({ label: groups[0].summary.name, onClick: whole })
   } else if (groups.length > 1) {
-    trail.push({ label: plural(groups.length, "pipeline"), onClick: whole })
+    trail.push({
+      label: plural(groups.length, nouns.one, nouns.many),
+      onClick: whole,
+    })
   }
-  if (groups.length > 0 && section) trail.push({ label: section.name })
+  if (groups.length > 0 && section) trail.push({ label: sectionLabel(section) })
   const home = () => {
     select([])
     requestFit(
@@ -256,7 +270,7 @@ function useTrail(): { trail: Crumb[]; home: () => void } {
 }
 
 function Loaded() {
-  const { network, summaries } = useStudioData()
+  const { network, summaries, nouns } = useStudioData()
   const { panel } = useLeftPanel()
   const agentWaiting = summaries.some((s) => matchesShow(s, "proposals"))
   const { trail, home } = useTrail()
@@ -266,10 +280,12 @@ function Loaded() {
       trail={trail}
       onHome={home}
       agentWaiting={agentWaiting}
+      listTitle={nouns.title}
       left={
         <ViewTransition key={panel}>
           <div className="flex min-h-0 flex-1 flex-col">
             {panel === "pipelines" && <PipelinesPanel />}
+            {panel === "editions" && <EditionsPanel />}
             {panel === "filters" && <FiltersPanel />}
             {panel === "agent" && <AgentPanel />}
           </div>
@@ -283,17 +299,22 @@ function Loaded() {
 }
 
 function LoadError({ error }: { error: Error }) {
-  const detail = error instanceof FixtureError ? error.detail : ""
+  const fromStore = error instanceof StoreError
+  const detail = error instanceof FixtureError || fromStore ? error.detail : ""
   return (
     <div
       role="alert"
       className="mx-auto flex max-w-xl flex-col gap-3 p-8 text-left"
     >
       <PanelHeader title="The network could not be loaded" className="px-0" />
-      <Hint>
-        {error.message} The app reads <code>{fixtureUrl()}</code>. See
-        docs/fixtures.md for the format.
-      </Hint>
+      {fromStore ? (
+        <Hint>{error.message} The app reads the Lineage store.</Hint>
+      ) : (
+        <Hint>
+          {error.message} The app reads <code>{fixtureUrl()}</code>. See
+          docs/fixtures.md for the format.
+        </Hint>
+      )}
       {detail && (
         <pre className="max-h-80 overflow-auto rounded-lg border bg-background p-3 type-ui-mono-xs whitespace-pre-wrap">
           {detail}

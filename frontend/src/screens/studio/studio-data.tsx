@@ -1,11 +1,13 @@
 import { createContext, use, useMemo, type ReactNode } from "react"
 
 import {
+  groupNouns,
   groupSelection,
   inView,
   search,
   summarise,
   visiblePipelines,
+  type GroupNouns,
   type PipelineSummary,
   type SearchHit,
   type SectionCriteria,
@@ -24,6 +26,8 @@ import { useStudio } from "./studio-store"
 interface StudioData {
   network: Network
   edition: Edition
+  /** What a group of the list is called: pipeline, or edition. */
+  nouns: GroupNouns
   /** Every pipeline of the edition, whatever the filters say. */
   summaries: PipelineSummary[]
   summaryById: Map<string, PipelineSummary>
@@ -54,6 +58,7 @@ export function StudioDataProvider({
     return {
       network: loaded,
       edition,
+      nouns: groupNouns(loaded.groupBy),
       summaries,
       summaryById: new Map(summaries.map((s) => [s.id, s])),
       sectionById: new Map(loaded.sections.map((s) => [s.id, s])),

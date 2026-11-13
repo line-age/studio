@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it } from "vitest"
 import { testNetwork } from "@/test/network"
 
 import { LeftPanelContext } from "./left-panel-context"
+import { EditionsPanel } from "./panels/editions-panel"
 import { PipelinesPanel } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
 import { StudioDataProvider } from "./studio-data"
@@ -31,6 +32,9 @@ async function renderPanels() {
             </div>
             <div>
               <PropertiesPanel />
+            </div>
+            <div>
+              <EditionsPanel />
             </div>
           </StudioDataProvider>
         </LeftPanelContext>
@@ -262,5 +266,48 @@ describe("Studio panels", () => {
     )
     await user.keyboard("{Escape}")
     expect(input).toHaveValue("")
+  })
+
+  it("lists the editions with how many sections are in a pipeline", async () => {
+    await renderPanels()
+    const list = screen.getByRole("listbox", { name: "Editions" })
+    const rows = within(list).getAllByRole("option")
+    expect(rows).toHaveLength(2)
+    expect(rows[0]).toHaveTextContent("1931 edition")
+    expect(rows[0]).toHaveTextContent("2 sections first seen")
+    expect(rows[0]).toHaveTextContent("2 of 2 in a pipeline")
+    expect(rows[1]).toHaveTextContent("2 of 3 in a pipeline")
+    // The latest edition is the one in force when the screen opens.
+    expect(rows[1]).toHaveAttribute("aria-selected", "true")
+  })
+
+  it("puts an edition in force when it is chosen", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    const editions = screen.getByRole("listbox", { name: "Editions" })
+    await user.click(within(editions).getAllByRole("option")[0])
+    expect(useStudio.getState().editionId).toBe("ed-1931")
+    // The 1931 map shows the old route and not the later sections.
+    const list = screen.getByRole("listbox", { name: "Pipelines" })
+    const rows = within(list).getAllByRole("option")
+    expect(rows.map((row) => row.textContent)).toEqual([
+      expect.stringContaining("1 section"),
+      expect.stringContaining("1 section"),
+    ])
+  })
+
+  it("opens an edition's own sections from its row", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(
+      screen.getByRole("button", {
+        name: "Open the sections of the 1937 edition",
+      })
+    )
+    expect([...useStudio.getState().selection].sort()).toEqual([
+      "s-2",
+      "s-3",
+      "s-4",
+    ])
   })
 })

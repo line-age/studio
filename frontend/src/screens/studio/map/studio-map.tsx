@@ -18,6 +18,7 @@ import {
   matchesCriteria,
   sectionStats,
   sectionsOutsideEdition,
+  sectionLabel,
   selectionSize,
   unionBounds,
   type Bounds,
@@ -503,7 +504,7 @@ export function StudioMap({ token }: { token: string }) {
           label={
             // One section goes by its name.
             groups.length === 1 && groups[0].sections.length === 1
-              ? groups[0].sections[0].name
+              ? sectionLabel(groups[0].sections[0])
               : selectionSize(groups)
           }
           onAsk={() => {
@@ -528,7 +529,7 @@ export function StudioMap({ token }: { token: string }) {
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Search pipelines"
+            aria-label="Search the list"
             onClick={() => {
               openPanel("pipelines")
               requestAnimationFrame(() =>

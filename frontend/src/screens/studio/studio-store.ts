@@ -7,7 +7,8 @@ import type { Bounds, ShowFilter } from "@/data/derive"
  * (src/data); this is only selection and filters.
  */
 
-export type LeftPanel = "pipelines" | "filters" | "agent"
+/** "pipelines" is the list of groups: pipelines, or editions' sections. */
+export type LeftPanel = "pipelines" | "editions" | "filters" | "agent"
 
 export type LayerId = "pipelines" | "proposed" | "ghost"
 

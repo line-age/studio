@@ -9,7 +9,7 @@ import { Note } from "@/components/note"
 import { PanelHeader } from "@/components/panel-header"
 import { ProposalLink } from "@/components/proposal-link"
 import { Button } from "@/components/ui/button"
-import { plural } from "@/data/derive"
+import { plural, sectionLabel } from "@/data/derive"
 import type { ThreadItem } from "@/data/schema"
 
 import { LeftPanelToggle } from "../panel-toggle"
@@ -37,8 +37,11 @@ function ThreadEntry({ item }: { item: ThreadItem }) {
       <div className="flex flex-col items-end gap-1.5">
         {section && (
           <Attachment
-            title={section.name}
-            meta={[section.code, item.attachment?.attribute]
+            title={sectionLabel(section)}
+            meta={[
+              section.name === null ? null : section.code,
+              item.attachment?.attribute,
+            ]
               .filter(Boolean)
               .join(" · ")}
           />
@@ -118,8 +121,11 @@ function PendingAttachments() {
       return (
         <Attachment
           key={item.pipelineId}
-          title={only.name}
-          meta={[only.code, summary.unassigned ? null : summary.name]
+          title={sectionLabel(only)}
+          meta={[
+            only.name === null ? null : only.code,
+            summary.unassigned ? null : summary.name,
+          ]
             .filter(Boolean)
             .join(" · ")}
           onRemove={remove}
@@ -135,7 +141,7 @@ function PendingAttachments() {
           summary.unassigned
             ? plural(count, "section")
             : count === total
-              ? "Whole pipeline"
+              ? `Whole ${summary.kind}`
               : `${count} of ${plural(total, "section")}`
         }
         onRemove={remove}

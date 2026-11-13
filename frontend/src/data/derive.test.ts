@@ -2,8 +2,14 @@ import { describe, expect, it } from "vitest"
 
 import { testNetwork } from "@/test/network"
 
+import { parseNetwork } from "./schema"
 import {
   NO_CRITERIA,
+  editionProgress,
+  firstEdition,
+  groupSelection,
+  sectionLabel,
+  selectionSize,
   UNASSIGNED_ID,
   addedSpan,
   attributeNames,
@@ -246,5 +252,71 @@ describe("search", () => {
       )
     ).toBe(true)
     expect(search(summaries, "unknown zzz")).toEqual([])
+  })
+})
+
+describe("grouping by edition", () => {
+  // The same sections, in data that has no pipelines yet.
+  const loose = parseNetwork({
+    ...JSON.parse(JSON.stringify(network)),
+    groupBy: "edition",
+    pipelines: [],
+    sections: network.sections.map((s) => ({
+      ...s,
+      pipelineId: null,
+      name: s.id === "s-4" ? null : s.name,
+    })),
+  })
+
+  it("finds the edition a section is first seen on", () => {
+    expect(firstEdition(network, network.sections[0])?.id).toBe("ed-1931")
+    expect(firstEdition(network, network.sections[1])?.id).toBe("ed-1937")
+  })
+
+  it("lists each edition with the sections it is the first to show", () => {
+    const groups = summarise(loose, "ed-1937")
+    expect(groups.map((g) => [g.name, g.sections.map((s) => s.id)])).toEqual([
+      ["1931 edition", ["s-1"]],
+      ["1937 edition", ["s-2", "s-3", "s-4"]],
+    ])
+    expect(groups.every((g) => g.kind === "edition")).toBe(true)
+  })
+
+  it("shows only what an earlier edition shows when that one is in force", () => {
+    const groups = summarise(loose, "ed-1931")
+    expect(groups.map((g) => g.sections.map((s) => s.id))).toEqual([
+      ["s-1", "s-5"],
+    ])
+  })
+
+  it("words a selection by editions, not pipelines", () => {
+    const groups = groupSelection(
+      summarise(loose, "ed-1937"),
+      new Set(["s-1", "s-2"])
+    )
+    expect(selectionSize(groups)).toBe("2 sections in 2 editions")
+  })
+
+  it("calls an unnamed section by its code, and finds it by it", () => {
+    const unnamed = loose.sections.find((s) => s.id === "s-4")!
+    expect(sectionLabel(unnamed)).toBe("S-0004")
+    const hits = search(summarise(loose, "ed-1937"), "s-0004")
+    expect(hits[0].sections).toEqual([
+      { sectionId: "s-4", name: "S-0004", code: null, reason: null },
+    ])
+  })
+
+  it("counts, per edition, the sections placed in a pipeline", () => {
+    expect(
+      editionProgress(network).map((p) => [
+        p.edition.year,
+        p.sections,
+        p.placed,
+      ])
+    ).toEqual([
+      [1931, 2, 2],
+      [1937, 3, 2],
+    ])
+    expect(editionProgress(loose).every((p) => p.placed === 0)).toBe(true)
   })
 })

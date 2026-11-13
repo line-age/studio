@@ -83,7 +83,8 @@ const pipeline = z.object({
 const section = z.object({
   id: z.string().min(1),
   code: z.string().min(1),
-  name: z.string().min(1),
+  /** null: no source names the section yet. It goes by its code. */
+  name: z.string().min(1).nullable(),
   /** null: the section is not in a pipeline yet. */
   pipelineId: z.string().min(1).nullable(),
   /** The editions that show this section. */
@@ -145,6 +146,11 @@ export const networkSchema = z
   .object({
     version: z.literal(1),
     name: z.string().min(1),
+    /**
+     * What the list groups sections by. "edition" is for data that has no
+     * pipelines yet: each section goes under the edition that first shows it.
+     */
+    groupBy: z.enum(["pipeline", "edition"]).default("pipeline"),
     editions: z.array(edition).min(1),
     pipelines: z.array(pipeline),
     sections: z.array(section),

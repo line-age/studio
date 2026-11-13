@@ -42,7 +42,7 @@ import { useStudioData, useVisiblePipelines } from "../studio-data"
 import { filtersApplied, useStudio } from "../studio-store"
 
 const showOptions: { value: ShowFilter; label: string }[] = [
-  { value: "all", label: "All pipelines" },
+  { value: "all", label: "All" },
   { value: "unknown", label: "With Unknown facts" },
   { value: "proposals", label: "With proposals waiting" },
   { value: "changed", label: "Changed since last review" },
@@ -104,7 +104,7 @@ function OptionRow({
 const THIS_YEAR = new Date().getFullYear()
 
 export function FiltersPanel() {
-  const { network, edition, summaries } = useStudioData()
+  const { network, edition, summaries, nouns } = useStudioData()
   const visible = useVisiblePipelines()
   const layers = useStudio((s) => s.layers)
   const toggleLayer = useStudio((s) => s.toggleLayer)
@@ -170,7 +170,7 @@ export function FiltersPanel() {
         <Group title="Show on the map">
           <ul className="flex flex-col gap-0.5">
             <LayerRow
-              name="Pipelines"
+              name={nouns.title}
               meta={`${edition.year} · ${formatCount(visible.length)} ${onlyInView ? "in view" : "shown"}`}
               lineKey={<LineKey kind="solid" />}
               visible={layers.pipelines}
@@ -401,7 +401,7 @@ export function FiltersPanel() {
       <PanelFooter>
         <span aria-live="polite">
           {formatCount(visible.length)} of{" "}
-          {plural(summaries.length, "pipeline")} shown
+          {plural(summaries.length, nouns.one, nouns.many)} shown
         </span>
       </PanelFooter>
     </>
