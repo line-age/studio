@@ -39,14 +39,16 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
   date unless Settings says otherwise) are cited, done when it is also in a pipeline.
 - **List.** Pipelines, then the sections in no pipeline, grouped by the map edition that
   first shows them. A pipeline says how many of its sections are done ("4/6 done").
-  Counts by status above the list cover the whole edition and are one-click filters;
-  moving the map never changes them. A filter
-  button beside the search opens company, build date, date added and which claims are
-  Unknown. Search by pipeline, section, code or value.
+  One line under the search says how many sections of the whole edition are at each
+  status; moving the map never changes it. A filter button beside the search opens
+  every filter on one screen: status, pipeline, first seen, US state, company,
+  diameter, build date, date added and which claims are Unknown. The ones that are on
+  show as chips under the search. Search by pipeline, section, code or value.
 - **Table.** Drag the list wider, or press the table button, and it adds the code, the
   section count, the split by status and a column per required attribute. The table
   holds the whole edition, whatever the map shows.
-- **Edition.** One select at the top of the list: the year the network is shown as of.
+- **Map edition.** One select at the top of the list: the year the network is shown
+  as of. It is a lens, not a filter.
 - **Map.** One line per section, solid or dotted by its status. A layers button holds
   what the map draws and the line key; another makes the list follow the map or not.
   When it follows, the list header says how much is in view ("8 of 36 in view").

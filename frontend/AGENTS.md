@@ -206,8 +206,20 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - The view is in the URL (`url-state.ts`): edition, status, filters, search, list
   follows map, map position, one section. Not layout, layers or Settings. Add a field
   there when adding a filter. No test or screenshot uses a real name in a URL.
-- Filters open in place of the list (button beside the search). Map layers and "List
-  follows the map" are map controls, not filters. There is no Filters or Editions panel.
+- Filters are the second level of the list panel (the owner, 2026-11-13): the button
+  beside the search opens every filter on one screen in place of the list, at the
+  list's own width (a table folds while they are open and comes back on Back), with
+  Back, Clear all and a live "Show n sections". Status is one of the filters. Every
+  group always shows; with nothing to offer it says so in one line, never hidden. The
+  list itself shows only the filters that are on, as chips, plus one plain line of the
+  status of the edition ("2,139 not started · 85 to decide") to read, not to click.
+  The filter button shows how many are on. Map layers and "List follows the map" are
+  map controls, not filters. There is no Filters or Editions panel in the rail.
+- The edition select is labelled "Map edition": a lens, not a filter.
+- A section's states (State filter) come from its line and the Census outlines in
+  `us-atlas` (`src/data/us-states.ts`), worked out when first asked. Where a line lies
+  is not a claim and needs no citation. Company counts a section's own Owner claim as
+  well as its pipeline's owners.
 - The year of an edition is when a map first shows a line ("First seen"). It is never a
   build date.
 - An edition is only the year the network is shown as of. The select at the top of the
@@ -271,7 +283,8 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   invented behaviour. The "Scanned map" eye and the draw tools other than Select and
   Lasso are hidden the same way. The right-click menu does not open when it has
   nothing to offer.
-- The status counts are the whole edition after filters; they never follow the map.
+- The status line and the counts in Filters are the whole edition after the other
+  filters; they never follow the map.
   Only the list follows it (`listFollowsMap`), and its header says "n of m in view".
   While the list is a table (`tableOpen`) it holds everything and the follow button
   shows as paused.

@@ -27,14 +27,14 @@ export const HELP_STEPS: readonly HelpStep[] = [
   {
     id: "sections",
     title: "Pipelines and Sections",
-    body: "Two lists, each with its own place in the rail. Pipelines lists the pipelines, then the ones only proposed. Sections lists every section that was traced, in a pipeline or not, by the edition that first shows it. The counts at the top say how many sections of the whole edition are at each status; moving the map does not change them.",
+    body: "Two lists, each with its own place in the rail. Pipelines lists the pipelines, then the ones only proposed. Sections lists every section that was traced, in a pipeline or not, by the edition that first shows it. The line under the search says how many sections of the whole edition are at each status; moving the map does not change it.",
     targets: ["sections"],
     needs: "list",
   },
   {
     id: "search",
     title: "Edition, search and filters",
-    body: "The select at the top sets the edition: Studio shows the network as of that year. Type to narrow the list; the button beside the search opens the filters. Press / to jump to the search from anywhere.",
+    body: "Map edition, at the top, is not a filter: Studio shows the network as that year's map draws it. Type to narrow the list. The button beside the search opens the filters: status, pipeline, first seen, state, company, diameter, build date and more. The ones that are on show as chips under the search. Press / to jump to the search from anywhere.",
     targets: ["list-tools"],
     needs: "list",
   },
