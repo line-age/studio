@@ -7,9 +7,11 @@ import type { Geometry } from "./schema"
 /*
  * Which US states a section runs through, for the State filter. The outlines
  * are the Census Bureau's 1:10m cartographic boundaries as us-atlas ships
- * them, in longitude and latitude. A line is placed by its points and by
- * points along it at most STEP degrees apart, so a short crossing of a
- * corner can be missed; at these maps' accuracy that is noise. This is where
+ * them, in longitude and latitude. A line is placed by its points; where two
+ * points in a row are in different states, or off the map, by points between
+ * them at most STEP degrees apart too. A stretch whose two ends are in one
+ * state is taken to stay in it, so a short pass through a corner of another
+ * can be missed; at these maps' accuracy that is noise. This is where
  * a line lies, not a claim about it: it needs no citation.
  */
 
@@ -83,15 +85,25 @@ function inRing(lon: number, lat: number, ring: Ring): boolean {
   return inside
 }
 
-function stateAt(lon: number, lat: number, all: State[]): string | null {
+function contains(state: State, lon: number, lat: number): boolean {
+  const [w, s, e, n] = state.bounds
+  if (lon < w || lon > e || lat < s || lat > n) return false
+  return state.polygons.some(
+    ([outer, ...holes]) =>
+      inRing(lon, lat, outer) && !holes.some((h) => inRing(lon, lat, h))
+  )
+}
+
+/** The state at a point. `hint` is tried first: the last point's state. */
+function stateAt(
+  lon: number,
+  lat: number,
+  all: State[],
+  hint: State | null
+): State | null {
+  if (hint && contains(hint, lon, lat)) return hint
   for (const state of all) {
-    const [w, s, e, n] = state.bounds
-    if (lon < w || lon > e || lat < s || lat > n) continue
-    for (const [outer, ...holes] of state.polygons) {
-      if (inRing(lon, lat, outer) && !holes.some((h) => inRing(lon, lat, h))) {
-        return state.name
-      }
-    }
+    if (state !== hint && contains(state, lon, lat)) return state
   }
   return null
 }
@@ -106,33 +118,65 @@ function lines(geometry: Geometry): readonly (readonly number[])[][] {
 export function statesOf(geometry: Geometry): string[] {
   const all = load()
   const found = new Set<string>()
-  const test = (lon: number, lat: number) => {
-    const name = stateAt(lon, lat, all)
-    if (name) found.add(name)
+  // Points along a line are nearly always in the state of the point before.
+  let last: State | null = null
+  const at = (lon: number, lat: number) => {
+    const state = stateAt(lon, lat, all, last)
+    if (state) {
+      found.add(state.name)
+      last = state
+    }
+    return state
   }
   for (const line of lines(geometry)) {
-    for (let i = 0; i < line.length; i++) {
+    let here = line.length > 0 ? at(line[0][0], line[0][1]) : null
+    for (let i = 0; i + 1 < line.length; i++) {
       const [lon, lat] = line[i]
-      test(lon, lat)
       const next = line[i + 1]
-      if (!next) continue
-      const steps = Math.ceil(
-        Math.max(Math.abs(next[0] - lon), Math.abs(next[1] - lat)) / STEP
-      )
-      for (let k = 1; k < steps; k++) {
-        test(
-          lon + ((next[0] - lon) * k) / steps,
-          lat + ((next[1] - lat) * k) / steps
+      const there = at(next[0], next[1])
+      // Both ends in one state: the stretch between is taken to be too.
+      // Otherwise walk it, to find a state it only passes through.
+      if (here === null || there === null || here !== there) {
+        const steps = Math.ceil(
+          Math.max(Math.abs(next[0] - lon), Math.abs(next[1] - lat)) / STEP
         )
+        for (let k = 1; k < steps; k++) {
+          at(
+            lon + ((next[0] - lon) * k) / steps,
+            lat + ((next[1] - lat) * k) / steps
+          )
+        }
       }
+      here = there
     }
   }
   return [...found].sort((a, b) => a.localeCompare(b))
 }
 
-/** Each section's states, by section id. */
+/** Looks up the states of a section by id. */
+export interface StatesLookup {
+  get(sectionId: string): readonly string[] | undefined
+}
+
+/**
+ * Each section's states, by section id, worked out the first time a section
+ * is asked about and kept: nothing is spent until the State filter or its
+ * counts need it.
+ */
 export function statesBySection(
   sections: readonly { id: string; geometry: Geometry }[]
-): Map<string, readonly string[]> {
-  return new Map(sections.map((s) => [s.id, statesOf(s.geometry)]))
+): StatesLookup {
+  const byId = new Map(sections.map((s) => [s.id, s.geometry]))
+  const known = new Map<string, readonly string[]>()
+  return {
+    get(sectionId) {
+      const had = known.get(sectionId)
+      if (had) return had
+      const geometry = byId.get(sectionId)
+      if (!geometry) return undefined
+      const found = statesOf(geometry)
+      known.set(sectionId, found)
+      return found
+    },
+  }
 }

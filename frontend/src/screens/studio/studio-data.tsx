@@ -15,7 +15,7 @@ import {
   type SelectionGroup,
 } from "@/data/derive"
 import type { Edition, Network, Section } from "@/data/schema"
-import { statesBySection } from "@/data/us-states"
+import { statesBySection, type StatesLookup } from "@/data/us-states"
 
 import { useSettings } from "./settings"
 import { listFollowsMap, useStudio } from "./studio-store"
@@ -43,8 +43,8 @@ interface StudioData {
   owners: ReadonlyMap<string, readonly string[]>
   /** The year of each edition, by id. */
   editionYears: ReadonlyMap<string, number>
-  /** The US states each section runs through, by id. Worked out once. */
-  statesOf: ReadonlyMap<string, readonly string[]>
+  /** The US states each section runs through, worked out when first asked. */
+  statesOf: StatesLookup
   summaryById: Map<string, PipelineSummary>
   sectionById: Map<string, Section>
 }

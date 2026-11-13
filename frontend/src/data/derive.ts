@@ -526,7 +526,7 @@ export interface SectionCriteria {
   /** The year of each edition, by id, for First seen. */
   editionYears?: ReadonlyMap<string, number>
   /** The states each section runs through (`statesBySection`). */
-  statesOf?: ReadonlyMap<string, readonly string[]>
+  statesOf?: { get(sectionId: string): readonly string[] | undefined }
 }
 
 export const NO_CRITERIA: SectionCriteria = {
