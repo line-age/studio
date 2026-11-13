@@ -39,6 +39,9 @@ line. Behaviours are added one at a time, each with its eval first.
 | `schemas.py` | The answer Studio renders: typed statements with references |
 | `render.py` | The fixed lines, and the one place values become words |
 | `settings.py` | Settings from the environment |
+| `store_client.py` | Store over HTTP, read only. Strips people's names, checks attribute keys, flags a list that may be cut off |
+| `evals/make_world.py` | Makes the invented store states (`worlds/`) that tests and evals run on |
+| `evals/fake_store.py` | Serves one world through the real store client; can be told to fail |
 | `tests/` | Offline: no network, no key, no trace |
 | `Dockerfile` | The service for a local stack |
 
@@ -50,6 +53,7 @@ line. Behaviours are added one at a time, each with its eval first.
 | `uv run ruff check . && uv run ruff format --check .` | Lint and format check |
 | `uv run pytest -q` | Offline tests. Free; runs in CI |
 | `uv run langgraph dev --port 47190 --no-browser` | Serve the graph locally |
+| `uv run python -m evals.make_world` | Rewrite `evals/worlds/small.json` after changing the generator |
 
 The port is fixed in the controlplane's `ports.md`. The service has no sign-in: bind it to
 `127.0.0.1` on a host and never expose it further.
