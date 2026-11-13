@@ -11,6 +11,7 @@ export function PanelHeader({
   title,
   meta,
   icon,
+  leading,
   divider = false,
   children,
   className,
@@ -18,6 +19,8 @@ export function PanelHeader({
   title: ReactNode
   meta?: ReactNode
   icon?: IconName
+  /** A control before the title, such as a way back. */
+  leading?: ReactNode
   divider?: boolean
   children?: ReactNode
   className?: string
@@ -31,6 +34,7 @@ export function PanelHeader({
       )}
     >
       <div className="flex min-w-0 items-center gap-2">
+        {leading}
         {icon && <Icon name={icon} />}
         <h2 className="truncate type-ui-sm-semibold">{title}</h2>
         {meta && (

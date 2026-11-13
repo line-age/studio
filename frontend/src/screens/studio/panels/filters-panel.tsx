@@ -2,12 +2,9 @@ import { useId, useMemo } from "react"
 
 import { DateRangePicker } from "@/components/date-range-picker"
 import { GroupLabel } from "@/components/group-label"
-import { LayerRow } from "@/components/layer-row"
-import { LegendItem } from "@/components/legend-item"
-import { LineKey } from "@/components/line-key"
+import { Icon } from "@/components/icons/icon"
 import { PanelFooter } from "@/components/panel-footer"
 import { PanelHeader } from "@/components/panel-header"
-import { SwitchRow } from "@/components/switch-row"
 import { YearPicker } from "@/components/year-picker"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -28,6 +25,7 @@ import {
   attributeNames,
   buildYearSpan,
   companyCounts,
+  filterCounts,
   formatCount,
   matchesUnknownIn,
   plural,
@@ -35,7 +33,7 @@ import {
 import { cn } from "@/lib/utils"
 
 import { HidePanels } from "../panel-toggle"
-import { useStudioData, useVisiblePipelines } from "../studio-data"
+import { useCriteria, useStudioData } from "../studio-data"
 import { filtersApplied, useStudio } from "../studio-store"
 
 function Group({
@@ -93,13 +91,15 @@ function OptionRow({
 /** Build years can be picked up to the present, whatever the data holds. */
 const THIS_YEAR = new Date().getFullYear()
 
-export function FiltersPanel() {
-  const { network, edition, summaries } = useStudioData()
-  const visible = useVisiblePipelines()
-  const layers = useStudio((s) => s.layers)
-  const toggleLayer = useStudio((s) => s.toggleLayer)
+/**
+ * The filters, shown in place of the list in the same panel so the map stays
+ * in sight while they are set. `onBack` returns to the list.
+ */
+export function FiltersPanel({ onBack }: { onBack: () => void }) {
+  const { summaries } = useStudioData()
+  const criteria = useCriteria()
   const onlyInView = useStudio((s) => s.onlyInView)
-  const setOnlyInView = useStudio((s) => s.setOnlyInView)
+  const view = useStudio((s) => s.view)
   const clearFilters = useStudio((s) => s.clearFilters)
   const unknownIn = useStudio((s) => s.unknownIn)
   const toggleUnknownIn = useStudio((s) => s.toggleUnknownIn)
@@ -113,13 +113,13 @@ export function FiltersPanel() {
   const setAdded = useStudio((s) => s.setAdded)
   const filtered = useStudio(filtersApplied)
 
-  const otherYears = network.editions
-    .filter((e) => e.id !== edition.id)
-    .map((e) => e.year)
-    .sort()
-  const proposed = network.proposedPaths.filter((p) =>
-    p.editionIds.includes(edition.id)
-  ).length
+  // The sections the list would show with the filters as they stand.
+  const matching = useMemo(() => {
+    const counts = filterCounts(summaries, criteria, onlyInView ? view : null)
+    return criteria.status === "all"
+      ? counts.all
+      : counts.status[criteria.status]
+  }, [summaries, criteria, onlyInView, view])
   // Per attribute: how many pipelines have a section where it is Unknown.
   const attributes = useMemo(
     () =>
@@ -144,46 +144,25 @@ export function FiltersPanel() {
 
   return (
     <>
-      <PanelHeader title="Filters" divider>
-        {filtered && (
-          <Button variant="ghost" size="xs" onClick={clearFilters}>
-            Clear all
+      <PanelHeader
+        title="Filters"
+        divider
+        className="pl-1.5"
+        leading={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Back to the list"
+            onClick={onBack}
+          >
+            <Icon name="arrow-left" />
           </Button>
-        )}
+        }
+      >
         <HidePanels />
       </PanelHeader>
 
       <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
-        <Group title="Show on the map">
-          <ul className="flex flex-col gap-0.5">
-            <LayerRow
-              name="Sections"
-              meta={`${edition.year} · ${formatCount(visible.length)} ${onlyInView ? "in view" : "shown"}`}
-              lineKey={<LineKey kind="solid" />}
-              visible={layers.pipelines}
-              onVisibleChange={() => toggleLayer("pipelines")}
-            />
-            <LayerRow
-              name="Proposed paths"
-              meta={`${formatCount(proposed)} waiting`}
-              lineKey={<LineKey kind="dashed" />}
-              visible={layers.proposed}
-              onVisibleChange={() => toggleLayer("proposed")}
-            />
-            <LayerRow
-              name="Other editions"
-              meta={
-                otherYears.length > 0
-                  ? `${otherYears.join(", ")} as ghost`
-                  : "No other edition"
-              }
-              lineKey={<LineKey kind="ghost" />}
-              visible={layers.ghost}
-              onVisibleChange={() => toggleLayer("ghost")}
-            />
-          </ul>
-        </Group>
-
         {allCompanies.length > 0 && (
           <Group
             title="Company"
@@ -346,31 +325,20 @@ export function FiltersPanel() {
             </div>
           </Group>
         )}
-
-        <Group title="Area">
-          <SwitchRow
-            label="Only what's in the map view"
-            description="The list follows the map as you pan and zoom."
-            checked={onlyInView}
-            onCheckedChange={setOnlyInView}
-          />
-        </Group>
-
-        <Group title="How sections are drawn">
-          <ul className="flex flex-col gap-2">
-            <LegendItem kind="solid">Solid: every claim is cited</LegendItem>
-            <LegendItem kind="dotted">
-              Dotted: at least one claim is Unknown
-            </LegendItem>
-          </ul>
-        </Group>
       </div>
 
-      <PanelFooter>
-        <span aria-live="polite">
-          {formatCount(visible.length)} of {plural(summaries.length, "row")}{" "}
-          shown
-        </span>
+      <PanelFooter className="justify-between gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={!filtered}
+          onClick={clearFilters}
+        >
+          Clear all
+        </Button>
+        <Button size="sm" onClick={onBack} aria-live="polite">
+          Show {plural(matching, "section")}
+        </Button>
       </PanelFooter>
     </>
   )

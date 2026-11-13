@@ -43,8 +43,9 @@ import {
   useStudioData,
   useVisiblePipelines,
 } from "../studio-data"
-import { useCamera, useStudio } from "../studio-store"
+import { filtersApplied, useCamera, useStudio } from "../studio-store"
 import { EditionSelect } from "./edition-select"
+import { FiltersPanel } from "./filters-panel"
 import { SectionListRow } from "./section-list-row"
 import { StatusCounts } from "./status-counts"
 
@@ -64,13 +65,15 @@ export function PipelinesPanel() {
   const builtFrom = useStudio((s) => s.builtFrom)
   const builtTo = useStudio((s) => s.builtTo)
   const added = useStudio((s) => formatDateRange(s.addedFrom, s.addedTo))
-  const setOnlyInView = useStudio((s) => s.setOnlyInView)
   const toggleUnknownIn = useStudio((s) => s.toggleUnknownIn)
   const setCompanies = useStudio((s) => s.setCompanies)
   const setBuilt = useStudio((s) => s.setBuilt)
   const setAdded = useStudio((s) => s.setAdded)
   const openHit = useOpenHit()
   const [active, setActive] = useState(0)
+  /** The filters open in place of the list, in this same panel. */
+  const [mode, setMode] = useState<"list" | "filters">("list")
+  const filtered = useStudio(filtersApplied)
 
   const searching = query.trim().length > 0
   const activeIndex = Math.min(active, Math.max(hits.length - 1, 0))
@@ -121,13 +124,6 @@ export function PipelinesPanel() {
         remove: () => setAdded(null, null),
       })
     }
-    if (onlyInView) {
-      chips.push({
-        label: "Map view",
-        hint: "Only what is in the part of the map you are looking at. Move the map and the list follows.",
-        remove: () => setOnlyInView(false),
-      })
-    }
   }
 
   function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -153,6 +149,10 @@ export function PipelinesPanel() {
     }
   }
 
+  if (mode === "filters") {
+    return <FiltersPanel onBack={() => setMode("list")} />
+  }
+
   return (
     <>
       <PanelHeader
@@ -168,36 +168,47 @@ export function PipelinesPanel() {
 
       <div className="flex shrink-0 flex-col gap-2 border-b px-3 pb-2.5">
         <EditionSelect />
-        <div className="relative">
-          <Icon
-            name="search"
-            className="pointer-events-none absolute top-2 left-2.5 text-muted-foreground"
-          />
-          <Input
-            id={SEARCH_INPUT_ID}
-            type="search"
-            name="pipeline-search"
-            role="combobox"
-            aria-label="Search sections"
-            aria-expanded={searching}
-            aria-controls="pipeline-search-results"
-            aria-activedescendant={
-              searching && hits.length > 0
-                ? `search-hit-${hits[activeIndex].summary.id}`
-                : undefined
-            }
-            autoComplete="off"
-            spellCheck={false}
-            placeholder="Search sections"
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value)
-              setActive(0)
-            }}
-            onKeyDown={onSearchKeyDown}
-            className="pr-8 pl-8.5 [&::-webkit-search-cancel-button]:hidden"
-          />
-          {!searching && <Kbd className="absolute top-1.5 right-1.5">/</Kbd>}
+        <div className="flex items-center gap-1.5">
+          <div className="relative min-w-0 flex-1">
+            <Icon
+              name="search"
+              className="pointer-events-none absolute top-2 left-2.5 text-muted-foreground"
+            />
+            <Input
+              id={SEARCH_INPUT_ID}
+              type="search"
+              name="pipeline-search"
+              role="combobox"
+              aria-label="Search sections"
+              aria-expanded={searching}
+              aria-controls="pipeline-search-results"
+              aria-activedescendant={
+                searching && hits.length > 0
+                  ? `search-hit-${hits[activeIndex].summary.id}`
+                  : undefined
+              }
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="Search sections"
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value)
+                setActive(0)
+              }}
+              onKeyDown={onSearchKeyDown}
+              className="pr-8 pl-8.5 [&::-webkit-search-cancel-button]:hidden"
+            />
+            {!searching && <Kbd className="absolute top-1.5 right-1.5">/</Kbd>}
+          </div>
+          <Button
+            variant={filtered ? "secondary" : "outline"}
+            size="icon"
+            aria-label={filtered ? "Filters, some are on" : "Filters"}
+            aria-pressed={filtered}
+            onClick={() => setMode("filters")}
+          >
+            <Icon name="filter" />
+          </Button>
         </div>
         <StatusCounts />
         {chips.length > 0 && (
@@ -613,7 +624,7 @@ function PipelineList({
               {total === 0
                 ? "This edition has no sections."
                 : onlyInView
-                  ? "Nothing in the map view. Zoom out or pan, or switch off the map view filter in Filters."
+                  ? "Nothing in the map view. Zoom out or pan, or switch off “List follows the map” on the map."
                   : "Nothing matches the filters."}
             </Hint>
           ))}

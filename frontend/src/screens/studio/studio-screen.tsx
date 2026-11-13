@@ -23,7 +23,6 @@ import { LeftPanelContext, useLeftPanel } from "./left-panel-context"
 import { MapArea } from "./map/map-area"
 import { ShowPanels } from "./panel-toggle"
 import { AgentPanel } from "./panels/agent-panel"
-import { FiltersPanel } from "./panels/filters-panel"
 import { PipelinesPanel, SEARCH_INPUT_ID } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
 import { SidePanel } from "./side-panel"
@@ -32,12 +31,12 @@ import {
   useSelectionGroups,
   useStudioData,
 } from "./studio-data"
-import { filtersApplied, useStudio, type LeftPanel } from "./studio-store"
+import { useStudio, type LeftPanel } from "./studio-store"
 import { TopBar, type Crumb } from "./top-bar"
 
 /*
- * Studio: the map desk. Top bar, rail, one left panel (Sections, Filters
- * or Agent), the map, and the properties of what is selected. One
+ * Studio: the map desk. Top bar, rail, one left panel (Sections or
+ * Agent), the map, and the properties of what is selected. One
  * button hides both side panels and leaves the rail. Read-only: it
  * shows the network and what the AI proposes; nothing can be changed here yet.
  */
@@ -145,8 +144,6 @@ function Frame({
   const hasSelection = useStudio((s) => s.selection.size > 0)
   // Hiding the side panels hides both; the rail stays.
   const rightOpen = open && hasSelection
-  // Applied means different from how the screen opens (see clearFilters).
-  const hasFilters = useStudio(filtersApplied)
   return (
     <>
       <TopBar networkName={networkName} trail={trail} onRoot={onHome} />
@@ -160,13 +157,6 @@ function Frame({
             label="Sections"
             active={open && panel === "pipelines"}
             onClick={() => togglePanel("pipelines")}
-          />
-          <RailItem
-            icon="filter"
-            label="Filters"
-            indicator={hasFilters ? { label: "filters applied" } : null}
-            active={open && panel === "filters"}
-            onClick={() => togglePanel("filters")}
           />
           <RailItem
             icon="ask"
@@ -269,7 +259,6 @@ function Loaded() {
         <ViewTransition key={panel}>
           <div className="flex min-h-0 flex-1 flex-col">
             {panel === "pipelines" && <PipelinesPanel />}
-            {panel === "filters" && <FiltersPanel />}
             {panel === "agent" && <AgentPanel />}
           </div>
         </ViewTransition>

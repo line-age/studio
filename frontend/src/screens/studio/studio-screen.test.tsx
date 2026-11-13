@@ -65,9 +65,9 @@ describe("Studio side panels", () => {
     act(() => useStudio.getState().select(["s-1"]))
     expect(sidePanels().map((panel) => panel.open)).toEqual([false, false])
 
-    await user.click(screen.getByRole("button", { name: /Filters/ }))
+    await user.click(screen.getByRole("button", { name: /Agent/ }))
     expect(sidePanels()).toEqual([
-      { name: "filters", open: true },
+      { name: "agent", open: true },
       { name: "Properties", open: true },
     ])
   })

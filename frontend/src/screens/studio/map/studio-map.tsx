@@ -35,6 +35,8 @@ import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { useCamera, useStudio } from "../studio-store"
 import { linesInLoop, type Point } from "./lasso"
 import { readMapColors } from "./map-colors"
+import { FollowMapToggle } from "./follow-map-toggle"
+import { LayersControl } from "./layers-control"
 import { SelectionBar } from "./selection-bar"
 
 const MAP_STYLE = "mapbox://styles/mapbox/light-v11"
@@ -535,6 +537,8 @@ export function StudioMap({ token }: { token: string }) {
             <Icon name="search" />
           </Button>
         </MapControl>
+        <LayersControl />
+        <FollowMapToggle />
         <MapControl label="Zoom">
           <Button
             variant="ghost"

@@ -9,7 +9,7 @@ import type { SectionStatus } from "@/data/status"
  */
 
 /** "pipelines" is the list: pipelines, then the sections in no pipeline. */
-export type LeftPanel = "pipelines" | "filters" | "agent"
+export type LeftPanel = "pipelines" | "agent"
 
 export type LayerId = "pipelines" | "proposed" | "ghost"
 
@@ -160,11 +160,11 @@ const defaultLayers: Record<LayerId, boolean> = {
 
 let nonce = 0
 
-/** True when a filter differs from how the screen opens (see clearFilters). */
+/**
+ * True when one of the filters behind the filter button is on. The status
+ * counts and "list follows the map" have their own controls and do not count.
+ */
 export const filtersApplied = (s: StudioState) =>
-  s.status !== "all" ||
-  s.needsDecisionOnly ||
-  !s.onlyInView ||
   s.unknownIn.length > 0 ||
   s.companies.length > 0 ||
   s.builtFrom !== null ||
@@ -215,7 +215,6 @@ export const useStudio = create<StudioState>((set) => ({
     })),
   toggleLayer: (layer) =>
     set((s) => ({ layers: { ...s.layers, [layer]: !s.layers[layer] } })),
-  // Back to how the screen opens: every pipeline, following the map view.
   toggleCompany: (company) =>
     set((s) => ({
       companies: s.companies.includes(company)
@@ -225,11 +224,9 @@ export const useStudio = create<StudioState>((set) => ({
   setCompanies: (companies) => set({ companies }),
   setBuilt: (builtFrom, builtTo) => set({ builtFrom, builtTo }),
   setAdded: (addedFrom, addedTo) => set({ addedFrom, addedTo }),
+  // Only the filters behind the filter button; the status stays as chosen.
   clearFilters: () =>
     set({
-      status: "all",
-      needsDecisionOnly: false,
-      onlyInView: true,
       unknownIn: [],
       companies: [],
       builtFrom: null,

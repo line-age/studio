@@ -346,4 +346,47 @@ describe("Studio panels", () => {
     await user.click(count(/^Not started/))
     expect(useStudio.getState().status).toBe("all")
   })
+
+  it("opens the filters in place of the list and keeps them on the way back", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("button", { name: "Filters" }))
+    expect(screen.queryByRole("listbox", { name: "Sections" })).toBeNull()
+
+    await user.click(screen.getByRole("checkbox", { name: /Owner/ }))
+    // The count is live: two sections of the edition have no cited owner.
+    const show = screen.getByRole("button", { name: "Show 2 sections" })
+    await user.click(show)
+
+    expect(screen.getByRole("listbox", { name: "Sections" })).toBeVisible()
+    expect(useStudio.getState().unknownIn).toEqual(["Owner"])
+    expect(
+      screen.getByRole("button", { name: "Filters, some are on" })
+    ).toHaveAttribute("aria-pressed", "true")
+
+    // The filter shows as a chip under the counts, and comes off there.
+    const chips = screen.getByRole("group", { name: "Filters in force" })
+    expect(chips).toHaveTextContent("Unknown owner")
+    await user.click(
+      within(chips).getByRole("button", { name: /Remove the filter/ })
+    )
+    expect(useStudio.getState().unknownIn).toEqual([])
+  })
+
+  it("clears the filters and leaves the status as chosen", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    act(() => {
+      useStudio.getState().setStatus("not-started")
+      useStudio.getState().toggleUnknownIn("Owner")
+    })
+    await user.click(
+      screen.getByRole("button", { name: "Filters, some are on" })
+    )
+    await user.click(screen.getByRole("button", { name: "Clear all" }))
+    expect(useStudio.getState().unknownIn).toEqual([])
+    expect(useStudio.getState().status).toBe("not-started")
+    await user.click(screen.getByRole("button", { name: "Back to the list" }))
+    expect(screen.getByRole("listbox", { name: "Sections" })).toBeVisible()
+  })
 })
