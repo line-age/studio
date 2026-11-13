@@ -199,18 +199,22 @@ export function toNetwork(
   features: readonly StoreFeature[],
   { links = [], removals = [], lines = [] }: StoreExtras = {}
 ): Network {
-  // Editions: every map sheet a claim cites.
+  // Editions: one per year of the map sheets a claim cites. Two sheets of
+  // the same year (two scans, or two maps) are one edition, not two rows
+  // with the same name.
   const sheets = new Map<string, { id: string; year: number }>()
   for (const feature of features) {
     for (const claim of feature.claims) {
       for (const c of claim.citations) {
         const year = yearOf(c.as_of_edtf)
         if (c.source_kind !== "map_sheet" || year === null) continue
-        sheets.set(c.source_id, { id: `ed-${c.source_id}`, year })
+        sheets.set(c.source_id, { id: `ed-${year}`, year })
       }
     }
   }
-  const editions = [...sheets.values()]
+  const editions = [
+    ...new Map([...sheets.values()].map((e) => [e.id, e])).values(),
+  ]
     .sort((a, b) => a.year - b.year)
     .map((e) => ({ ...e, label: `${e.year} edition` }))
   if (editions.length === 0) {

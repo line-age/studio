@@ -29,11 +29,30 @@ const claim = (id: string, attribute: string) =>
   section(id).claims.find((c) => c.attribute === attribute)!
 
 describe("toNetwork", () => {
-  it("makes one edition per map sheet cited, oldest first", () => {
+  it("makes one edition per year of the map sheets cited, oldest first", () => {
     expect(network.editions.map((e) => e.label)).toEqual([
       "1931 edition",
       "1937 edition",
     ])
+  })
+
+  it("makes two sheets of the same year one edition", () => {
+    // One feature's map citations now name a second sheet of their year.
+    const features = storeFeatures()
+    for (const claim of features[0].claims) {
+      for (const c of claim.citations) {
+        if (c.source_kind === "map_sheet") c.source_id = "another-sheet"
+      }
+    }
+    const twice = toNetwork("Gas network", storeRows(), features)
+    expect(JSON.stringify(features)).toContain("another-sheet")
+    expect(twice.editions.map((e) => e.label)).toEqual([
+      "1931 edition",
+      "1937 edition",
+    ])
+    expect(twice.sections.map((s) => s.editionIds)).toEqual(
+      network.sections.map((s) => s.editionIds)
+    )
   })
 
   it("has no pipelines while store has none", () => {
