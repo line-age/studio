@@ -1,6 +1,6 @@
 # Where these skills come from
 
-Five skills here are unedited copies of public skills, pinned to a commit. One is ours.
+Six skills here are unedited copies of public skills, pinned to a commit. One is ours.
 Do not edit a vendored skill; project-specific rules go in `../../AGENTS.md` or in
 `lineage-figma/`.
 
@@ -11,9 +11,10 @@ Do not edit a vendored skill; project-specific rules go in `../../AGENTS.md` or 
 | `react-view-transitions` | `vercel-labs/agent-skills` | `skills/react-view-transitions` | same | 9 | same |
 | `web-design-guidelines` | `vercel-labs/agent-skills` | `skills/web-design-guidelines` | same | 1 | same |
 | `shadcn` | `shadcn-ui/ui` | `skills/shadcn` | `dd41d19e2f80ff6891951f7ced74c2c9a650b065` | 21 | MIT (LICENSE.md in repo) |
+| `ui-sdk` | `vercel-labs/ui` | `packages/core/skills/ui-sdk` | `c53df2f45c7502bebf0f52619dfe75007a309eb6` | 8, plus the repo's `LICENSE` | Apache-2.0 (LICENSE in repo, copied beside the skill) |
 | `lineage-figma` | written for this project | | | 1 | |
 
-Copied on 2026-11-12.
+Copied on 2026-11-12; `ui-sdk` on 2026-11-13.
 
 Notes:
 
@@ -25,6 +26,10 @@ Notes:
 - The skill names in the SKILL.md files differ from the directory names:
   `vercel-composition-patterns`, `vercel-react-best-practices`,
   `vercel-react-view-transitions`, `web-design-guidelines`, `shadcn`.
+
+- `ui-sdk` is Markdown only (no scripts). It tells the agent to read the docs shipped in
+  `node_modules/@ui-sdk/react/docs/`; `@ui-sdk/react` and `@ui-sdk/core` are installed at
+  `0.1.0-beta.1`, pinned exactly because the library is in beta.
 
 To refresh one: download the repo at a newer commit, replace the whole directory, update
 the commit and file count above. Check the file count against upstream.

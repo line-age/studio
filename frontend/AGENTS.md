@@ -74,6 +74,7 @@ directory and follow it before starting the work.
 | Writing or reviewing React code for performance                          | `react-best-practices`   |
 | Animating between states, panels or list changes                         | `react-view-transitions` |
 | Reviewing UI for accessibility and interface quality                     | `web-design-guidelines`  |
+| Keyboard, focus or selection behaviour of a part shadcn does not provide | `ui-sdk`                 |
 
 The Figma plugin's own skills (`figma-design-to-code`, `figma-use`) are installed for the
 user, not in this directory. Use them for the mechanics of reading and writing Figma.
@@ -91,6 +92,12 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   does not, say so and do not switch React to a canary build without asking.
 - `shadcn`: where it mentions `"use client"` or RSC, ignore; `rsc` is false here. Where
   it says dark mode, see below.
+- `ui-sdk` (installed 2026-11-13 as a trial; beta): standard controls stay shadcn on
+  Base UI, because Figma is specified against it. Do not replace a shadcn component with
+  a ui-sdk one, do not import `@ui-sdk/core/web.css`, and ignore its "a hand-written
+  `role=` is a bug" rule for parts that already exist. Use it only for the behaviour of
+  a Lineage part that shadcn does not cover (the pipeline list, the sections tree), and
+  only when asked to move that part over. Nothing uses it yet.
 
 ## Rules
 
