@@ -27,8 +27,27 @@ _CLAIM_FIELDS = (
 )
 
 
-def _claim_view(claim: dict[str, Any]) -> dict[str, Any]:
+class Handles:
+    """Short names for the claims a question read (C1, C2, ...). A model copies `C7`
+    reliably; it does not always copy a 36-character id. Code turns them back into ids."""
+
+    def __init__(self) -> None:
+        self.ids: dict[str, str] = {}
+        self._of: dict[str, str] = {}
+
+    def of(self, claim_id: str) -> str:
+        if claim_id not in self._of:
+            handle = f"C{len(self._of) + 1}"
+            self._of[claim_id], self.ids[handle] = handle, claim_id
+        return self._of[claim_id]
+
+    def resolve(self, ref_id: str) -> str:
+        return self.ids.get(ref_id.strip(), ref_id)
+
+
+def _claim_view(claim: dict[str, Any], handles: Handles) -> dict[str, Any]:
     view = {k: claim[k] for k in _CLAIM_FIELDS if claim.get(k) is not None}
+    view["id"] = handles.of(claim["id"])
     if claim.get("value_geom"):
         view["value"] = "a traced line (not shown, never a value to state)"
     view["citations"] = [
@@ -39,15 +58,18 @@ def _claim_view(claim: dict[str, Any]) -> dict[str, Any]:
     return view
 
 
-def _feature_view(feature: dict[str, Any], merged: list[dict[str, Any]]) -> dict[str, Any]:
+def _feature_view(
+    feature: dict[str, Any], merged: list[dict[str, Any]], handles: Handles
+) -> dict[str, Any]:
     return {
         "id": feature["id"],
         "kind": feature["kind"],
         "label": feature.get("label"),
         "dates": feature.get("dates"),
-        "claims": [_claim_view(c) for c in feature["claims"]],
+        "claims": [_claim_view(c, handles) for c in feature["claims"]],
         "held_through_a_merged_trace": [
-            {"trace_id": m["id"], "claims": [_claim_view(c) for c in m["claims"]]} for m in merged
+            {"trace_id": m["id"], "claims": [_claim_view(c, handles) for c in m["claims"]]}
+            for m in merged
         ],
         "links": [
             {k: link[k] for k in ("id", "relation", "status", "from_feature_id", "to_feature_id")}
@@ -68,7 +90,12 @@ def _merged_into(feature: dict[str, Any]) -> list[str]:
     ]
 
 
-def make_tools(store: StoreClient) -> list[BaseTool]:
+def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseTool]:
+    """Tools for one question. A feature read twice in the same question is not fetched
+    again: the model is told it already has it. Claims are shown by handle (`handles`)."""
+    seen: set[str] = set()
+    handles = handles if handles is not None else Handles()
+
     @tool(response_format="content_and_artifact")
     def read_feature(feature_id: str) -> tuple[str, dict[str, Any]]:
         """Read everything store holds about one feature (a section or a pipeline) by its id:
@@ -76,6 +103,9 @@ def make_tools(store: StoreClient) -> list[BaseTool]:
         into a section are listed under held_through_a_merged_trace and count as the
         section's own. A section's pipeline is the `to` end of a confirmed part_of link;
         read it by its id to see the pipeline's own claims."""
+        if feature_id in seen:
+            note = f"You already read {feature_id} for this question. Use that result."
+            return note, {}
         try:
             feature = store.feature(feature_id)
             merged = [store.feature(fid) for fid in _merged_into(feature)]
@@ -86,7 +116,8 @@ def make_tools(store: StoreClient) -> list[BaseTool]:
                     {"not_found": feature_id},
                 )
             raise
-        view = _feature_view(feature, merged)
+        seen.add(feature_id)
+        view = _feature_view(feature, merged, handles)
         return json.dumps(view, ensure_ascii=False), {"features": [feature, *merged]}
 
     return [read_feature]

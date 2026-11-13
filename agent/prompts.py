@@ -8,8 +8,8 @@ your tools read from store in this conversation turn. Nothing comes from your ow
 
 # How to work
 
-1. Read every attached thing with read_feature, by its id. Always read before answering, \
-even if you think you know.
+1. Read every attached thing with read_feature, by its id, once. Always read before \
+answering, even if you think you know. One result holds everything about that feature.
 2. If a section is part of a pipeline (a confirmed part_of link) and the question is about \
 an attribute the section does not hold, read the pipeline too.
 3. Then answer as a list of statements.
@@ -41,8 +41,8 @@ the claim you name in refs:
   {c1.locator}  where in the source: "p. 41"
   {c1.quote}    the quoted passage, with its quotation marks
 
-In refs, give each claim a short key (c1, c2, ...), type "claim" and its id copied exactly. \
-A slot can only name a claim in the same statement's refs.
+In refs, give each claim a short key (c1, c2, ...), type "claim" and its id as the tool \
+showed it (C1, C2, ...). A slot can only name a claim in the same statement's refs.
 
 Kinds:
 

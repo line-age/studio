@@ -1,3 +1,4 @@
+import json
 import socket
 
 import pytest
@@ -315,3 +316,40 @@ def test_a_clarify_added_to_an_answer_is_sent_back(world):
     out, _ = ask(world, model, "Who owns this section?", [s01])
     assert [s["kind"] for s in out["answer"]["statements"]] == ["unknown"]
     assert any("whole answer" in p for p in out["blocked"][0])
+
+
+def test_a_feature_read_twice_in_one_question_is_fetched_once(world):
+    s01 = world["codes"]["s01"]
+    read = ("read_feature", {"feature_id": s01})
+    out, store = ask(world, scripted([read], [read], unknown_owner(s01)), "Who owns it?", [s01])
+    assert out["answer"]["statements"][0]["kind"] == "unknown"
+    assert store.requests == [f"/features/{s01}"]
+
+
+def test_the_model_cites_a_claim_by_its_handle_and_code_turns_it_into_the_id(world):
+    s02 = world["codes"]["s02"]
+    owner = next(c for c in world["features"][s02]["claims"] if c["attribute_key"] == "owner")
+    store = FakeStore(world)
+    from tools import Handles, make_tools
+
+    shown = make_tools(store.client(), Handles())[0].invoke(
+        {"type": "tool_call", "name": "read_feature", "args": {"feature_id": s02}, "id": "x"}
+    )
+    handle = next(
+        c["id"] for c in json.loads(shown.content)["claims"] if c["attribute_key"] == "owner"
+    )
+    assert handle.startswith("C") and owner["id"] not in shown.content
+    draft = {
+        "statements": [
+            {
+                "kind": "fact",
+                "text": "The owner is {c1.value}.",
+                "refs": [{"key": "c1", "type": "claim", "id": handle}],
+                "attribute": None,
+            }
+        ]
+    }
+    out, _ = ask(
+        world, scripted([("read_feature", {"feature_id": s02})], draft), "Who owns it?", [s02]
+    )
+    assert out["answer"]["statements"][0]["refs"][0]["id"] == owner["id"]

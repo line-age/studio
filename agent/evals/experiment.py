@@ -155,6 +155,7 @@ def run_langsmith(cases: list[Case], repeat: int, name: str) -> dict[str, Any]:
                 "feedback": check(case, load_world(case.world), outputs),
                 "answer": _text(outputs),
                 "tools": outputs.get("tools", []),
+                "blocked": outputs.get("blocked", []),
             }
         )
     return out

@@ -23,7 +23,7 @@ from render import FIXED_LINES, Unfillable, as_text, failure, render
 from schemas import Answer, Draft, DraftRef, Question, Statement
 from settings import MAX_QUESTION_CHARS, load
 from store_client import StoreClient, StoreError
-from tools import make_tools
+from tools import Handles, make_tools
 
 STORE_FAILURES = {"unreachable": "store_unreachable", "refused": "store_refused"}
 
@@ -123,13 +123,16 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         store = StoreClient(settings.store_url, settings.store_token)
     if model is None:
         model = init_chat_model(settings.model, max_tokens=4000, timeout=120)
-    loop = create_agent(
-        model,
-        tools=make_tools(store),
-        system_prompt=prompts.SYSTEM,
-        response_format=ProviderStrategy(Draft),
-        name="studio-agent-loop",
-    )
+
+    def new_loop(handles: Handles):
+        # Made for each question, so each question starts with tools that have read nothing.
+        return create_agent(
+            model,
+            tools=make_tools(store, handles),
+            system_prompt=prompts.SYSTEM,
+            response_format=ProviderStrategy(Draft),
+            name="studio-agent-loop",
+        )
 
     def answer(state: AgentState) -> dict:
         seen = len(state["messages"])
@@ -144,6 +147,8 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         tools: list[str] = []
         artifacts: list[dict[str, Any]] = []
         blocked: list[list[str]] = []
+        handles = Handles()
+        loop = new_loop(handles)
         for attempt in range(2):
             try:
                 result = loop.invoke({"messages": messages})
@@ -154,8 +159,9 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
                     tools,
                     seen,
                 )
-            except Exception:  # noqa: BLE001 - the model or its output failed: say so, plainly
-                return _finish(failure("model_failed"), message, tools, seen)
+            except Exception as error:  # noqa: BLE001 - the model or its output failed: say so
+                blocked.append([f"the run failed: {type(error).__name__}: {str(error)[:300]}"])
+                return _finish(failure("model_failed"), message, tools, seen, blocked)
             run = result["messages"][len(messages) :]
             tools += [c["name"] for m in run if isinstance(m, AIMessage) for c in m.tool_calls]
             artifacts += [m.artifact for m in run if isinstance(m, ToolMessage) and m.artifact]
@@ -172,6 +178,10 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
             draft = result.get("structured_response")
             read = reads_from(artifacts)
             if isinstance(draft, Draft):
+                for statement in draft.statements:
+                    for ref in statement.refs:
+                        if ref.type == "claim":
+                            ref.id = handles.resolve(ref.id)
                 _point_unknowns_at_the_attached_thing(draft, question, read)
             if not isinstance(draft, Draft):
                 problems = ["no answer in the required shape"]

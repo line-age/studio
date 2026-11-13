@@ -54,7 +54,7 @@ class Question(_Strict):
 class DraftRef(_Strict):
     key: str = Field(description="A short local name used in slots: c1, c2, f1.")
     type: Literal["claim", "feature", "link"]
-    id: str = Field(description="The store id, copied exactly from a tool result.")
+    id: str = Field(description="As the tool showed it: a claim's handle (C1) or a feature's id.")
 
 
 # store's attribute keys. A closed list in the schema also keeps the model's output from
