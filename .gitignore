@@ -1,0 +1,11 @@
+# Keys and tokens. Compose reads a .env here by itself; never commit one.
+.env
+.env.*
+!.env.example
+
+# Threads kept by the Agent's dev server, wherever it was started from.
+.langgraph_api/
+
+.venv/
+__pycache__/
+.DS_Store

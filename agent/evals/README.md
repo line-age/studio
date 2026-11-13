@@ -11,7 +11,7 @@ and links, written the way store answers. `make_world.py` makes them from a seed
 
 | World | What |
 | --- | --- |
-| `small` | 12 sections, one for each state a claim or link can be in: nothing known, accepted, only a proposal, only a rejected value, two that disagree, inherited from a pipeline, a proposed and a confirmed end, a quote that carries an instruction, dates in conflict, no date |
+| `small` | 13 sections, one for each state a claim or link can be in: nothing known, accepted, only a proposal, only a rejected value, two that disagree, in a pipeline that holds the owner, a proposed and a confirmed end, a quote that carries an instruction, dates in conflict, no date, a second trace merged in |
 | `wide` | 400 sections, mostly bare like a fresh import, for counts and sets |
 
 `worlds/small.json` is in git so it can be read and reviewed. `wide` is made on demand.
@@ -24,5 +24,10 @@ Rules:
   `uv run python -m evals.make_world`, and commit both. A test fails otherwise.
 - A case can only name a world the generator makes.
 
+A world holds claims and links only. Its map rows, dates, ends and conflict flags are
+worked out from them the way store's own views do it, so a world cannot say something
+store would not. The trace file names in it carry an invented tracer's name on purpose:
+the store client must keep it away from the model.
+
 `fake_store.py` serves a world through the real `StoreClient`, so the code under test
-is the code that runs against store.
+is the code that runs against store. It refuses what store refuses.

@@ -3,5 +3,13 @@
   "graphs": {
     "agent": "./graph.py:graph"
   },
-  "env": ".env"
+  "env": ".env",
+  "http": {
+    "cors": {
+      "allow_origins": ["http://127.0.0.1:47190"],
+      "allow_methods": ["GET", "POST", "DELETE"],
+      "allow_headers": ["content-type"],
+      "allow_credentials": false
+    }
+  }
 }

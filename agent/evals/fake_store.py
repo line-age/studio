@@ -1,18 +1,22 @@
 """A store that answers from one invented world, for tests and evals.
 
 It is an httpx transport, so the real `StoreClient` runs against it unchanged. It answers
-the four reads the Agent uses, in the shapes store returns, and can be told to fail.
+the four reads the Agent uses, in the shapes store returns, refuses what store refuses,
+and can be told to fail. Not modelled: a section cut into pieces by a proposed `overlaps`
+link (no world has one yet).
 """
 
 import copy
+import datetime as dt
 import json
+import uuid
 from functools import cache
 from pathlib import Path
 from typing import Any
 
 import httpx
 
-from evals.make_world import BUILDERS, render
+from evals.make_world import BUILDERS, render, scope
 from store_client import StoreClient
 
 WORLDS = Path(__file__).parent / "worlds"
@@ -40,6 +44,14 @@ def _bounds(geometry: dict[str, Any]) -> tuple[float, float, float, float]:
     return min(xs), min(ys), max(xs), max(ys)
 
 
+class _Refused(Exception):
+    pass
+
+
+def _unprocessable(detail: str) -> httpx.Response:
+    return httpx.Response(422, json={"detail": detail})
+
+
 class FakeStore(httpx.BaseTransport):
     def __init__(self, world: dict[str, Any], *, fail: str | None = None):
         self.world = world
@@ -60,26 +72,47 @@ class FakeStore(httpx.BaseTransport):
         if self.fail == "refused" or request.headers.get("authorization") != f"Bearer {TOKEN}":
             return httpx.Response(401, json={"detail": "unknown token"})
         path, q = request.url.path, request.url.params
-        limit = int(q.get("limit", 1000))
-        if path == "/sections":
-            return httpx.Response(200, json=self._sections(q, limit))
-        if path == "/missing":
-            return httpx.Response(200, json=self._missing(q, limit))
-        if path == "/links":
-            return httpx.Response(200, json=self._links(q, limit))
-        if path.startswith("/features/"):
-            feature = self.world["features"].get(path.removeprefix("/features/"))
-            if feature is None:
-                return httpx.Response(404, json={"detail": "no such feature"})
-            return httpx.Response(200, json=copy.deepcopy(feature))
+        try:
+            if path == "/sections":
+                return httpx.Response(200, json=self._sections(q, self._limit(q)))
+            if path == "/missing":
+                return httpx.Response(200, json=self._missing(q, self._limit(q)))
+            if path == "/links":
+                return httpx.Response(200, json=self._links(q, self._limit(q)))
+            if path.startswith("/features/"):
+                return self._feature(path.removeprefix("/features/"))
+        except _Refused as refused:
+            return _unprocessable(str(refused))
         return httpx.Response(404, json={"detail": "Not Found"})
+
+    def _limit(self, q: httpx.QueryParams) -> int:
+        try:
+            limit = int(q.get("limit", 1000))
+        except ValueError:
+            raise _Refused("limit must be an integer") from None
+        if not 1 <= limit <= 10_000:
+            raise _Refused("limit must be 1 to 10000")
+        return limit
+
+    def _feature(self, feature_id: str) -> httpx.Response:
+        try:
+            uuid.UUID(feature_id)
+        except ValueError:
+            return _unprocessable("feature id must be a UUID")
+        feature = self.world["features"].get(feature_id)
+        if feature is None:
+            return httpx.Response(404, json={"detail": "no such feature"})
+        return httpx.Response(200, json=copy.deepcopy(feature))
 
     def _sections(self, q: httpx.QueryParams, limit: int) -> dict[str, Any]:
         rows = self.world["sections"]
         if "network" in q:
             rows = [r for r in rows if r["properties"]["network"] == q["network"]]
         if "at" in q:
-            at = q["at"]
+            try:
+                at = dt.date.fromisoformat(q["at"]).isoformat()
+            except ValueError:
+                raise _Refused("at must be a date") from None
             rows = [
                 r
                 for r in rows
@@ -87,7 +120,10 @@ class FakeStore(httpx.BaseTransport):
                 and (r["properties"]["time_end"] or at) >= at
             ]
         if "bbox" in q:
-            minx, miny, maxx, maxy = (float(n) for n in q["bbox"].split(","))
+            try:
+                minx, miny, maxx, maxy = (float(n) for n in q["bbox"].split(","))
+            except ValueError:
+                raise _Refused("bbox must be minx,miny,maxx,maxy") from None
             kept = []
             for r in rows:
                 x0, y0, x1, y1 = _bounds(r["geometry"])
@@ -97,19 +133,20 @@ class FakeStore(httpx.BaseTransport):
         rows = sorted(rows, key=lambda r: r["id"])[:limit]
         return {"type": "FeatureCollection", "features": copy.deepcopy(rows)}
 
-    def _has_accepted(self, feature_id: str, attribute: str) -> bool:
-        claims = self.world["features"][feature_id]["claims"]
-        return any(c["attribute_key"] == attribute and c["status"] == "accepted" for c in claims)
-
     def _missing(self, q: httpx.QueryParams, limit: int) -> list[dict[str, Any]]:
-        # Like store: the key is not checked, and a section inherits what its line holds.
-        attribute, out = q["attribute"], {}
+        # Like store: the key is not checked, and a section counts the accepted claims in
+        # its scope (itself, a trace merged into it, the section it was split from).
+        attribute, features, out = q["attribute"], self.world["features"], {}
         for row in self.world["sections"]:
             p = row["properties"]
             if "network" in q and p["network"] != q["network"]:
                 continue
-            scope = [p["section_id"], *([p["line_id"]] if p["line_id"] else [])]
-            if not any(self._has_accepted(fid, attribute) for fid in scope):
+            held = any(
+                c["attribute_key"] == attribute and c["status"] == "accepted"
+                for fid in scope(self.world["links"], p["section_id"])
+                for c in features[fid]["claims"]
+            )
+            if not held:
                 out[p["section_id"]] = {
                     "section_id": p["section_id"],
                     "label": p["label"],
@@ -119,6 +156,8 @@ class FakeStore(httpx.BaseTransport):
 
     def _links(self, q: httpx.QueryParams, limit: int) -> list[dict[str, Any]]:
         rows = self.world["links"]
+        if "status" in q and q["status"] not in ("proposed", "confirmed", "rejected"):
+            raise _Refused("status must be proposed, confirmed or rejected")
         for key in ("status", "relation"):
             if key in q:
                 rows = [r for r in rows if r[key] == q[key]]

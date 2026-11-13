@@ -38,8 +38,9 @@ line. Behaviours are added one at a time, each with its eval first.
 | `agent.py` | The graph. No serving code, no checkpointer |
 | `schemas.py` | The answer Studio renders: typed statements with references |
 | `render.py` | The fixed lines, and the one place values become words |
-| `settings.py` | Settings from the environment |
-| `store_client.py` | Store over HTTP, read only. Strips people's names, checks attribute keys, flags a list that may be cut off |
+| `settings.py` | Settings from the environment, and the tracing switch |
+| `serve.py` | Starts the service: decides tracing, then hands over to `langgraph dev` |
+| `store_client.py` | Store over HTTP. Only GET can leave it; it keeps a listed set of fields (no people's names), checks attribute keys and ids, and flags a list that may be cut off |
 | `evals/make_world.py` | Makes the invented store states (`worlds/`) that tests and evals run on |
 | `evals/fake_store.py` | Serves one world through the real store client; can be told to fail |
 | `tests/` | Offline: no network, no key, no trace |
@@ -52,18 +53,36 @@ line. Behaviours are added one at a time, each with its eval first.
 | `uv sync` | Install |
 | `uv run ruff check . && uv run ruff format --check .` | Lint and format check |
 | `uv run pytest -q` | Offline tests. Free; runs in CI |
-| `uv run langgraph dev --port 47190 --no-browser` | Serve the graph locally |
+| `uv run python serve.py` | Serve the graph locally on port 47190. Always start it this way |
 | `uv run python -m evals.make_world` | Rewrite `evals/worlds/small.json` after changing the generator |
 
-The port is fixed in the controlplane's `ports.md`. The service has no sign-in: bind it to
-`127.0.0.1` on a host and never expose it further.
+The port is fixed in the controlplane's `ports.md`.
 
-## Keys
+## Keys and tracing
 
-Copy `.env.example` to `.env`. The offline tests need none of it. `langgraph dev` starts
-with no LangSmith key. Tracing is off unless `LANGSMITH_TRACING=true`; on a store with
-real data, leave it off unless the project owner has said otherwise, because a trace
-holds what the Agent read.
+Copy `.env.example` to `.env`. The offline tests need none of it, and the service starts
+with no LangSmith key.
+
+A trace holds what the Agent read from store, so tracing has one switch,
+`AGENT_TRACING`, and is off unless that is `true`. `serve.py` sets every
+`LANGSMITH_TRACING` and `LANGCHAIN_TRACING` variable from it before the server starts.
+This matters because, left alone, the server turns tracing on by itself as soon as it
+finds a LangSmith key, and a `LANGCHAIN_TRACING_V2=true` left in a shell beats
+`LANGSMITH_TRACING=false`. Started any other way with tracing on and the switch off, the
+graph refuses to load. On a store with real data, leave the switch off unless the project
+owner has said otherwise.
+
+## Who can reach it
+
+The service has no sign-in, and a browser can reach `127.0.0.1`. So:
+
+- `langgraph.json` allows no other web origin (the dev server's default is every
+  origin). Studio does not need one: it talks to the service through its own `/agent`
+  path.
+- On a host, bind the port to `127.0.0.1` only (`-p 127.0.0.1:47190:8000`). In Compose,
+  prefer not publishing it at all.
+- Only a person's message is taken from outside. A system, tool or assistant message
+  posted to the service is removed before anything reads it.
 
 ## How Studio talks to it (checked 2026-11-13)
 
@@ -82,9 +101,10 @@ Measured with `@langchain/react` 1.2.14 `useStream` against `langgraph dev`
   answer travels in state (`answer`), not only in messages.
 - **One run at a time.** `submit(..., { multitaskStrategy: "reject" })` throws in the
   browser that already has a run. A second browser gets a 409 from the server.
-- **Stop.** `stop({ cancel: true })` ends the run as `interrupted`. The question and
-  whatever state the run had written stay in the thread, so "nothing of it is shown" is
-  the client's job: show only a turn that has a checked answer.
+- **Stop.** `stop({ cancel: true })` ends the run as `interrupted`. The question stays
+  in the thread. The graph clears `answer` when it takes a question in and sets
+  `answers` to the id of the question an answer belongs to, so show a turn only when
+  `answers` names its question.
 - **Clear chat.** Stop, `threads.delete`, create again, remount the hook. A run that was
   going when the thread was deleted leaves nothing in the new one.
 - **Kept on disk.** `langgraph dev` keeps threads in `.langgraph_api/`, written
@@ -92,5 +112,5 @@ Measured with `@langchain/react` 1.2.14 `useStream` against `langgraph dev`
   in a container, a new container on the same volume. A hard kill straight after a run
   can lose the last seconds. On a real stack these files hold store's data: they are
   ignored by git and deleted with the volume.
-- **Container.** `--host 0.0.0.0 --no-reload`, the volume on `/app/.langgraph_api`,
-  the host port bound to `127.0.0.1`.
+- **Container.** `--host 0.0.0.0 --no-reload`, a named volume on `/app/.langgraph_api`,
+  the host port bound to `127.0.0.1`. Removing the volume deletes the threads.
