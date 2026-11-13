@@ -211,6 +211,11 @@ Where code knowingly differs from the Figma frame:
   follows only when the person moves the map, opens a search hit or goes home.
 - Build date pickers run up to the current year.
 - These were asked for by the owner on 2026-11-12 ahead of Figma. Figma needs updating.
+- The Editions panel and its rail item (the owner, 2026-11-13): one row per map edition
+  with the sections it is the first to show and a bar for how many are placed in a
+  pipeline; choosing a row puts that edition in force. Built from existing tokens.
+- In data with no pipelines the list is titled "Sections" and its groups are editions;
+  an unnamed section goes by its code. No design for either yet.
 - No minimum page width: the map takes the space the panels leave, so the right panel is
   always at the window edge. The frame is drawn at 1728 wide only.
 - The Mapbox logo sits top left and its attribution bottom right, as its terms require.

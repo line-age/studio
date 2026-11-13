@@ -13,8 +13,9 @@ React 19 · TypeScript · Vite · Tailwind v4 · shadcn/ui · Mapbox GL JS
 </div>
 
 > [!NOTE]
-> Early work. One screen, **Studio**, runs read-only on an invented sample network.
-> There is no API yet, nothing can be edited, and the Agent does not answer.
+> Early work. One screen, **Studio**, runs read-only: on an invented sample network by
+> default, or on a local Lineage store. Nothing can be edited, and the Agent does not
+> answer.
 
 ## What it does
 
@@ -74,6 +75,40 @@ or pnpm needed. The Mapbox token is read from the env file while the image build
 ends up in the bundle, as it does in any build. Leave `--env-file` off and the app still
 runs without the map. Set `STUDIO_PORT` to use another port.
 
+## Real data from store
+
+Studio can read a running [store](https://github.com/line-age/store) instead of the
+sample. Start store with its own `docker compose up -d` (keep its folder named `store`),
+make a token, and put it in `frontend/.env.local`:
+
+```sh
+docker compose -f ../store/compose.yaml exec -T api \
+  lineage-store token create studio --pipeline studio@local | tail -1
+# frontend/.env.local:  STORE_TOKEN=<that token>
+```
+
+Then, in a container:
+
+```sh
+docker compose -f compose.yaml -f compose.store.yaml --env-file frontend/.env.local up --build
+```
+
+or with the dev server: add `VITE_DATA_SOURCE=store` to `frontend/.env.local` and run
+`pnpm dev`. Store's address is `STORE_URL` (default `http://localhost:47110` for the dev
+server, `http://api:8000` in the container).
+
+The browser never holds the token. The app asks its own origin at `/store`, and the dev
+server or nginx passes the request on with the token added. If store cannot be reached,
+refuses the token or answers in a form the app does not understand, the screen says
+which; it never falls back to the sample.
+
+Store has no pipelines yet, only sections. So the list is titled **Sections** and groups
+them by the map edition that first shows each one, and the **Editions** panel lists every
+edition with how many of its sections are placed in a pipeline. Choose an edition there
+to see the network as that map shows it. A fact store has no accepted claim for is
+Unknown. Real data stays on your machine: never in this repository, its tests or its
+screenshots.
+
 ## Data
 
 The app reads `frontend/public/fixtures/sample.json`, a small invented network. Nothing
@@ -104,6 +139,7 @@ pnpm build
 | `frontend/src/components/` | Lineage parts any screen can use |
 | `frontend/src/components/ui/` | shadcn components, added by the CLI |
 | `frontend/src/data/` | Schema, loader and derived values |
+| `frontend/src/data/store/` | Reading the Lineage store and turning its answers into the same schema |
 | `frontend/src/styles/tokens.css` | Theme generated from the Figma variables |
 
 The design lives in Figma and the code follows it. Rules for working in this repo,
@@ -112,7 +148,9 @@ more detail on running and tokens is in [`frontend/README.md`](frontend/README.m
 
 ## Not there yet
 
-- An API: everything comes from a fixture file.
+- Writing to store: reading it is all there is.
+- Removals (lines a later map no longer shows) and the proposed links behind them.
+- Placing sections in pipelines.
 - Editing, and accepting or rejecting what the Agent proposes.
 - An Agent that answers.
 - Notes on the map, a table view, the fact detail area.

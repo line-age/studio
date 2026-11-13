@@ -1,0 +1,26 @@
+# Lineage Studio on real data from a local store. Start store first (its own
+# `docker compose up -d` in a folder named `store`), put a token for it in
+# frontend/.env.local as STORE_TOKEN, then from this directory:
+#
+#   docker compose -f compose.yaml -f compose.store.yaml \
+#     --env-file frontend/.env.local up --build
+#
+# The token is given to nginx when the container starts. It is not in the
+# image or in what the browser downloads.
+
+services:
+  frontend:
+    build:
+      args:
+        VITE_DATA_SOURCE: store
+    image: lineage-studio-frontend:store
+    environment:
+      STORE_URL: ${STORE_URL:-http://api:8000}
+      STORE_TOKEN: ${STORE_TOKEN:?Set STORE_TOKEN in frontend/.env.local}
+    networks: [default, store]
+
+networks:
+  # Compose names store's network after its folder.
+  store:
+    name: store_default
+    external: true

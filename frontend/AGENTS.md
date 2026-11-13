@@ -2,14 +2,15 @@
 
 The web app for reviewing traced pipelines: a map desk where a person checks sections,
 attaches cited facts and decides on what the AI proposes. This directory is the React
-app. State as of 2026-11-12: the theme exported from Figma and one screen, **Studio**,
-working read-only on fixture data (no API yet). More screens will follow; each gets its
-own directory under `src/screens/`.
+app. State as of 2026-11-13: the theme exported from Figma and one screen, **Studio**,
+working read-only on fixture data or, with `VITE_DATA_SOURCE=store`, on a local Lineage
+store. More screens will follow; each gets its own directory under `src/screens/`.
 
 What Studio does today: lists pipelines with search and filters; selects sections
 across pipelines by row boxes, clicks on the map or a Lasso; shows the selection's
-facts grouped in the right panel; hands a selection to the Agent chat as references.
-Nothing can be edited and the Agent does not answer yet. The repo `README.md` one level
+facts grouped in the right panel; hands a selection to the Agent chat as references;
+lists the map editions with how many of their sections are placed in a pipeline, and
+shows the network as of the edition chosen. Nothing can be edited and the Agent does not answer yet. The repo `README.md` one level
 up shows it with screenshots; keep those current when the screen changes visibly.
 
 The workspace `AGENTS.md` two levels up holds the project-wide rules and the full Figma
@@ -52,6 +53,7 @@ notes. This file wins for anything inside this directory.
 | `src/components/icons/`    | Our icon set, from the Figma Icons page              |
 | `src/screens/<screen>/`    | One screen: its layout, panels, map and store        |
 | `src/data/`                | Schema, loader and derived values. The API seam      |
+| `src/data/store/`          | Reads the Lineage store; adapts it to the schema     |
 | `public/fixtures/`         | `sample.json` (invented). `local/` is git-ignored    |
 | `docs/fixtures.md`         | The fixture format                                   |
 | `src/styles/tokens.css`    | Generated theme. Never edit                          |
@@ -129,6 +131,23 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   data provider (`studio-data.tsx`), which gets it from `src/data/load-network.ts`. When
   the API arrives, that loader is what changes.
 - Counts and statuses are derived in `src/data/derive.ts`, never stored or hard-coded.
+- Data comes from a fixture or from store, chosen by `VITE_DATA_SOURCE`, and only through
+  `loadNetwork()`. One never stands in for the other when it fails. The app reaches store
+  at its own `/store` path; the dev server and nginx add the token. No token, and no
+  name starting with `VITE_` that holds one, ever goes in the code or the bundle.
+- `src/data/store/to-network.ts` is the only place that knows store's shapes. It shows
+  accepted claims as facts, candidate claims as proposals and everything else as
+  Unknown; it ignores ends store only proposes; it drops who asserted or reviewed a
+  claim. Keep it pure and test it with invented answers (`src/test/store-payloads.ts`).
+- Store has no pipelines yet. Such data sets `groupBy: "edition"`: the list is titled
+  "Sections" and its groups are the editions that first show each section. Take the
+  word for a group from `useStudioData().nouns`; do not write "pipeline" into a string.
+  A section with no name goes by its code (`sectionLabel`); never invent a name.
+- The year of an edition is when a map first shows a line ("First seen"). It is never a
+  build date.
+- The Editions panel is the way to change the edition in force (`setEdition`). "Done"
+  for a section there means placed in a pipeline (the owner, 2026-11-13).
+- Removals and proposed links from store are not shown yet (the owner, 2026-11-13).
 - The map cannot read CSS variables: colours go through `map/map-colors.ts`, which reads
   the tokens. No raw colour in map code either.
 - Not designed means not built: no tooltip, popover, tab or table until Figma has
@@ -169,6 +188,8 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - No credentials in the repo. No `.env` committed. The Mapbox token goes in `.env.local`.
 - A fixture with real names goes in `public/fixtures/local/` (ignored) and is selected
   with `VITE_FIXTURE_URL`. Only `sample.json` is committed, and it is invented.
+- Data read from store is real. It stays on the machine: never in a test, a fixture, a
+  screenshot or a commit. Screenshots for the README are taken on the sample.
 
 **Writing**
 
