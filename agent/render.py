@@ -80,8 +80,49 @@ def _window(earliest: str | None, latest: str | None) -> str | None:
     return None
 
 
+_EDTF_DAY = re.compile(r"^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$")
+
+
+def _edtf_point(text: str) -> str | None:
+    """`1938`, `1938-03` or `1938-03-14` as words. None for anything else."""
+    match = _EDTF_DAY.match(text)
+    if not match:
+        return None
+    year, month, day = match.groups()
+    if day:
+        return f"{int(day)} {calendar.month_name[int(month)]} {year}"
+    if month:
+        return f"{calendar.month_name[int(month)]} {year}"
+    return year
+
+
+def edtf_words(text: str | None) -> str | None:
+    """A claim's period as the source wrote it (EDTF), when store has no bounds for it."""
+    if not text:
+        return None
+    if "/" in text:
+        start, end = text.split("/", 1)
+        if start in ("", "..") and _edtf_point(end):
+            return f"by {_edtf_point(end)}"
+        if end in ("", "..") and _edtf_point(start):
+            return f"from {_edtf_point(start)}"
+        if _edtf_point(start) and _edtf_point(end):
+            return f"from {_edtf_point(start)} to {_edtf_point(end)}"
+        return None
+    point = _edtf_point(text)
+    return f"in {point}" if point else None
+
+
 def period_words(claim: dict[str, Any]) -> str:
-    """When a claim holds, as the source gives it. A map only proves "by" its date."""
+    """When a claim holds, as the source gives it. A map only proves "by" its date.
+
+    Worked from the claim's bounds; where store has none, from the period as the source
+    wrote it; only when store has neither, "with no date in store".
+    """
+    if not any(
+        claim.get(k) for k in ("start_earliest", "start_latest", "end_earliest", "end_latest")
+    ):
+        return edtf_words(claim.get("valid_edtf")) or "with no date in store"
     se, sl = claim.get("start_earliest"), claim.get("start_latest")
     ee, el = claim.get("end_earliest"), claim.get("end_latest")
     start = _window(se, sl)
@@ -167,6 +208,22 @@ class Read:
         self.features: dict[str, dict[str, Any]] = {}
         self.claims: dict[str, dict[str, Any]] = {}
         self.links: dict[str, dict[str, Any]] = {}
+        # Features whose claims store counts as another's (a merged trace): section -> them.
+        self.scope: dict[str, list[str]] = {}
+
+    def merge(self, section_id: str, merged: list[str]) -> None:
+        self.scope.setdefault(section_id, [])
+        self.scope[section_id] += [m for m in merged if m not in self.scope[section_id]]
+
+    def accepted(self, feature_id: str, attribute: str) -> list[str]:
+        """Accepted claims for an attribute on a feature, counting merged traces."""
+        return [
+            cid
+            for cid, claim in self.claims.items()
+            if claim["feature_id"] in (feature_id, *self.scope.get(feature_id, []))
+            and claim["attribute_key"] == attribute
+            and claim["status"] == "accepted"
+        ]
 
     def feature(self, feature: dict[str, Any]) -> None:
         self.features[feature["id"]] = feature
@@ -203,6 +260,8 @@ def render_statement(draft: DraftStatement, read: Read) -> Statement:
         return _slot(claim, field)
 
     text = SLOT.sub(fill, draft.text).strip()
+    # A value that ends a sentence with its own full stop ("Co.") takes no second one.
+    text = re.sub(r"(?<=[A-Za-z]\.)\.(?=\s|$)", "", text)
     refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]
     return Statement(kind=draft.kind, text=text, refs=refs, attribute=draft.attribute)
 

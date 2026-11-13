@@ -5,7 +5,6 @@ import pytest
 from evals import report as reports
 from evals.cases import CASES, Case, load, question_for
 from evals.checks import check
-from evals.experiment import run_case
 from evals.fake_store import FakeStore, load_world
 from evals.mutations import MUTATIONS, seeded
 from evals.score import ungrounded
@@ -126,6 +125,7 @@ def test_the_question_is_sent_as_studio_sends_it(world):
     case = next(c for c in load() if c.id == "B02-007")
     question = question_for(case, world)
     assert question["about"][0]["kind"] == "claim" and len(question["about"][0]["id"]) == 36
+    assert question["about"][0]["on"]["sectionId"] == world["codes"]["s02"]
     assert set(question) == {"words", "about", "network"}
 
 
@@ -196,13 +196,6 @@ def test_an_unchecked_answer_is_not_valid(world):
 def test_answering_without_reading_store_fails_the_case(world):
     feedback = passes("B01-001", world, faithful(world, "s01", GOOD["s01"]), tools=())
     assert not feedback["tools_ok"]["score"] and not feedback["case_passed"]["score"]
-
-
-def test_the_scaffold_fails_every_case_and_says_nothing_ungrounded(world):
-    for case in load():
-        feedback = check(case, load_world(case.world), run_case(case))
-        assert not feedback["case_passed"]["score"], case.id
-        assert feedback["no_ungrounded"]["score"], case.id
 
 
 def test_the_not_found_line_is_a_fixed_line():

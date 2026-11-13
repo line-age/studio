@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import HumanMessage
 
 from evals import report as reports
 from evals.cases import Case, load, question_for
@@ -42,10 +42,12 @@ def run_case(case: Case) -> dict[str, Any]:
         state = build_graph(store=store.client()).invoke({"messages": [message]})
     except Exception as exc:  # noqa: BLE001 - a crash is a failed case, not a failed run
         return {"answer": None, "tools": [], "error": f"{type(exc).__name__}: {exc}"[:500]}
-    tools = [
-        call["name"] for m in state["messages"] if isinstance(m, AIMessage) for call in m.tool_calls
-    ]
-    return {"answer": state.get("answer"), "tools": tools, "store_reads": len(store.requests)}
+    return {
+        "answer": state.get("answer"),
+        "tools": state.get("tools") or [],
+        "blocked": state.get("blocked") or [],
+        "store_reads": len(store.requests),
+    }
 
 
 def _meta(name: str, repeat: int) -> dict[str, Any]:
@@ -91,6 +93,7 @@ def run_local(cases: list[Case], repeat: int, name: str) -> dict[str, Any]:
             "feedback": check(case, load_world(case.world), outputs),
             "answer": _text(outputs),
             "tools": outputs["tools"],
+            "blocked": outputs.get("blocked", []),
         }
 
     out = {"meta": _meta(name, repeat), "cases": {c.id: _entry(c) for c in cases}}

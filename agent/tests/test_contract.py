@@ -55,6 +55,13 @@ def claim(se=None, sl=None, ee=None, el=None, **more):
         (claim(sl="1932-12-31", el="1946-12-31"), "by 1932 until 1946 at the latest"),
         (claim(ee="1940-01-01"), "until at least 1940"),
         (claim(), "with no date in store"),
+        # No bounds in store: the period as the source wrote it.
+        (claim(valid_edtf="1938"), "in 1938"),
+        (claim(valid_edtf="1932-03"), "in March 1932"),
+        (claim(valid_edtf="../1932"), "by 1932"),
+        (claim(valid_edtf="1931/1940"), "from 1931 to 1940"),
+        (claim(valid_edtf="1937/.."), "from 1937"),
+        (claim(valid_edtf="1930~"), "with no date in store"),
     ],
 )
 def test_a_period_reads_as_the_source_gave_it(bounds, words):
@@ -175,3 +182,11 @@ def test_an_unknown_names_what_was_looked_for(s02):
     statement = answer.statements[0]
     assert statement.attribute == "operator"
     assert statement.refs[0].type == "feature" and statement.refs[0].id == feature_id
+
+
+def test_a_value_that_ends_in_a_full_stop_takes_no_second_one(s02):
+    owner = owner_of(s02)
+    answer = render(
+        draft("The owner is {c1.value}.", [{"key": "c1", "type": "claim", "id": owner["id"]}]), s02
+    )
+    assert answer.statements[0].text == "The owner is Example Pipe Line Co."

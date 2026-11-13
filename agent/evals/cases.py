@@ -62,7 +62,10 @@ def question_for(case: Case, world: dict[str, Any]) -> dict[str, Any]:
         if "id" in item:  # a literal id, for a thing store no longer has
             about.append({"kind": item["kind"], "id": item["id"], "on": None})
         elif item["kind"] == "claim":
-            about.append({"kind": "claim", "id": claim_id(world, item["code"]), "on": None})
+            # As Studio sends it: the claim, and the section it is on.
+            code, attribute = item["code"].split(".")[:2]
+            on = {"sectionId": world["codes"][code], "pipelineId": None, "attribute": attribute}
+            about.append({"kind": "claim", "id": claim_id(world, item["code"]), "on": on})
         else:
             about.append({"kind": item["kind"], "id": world["codes"][item["code"]], "on": None})
     return {"words": case.question["words"], "about": about, "network": "gas"}

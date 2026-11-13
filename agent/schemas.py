@@ -57,8 +57,31 @@ class DraftRef(_Strict):
     id: str = Field(description="The store id, copied exactly from a tool result.")
 
 
+# store's attribute keys. A closed list in the schema also keeps the model's output from
+# running on inside this one field.
+AttributeKey = Literal[
+    "name",
+    "owner",
+    "operator",
+    "status",
+    "route",
+    "location",
+    "diameter",
+    "voltage",
+    "gauge",
+    "lanes",
+    "station_kind",
+    "serves",
+    "flow_direction",
+    "commodity",
+]
+
+
 class DraftStatement(_Strict):
     kind: Literal["fact", "unknown", "reading", "help", "clarify", "refusal", "greeting"]
+    attribute: AttributeKey | None = Field(
+        None, description="For kind unknown: the store attribute key that was checked."
+    )
     text: str = Field(
         description=(
             "One plain sentence. Values enter only through slots such as {c1.value}; "
@@ -66,9 +89,6 @@ class DraftStatement(_Strict):
         )
     )
     refs: list[DraftRef] = Field(default_factory=list)
-    attribute: str | None = Field(
-        None, description="For kind unknown: the store attribute key that was checked."
-    )
 
 
 class Draft(_Strict):
