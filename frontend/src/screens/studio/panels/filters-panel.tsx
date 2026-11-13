@@ -104,7 +104,7 @@ function OptionRow({
 const THIS_YEAR = new Date().getFullYear()
 
 export function FiltersPanel() {
-  const { network, edition, summaries, nouns } = useStudioData()
+  const { network, edition, summaries } = useStudioData()
   const visible = useVisiblePipelines()
   const layers = useStudio((s) => s.layers)
   const toggleLayer = useStudio((s) => s.toggleLayer)
@@ -170,7 +170,7 @@ export function FiltersPanel() {
         <Group title="Show on the map">
           <ul className="flex flex-col gap-0.5">
             <LayerRow
-              name={nouns.title}
+              name="Sections"
               meta={`${edition.year} · ${formatCount(visible.length)} ${onlyInView ? "in view" : "shown"}`}
               lineKey={<LineKey kind="solid" />}
               visible={layers.pipelines}
@@ -400,8 +400,8 @@ export function FiltersPanel() {
 
       <PanelFooter>
         <span aria-live="polite">
-          {formatCount(visible.length)} of{" "}
-          {plural(summaries.length, nouns.one, nouns.many)} shown
+          {formatCount(visible.length)} of {plural(summaries.length, "row")}{" "}
+          shown
         </span>
       </PanelFooter>
     </>

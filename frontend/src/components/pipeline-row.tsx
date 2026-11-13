@@ -1,17 +1,22 @@
 import type { ComponentProps, ReactNode } from "react"
 
 import { CheckMark } from "@/components/check-mark"
+import { Icon } from "@/components/icons/icon"
 import { cn } from "@/lib/utils"
 
 /**
- * One pipeline in the left list. A flush row with a divider. The right side
- * leads with the status in words, then how many claims are cited.
+ * One pipeline in the left list, or one group of sections that are in no
+ * pipeline. A flush row with a divider. The right side leads with the status
+ * in words, then how far the sections have come.
  */
 export function PipelineRow({
   name,
   meta,
   status,
-  claims,
+  progress,
+  expanded,
+  onToggle,
+  toggleLabel,
   selected = false,
   checked = selected ? "checked" : "unchecked",
   onCheck,
@@ -22,10 +27,16 @@ export function PipelineRow({
   name: ReactNode
   /** Code and section count: "P-012 · 6 sections". */
   meta: ReactNode
-  /** A StatusLabel. */
+  /** A StatusBadge. */
   status: ReactNode
-  /** "38 of 42 claims". */
-  claims: ReactNode
+  /** "4 of 6 done". */
+  progress: ReactNode
+  /** With `onToggle`: whether the rows under this one are showing. */
+  expanded?: boolean
+  /** Adds a chevron that shows or hides the rows under this one. */
+  onToggle?: () => void
+  /** Accessible name of the chevron, needed with `onToggle`. */
+  toggleLabel?: string
   selected?: boolean
   /** How much of the pipeline is selected. Defaults to follow `selected`. */
   checked?: "unchecked" | "checked" | "indeterminate"
@@ -47,16 +58,36 @@ export function PipelineRow({
       {...props}
     >
       <CheckMark value={checked} label={checkLabel} onChange={onCheck} />
+      {onToggle && (
+        <button
+          type="button"
+          aria-label={toggleLabel}
+          aria-expanded={expanded}
+          onClick={(event) => {
+            event.stopPropagation()
+            onToggle()
+          }}
+          className="-mx-1 flex size-5 shrink-0 cursor-default items-center justify-center rounded-sm text-muted-foreground transition-colors duration-100 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid"
+        >
+          <Icon
+            name="chevron-right"
+            className={cn(
+              "size-3.5 transition-transform duration-100",
+              expanded && "rotate-90"
+            )}
+          />
+        </button>
+      )}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate type-ui-sm-medium">{name}</span>
         <span className="truncate type-ui-xs text-muted-foreground">
           {meta}
         </span>
       </span>
-      <span className="flex shrink-0 flex-col items-start gap-0.5">
+      <span className="flex shrink-0 flex-col items-end gap-0.5">
         {status}
         <span className="type-ui-xs text-muted-foreground tabular-nums">
-          {claims}
+          {progress}
         </span>
       </span>
     </div>

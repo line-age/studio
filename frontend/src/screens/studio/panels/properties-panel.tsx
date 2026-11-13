@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import {
   formatCount,
   geometryBounds,
-  plural,
+  groupsLabel,
   sectionStats,
   sectionLabel,
   selectionSize,
@@ -23,21 +23,19 @@ import type { Section } from "@/data/schema"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
-import { useSelectionGroups, useStudioData } from "../studio-data"
+import { useSelectionGroups } from "../studio-data"
 import { useStudio } from "../studio-store"
 
 export function PropertiesPanel() {
   const groups = useSelectionGroups()
-  const { nouns } = useStudioData()
 
   if (groups.length === 0) {
     return (
       <>
         <PanelHeader title="Nothing selected" divider />
         <Hint className="p-3">
-          Select {nouns.one === "edition" ? "an" : "a"} {nouns.one} in the list,
-          or a section on the map, to see its sections and which of their claims
-          are cited.
+          Select a row in the list, or a section on the map, to see its sections
+          and which of their claims are cited.
         </Hint>
       </>
     )
@@ -63,7 +61,6 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const requestFit = useStudio((s) => s.requestFit)
   const treeRef = useRef<HTMLDivElement>(null)
   const attachments = useSelectionAttachments()
-  const { nouns } = useStudioData()
 
   // A section picked on the map can be off screen in the tree: bring it in.
   useEffect(() => {
@@ -122,9 +119,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
     <>
       <PanelHeader
         icon="line"
-        title={
-          multi ? plural(groups.length, nouns.one, nouns.many) : single.name
-        }
+        title={multi ? groupsLabel(groups.map((g) => g.summary)) : single.name}
         meta={multi ? undefined : (single.code ?? undefined)}
         divider
       >

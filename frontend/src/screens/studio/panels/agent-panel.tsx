@@ -141,7 +141,7 @@ function PendingAttachments() {
           summary.unassigned
             ? plural(count, "section")
             : count === total
-              ? `Whole ${summary.kind}`
+              ? "Whole pipeline"
               : `${count} of ${plural(total, "section")}`
         }
         onRemove={remove}

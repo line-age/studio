@@ -145,11 +145,6 @@ export const networkSchema = z
   .object({
     version: z.literal(1),
     name: z.string().min(1),
-    /**
-     * What the list groups sections by. "edition" is for data that has no
-     * pipelines yet: each section goes under the edition that first shows it.
-     */
-    groupBy: z.enum(["pipeline", "edition"]).default("pipeline"),
     editions: z.array(edition).min(1),
     pipelines: z.array(pipeline),
     sections: z.array(section),

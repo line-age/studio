@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { editionProgress, summarise } from "@/data/derive"
+import { summarise } from "@/data/derive"
 import {
   ID_A,
   ID_B,
@@ -25,8 +25,7 @@ describe("toNetwork", () => {
     ])
   })
 
-  it("groups by edition while store has no pipelines", () => {
-    expect(network.groupBy).toBe("edition")
+  it("has no pipelines while store has none", () => {
     expect(network.pipelines).toEqual([])
     expect(network.sections.every((s) => s.pipelineId === null)).toBe(true)
   })
@@ -98,9 +97,8 @@ describe("toNetwork", () => {
       row.section_id === ID_A ? { ...row, line_id: "line-1" } : row
     )
     const out = toNetwork("Gas network", rows, storeFeatures())
-    expect(out.groupBy).toBe("pipeline")
     expect(out.sections.find((s) => s.id === ID_A)?.pipelineId).toBe("line-1")
-    expect(editionProgress(out)[0]).toMatchObject({ sections: 2, placed: 1 })
+    expect(out.pipelines.map((p) => p.id)).toEqual(["line-1"])
   })
 
   it("says so when store has nothing, or a section has no route", () => {
@@ -119,11 +117,9 @@ describe("toNetwork", () => {
   it("lists the sections under the edition that first shows them", () => {
     const groups = summarise(network, network.editions[1].id)
     expect(groups.map((g) => [g.name, g.sections.map((s) => s.id)])).toEqual([
-      ["1931 edition", [ID_A]],
-      ["1937 edition", [ID_B]],
+      ["Not in a pipeline, 1931 edition", [ID_A]],
+      ["Not in a pipeline, 1937 edition", [ID_B]],
     ])
-    expect(groups.every((g) => g.kind === "edition" && !g.unassigned)).toBe(
-      true
-    )
+    expect(groups.every((g) => g.unassigned)).toBe(true)
   })
 })

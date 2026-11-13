@@ -5,12 +5,12 @@ import { testNetwork } from "@/test/network"
 import { parseNetwork } from "./schema"
 import {
   NO_CRITERIA,
-  editionProgress,
   firstEdition,
   groupSelection,
+  groupsLabel,
   sectionLabel,
   selectionSize,
-  UNASSIGNED_ID,
+  firstSeenGroupId,
   addedSpan,
   attributeNames,
   buildYear,
@@ -53,9 +53,13 @@ describe("sectionStats", () => {
 
 describe("summarise", () => {
   it("lists pipelines in file order, then sections in no pipeline", () => {
-    expect(summaries.map((s) => s.id)).toEqual(["p-1", "p-2", UNASSIGNED_ID])
+    expect(summaries.map((s) => s.id)).toEqual([
+      "p-1",
+      "p-2",
+      firstSeenGroupId("ed-1937"),
+    ])
     expect(summaries[2]).toMatchObject({
-      name: "Not in a pipeline",
+      name: "Not in a pipeline, 1937 edition",
       code: null,
       unassigned: true,
     })
@@ -98,7 +102,10 @@ describe("filters", () => {
   it("narrows by the Show choice and by the map view", () => {
     const ids = (show: Parameters<typeof visiblePipelines>[1]) =>
       visiblePipelines(summaries, show).map((s) => s.id)
-    expect(ids({ show: "unknown", view: null })).toEqual(["p-1", UNASSIGNED_ID])
+    expect(ids({ show: "unknown", view: null })).toEqual([
+      "p-1",
+      firstSeenGroupId("ed-1937"),
+    ])
     expect(ids({ show: "all", view: [-1, 9, 3, 12] })).toEqual(["p-1"])
     expect(ids({ show: "all", view: [100, 0, 101, 1] })).toEqual([])
   })
@@ -255,11 +262,10 @@ describe("search", () => {
   })
 })
 
-describe("grouping by edition", () => {
+describe("sections in no pipeline", () => {
   // The same sections, in data that has no pipelines yet.
   const loose = parseNetwork({
     ...JSON.parse(JSON.stringify(network)),
-    groupBy: "edition",
     pipelines: [],
     sections: network.sections.map((s) => ({
       ...s,
@@ -276,10 +282,11 @@ describe("grouping by edition", () => {
   it("lists each edition with the sections it is the first to show", () => {
     const groups = summarise(loose, "ed-1937")
     expect(groups.map((g) => [g.name, g.sections.map((s) => s.id)])).toEqual([
-      ["1931 edition", ["s-1"]],
-      ["1937 edition", ["s-2", "s-3", "s-4"]],
+      ["Not in a pipeline, 1931 edition", ["s-1"]],
+      ["Not in a pipeline, 1937 edition", ["s-2", "s-3", "s-4"]],
     ])
-    expect(groups.every((g) => g.kind === "edition")).toBe(true)
+    expect(groups.every((g) => g.unassigned)).toBe(true)
+    expect(groups.map((g) => g.firstSeen?.year)).toEqual([1931, 1937])
   })
 
   it("shows only what an earlier edition shows when that one is in force", () => {
@@ -289,12 +296,13 @@ describe("grouping by edition", () => {
     ])
   })
 
-  it("words a selection by editions, not pipelines", () => {
+  it("words a selection without pipelines when it has none", () => {
     const groups = groupSelection(
       summarise(loose, "ed-1937"),
       new Set(["s-1", "s-2"])
     )
-    expect(selectionSize(groups)).toBe("2 sections in 2 editions")
+    expect(selectionSize(groups)).toBe("2 sections")
+    expect(groupsLabel(groups.map((g) => g.summary))).toBe("2 groups")
   })
 
   it("calls an unnamed section by its code, and finds it by it", () => {
@@ -304,19 +312,5 @@ describe("grouping by edition", () => {
     expect(hits[0].sections).toEqual([
       { sectionId: "s-4", name: "S-0004", code: null, reason: null },
     ])
-  })
-
-  it("counts, per edition, the sections placed in a pipeline", () => {
-    expect(
-      editionProgress(network).map((p) => [
-        p.edition.year,
-        p.sections,
-        p.placed,
-      ])
-    ).toEqual([
-      [1931, 2, 2],
-      [1937, 3, 2],
-    ])
-    expect(editionProgress(loose).every((p) => p.placed === 0)).toBe(true)
   })
 })

@@ -219,8 +219,6 @@ export function toNetwork(
   const input: InputNetwork = {
     version: 1,
     name,
-    // With no pipelines yet the list is grouped by edition.
-    groupBy: lineIds.length > 0 ? "pipeline" : "edition",
     editions,
     pipelines: lineIds.map((id) => ({
       id,

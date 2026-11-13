@@ -34,42 +34,24 @@ export interface Stats {
   proposals: number
 }
 
-/** What a group of sections in the list is. */
-export type GroupKind = Network["groupBy"]
-
-/** The words for a group: a pipeline, or an edition when there are none yet. */
-export interface GroupNouns {
-  one: string
-  many: string
-  /** The title of the list of groups. */
-  title: string
-}
-
-const NOUNS: Record<GroupKind, GroupNouns> = {
-  pipeline: { one: "pipeline", many: "pipelines", title: "Pipelines" },
-  edition: { one: "edition", many: "editions", title: "Sections" },
-}
-
-export function groupNouns(kind: GroupKind): GroupNouns {
-  return NOUNS[kind]
-}
-
 /** What a section goes by in words: its name, or its code when it has none. */
 export function sectionLabel(section: Section): string {
   return section.name ?? section.code
 }
 
 /**
- * One group of the list: a pipeline with its sections or, in data that has no
- * pipelines yet, an edition with the sections it is the first to show.
+ * One group of the list: a pipeline with its sections, or the sections that
+ * are in no pipeline and are first seen in one edition.
  */
 export interface PipelineSummary {
   id: string
-  kind: GroupKind
-  /** null for the "Not in a pipeline" group and for an edition. */
+  /** null for sections that are in no pipeline. */
   code: string | null
   name: string
+  /** The sections are in no pipeline. */
   unassigned: boolean
+  /** For sections in no pipeline: the edition that first shows them. */
+  firstSeen: Edition | null
   sections: Section[]
   stats: Stats
   /** One word for the group; "done" only when every section is done. */
@@ -118,8 +100,18 @@ export function groupSelection(
 /** "14 sections in 3 pipelines": the size of a selection in words. */
 export function selectionSize(groups: SelectionGroup[]): string {
   const sections = groups.reduce((n, g) => n + g.sections.length, 0)
-  const nouns = groupNouns(groups[0]?.summary.kind ?? "pipeline")
-  return `${plural(sections, "section")} in ${plural(groups.length, nouns.one, nouns.many)}`
+  const pipelines = groups.filter((g) => !g.summary.unassigned).length
+  const words = plural(sections, "section")
+  if (pipelines === 0) return words
+  if (pipelines < groups.length) return `${words}, some in no pipeline`
+  return `${words} in ${plural(pipelines, "pipeline")}`
+}
+
+/** "3 pipelines", or "3 groups" when some of them are not pipelines. */
+export function groupsLabel(groups: { unassigned: boolean }[]): string {
+  return groups.some((g) => g.unassigned)
+    ? plural(groups.length, "group")
+    : plural(groups.length, "pipeline")
 }
 
 export function sectionStats(section: Section): Stats {
@@ -211,43 +203,16 @@ export function firstEdition(
   return first
 }
 
-/** The id of the group that holds the sections first seen in an edition. */
-export function editionGroupId(editionId: string): string {
-  return `edition:${editionId}`
-}
-
-/** How far the work on one edition's sections has come. */
-export interface EditionProgress {
-  edition: Edition
-  /** Sections this edition is the first to show. */
-  sections: number
-  /** How many of those are placed in a pipeline. */
-  placed: number
-}
-
-/** Every edition, oldest first, with its own sections counted. */
-export function editionProgress(network: Network): EditionProgress[] {
-  const rows = new Map<string, EditionProgress>(
-    [...network.editions]
-      .sort((a, b) => a.year - b.year)
-      .map((edition) => [edition.id, { edition, sections: 0, placed: 0 }])
-  )
-  for (const section of network.sections) {
-    const first = firstEdition(network, section)
-    const row = first ? rows.get(first.id) : undefined
-    if (!row) continue
-    row.sections += 1
-    if (section.pipelineId !== null) row.placed += 1
-  }
-  return [...rows.values()]
+/** The id of the group of sections in no pipeline, first seen in an edition. */
+export function firstSeenGroupId(editionId: string): string {
+  return `${UNASSIGNED_ID}:${editionId}`
 }
 
 /**
- * The groups of the list for the edition in force. With pipelines: one
- * summary per pipeline that has a section in the edition, in file order, then
- * the sections that are in no pipeline, as one last group. Grouped by edition:
- * one summary per edition, oldest first, holding the sections it is the first
- * to show.
+ * The groups of the list for the edition in force: one summary per pipeline
+ * that has a section in the edition, in file order, then the sections that
+ * are in no pipeline, one group per edition that first shows them, oldest
+ * first. Data with no pipelines at all is only those last groups.
  */
 export function summarise(
   network: Network,
@@ -259,15 +224,15 @@ export function summarise(
     code: string | null,
     name: string,
     sections: Section[],
-    unassigned = false
+    firstSeen: Edition | null = null
   ): PipelineSummary => {
     const counts = statusCounts(sections, rule)
     return {
       id,
-      kind: network.groupBy,
       code,
       name,
-      unassigned,
+      unassigned: firstSeen !== null,
+      firstSeen,
       sections,
       stats: sumStats(sections),
       status: groupStatus(counts),
@@ -280,35 +245,20 @@ export function summarise(
     }
   }
 
-  if (network.groupBy === "edition") {
-    const byEdition = new Map<string, Section[]>()
-    for (const section of sectionsInEdition(network, editionId)) {
-      const first = firstEdition(network, section)
-      if (!first) continue
-      const list = byEdition.get(first.id)
-      if (list) list.push(section)
-      else byEdition.set(first.id, [section])
-    }
-    return [...network.editions]
-      .sort((a, b) => a.year - b.year)
-      .flatMap((edition) => {
-        const sections = byEdition.get(edition.id)
-        return sections
-          ? [build(editionGroupId(edition.id), null, edition.label, sections)]
-          : []
-      })
-  }
-
   const byPipeline = new Map<string, Section[]>()
-  const unassigned: Section[] = []
+  const byEdition = new Map<string, Section[]>()
+  const push = (map: Map<string, Section[]>, key: string, s: Section) => {
+    const list = map.get(key)
+    if (list) list.push(s)
+    else map.set(key, [s])
+  }
   for (const section of sectionsInEdition(network, editionId)) {
-    if (section.pipelineId === null) {
-      unassigned.push(section)
+    if (section.pipelineId !== null) {
+      push(byPipeline, section.pipelineId, section)
       continue
     }
-    const list = byPipeline.get(section.pipelineId)
-    if (list) list.push(section)
-    else byPipeline.set(section.pipelineId, [section])
+    const first = firstEdition(network, section)
+    if (first) push(byEdition, first.id, section)
   }
 
   const out: PipelineSummary[] = []
@@ -318,8 +268,19 @@ export function summarise(
       out.push(build(pipeline.id, pipeline.code, pipeline.name, sections))
     }
   }
-  if (unassigned.length > 0) {
-    out.push(build(UNASSIGNED_ID, null, "Not in a pipeline", unassigned, true))
+  for (const edition of [...network.editions].sort((a, b) => a.year - b.year)) {
+    const sections = byEdition.get(edition.id)
+    if (sections) {
+      out.push(
+        build(
+          firstSeenGroupId(edition.id),
+          null,
+          `Not in a pipeline, ${edition.label}`,
+          sections,
+          edition
+        )
+      )
+    }
   }
   return out
 }

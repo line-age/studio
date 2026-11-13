@@ -14,8 +14,8 @@ import { LoadBar } from "@/components/load-bar"
 import { PanelHeader } from "@/components/panel-header"
 import { RailItem } from "@/components/rail-item"
 import { Button } from "@/components/ui/button"
-import { matchesShow, plural, sectionLabel, unionBounds } from "@/data/derive"
-import { dataSource, fixtureUrl, loadNetwork } from "@/data/load-network"
+import { groupsLabel, sectionLabel, unionBounds } from "@/data/derive"
+import { fixtureUrl, loadNetwork } from "@/data/load-network"
 import { FixtureError } from "@/data/schema"
 import { StoreError } from "@/data/store/client"
 
@@ -23,7 +23,6 @@ import { LeftPanelContext, useLeftPanel } from "./left-panel-context"
 import { MapArea } from "./map/map-area"
 import { ShowPanels } from "./panel-toggle"
 import { AgentPanel } from "./panels/agent-panel"
-import { EditionsPanel } from "./panels/editions-panel"
 import { FiltersPanel } from "./panels/filters-panel"
 import { PipelinesPanel, SEARCH_INPUT_ID } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
@@ -37,8 +36,8 @@ import { filtersApplied, useStudio, type LeftPanel } from "./studio-store"
 import { TopBar, type Crumb } from "./top-bar"
 
 /*
- * Studio: the map desk. Top bar, rail, one left panel (Pipelines, Editions,
- * Filters or Agent), the map, and the properties of what is selected. One
+ * Studio: the map desk. Top bar, rail, one left panel (Sections, Filters
+ * or Agent), the map, and the properties of what is selected. One
  * button hides both side panels and leaves the rail. Read-only: it
  * shows the network and what the AI proposes; nothing can be changed here yet.
  */
@@ -126,7 +125,6 @@ function Frame({
   trail,
   onHome,
   agentWaiting = false,
-  listTitle = dataSource() === "store" ? "Sections" : "Pipelines",
   left,
   right,
   busy = false,
@@ -137,8 +135,6 @@ function Frame({
   onHome?: () => void
   /** The Agent has proposals the person has not decided on. */
   agentWaiting?: boolean
-  /** What the list of groups is called: "Pipelines", or "Sections". */
-  listTitle?: string
   left?: ReactNode
   right?: ReactNode
   busy?: boolean
@@ -161,15 +157,9 @@ function Frame({
         >
           <RailItem
             icon="line"
-            label={listTitle}
+            label="Sections"
             active={open && panel === "pipelines"}
             onClick={() => togglePanel("pipelines")}
-          />
-          <RailItem
-            icon="source"
-            label="Editions"
-            active={open && panel === "editions"}
-            onClick={() => togglePanel("editions")}
           />
           <RailItem
             icon="filter"
@@ -228,7 +218,7 @@ function Frame({
  * `home` clears the selection and shows the whole network again.
  */
 function useTrail(): { trail: Crumb[]; home: () => void } {
-  const { summaries, sectionById, nouns } = useStudioData()
+  const { summaries, sectionById } = useStudioData()
   const groups = useSelectionGroups()
   const sectionId = useStudio((s) => s.selectedSectionId)
   const select = useStudio((s) => s.select)
@@ -249,7 +239,7 @@ function useTrail(): { trail: Crumb[]; home: () => void } {
     trail.push({ label: groups[0].summary.name, onClick: whole })
   } else if (groups.length > 1) {
     trail.push({
-      label: plural(groups.length, nouns.one, nouns.many),
+      label: groupsLabel(groups.map((g) => g.summary)),
       onClick: whole,
     })
   }
@@ -265,9 +255,9 @@ function useTrail(): { trail: Crumb[]; home: () => void } {
 }
 
 function Loaded() {
-  const { network, summaries, nouns } = useStudioData()
+  const { network, summaries } = useStudioData()
   const { panel } = useLeftPanel()
-  const agentWaiting = summaries.some((s) => matchesShow(s, "proposals"))
+  const agentWaiting = summaries.some((s) => s.needsDecision)
   const { trail, home } = useTrail()
   return (
     <Frame
@@ -275,12 +265,10 @@ function Loaded() {
       trail={trail}
       onHome={home}
       agentWaiting={agentWaiting}
-      listTitle={nouns.title}
       left={
         <ViewTransition key={panel}>
           <div className="flex min-h-0 flex-1 flex-col">
             {panel === "pipelines" && <PipelinesPanel />}
-            {panel === "editions" && <EditionsPanel />}
             {panel === "filters" && <FiltersPanel />}
             {panel === "agent" && <AgentPanel />}
           </div>
