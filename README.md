@@ -1,58 +1,40 @@
-<div align="center">
-
 # Lineage Studio
 
-**A map desk for reviewing traced pipelines.**
-See every section, which of its claims are cited and which are still Unknown,
-and hand what you select to the Agent.
+The review app of [Lineage](https://github.com/line-age/controlplane): a web app that
+shows traced pipeline sections on a map, with the claims recorded about each section and
+the sources behind them.
 
-React 19 · TypeScript · Vite · Tailwind v4 · shadcn/ui · Mapbox GL JS
+One screen so far, read-only. It runs on an invented sample network, or on a local
+[store](https://github.com/line-age/store). Nothing can be edited, and the Agent panel
+does not answer.
 
-<img src="docs/screenshots/studio.jpg" alt="Lineage Studio: the pipeline list, the map with one pipeline selected, and its sections and claims on the right" width="100%">
+<img src="docs/screenshots/studio.jpg" alt="The pipeline list, the map with one pipeline selected, and its sections and claims on the right" width="100%">
 
-</div>
+## In this repo
 
-> [!NOTE]
-> Early work. One screen, **Studio**, runs read-only: on an invented sample network by
-> default, or on a local Lineage store. Nothing can be edited, and the Agent does not
-> answer.
+| Path | What |
+| --- | --- |
+| `frontend/` | The app: React 19, TypeScript, Vite, Tailwind v4, shadcn/ui, Mapbox GL JS |
+| `compose.yaml` | Builds the app and serves it with nginx, on the sample |
+| `compose.store.yaml` | The same, reading a local store |
+| `docs/screenshots/` | The images on this page |
 
-## What it does
+## What the screen has
 
-### Cited or Unknown, never a guess
-
-Every claim about a section (owner, diameter, build date, first and last seen, geometry)
-either carries a source or is marked **Unknown** in words. On the map a solid line means
-every claim is cited; a dotted line means something is still Unknown.
-
-### Select by list, by click or by lasso
-
-Tick pipelines in the list, click lines on the map, or draw a loop around an area. A
-selection can span several pipelines; the right panel lists it grouped by pipeline, with
-each section opening to its claims.
+- **List.** Pipelines, each with its section count, how many claims are cited and how many are
+  Unknown. Search by pipeline, section, code or value. Filters: company, build date, date
+  added, which claims are Unknown.
+- **Map.** One line per section. Solid: every claim has a source. Dotted: at least one
+  claim is Unknown.
+- **Selection.** Tick rows, click lines or draw a lasso loop. It can span pipelines. The
+  right panel lists the selected sections by pipeline, and each section's claims with
+  their sources.
+- **Agent panel.** Takes a selection as attachments to a message. Nothing is sent.
+- **Editions panel.** The map editions, how many sections each one first shows, and how
+  many of those are in a pipeline. Choosing one shows the network as of that edition.
+- **Panel button.** Hides both side panels; the same button on the map brings them back.
 
 <img src="docs/screenshots/multi-select.jpg" alt="Eleven sections in four pipelines selected with the lasso, listed by pipeline on the right" width="100%">
-
-### Ask the Agent about what you selected
-
-Any selection made on the map offers **Ask the Agent**. It opens the chat with the
-selection attached as references, one per pipeline, and the cursor in the message box.
-
-### Search and filters
-
-Search by pipeline, section, code or value; type `unknown owner` to find sections whose
-owner is Unknown. Narrow the list and the map by company, build date, the day a section
-was added, or by which claims are Unknown.
-
-### The whole map when you want it
-
-One button in the left panel's header hides both side panels and leaves the rail. The
-same button, floating at the top left of the map, brings them back. The selection stays.
-
-### Editions
-
-Each map edition is listed with how many of the sections it first shows are placed in a
-pipeline. Choosing an edition shows the network as that map has it.
 
 ## Quick start
 
