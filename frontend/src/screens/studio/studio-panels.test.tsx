@@ -8,6 +8,7 @@ import { testNetwork } from "@/test/network"
 import { LeftPanelContext } from "./left-panel-context"
 import { PipelinesPanel } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
+import { useSettings } from "./settings"
 import { StudioDataProvider } from "./studio-data"
 import { useStudio } from "./studio-store"
 
@@ -40,6 +41,8 @@ async function renderPanels() {
 }
 
 beforeEach(() => {
+  localStorage.clear()
+  useSettings.getState().reset()
   useStudio.setState(useStudio.getInitialState(), true)
 })
 
@@ -303,5 +306,44 @@ describe("Studio panels", () => {
     expect(row).toHaveTextContent("Not started")
     await user.click(row!)
     expect([...useStudio.getState().selection]).toEqual(["s-4"])
+  })
+
+  it("counts the sections by status, and one click narrows the list", async () => {
+    const user = userEvent.setup()
+    act(() => useSettings.getState().toggleRequired("Build date"))
+    await renderPanels()
+    const counts = screen.getByRole("group", { name: "Sections by status" })
+    const count = (name: RegExp) => within(counts).getByRole("button", { name })
+    expect(count(/^All/)).toHaveTextContent("All4")
+    expect(count(/^Done/)).toHaveTextContent("Done2")
+    expect(count(/^Not started/)).toHaveTextContent("Not started2")
+    expect(count(/^Needs your decision/)).toHaveTextContent("1")
+
+    await user.click(count(/^Not started/))
+    expect(count(/^Not started/)).toHaveAttribute("aria-pressed", "true")
+    const list = screen.getByRole("listbox", { name: "Sections" })
+    // North line stays: one of its two sections is not started.
+    expect(
+      within(list)
+        .getAllByRole("option")
+        .map((row) => row.textContent)
+    ).toEqual([
+      expect.stringContaining("North line"),
+      expect.stringContaining("1937 edition"),
+    ])
+
+    // In the right panel the section that does not match is dimmed.
+    await user.click(within(list).getByText("North line"))
+    const tree = screen.getByRole("tree")
+    const dimmed = within(tree)
+      .getAllByRole("treeitem")
+      .filter((row) => row.hasAttribute("data-dimmed"))
+    expect(dimmed.map((row) => row.textContent)).toEqual([
+      expect.stringContaining("Alder to Birch"),
+    ])
+
+    // The same count again takes the filter off.
+    await user.click(count(/^Not started/))
+    expect(useStudio.getState().status).toBe("all")
   })
 })

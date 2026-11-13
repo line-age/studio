@@ -15,15 +15,17 @@ import {
   groupsLabel,
   sectionStats,
   sectionLabel,
+  sectionMatches,
   selectionSize,
   sumStats,
   type SelectionGroup,
 } from "@/data/derive"
 import type { Section } from "@/data/schema"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
+import { cn } from "@/lib/utils"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
-import { useSelectionGroups } from "../studio-data"
+import { useCriteria, useSelectionGroups } from "../studio-data"
 import { useStudio } from "../studio-store"
 
 export function PropertiesPanel() {
@@ -61,6 +63,9 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const requestFit = useStudio((s) => s.requestFit)
   const treeRef = useRef<HTMLDivElement>(null)
   const attachments = useSelectionAttachments()
+  const criteria = useCriteria()
+  // Only the one-click filters dim: they are about the section itself.
+  const filtering = criteria.status !== "all" || criteria.needsDecision
 
   // A section picked on the map can be off screen in the tree: bring it in.
   useEffect(() => {
@@ -178,6 +183,16 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                   >
                     <TreeItem
                       role="treeitem"
+                      // Kept because its pipeline has a match; not one itself.
+                      className={cn(
+                        filtering &&
+                          !sectionMatches(section, criteria) &&
+                          "opacity-50"
+                      )}
+                      data-dimmed={
+                        (filtering && !sectionMatches(section, criteria)) ||
+                        undefined
+                      }
                       aria-level={1}
                       aria-expanded={open}
                       aria-selected={selected}

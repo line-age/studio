@@ -23,7 +23,6 @@ import {
   ComboboxValue,
   useComboboxAnchor,
 } from "@/components/ui/combobox"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   addedSpan,
   attributeNames,
@@ -32,21 +31,12 @@ import {
   formatCount,
   matchesUnknownIn,
   plural,
-  showCounts,
-  type ShowFilter,
 } from "@/data/derive"
 import { cn } from "@/lib/utils"
 
 import { HidePanels } from "../panel-toggle"
 import { useStudioData, useVisiblePipelines } from "../studio-data"
 import { filtersApplied, useStudio } from "../studio-store"
-
-const showOptions: { value: ShowFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "unknown", label: "With Unknown claims" },
-  { value: "proposals", label: "With proposals waiting" },
-  { value: "changed", label: "Changed since last review" },
-]
 
 function Group({
   title,
@@ -108,8 +98,6 @@ export function FiltersPanel() {
   const visible = useVisiblePipelines()
   const layers = useStudio((s) => s.layers)
   const toggleLayer = useStudio((s) => s.toggleLayer)
-  const show = useStudio((s) => s.show)
-  const setShow = useStudio((s) => s.setShow)
   const onlyInView = useStudio((s) => s.onlyInView)
   const setOnlyInView = useStudio((s) => s.setOnlyInView)
   const clearFilters = useStudio((s) => s.clearFilters)
@@ -125,7 +113,6 @@ export function FiltersPanel() {
   const setAdded = useStudio((s) => s.setAdded)
   const filtered = useStudio(filtersApplied)
 
-  const counts = useMemo(() => showCounts(summaries), [summaries])
   const otherYears = network.editions
     .filter((e) => e.id !== edition.id)
     .map((e) => e.year)
@@ -195,25 +182,6 @@ export function FiltersPanel() {
               onVisibleChange={() => toggleLayer("ghost")}
             />
           </ul>
-        </Group>
-
-        <Group title="Show">
-          <RadioGroup
-            aria-label="Show"
-            value={show}
-            onValueChange={(value) => setShow(value as ShowFilter)}
-            className="gap-0.5"
-          >
-            {showOptions.map((option) => (
-              <OptionRow
-                key={option.value}
-                control={<RadioGroupItem value={option.value} />}
-                label={option.label}
-                count={counts[option.value]}
-                selected={show === option.value}
-              />
-            ))}
-          </RadioGroup>
         </Group>
 
         {allCompanies.length > 0 && (

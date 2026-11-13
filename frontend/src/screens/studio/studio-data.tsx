@@ -73,21 +73,19 @@ export function useStudioData(): StudioData {
   return value
 }
 
-/** The pipelines the filters leave: the Show choice and, if on, the map view. */
+/** What the filters leave: the status, the criteria and, if on, the map view. */
 export function useVisiblePipelines(): PipelineSummary[] {
   const { summaries } = useStudioData()
-  const show = useStudio((s) => s.show)
   const onlyInView = useStudio((s) => s.onlyInView)
   const view = useStudio((s) => s.view)
   const criteria = useCriteria()
   return useMemo(
     () =>
       visiblePipelines(summaries, {
-        show,
         ...criteria,
         view: onlyInView ? view : null,
       }),
-    [summaries, show, criteria, onlyInView, view]
+    [summaries, criteria, onlyInView, view]
   )
 }
 
@@ -101,7 +99,7 @@ export function useSelectionGroups(): SelectionGroup[] {
   )
 }
 
-/** The section criteria chosen in the Filters panel. */
+/** What a section has to satisfy: the status chosen and the filters. */
 export function useCriteria(): SectionCriteria {
   const unknownIn = useStudio((s) => s.unknownIn)
   const companies = useStudio((s) => s.companies)
@@ -109,9 +107,32 @@ export function useCriteria(): SectionCriteria {
   const builtTo = useStudio((s) => s.builtTo)
   const addedFrom = useStudio((s) => s.addedFrom)
   const addedTo = useStudio((s) => s.addedTo)
+  const status = useStudio((s) => s.status)
+  const needsDecision = useStudio((s) => s.needsDecisionOnly)
+  const rule = useSettings((s) => s.requiredAttributes)
   return useMemo(
-    () => ({ unknownIn, companies, builtFrom, builtTo, addedFrom, addedTo }),
-    [unknownIn, companies, builtFrom, builtTo, addedFrom, addedTo]
+    () => ({
+      unknownIn,
+      companies,
+      builtFrom,
+      builtTo,
+      addedFrom,
+      addedTo,
+      status,
+      needsDecision,
+      rule,
+    }),
+    [
+      unknownIn,
+      companies,
+      builtFrom,
+      builtTo,
+      addedFrom,
+      addedTo,
+      status,
+      needsDecision,
+      rule,
+    ]
   )
 }
 

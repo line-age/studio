@@ -30,7 +30,6 @@ import {
   plural,
   type PipelineSummary,
   type SearchHit,
-  type ShowFilter,
 } from "@/data/derive"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
@@ -47,22 +46,9 @@ import {
 import { useCamera, useStudio } from "../studio-store"
 import { EditionSelect } from "./edition-select"
 import { SectionListRow } from "./section-list-row"
+import { StatusCounts } from "./status-counts"
 
 export const SEARCH_INPUT_ID = "pipeline-search"
-
-const showLabels: Record<ShowFilter, string> = {
-  all: "All",
-  unknown: "With Unknown claims",
-  proposals: "With proposals waiting",
-  changed: "Changed since last review",
-}
-
-const showHint: Record<ShowFilter, string> = {
-  all: "Everything.",
-  unknown: "Only what has at least one Unknown claim.",
-  proposals: "Only what has a proposal from the Agent waiting for you.",
-  changed: "Only what changed since the last review.",
-}
 
 export function PipelinesPanel() {
   const { summaries } = useStudioData()
@@ -72,14 +58,12 @@ export function PipelinesPanel() {
   const setWhole = useStudio((s) => s.setSearchWholeEdition)
   const query = useStudio((s) => s.query)
   const setQuery = useStudio((s) => s.setQuery)
-  const show = useStudio((s) => s.show)
   const onlyInView = useStudio((s) => s.onlyInView)
   const unknownIn = useStudio((s) => s.unknownIn)
   const companies = useStudio((s) => s.companies)
   const builtFrom = useStudio((s) => s.builtFrom)
   const builtTo = useStudio((s) => s.builtTo)
   const added = useStudio((s) => formatDateRange(s.addedFrom, s.addedTo))
-  const setShow = useStudio((s) => s.setShow)
   const setOnlyInView = useStudio((s) => s.setOnlyInView)
   const toggleUnknownIn = useStudio((s) => s.toggleUnknownIn)
   const setCompanies = useStudio((s) => s.setCompanies)
@@ -101,13 +85,6 @@ export function PipelinesPanel() {
       remove: () => setWhole(false),
     })
   } else {
-    if (show !== "all") {
-      chips.push({
-        label: showLabels[show],
-        hint: showHint[show],
-        remove: () => setShow("all"),
-      })
-    }
     if (unknownIn.length > 0) {
       chips.push({
         label: `Unknown ${unknownIn.join(", ").toLocaleLowerCase()}`,
@@ -222,6 +199,7 @@ export function PipelinesPanel() {
           />
           {!searching && <Kbd className="absolute top-1.5 right-1.5">/</Kbd>}
         </div>
+        <StatusCounts />
         {chips.length > 0 && (
           <div
             role="group"

@@ -3,6 +3,7 @@ import {
   DEFAULT_REQUIRED,
   groupStatus,
   needsDecision,
+  sectionStatus,
   statusCounts,
   unknownByAttribute,
   type SectionStatus,
@@ -20,8 +21,6 @@ import {
 export type Bounds = [number, number, number, number]
 
 export const UNASSIGNED_ID = "unassigned"
-
-export type ShowFilter = "all" | "unknown" | "proposals" | "changed"
 
 export interface Stats {
   /** Claims in total. */
@@ -285,22 +284,6 @@ export function summarise(
   return out
 }
 
-export function matchesShow(
-  summary: PipelineSummary,
-  show: ShowFilter
-): boolean {
-  switch (show) {
-    case "all":
-      return true
-    case "unknown":
-      return summary.stats.unknown > 0
-    case "proposals":
-      return summary.stats.proposals > 0
-    case "changed":
-      return summary.changed
-  }
-}
-
 /** The attribute that holds the company, and the one that holds the build year. */
 export const COMPANY_ATTRIBUTE = "Owner"
 export const BUILD_DATE_ATTRIBUTE = "Build date"
@@ -317,6 +300,12 @@ export interface SectionCriteria {
   /** The section's record was added in this range of ISO days, ends included. */
   addedFrom: string | null
   addedTo: string | null
+  /** The section has this status. */
+  status: SectionStatus | "all"
+  /** A proposal is waiting on the section. */
+  needsDecision: boolean
+  /** The status rule: the attributes that must be cited. */
+  rule: StatusRule
 }
 
 export const NO_CRITERIA: SectionCriteria = {
@@ -326,6 +315,9 @@ export const NO_CRITERIA: SectionCriteria = {
   builtTo: null,
   addedFrom: null,
   addedTo: null,
+  status: "all",
+  needsDecision: false,
+  rule: DEFAULT_REQUIRED,
 }
 
 const valueOf = (section: Section, attribute: string) =>
@@ -349,7 +341,9 @@ export function hasCriteria(criteria: SectionCriteria): boolean {
     criteria.builtFrom !== null ||
     criteria.builtTo !== null ||
     criteria.addedFrom !== null ||
-    criteria.addedTo !== null
+    criteria.addedTo !== null ||
+    criteria.status !== "all" ||
+    criteria.needsDecision
   )
 }
 
@@ -360,6 +354,13 @@ export function sectionMatches(
 ): boolean {
   const { unknownIn, companies, builtFrom, builtTo, addedFrom, addedTo } =
     criteria
+  if (
+    criteria.status !== "all" &&
+    sectionStatus(section, criteria.rule) !== criteria.status
+  ) {
+    return false
+  }
+  if (criteria.needsDecision && !needsDecision(section)) return false
   if (
     unknownIn.length > 0 &&
     !section.claims.some(
@@ -458,21 +459,49 @@ export function attributeNames(summaries: PipelineSummary[]): string[] {
   return [...names]
 }
 
-export function showCounts(
-  summaries: PipelineSummary[]
-): Record<ShowFilter, number> {
-  const counts: Record<ShowFilter, number> = {
-    all: 0,
-    unknown: 0,
-    proposals: 0,
-    changed: 0,
+/** What the row of counts above the list shows, all in sections. */
+export interface FilterCounts {
+  all: number
+  status: StatusCounts
+  needsDecision: number
+}
+
+/**
+ * How many sections each one-click filter would leave, given the other
+ * filters in force. The status counts ignore the status chosen, so each
+ * says what choosing it would show; they follow "Needs your decision" when
+ * it is on. That count in turn follows the status chosen.
+ */
+export function filterCounts(
+  summaries: PipelineSummary[],
+  criteria: SectionCriteria,
+  view: Bounds | null = null
+): FilterCounts {
+  const others = { ...criteria, status: "all" as const, needsDecision: false }
+  const status: StatusCounts = {
+    "not-started": 0,
+    "in-progress": 0,
+    sufficient: 0,
+    done: 0,
   }
+  let all = 0
+  let waiting = 0
   for (const summary of summaries) {
-    for (const key of Object.keys(counts) as ShowFilter[]) {
-      if (matchesShow(summary, key)) counts[key] += 1
+    if (!inView(summary, view)) continue
+    for (const section of summary.sections) {
+      if (!sectionMatches(section, others)) continue
+      const own = sectionStatus(section, criteria.rule)
+      const decide = needsDecision(section)
+      if (!criteria.needsDecision || decide) {
+        all += 1
+        status[own] += 1
+      }
+      if (decide && (criteria.status === "all" || criteria.status === own)) {
+        waiting += 1
+      }
     }
   }
-  return counts
+  return { all, status, needsDecision: waiting }
 }
 
 export function inView(summary: PipelineSummary, view: Bounds | null): boolean {
@@ -485,14 +514,11 @@ export function inView(summary: PipelineSummary, view: Bounds | null): boolean {
 
 export function visiblePipelines(
   summaries: PipelineSummary[],
-  filters: { show: ShowFilter; view: Bounds | null } & Partial<SectionCriteria>
+  filters: { view: Bounds | null } & Partial<SectionCriteria>
 ): PipelineSummary[] {
   const criteria = { ...NO_CRITERIA, ...filters }
   return summaries.filter(
-    (s) =>
-      matchesShow(s, filters.show) &&
-      matchesCriteria(s, criteria) &&
-      inView(s, filters.view)
+    (s) => matchesCriteria(s, criteria) && inView(s, filters.view)
   )
 }
 

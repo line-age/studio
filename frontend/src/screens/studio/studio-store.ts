@@ -1,6 +1,7 @@
 import { create } from "zustand"
 
-import type { Bounds, ShowFilter } from "@/data/derive"
+import type { Bounds } from "@/data/derive"
+import type { SectionStatus } from "@/data/status"
 
 /*
  * What the person has chosen on the Studio screen. Data lives in the network
@@ -37,7 +38,10 @@ export type MapTool = "select" | "lasso"
 
 interface StudioState {
   editionId: string | null
-  show: ShowFilter
+  /** Keep what has a section with this status. */
+  status: SectionStatus | "all"
+  /** Keep what has a section with a proposal waiting. */
+  needsDecisionOnly: boolean
   onlyInView: boolean
   /** Keep pipelines with an Unknown value for one of these attributes. */
   unknownIn: readonly string[]
@@ -71,7 +75,9 @@ interface StudioState {
   agentAsked: number
 
   setEdition: (editionId: string) => void
-  setShow: (show: ShowFilter) => void
+  /** Choose a status; the one already chosen goes back to all. */
+  setStatus: (status: SectionStatus | "all") => void
+  setNeedsDecisionOnly: (on: boolean) => void
   setOnlyInView: (on: boolean) => void
   toggleUnknownIn: (attribute: string) => void
   toggleCompany: (company: string) => void
@@ -156,7 +162,8 @@ let nonce = 0
 
 /** True when a filter differs from how the screen opens (see clearFilters). */
 export const filtersApplied = (s: StudioState) =>
-  s.show !== "all" ||
+  s.status !== "all" ||
+  s.needsDecisionOnly ||
   !s.onlyInView ||
   s.unknownIn.length > 0 ||
   s.companies.length > 0 ||
@@ -167,7 +174,8 @@ export const filtersApplied = (s: StudioState) =>
 
 export const useStudio = create<StudioState>((set) => ({
   editionId: null,
-  show: "all",
+  status: "all",
+  needsDecisionOnly: false,
   onlyInView: true,
   unknownIn: [],
   companies: [],
@@ -195,7 +203,9 @@ export const useStudio = create<StudioState>((set) => ({
       selectedAttribute: null,
       expandedSectionIds: new Set(),
     }),
-  setShow: (show) => set({ show }),
+  setStatus: (status) =>
+    set((s) => ({ status: s.status === status ? "all" : status })),
+  setNeedsDecisionOnly: (needsDecisionOnly) => set({ needsDecisionOnly }),
   setOnlyInView: (onlyInView) => set({ onlyInView }),
   toggleUnknownIn: (attribute) =>
     set((s) => ({
@@ -217,7 +227,8 @@ export const useStudio = create<StudioState>((set) => ({
   setAdded: (addedFrom, addedTo) => set({ addedFrom, addedTo }),
   clearFilters: () =>
     set({
-      show: "all",
+      status: "all",
+      needsDecisionOnly: false,
       onlyInView: true,
       unknownIn: [],
       companies: [],

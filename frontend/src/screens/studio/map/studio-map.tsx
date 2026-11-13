@@ -14,7 +14,6 @@ import { MapControl } from "@/components/map-control"
 import { ToolPalette } from "@/components/tool-palette"
 import { Button } from "@/components/ui/button"
 import {
-  matchesShow,
   matchesCriteria,
   sectionStats,
   sectionsOutsideEdition,
@@ -75,7 +74,6 @@ export function StudioMap({ token }: { token: string }) {
   const [failed, setFailed] = useState(false)
 
   const layers = useStudio((s) => s.layers)
-  const show = useStudio((s) => s.show)
   const criteria = useCriteria()
   const selected = useStudio((s) => s.selection)
   const groups = useSelectionGroups()
@@ -126,15 +124,12 @@ export function StudioMap({ token }: { token: string }) {
     return () => observer.disconnect()
   }, [])
 
-  // The sections of this edition whose pipeline passes the Show filter.
+  // The sections of this edition whose pipeline passes the filters.
   const current = useMemo(
     () =>
       collection(
         summaries
-          .filter(
-            (summary) =>
-              matchesShow(summary, show) && matchesCriteria(summary, criteria)
-          )
+          .filter((summary) => matchesCriteria(summary, criteria))
           .flatMap((summary) =>
             summary.sections.map((section) => ({
               type: "Feature" as const,
@@ -147,7 +142,7 @@ export function StudioMap({ token }: { token: string }) {
             }))
           )
       ),
-    [summaries, show, criteria]
+    [summaries, criteria]
   )
 
   const ghosts = useMemo(

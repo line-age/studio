@@ -26,7 +26,7 @@ import {
   search,
   sectionStats,
   sectionsOutsideEdition,
-  showCounts,
+  filterCounts,
   summarise,
   visiblePipelines,
 } from "./derive"
@@ -90,24 +90,51 @@ describe("summarise", () => {
 })
 
 describe("filters", () => {
-  it("counts pipelines per Show choice", () => {
-    expect(showCounts(summaries)).toEqual({
-      all: 3,
-      unknown: 2,
-      proposals: 1,
-      changed: 1,
+  const two = { ...NO_CRITERIA, rule: ["Owner", "Diameter"] }
+
+  it("counts sections by status, and the counts add up to All", () => {
+    const counts = filterCounts(summaries, two)
+    expect(counts).toEqual({
+      all: 4,
+      status: { "not-started": 2, "in-progress": 0, sufficient: 0, done: 2 },
+      needsDecision: 1,
     })
+    expect(Object.values(counts.status).reduce((a, b) => a + b)).toBe(
+      counts.all
+    )
   })
 
-  it("narrows by the Show choice and by the map view", () => {
-    const ids = (show: Parameters<typeof visiblePipelines>[1]) =>
-      visiblePipelines(summaries, show).map((s) => s.id)
-    expect(ids({ show: "unknown", view: null })).toEqual([
+  it("keeps each count true to what choosing it would show", () => {
+    // A status chosen does not change the status counts, only the mark's.
+    const done = filterCounts(summaries, { ...two, status: "done" })
+    expect(done.status["not-started"]).toBe(2)
+    expect(done.needsDecision).toBe(0)
+    // The mark narrows the status counts to sections with a proposal.
+    const waiting = filterCounts(summaries, { ...two, needsDecision: true })
+    expect(waiting.all).toBe(1)
+    expect(waiting.status["not-started"]).toBe(1)
+  })
+
+  it("keeps a pipeline when any of its sections has the status", () => {
+    const ids = (filters: Parameters<typeof visiblePipelines>[1]) =>
+      visiblePipelines(summaries, filters).map((s) => s.id)
+    // North line has one done section and one not started: it stays for both.
+    expect(ids({ ...two, status: "done", view: null })).toEqual(["p-1", "p-2"])
+    expect(ids({ ...two, status: "not-started", view: null })).toEqual([
       "p-1",
       firstSeenGroupId("ed-1937"),
     ])
-    expect(ids({ show: "all", view: [-1, 9, 3, 12] })).toEqual(["p-1"])
-    expect(ids({ show: "all", view: [100, 0, 101, 1] })).toEqual([])
+    expect(ids({ ...two, needsDecision: true, view: null })).toEqual(["p-1"])
+    expect(
+      ids({ ...two, status: "done", needsDecision: true, view: null })
+    ).toEqual([])
+  })
+
+  it("narrows by the map view", () => {
+    const ids = (filters: Parameters<typeof visiblePipelines>[1]) =>
+      visiblePipelines(summaries, filters).map((s) => s.id)
+    expect(ids({ view: [-1, 9, 3, 12] })).toEqual(["p-1"])
+    expect(ids({ view: [100, 0, 101, 1] })).toEqual([])
   })
 
   it("narrows to pipelines with an Unknown value for a chosen attribute", () => {
@@ -124,7 +151,6 @@ describe("filters", () => {
         .map((s) => s.id)
       expect(
         visiblePipelines(summaries, {
-          show: "all",
           view: null,
           unknownIn: [name],
         }).map((s) => s.id)
@@ -137,7 +163,6 @@ describe("filters", () => {
     expect(companies.length).toBeGreaterThan(0)
     for (const { name, count } of companies) {
       const kept = visiblePipelines(summaries, {
-        show: "all",
         view: null,
         companies: [name],
       })
