@@ -66,8 +66,6 @@ interface StudioState {
   /** The map's current view; null until the map has drawn once. */
   view: Bounds | null
   fit: FitRequest | null
-  /** The person has shut the properties panel. Selecting something opens it again. */
-  propertiesHidden: boolean
   agentAttachments: AgentAttachment[]
   /** Goes up each time something is handed to the Agent; the chat takes focus. */
   agentAsked: number
@@ -110,7 +108,6 @@ interface StudioState {
   setView: (view: Bounds) => void
   /** `follow` also moves the "in view" list to the new place. */
   requestFit: (bounds: Bounds | null, follow?: boolean) => void
-  toggleProperties: () => void
   attachToAgent: (items: AgentAttachment[]) => void
   /** Attach, and ask the chat to take the cursor. */
   askAgent: (items: AgentAttachment[]) => void
@@ -188,7 +185,6 @@ export const useStudio = create<StudioState>((set) => ({
   expandedSectionIds: new Set(),
   view: null,
   fit: null,
-  propertiesHidden: false,
   agentAttachments: [],
   agentAsked: 0,
 
@@ -240,13 +236,11 @@ export const useStudio = create<StudioState>((set) => ({
   select: (sectionIds) =>
     set({
       ...selected(sectionIds),
-      propertiesHidden: false,
       selectedAttribute: null,
     }),
   addToSelection: (sectionIds) =>
     set((s) => ({
       ...selected([...s.selection, ...sectionIds]),
-      propertiesHidden: false,
       selectedAttribute: null,
     })),
   toggleSelected: (sectionIds) =>
@@ -260,7 +254,6 @@ export const useStudio = create<StudioState>((set) => ({
       const settled = selected(next)
       return {
         ...settled,
-        propertiesHidden: false,
         selectedAttribute:
           settled.selectedSectionId &&
           settled.selectedSectionId === s.selectedSectionId
@@ -271,7 +264,6 @@ export const useStudio = create<StudioState>((set) => ({
   selectSection: (sectionId) =>
     set((s) => ({
       ...selected([sectionId]),
-      propertiesHidden: false,
       selectedAttribute: null,
       expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
     })),
@@ -284,7 +276,6 @@ export const useStudio = create<StudioState>((set) => ({
   selectAttribute: (sectionId, attribute, keep = false) =>
     set((s) => ({
       ...(keep ? { selectedSectionId: sectionId } : selected([sectionId])),
-      propertiesHidden: false,
       selectedAttribute: attribute,
       expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
     })),
@@ -303,8 +294,6 @@ export const useStudio = create<StudioState>((set) => ({
   setView: (view) => set({ view }),
   requestFit: (bounds, follow = false) =>
     set(bounds ? { fit: { bounds, nonce: (nonce += 1), follow } } : {}),
-  toggleProperties: () =>
-    set((s) => ({ propertiesHidden: !s.propertiesHidden })),
   // One attachment per pipeline: adding to a pipeline already attached
   // widens that attachment.
   attachToAgent: (items) =>

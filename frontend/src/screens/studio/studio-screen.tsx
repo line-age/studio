@@ -21,6 +21,7 @@ import { StoreError } from "@/data/store/client"
 
 import { LeftPanelContext, useLeftPanel } from "./left-panel-context"
 import { MapArea } from "./map/map-area"
+import { ShowPanels } from "./panel-toggle"
 import { AgentPanel } from "./panels/agent-panel"
 import { EditionsPanel } from "./panels/editions-panel"
 import { FiltersPanel } from "./panels/filters-panel"
@@ -36,8 +37,9 @@ import { filtersApplied, useStudio, type LeftPanel } from "./studio-store"
 import { TopBar, type Crumb } from "./top-bar"
 
 /*
- * Studio: the map desk. Top bar, rail, one left panel (Pipelines, Filters or
- * Agent), the map, and the properties of what is selected. Read-only: it
+ * Studio: the map desk. Top bar, rail, one left panel (Pipelines, Editions,
+ * Filters or Agent), the map, and the properties of what is selected. One
+ * button hides both side panels and leaves the rail. Read-only: it
  * shows the network and what the AI proposes; nothing can be changed here yet.
  */
 export function StudioScreen() {
@@ -145,21 +147,13 @@ function Frame({
 }) {
   const { panel, open, togglePanel } = useLeftPanel()
   const hasSelection = useStudio((s) => s.selection.size > 0)
-  const propertiesHidden = useStudio((s) => s.propertiesHidden)
-  const toggleProperties = useStudio((s) => s.toggleProperties)
-  const rightOpen = hasSelection && !propertiesHidden
+  // Hiding the side panels hides both; the rail stays.
+  const rightOpen = open && hasSelection
   // Applied means different from how the screen opens (see clearFilters).
   const hasFilters = useStudio(filtersApplied)
   return (
     <>
-      <TopBar
-        networkName={networkName}
-        trail={trail}
-        onRoot={onHome}
-        rightOpen={rightOpen}
-        rightAvailable={hasSelection}
-        onToggleRight={toggleProperties}
-      />
+      <TopBar networkName={networkName} trail={trail} onRoot={onHome} />
       <div className="flex min-h-0 flex-1" aria-busy={busy}>
         <nav
           aria-label="Panels"
@@ -211,6 +205,7 @@ function Frame({
           className="relative min-w-0 flex-1 bg-map-basemap outline-none"
         >
           {children}
+          {!open && <ShowPanels className="absolute top-3 left-3 z-10" />}
         </main>
         {/* The properties panel is there only while something is selected. */}
         <SidePanel

@@ -23,7 +23,6 @@ import type { Section } from "@/data/schema"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
-import { PropertiesToggle } from "../panel-toggle"
 import { useSelectionGroups, useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
 
@@ -135,7 +134,6 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
         {stats.unknown > 0 && (
           <Badge variant="unknown">{formatCount(stats.unknown)} Unknown</Badge>
         )}
-        <PropertiesToggle />
       </PanelHeader>
       <ListHeader
         label="Sections"

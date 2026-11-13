@@ -25,19 +25,12 @@ export function TopBar({
   networkName,
   trail = [],
   onRoot,
-  rightOpen,
-  rightAvailable,
-  onToggleRight,
 }: {
   networkName?: string
   /** The selected pipeline, then the selected section. */
   trail?: Crumb[]
   /** Clears the selection: what the app name does when there is a trail. */
   onRoot?: () => void
-  rightOpen: boolean
-  /** False while nothing is selected: there are no properties to show. */
-  rightAvailable: boolean
-  onToggleRight: () => void
 }) {
   return (
     <header className="flex h-topbar shrink-0 items-center justify-between bg-topbar px-3 text-topbar-foreground">
@@ -114,16 +107,6 @@ export function TopBar({
         <TopbarButton>Settings</TopbarButton>
         <TopbarButton>Export</TopbarButton>
         <Button className="ml-2.5">Review changes</Button>
-        {rightAvailable && !rightOpen && (
-          <TopbarButton
-            kind="icon"
-            aria-label="Show the properties panel"
-            onClick={onToggleRight}
-            className="ml-2.5"
-          >
-            <Icon name="panel-right" />
-          </TopbarButton>
-        )}
       </div>
     </header>
   )

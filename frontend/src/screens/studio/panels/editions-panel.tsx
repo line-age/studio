@@ -18,7 +18,7 @@ import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
 import { useLeftPanel } from "../left-panel-context"
-import { LeftPanelToggle } from "../panel-toggle"
+import { HidePanels } from "../panel-toggle"
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
 
@@ -53,7 +53,7 @@ export function EditionsPanel() {
   return (
     <>
       <PanelHeader title="Editions" meta={formatCount(rows.length)} divider>
-        <LeftPanelToggle />
+        <HidePanels />
       </PanelHeader>
       <Hint className="shrink-0 border-b px-3 py-2">
         Choose an edition to see the network as that map shows it. A section

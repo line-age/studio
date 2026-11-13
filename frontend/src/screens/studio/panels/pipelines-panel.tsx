@@ -35,7 +35,7 @@ import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
 import { AddToAgentMenu } from "../add-to-agent"
-import { LeftPanelToggle } from "../panel-toggle"
+import { HidePanels } from "../panel-toggle"
 import {
   useSearchHits,
   useSelectionGroups,
@@ -184,7 +184,7 @@ export function PipelinesPanel() {
             : `${formatCount(visible.length)} ${onlyInView ? "in view" : "shown"}`
         }
       >
-        <LeftPanelToggle />
+        <HidePanels />
       </PanelHeader>
 
       <div className="flex shrink-0 flex-col gap-2 border-b px-3 pb-2.5">

@@ -3,18 +3,22 @@ import { createContext, use } from "react"
 import type { LeftPanel } from "./studio-store"
 
 /*
- * Which left panel is open. It is React state (not the store) so the switch
- * can run inside a transition and animate.
+ * Which left panel is showing, and whether the side panels are open at all.
+ * It is React state (not the store) so the switch can run inside a transition
+ * and animate.
  */
 interface LeftPanelValue {
   panel: LeftPanel
-  /** False when the person has shut the left panel from the rail. */
+  /**
+   * False when the person has hidden the side panels. It covers both: the
+   * left panel and the properties on the right. The rail stays.
+   */
   open: boolean
-  /** Show this panel, opening the left side if it is shut. */
+  /** Show this panel, bringing the side panels back if they are hidden. */
   openPanel: (panel: LeftPanel) => void
-  /** The rail: the open panel's own item shuts the left side. */
+  /** The rail: the open panel's own item hides the side panels. */
   togglePanel: (panel: LeftPanel) => void
-  /** Show or hide the left side, keeping the panel that was open. */
+  /** Show or hide both side panels, keeping the panel that was open. */
   toggleOpen: () => void
 }
 

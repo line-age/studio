@@ -181,8 +181,8 @@ Where code knowingly differs from the Figma frame:
 - The edition label at the bottom left of the map is removed (the Filters panel and the
   list badges say the edition).
 - The right panel is shown only while something is selected (no "Nothing selected"
-  state on screen). A click on empty map steps the selection back, then clears it. The
-  open panel's rail item shuts the left panel. Both slide over 200 ms.
+  state on screen). A click on empty map steps the selection back, then clears it. Both
+  side panels slide over 200 ms.
 - The Filters panel has criteria Figma lacks: "Company" (shadcn Combobox, multiple: type to
   find, chosen ones are chips; values from the Owner attribute), "Build date" (from and to, each a `YearPicker`: shadcn Popover with a grid of twelve years) "Added to Lineage" (From and
   To fields, drawn like Build date, that open one shadcn Calendar in range mode, over the section's `addedAt`) and "Unknown in", a
@@ -194,10 +194,15 @@ Where code knowingly differs from the Figma frame:
 - The breadcrumb is the app name, then the selected pipeline, then the selected section;
   earlier crumbs step back. The network name is not shown (owner, 2026-11-12); Figma
   shows app and network.
-- Each side panel's header ends with a panel icon (`panel-left`, `panel-right`, added in
-  code, not yet on the Icons page) that shuts the panel; while the right panel is shut, the same
-  icon sits at the right of the top bar to open it. The left panel is opened again from
-  the rail.
+- One button hides both side panels, the way Figma's own "minimize UI" does (owner,
+  2026-11-13). Every left panel's header ends with the `panel-left` icon (added in code,
+  not yet on the Icons page): it hides the left panel and the properties panel together.
+  The rail stays. While they are hidden the same icon floats at the top left of the map
+  (a `MapControl`) and brings both back; so does any rail item, the search button and
+  "Ask the Agent". The open panel's own rail item hides both as well. A new selection
+  does not bring them back. The properties panel has no button of its own, and the top
+  bar has none. `panel-right` is in the icon set but unused. The Mapbox logo moved to the
+  bottom left of the map so the floating button does not cover it.
 - The table button, the "Scanned map" layer row and the draw tools after Lasso are
   hidden until they do something. The filter badges under the search box each carry a
   remove button (`FilterChip`) and the row shows only filters that are set; the edition

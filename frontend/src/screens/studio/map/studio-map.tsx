@@ -356,7 +356,7 @@ export function StudioMap({ token }: { token: string }) {
             dragPan={tool !== "lasso"}
             boxZoom={false}
             onMouseDown={onMouseDown}
-            logoPosition="top-left"
+            logoPosition="bottom-left"
             attributionControl={false}
             dragRotate={false}
             trackResize={false}

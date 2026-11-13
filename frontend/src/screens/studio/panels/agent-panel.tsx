@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { plural, sectionLabel } from "@/data/derive"
 import type { ThreadItem } from "@/data/schema"
 
-import { LeftPanelToggle } from "../panel-toggle"
+import { HidePanels } from "../panel-toggle"
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
 
@@ -168,7 +168,7 @@ export function AgentPanel() {
   return (
     <>
       <PanelHeader title="Agent" divider>
-        <LeftPanelToggle />
+        <HidePanels />
       </PanelHeader>
       <div
         role="log"
