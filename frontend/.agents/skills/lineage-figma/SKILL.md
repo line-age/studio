@@ -102,7 +102,7 @@ Lineage parts, with no shadcn equivalent. Build them from the controls above and
 | Pin | `81:369` | Note | `81:373` |
 | ProposalLink | `81:408` | MapLabel | `81:545` |
 | MapHandle | `81:553` | ProposalCard | `81:621` |
-| Citation | `81:625` | | |
+| Citation | `81:625` | SelectionBar | `172:553` |
 
 Naming in code: the React component keeps the Figma name (`PipelineRow`); the file is
 kebab-case (`pipeline-row.tsx`). Figma variant properties become props of the same name
@@ -126,7 +126,7 @@ These are intended. Do not "fix" them back to shadcn defaults.
 
 ## Rules the design serves
 
-- A fact is cited or Unknown. Unknown has one mark: the orange word with a dotted
+- A claim is cited or Unknown. Unknown has one mark: the orange word with a dotted
   underline (StatusLabel), a dotted line on the map. Never a greyed value, blank or dash.
 - State colours (AI purple, cited green, Unknown orange, rejected red, note yellow)
   always appear with their word, never colour alone.
@@ -141,6 +141,10 @@ As of 2026-11-12 the Studio screen (`24:3`) and its three state panels are built
 `src/components/`, icons in `src/components/icons/icon.tsx` (path data copied from the
 Icons page). Not built, because nothing on the screen uses them: MapHandle, ProposalCard,
 Citation.
+
+Selecting several things is drawn in section "8. Selecting several things" of the Studio
+page (2026-11-13): several sections of one pipeline `173:5367`, several pipelines
+`173:5859`, a Lasso loop across two pipelines `173:6456`.
 
 Where code knowingly differs from the Figma frame:
 
@@ -167,7 +171,7 @@ Where code knowingly differs from the Figma frame:
 - Search narrows the same pipeline list (same rows) and lists the sections it found
   under each pipeline; a section row opens that section. It searches inside the filters
   in force, with a bar to widen to the whole edition. The word "unknown" finds sections
-  with Unknown facts ("unknown owner"). The grouped SearchResult layout of frame `45:99`
+  with Unknown claims ("unknown owner"). The grouped SearchResult layout of frame `45:99`
   is not used.
 - The rail follows shadcn SidebarMenuButton in its icon size: a flat 32 square behind the
   icon, `sidebar-accent` on hover and when open, label below in medium; no blue tint.
@@ -195,13 +199,15 @@ Where code knowingly differs from the Figma frame:
   earlier crumbs step back. The network name is not shown (owner, 2026-11-12); Figma
   shows app and network.
 - One button hides both side panels, the way Figma's own "minimize UI" does (owner,
-  2026-11-13). Every left panel's header ends with the `panel-left` icon (added in code,
-  not yet on the Icons page): it hides the left panel and the properties panel together.
+  2026-11-13). Every left panel's header ends with the `panel-left` icon (Icons page,
+  `137:2017`): it hides the left panel and the properties panel together.
   The rail stays. While they are hidden the same icon floats at the top left of the map
   (a `MapControl`) and brings both back; so does any rail item, the search button and
   "Ask the Agent". The open panel's own rail item hides both as well. A new selection
   does not bring them back. The properties panel has no button of its own, and the top
-  bar has none. `panel-right` is in the icon set but unused. The Mapbox logo moved to the
+  bar has none. Figma shows the hidden state as frame `137:2050` on the Studio page,
+  linked both ways in the prototype. `panel-right` is in the code's icon set but unused
+  and not on the Icons page. The Mapbox logo moved to the
   bottom left of the map so the floating button does not cover it.
 - The table button, the "Scanned map" layer row and the draw tools after Lasso are
   hidden until they do something. The filter badges under the search box each carry a
@@ -227,9 +233,9 @@ Where code knowingly differs from the Figma frame:
 
 ## Not designed yet
 
-The fact detail area is designed as a first draft and not built: Studio page frames
-`112:566` (Unknown fact, proposal waiting) and `112:786` (cited fact). It docks at the
-bottom of the right panel when a fact row is selected.
+The claim detail area is designed as a first draft and not built: Studio page frames
+`112:566` (Unknown claim, proposal waiting) and `112:786` (cited claim). It docks at the
+bottom of the right panel when a claim row is selected.
 
 Do not invent these in code; ask or design in Figma first: the full-width table, linking
 sections into a pipeline, Tooltip, Popover, Dropdown Menu, Tabs, Table.

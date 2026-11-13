@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 
 /**
  * What was selected on the map, and the way to ask the Agent about it.
- * Sits at the top centre of the map. Not in Figma yet (the owner asked for it, 2026-11-12).
+ * Sits at the top centre of the map. Figma: SelectionBar, `172:553`.
  */
 export function SelectionBar({
   label,
