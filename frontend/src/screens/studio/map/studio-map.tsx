@@ -15,7 +15,6 @@ import { ToolPalette } from "@/components/tool-palette"
 import { Button } from "@/components/ui/button"
 import {
   matchesCriteria,
-  sectionStats,
   sectionsOutsideEdition,
   sectionLabel,
   selectionSize,
@@ -23,6 +22,7 @@ import {
   type Bounds,
 } from "@/data/derive"
 import type { Geometry } from "@/data/schema"
+import { sectionStatus } from "@/data/status"
 
 import { SEARCH_INPUT_ID } from "../panels/pipelines-panel"
 import {
@@ -31,12 +31,14 @@ import {
   useSelectionAttachments,
 } from "../add-to-agent"
 import { useLeftPanel } from "../left-panel-context"
+import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { useCamera, useStudio } from "../studio-store"
 import { linesInLoop, type Point } from "./lasso"
 import { readMapColors } from "./map-colors"
 import { FollowMapToggle } from "./follow-map-toggle"
 import { LayersControl } from "./layers-control"
+import { statusesDrawn } from "./line-style"
 import { SelectionBar } from "./selection-bar"
 
 const MAP_STYLE = "mapbox://styles/mapbox/light-v11"
@@ -77,6 +79,10 @@ export function StudioMap({ token }: { token: string }) {
 
   const layers = useStudio((s) => s.layers)
   const criteria = useCriteria()
+  // Solid or dotted follows the status, as chosen in Settings.
+  const lineStyle = useSettings((s) => s.lineStyle)
+  const solid = statusesDrawn(lineStyle, "solid")
+  const dotted = statusesDrawn(lineStyle, "dotted")
   const selected = useStudio((s) => s.selection)
   const groups = useSelectionGroups()
   const fit = useStudio((s) => s.fit)
@@ -139,7 +145,7 @@ export function StudioMap({ token }: { token: string }) {
               properties: {
                 id: section.id,
                 pipelineId: summary.id,
-                status: sectionStats(section).unknown > 0 ? "unknown" : "cited",
+                status: sectionStatus(section, criteria.rule),
               },
             }))
           )
@@ -425,9 +431,9 @@ export function StudioMap({ token }: { token: string }) {
                 }}
               />
               <Layer
-                id="sections-cited"
+                id="sections-solid"
                 type="line"
-                filter={["==", ["get", "status"], "cited"]}
+                filter={["in", ["get", "status"], ["literal", solid]]}
                 layout={{
                   visibility: visibility(layers.pipelines),
                   "line-join": "round",
@@ -443,9 +449,9 @@ export function StudioMap({ token }: { token: string }) {
                 }}
               />
               <Layer
-                id="sections-unknown"
+                id="sections-dotted"
                 type="line"
-                filter={["==", ["get", "status"], "unknown"]}
+                filter={["in", ["get", "status"], ["literal", dotted]]}
                 layout={{
                   visibility: visibility(layers.pipelines),
                   "line-cap": "round",

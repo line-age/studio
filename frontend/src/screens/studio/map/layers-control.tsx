@@ -12,8 +12,10 @@ import {
 } from "@/components/ui/popover"
 import { formatCount } from "@/data/derive"
 
+import { useSettings } from "../settings"
 import { useStudioData, useVisiblePipelines } from "../studio-data"
 import { useStudio } from "../studio-store"
+import { legendText } from "./line-style"
 
 /**
  * What the map draws, behind one button among the map controls: a switch per
@@ -25,6 +27,7 @@ export function LayersControl() {
   const visible = useVisiblePipelines()
   const layers = useStudio((s) => s.layers)
   const toggleLayer = useStudio((s) => s.toggleLayer)
+  const lineStyle = useSettings((s) => s.lineStyle)
 
   const sections = visible.reduce((n, s) => n + s.sections.length, 0)
   const otherYears = network.editions
@@ -80,9 +83,11 @@ export function LayersControl() {
             aria-label="How sections are drawn"
             className="flex flex-col gap-2 border-t px-2 pt-3 pb-1"
           >
-            <LegendItem kind="solid">Solid: every claim is cited</LegendItem>
+            <LegendItem kind="solid">
+              {legendText(lineStyle, "solid")}
+            </LegendItem>
             <LegendItem kind="dotted">
-              Dotted: at least one claim is Unknown
+              {legendText(lineStyle, "dotted")}
             </LegendItem>
           </ul>
         </PopoverContent>
