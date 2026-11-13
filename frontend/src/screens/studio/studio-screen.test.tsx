@@ -78,6 +78,23 @@ describe("Studio side panels", () => {
   })
 })
 
+describe("the search shortcut", () => {
+  const frame = () => new Promise((done) => requestAnimationFrame(done))
+
+  it("puts the cursor in the search with /, unless one is typing", async () => {
+    const user = userEvent.setup()
+    await renderScreen()
+    const search = screen.getByRole("combobox", { name: "Search sections" })
+    expect(search).not.toHaveFocus()
+    await user.keyboard("/")
+    await act(frame)
+    expect(search).toHaveFocus()
+    // In a text field the key is only a character.
+    await user.keyboard("a/b")
+    expect(search).toHaveValue("a/b")
+  })
+})
+
 describe("a shared link", () => {
   it("opens on the same edition, status, filters and section", async () => {
     window.history.replaceState(

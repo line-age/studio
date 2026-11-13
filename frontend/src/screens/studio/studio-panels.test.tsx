@@ -307,6 +307,49 @@ describe("Studio panels", () => {
     expect(row).toHaveTextContent("Not started")
     await user.click(row!)
     expect([...useStudio.getState().selection]).toEqual(["s-4"])
+    // The one section opens on the right, to its claims.
+    expect(useStudio.getState().selectedSectionId).toBe("s-4")
+    const claims = screen.getByRole("group", { name: /^Claims of / })
+    expect(within(claims).getByText("Owner")).toBeVisible()
+    expect(within(claims).getAllByText("Unknown").length).toBeGreaterThan(0)
+  })
+
+  it("counts sections beside each filter option, as everywhere else", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("button", { name: "Filters" }))
+    // Owner is Unknown on two sections; they sit in two rows of three.
+    const owner = within(screen.getByRole("group", { name: "Unknown in" }))
+      .getByText("Owner")
+      .closest("label")
+    expect(owner).toHaveTextContent("Owner2")
+    await user.click(within(owner!).getByRole("checkbox"))
+    expect(
+      screen.getByRole("button", { name: "Show 2 sections" })
+    ).toBeVisible()
+  })
+
+  it("takes one filter off by its chip and leaves the others", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    act(() => {
+      useStudio.getState().toggleUnknownIn("Owner")
+      useStudio.getState().setCompanies(["Alder Gas Co."])
+    })
+    const chips = screen.getByRole("group", { name: "Filters in force" })
+    const remove = within(chips).getAllByRole("button", {
+      name: /Remove the filter/,
+    })
+    expect(remove).toHaveLength(2)
+    await user.click(remove[0])
+    const s = useStudio.getState()
+    expect([s.unknownIn.length, s.companies.length].sort()).toEqual([0, 1])
+    expect(
+      within(chips).getAllByRole("button", { name: /Remove the filter/ })
+    ).toHaveLength(1)
+    expect(
+      screen.getByRole("button", { name: "Filters, some are on" })
+    ).toHaveAttribute("aria-pressed", "true")
   })
 
   it("counts the sections by status, and one click narrows the list", async () => {
