@@ -130,6 +130,22 @@ export function StudioScreen() {
   )
 }
 
+/** The least the map keeps when the list is widened into a table. */
+const MAP_MIN_WIDTH = 400
+
+function listMaxWidth(rightOpen: boolean): number {
+  const token = (name: string) =>
+    parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue(name)
+    ) || 0
+  return (
+    window.innerWidth -
+    token("--layout-rail") -
+    MAP_MIN_WIDTH -
+    (rightOpen ? token("--layout-panel-right") : 0)
+  )
+}
+
 /** The screen's frame. Used empty while loading and around a load error. */
 function Frame({
   networkName,
@@ -200,8 +216,18 @@ function Frame({
           side="left"
           open={open}
           label={panel}
-          storageKey="studio.left-panel-width"
+          // The list and the Agent each keep their own width.
+          storageKey={
+            panel === "agent"
+              ? "studio.agent-panel-width"
+              : "studio.left-panel-width"
+          }
           widthToken="--layout-panel-left"
+          {...(panel === "pipelines" && {
+            // The list widens into a table; the map keeps room to work in.
+            maxWidth: listMaxWidth(rightOpen),
+            wideWidth: 760,
+          })}
           className="border-sidebar-border bg-sidebar"
         >
           {left}

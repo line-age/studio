@@ -12,10 +12,13 @@ import { Hint } from "@/components/hint"
 import { Icon } from "@/components/icons/icon"
 import { ListHeader } from "@/components/list-header"
 import { PanelHeader } from "@/components/panel-header"
+import { ListCell } from "@/components/list-cell"
 import { ListGroupHeader } from "@/components/list-group-header"
 import { PipelineRow } from "@/components/pipeline-row"
 import { StatusBadge } from "@/components/status-badge"
 import { StatusBar } from "@/components/status-bar"
+import { StatusLabel } from "@/components/status-label"
+import { StatusShareBar } from "@/components/status-share-bar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Kbd } from "@/components/ui/kbd"
@@ -28,9 +31,11 @@ import {
   formatCount,
   geometryBounds,
   plural,
+  sectionLabel,
   type PipelineSummary,
   type SearchHit,
 } from "@/data/derive"
+import { missingRequired, sectionStatus } from "@/data/status"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
@@ -43,10 +48,11 @@ import {
   useStudioData,
   useVisiblePipelines,
 } from "../studio-data"
+import { usePanelWidth } from "../panel-width-context"
 import { filtersApplied, useCamera, useStudio } from "../studio-store"
 import { EditionSelect } from "./edition-select"
 import { FiltersPanel } from "./filters-panel"
-import { SectionListRow } from "./section-list-row"
+import { listColumns } from "./list-columns"
 import { StatusCounts } from "./status-counts"
 
 export const SEARCH_INPUT_ID = "pipeline-search"
@@ -71,6 +77,7 @@ export function PipelinesPanel() {
   const setAdded = useStudio((s) => s.setAdded)
   const openHit = useOpenHit()
   const [active, setActive] = useState(0)
+  const panelWidth = usePanelWidth()
   /** The filters open in place of the list, in this same panel. */
   const [mode, setMode] = useState<"list" | "filters">("list")
   const filtered = useStudio(filtersApplied)
@@ -163,6 +170,18 @@ export function PipelinesPanel() {
             : `${formatCount(visible.length)} ${onlyInView ? "in view" : "shown"}`
         }
       >
+        {panelWidth && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={panelWidth.wide ? "Show as list" : "Show as table"}
+            aria-pressed={panelWidth.wide}
+            className="text-muted-foreground aria-pressed:bg-selected aria-pressed:text-selected-foreground"
+            onClick={panelWidth.toggleWide}
+          >
+            <Icon name="table" />
+          </Button>
+        )}
         <HidePanels />
       </PanelHeader>
 
@@ -412,21 +431,16 @@ function PipelineList({
     rows.length > 0 &&
     rows.every((row) => checkedOf.get(row.summary.id) === "checked")
   const column = inPipelines.length > 0 ? "Pipeline" : "Section"
+  // "Done" is about pipelines; a group in no pipeline shows its size there.
+  const progressHead = inPipelines.length > 0 ? "Done" : ""
+  const panelWidth = usePanelWidth()
+  const columns = listColumns(panelWidth?.width ?? 0, rule)
 
   const renderRow = ({ summary, hit }: (typeof rows)[number]) => {
     const open = (shift = false) =>
       hit && search ? search.open(hit) : pick(summary, shift)
     const checked = checkedOf.get(summary.id) ?? "unchecked"
-    const sections = plural(summary.sections.length, "section")
     const found = hit?.sections ?? []
-    const meta = [
-      summary.code,
-      found.length > 0
-        ? `${plural(found.length, "section")} ${found.length === 1 ? "matches" : "match"}`
-        : sections,
-    ]
-      .filter(Boolean)
-      .join(" · ")
     const name = summary.firstSeen?.label ?? summary.name
     const expanded = opened.has(summary.id)
     return (
@@ -448,19 +462,50 @@ function PipelineList({
             }}
             className={cn(hit && hit === activeHit && "bg-muted")}
             name={name}
-            meta={meta}
-            // A pipeline has one word for its status. Sections in no
-            // pipeline can only get as far as sufficient.
-            status={
-              summary.unassigned ? null : (
-                <StatusBadge status={summary.status} />
-              )
+            cells={
+              <>
+                {columns.detail && (
+                  <>
+                    <ListCell column="code" className="type-ui-mono-xs">
+                      {summary.code}
+                    </ListCell>
+                    <ListCell column="sections">
+                      {formatCount(summary.sections.length)}
+                    </ListCell>
+                  </>
+                )}
+                {columns.bar && (
+                  <ListCell column="bar">
+                    <StatusShareBar
+                      counts={summary.statusCounts}
+                      className="w-full"
+                    />
+                  </ListCell>
+                )}
+                {columns.attributes.map((attribute) => {
+                  const unknown = summary.unknownByAttribute[attribute] ?? 0
+                  return (
+                    <ListCell key={attribute} column="attribute">
+                      {unknown > 0 ? (
+                        <StatusLabel status="unknown">
+                          {formatCount(unknown)} Unknown
+                        </StatusLabel>
+                      ) : (
+                        <StatusLabel status="cited">Cited</StatusLabel>
+                      )}
+                    </ListCell>
+                  )
+                })}
+              </>
             }
+            // A pipeline says how many of its sections are done. Sections
+            // in no pipeline cannot be done, so the group says how many it has.
             progress={
               summary.unassigned
-                ? `${formatCount(summary.statusCounts.sufficient)} sufficient`
-                : `${formatCount(summary.done)} of ${formatCount(summary.sections.length)} done`
+                ? formatCount(summary.sections.length)
+                : `${formatCount(summary.done)}/${formatCount(summary.sections.length)}`
             }
+            status={<StatusBadge status={summary.status} />}
             {...(summary.unassigned &&
               !hit && {
                 expanded,
@@ -503,13 +548,55 @@ function PipelineList({
                 key={section.id}
                 items={[{ pipelineId: summary.id, sectionIds: [section.id] }]}
               >
-                <SectionListRow
-                  section={section}
-                  rule={rule}
+                <PipelineRow
+                  indent
+                  role="option"
+                  aria-selected={selection.has(section.id)}
+                  data-roving
+                  tabIndex={-1}
                   selected={selection.has(section.id)}
+                  checked={selection.has(section.id) ? "checked" : "unchecked"}
+                  checkLabel={`Select ${sectionLabel(section)}`}
+                  onCheck={() => toggleSelected([section.id])}
+                  name={sectionLabel(section)}
+                  cells={
+                    <>
+                      {columns.detail && (
+                        <>
+                          <ListCell column="code" className="type-ui-mono-xs">
+                            {section.name === null ? null : section.code}
+                          </ListCell>
+                          <ListCell column="sections" />
+                        </>
+                      )}
+                      {columns.bar && <ListCell column="bar" />}
+                      {columns.attributes.map((attribute) => {
+                        const value = section.claims.find(
+                          (claim) => claim.attribute === attribute
+                        )?.value
+                        return (
+                          <ListCell key={attribute} column="attribute">
+                            {value ? (
+                              <span className="truncate text-foreground">
+                                {value}
+                              </span>
+                            ) : (
+                              <StatusLabel status="unknown" />
+                            )}
+                          </ListCell>
+                        )
+                      })}
+                    </>
+                  }
+                  progress={`${rule.length - missingRequired(section, rule).length}/${rule.length}`}
+                  status={<StatusBadge status={sectionStatus(section, rule)} />}
                   onClick={openSection}
                   onKeyDown={(event) => {
-                    if (isActivate(event)) {
+                    if (event.target !== event.currentTarget) return
+                    if (event.key === " ") {
+                      event.preventDefault()
+                      toggleSelected([section.id])
+                    } else if (isActivate(event)) {
                       event.preventDefault()
                       openSection()
                     }
@@ -580,7 +667,24 @@ function PipelineList({
         sorted={descending ? "descending" : "ascending"}
         sortLabel={`${column} order: ${descending ? "last first" : "first first"}. Reverse it`}
         onSort={() => setDescending((d) => !d)}
-        trailing="Status"
+        trailing={
+          <span className="flex items-center gap-2">
+            {columns.detail && (
+              <>
+                <ListCell column="code">Code</ListCell>
+                <ListCell column="sections">Sections</ListCell>
+              </>
+            )}
+            {columns.bar && <ListCell column="bar">By status</ListCell>}
+            {columns.attributes.map((attribute) => (
+              <ListCell key={attribute} column="attribute">
+                {attribute}
+              </ListCell>
+            ))}
+            <span className="w-9 text-right">{progressHead}</span>
+            <span className="w-23 text-right">Status</span>
+          </span>
+        }
         selection={
           groups.length === 0
             ? "unchecked"

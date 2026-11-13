@@ -57,11 +57,12 @@ describe("Studio panels", () => {
       expect.stringContaining("1937 edition"),
     ])
     expect(rows[0]).toHaveTextContent("In progress")
-    expect(rows[0]).toHaveTextContent("0 of 2 done")
+    expect(rows[0]).toHaveTextContent("0/2")
     // Sections in no pipeline come last, under the edition that first
     // shows them, and can only get as far as sufficient.
     expect(list).toHaveTextContent("Not in a pipeline, by first seen")
-    expect(rows[2]).toHaveTextContent("0 sufficient")
+    expect(rows[2]).toHaveTextContent("1937 edition1Not started")
+    expect(rows[2]).toHaveTextContent("Not started")
   })
 
   it("shows the sections of the selected pipeline and asks the map to show it", async () => {
@@ -284,8 +285,8 @@ describe("Studio panels", () => {
     const list = screen.getByRole("listbox", { name: "Sections" })
     const rows = within(list).getAllByRole("option")
     expect(rows.map((row) => row.textContent)).toEqual([
-      expect.stringContaining("1 section"),
-      expect.stringContaining("1 section"),
+      expect.stringContaining("North line0/1"),
+      expect.stringContaining("South line0/1"),
     ])
   })
 
@@ -302,7 +303,7 @@ describe("Studio panels", () => {
     const row = within(list)
       .getByText("Unnamed section")
       .closest("[role=option]")
-    expect(row).toHaveTextContent("0 of 3 required cited")
+    expect(row).toHaveTextContent("0/3")
     expect(row).toHaveTextContent("Not started")
     await user.click(row!)
     expect([...useStudio.getState().selection]).toEqual(["s-4"])
