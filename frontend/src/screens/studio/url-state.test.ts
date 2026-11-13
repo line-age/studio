@@ -25,6 +25,8 @@ const full: UrlView = {
   followMap: false,
   camera: { lng: -97.305, lat: 36.412, zoom: 6.37 },
   section: "s-2",
+  list: "sections",
+  pipeline: null,
 }
 
 const parse = (search: string) => fromSearchParams(new URLSearchParams(search))
@@ -49,6 +51,18 @@ describe("the view in the URL", () => {
       full
     )
     expect([...params.keys()].every((key) => key.length <= 3)).toBe(true)
+  })
+
+  it("names the pipeline selected as a whole, in place of a section", () => {
+    const view = {
+      ...DEFAULT_VIEW,
+      list: "pipelines" as const,
+      pipeline: "p-1",
+    }
+    expect(toSearchParams(view).toString()).toBe("l=pipelines&p=p-1")
+    expect(parse("l=pipelines&p=p-1")).toEqual(view)
+    // A list the app does not have is dropped.
+    expect(parse("l=tables").list).toBeNull()
   })
 
   it("carries a range that is open at one end", () => {

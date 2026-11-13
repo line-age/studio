@@ -32,7 +32,12 @@ import {
  *    it is cited to both maps.
  *  - Who proposed a link is shown only when it is a tool. A person's name
  *    never leaves this file.
- *  - A section confirmed part of a line is in that pipeline. None is yet.
+ *  - A line is a pipeline. A section confirmed part of a line is in that
+ *    pipeline; a part_of link that is only proposed is a proposed
+ *    membership and changes nothing. A pipeline's name, owner and operator
+ *    are the line's own accepted claims, each with its period. A section
+ *    carries no owner here: an owner claim store holds on a section is not
+ *    shown.
  */
 
 type InputNetwork = Parameters<typeof parseNetwork>[0]
@@ -70,7 +75,6 @@ interface ProposedEnd {
 
 /** The attributes Studio lists for a section, in order, and store's key for each. */
 const ATTRIBUTES: { attribute: string; key: string | null }[] = [
-  { attribute: "Owner", key: "owner" },
   { attribute: "Diameter", key: "diameter" },
   { attribute: "Status", key: "status" },
   { attribute: "First seen", key: null },
@@ -172,16 +176,28 @@ const END_RELATIONS: Record<string, "end" | "cut"> = {
   overlaps: "cut",
 }
 
-/**
- * @param links   store's same_as and overlaps links, any status.
- * @param removals the lines traced as gone that those links point at.
- */
+/** What a pipeline carries, and store's key for each. */
+const PIPELINE_ATTRIBUTES: { attribute: string; key: string }[] = [
+  { attribute: "Name", key: "name" },
+  { attribute: "Owner", key: "owner" },
+  { attribute: "Operator", key: "operator" },
+]
+
+/** What store holds beside the sections themselves. */
+export interface StoreExtras {
+  /** same_as, overlaps and part_of links, any status. */
+  links?: readonly StoreLink[]
+  /** The lines traced as gone that same_as and overlaps links point at. */
+  removals?: readonly StoreFeature[]
+  /** The line features: the pipelines. */
+  lines?: readonly StoreFeature[]
+}
+
 export function toNetwork(
   name: string,
   rows: readonly StoreSectionRow[],
   features: readonly StoreFeature[],
-  links: readonly StoreLink[] = [],
-  removals: readonly StoreFeature[] = []
+  { links = [], removals = [], lines = [] }: StoreExtras = {}
 ): Network {
   // Editions: every map sheet a claim cites.
   const sheets = new Map<string, { id: string; year: number }>()
@@ -212,7 +228,7 @@ export function toNetwork(
   // an agent seen asserting a claim as a person is never named on a link.
   const people = new Set<string>()
   const linkNames = new Map<string, string>()
-  for (const feature of [...features, ...removals]) {
+  for (const feature of [...features, ...removals, ...lines]) {
     for (const claim of feature.claims) {
       if (claim.asserted_by && claim.asserted_by_kind === "person") {
         people.add(claim.asserted_by)
@@ -272,7 +288,87 @@ export function toNetwork(
     }
     proposedEnds.set(sectionId, [...(proposedEnds.get(sectionId) ?? []), end])
   }
-  const lineIds = [...new Set(rows.flatMap((r) => r.line_id ?? []))]
+
+  // Pipelines: every line a section is confirmed or proposed part of.
+  const proposedIn = new Map<
+    string,
+    { id: string; pipelineId: string; score: number; proposer?: string }[]
+  >()
+  const confirmedIn = new Map<string, string>()
+  for (const link of links) {
+    if (link.relation !== "part_of") continue
+    const [sectionId, lineId] = sectionIds.has(link.from_feature_id)
+      ? [link.from_feature_id, link.to_feature_id]
+      : [link.to_feature_id, link.from_feature_id]
+    if (!sectionIds.has(sectionId) || sectionIds.has(lineId)) continue
+    if (link.status === "confirmed") confirmedIn.set(sectionId, lineId)
+    if (link.status !== "proposed") continue
+    const proposer = toolName(link)
+    proposedIn.set(sectionId, [
+      ...(proposedIn.get(sectionId) ?? []),
+      {
+        id: link.id,
+        pipelineId: lineId,
+        score: Math.min(1, Math.max(0, link.score ?? 0)),
+        ...(proposer ? { proposer } : {}),
+      },
+    ])
+  }
+  const pipelineOf = (sectionId: string) =>
+    lineOf.get(sectionId) ?? confirmedIn.get(sectionId) ?? null
+  const lineById = new Map(lines.map((line) => [line.id, line]))
+  const pipelineIds = [
+    ...new Set([
+      ...features.flatMap((f) => pipelineOf(f.id) ?? []),
+      ...[...proposedIn.values()].flat().map((p) => p.pipelineId),
+    ]),
+  ]
+  const pipelines = pipelineIds.map((id) => {
+    const line = lineById.get(id)
+    const claims: Claim[] = line
+      ? PIPELINE_ATTRIBUTES.flatMap(({ attribute, key }) => {
+          const stated = acceptedOf(line, key).filter(
+            (c) => valueOf(c) !== null && c.citations.length > 0
+          )
+          const proposals = line.claims
+            .filter((c) => c.attribute_key === key && c.status === "candidate")
+            .flatMap((c) => {
+              const value = valueOf(c)
+              return value !== null && c.citations.length > 0
+                ? [
+                    {
+                      ...(c.id ? { id: c.id } : {}),
+                      value,
+                      citation: toCitation(c.citations[0]),
+                    },
+                  ]
+                : []
+            })
+          // One row per accepted claim: an owner that changed is two rows,
+          // each with its period. Candidates wait on the first row.
+          const rows: Claim[] = stated.map((c, index) => ({
+            ...(c.id ? { id: c.id } : {}),
+            attribute,
+            value: valueOf(c),
+            ...(c.valid_edtf ? { valid: c.valid_edtf } : {}),
+            citations: c.citations.map(toCitation),
+            proposals: index === 0 ? proposals : [],
+          }))
+          return rows.length > 0
+            ? rows
+            : proposals.length > 0
+              ? [{ attribute, value: null, citations: [], proposals }]
+              : []
+        })
+      : []
+    const named = claims.find((c) => c.attribute === "Name" && c.value)?.value
+    return {
+      id,
+      code: shortId(id),
+      name: named ?? (line?.label ? line.label : null),
+      claims,
+    }
+  })
 
   const sections = features.map((feature) => {
     const accepted = (key: string) => acceptedOf(feature, key)
@@ -372,7 +468,8 @@ export function toNetwork(
       id: feature.id,
       code: shortId(feature.id),
       name: feature.label ? feature.label : null,
-      pipelineId: lineOf.get(feature.id) ?? null,
+      pipelineId: pipelineOf(feature.id),
+      proposedMemberships: proposedIn.get(feature.id) ?? [],
       editionIds: editionIds.length > 0 ? editionIds : [editions[0].id],
       geometry: lineGeometry(route.value_geom, feature.id),
       claims,
@@ -387,11 +484,7 @@ export function toNetwork(
     version: 2,
     name,
     editions,
-    pipelines: lineIds.map((id) => ({
-      id,
-      code: shortId(id),
-      name: shortId(id),
-    })),
+    pipelines,
     sections,
   }
   try {

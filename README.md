@@ -14,7 +14,7 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
 
 [Quick start](#quick-start) · [Docker](#run-in-docker) · [Real data](#real-data-from-store) · [Keys](#keys) · [Develop](#develop) · [Not there yet](#not-there-yet)
 
-<img src="docs/screenshots/studio.jpg" alt="The list with status counts, the map with one pipeline selected, and its sections and claims on the right" width="100%">
+<img src="docs/screenshots/studio.jpg" alt="The Pipelines list with status counts, the map with one pipeline selected, and on the right its own name, owner and operator above its sections" width="100%">
 
 </div>
 
@@ -63,7 +63,7 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
 - **Help.** A ten-step tour of the screen starts on a first visit; Help in the top bar
   has the same pages, a list of the words, and runs the tour again.
 
-<img src="docs/screenshots/table.jpg" alt="The list widened into a table, three pipelines ticked, their sections listed by pipeline on the right" width="100%">
+<img src="docs/screenshots/table.jpg" alt="The Pipelines list widened into a table, with a proposed pipeline at the end, three pipelines ticked, their sections listed by pipeline on the right" width="100%">
 
 ## Quick start
 
@@ -119,9 +119,12 @@ server or nginx passes the request on with the token added. If store cannot be r
 refuses the token or answers in a form the app does not understand, the screen says
 which; it never falls back to the sample.
 
-Store has no pipelines yet, only sections. So the list is one group, "Not in a pipeline",
-with the sections under the map edition that first shows each one, and every section
-starts as Not started. An attribute store has no accepted claim for is Unknown.
+Store has no pipelines yet, only sections. So Studio opens on the Sections list, with the
+sections under the map edition that first shows each one, and the Pipelines list says
+there are none. A pipeline is a `line` in store; once a person has confirmed a section
+part of one, it shows in the Pipelines list with its own name, owner and operator, and a
+`part_of` link that is only proposed shows as a proposal. An attribute store has no
+accepted claim for is Unknown.
 
 Each source says what it does for a claim: a map is "Shown on" or "Not on", a text
 "States". A map comes with its edition and the date it is as of, and a status that
@@ -179,7 +182,7 @@ more detail on running and tokens is in [`frontend/README.md`](frontend/README.m
 - Writing to store: reading it is all there is.
 - Deciding on a proposed end or cut, and a list of the lines traced as gone that match
   no section.
-- Placing sections in pipelines.
+- Placing sections in pipelines, and deciding on a proposed one.
 - Editing, and accepting or rejecting what the Agent proposes.
 - An Agent that answers.
 - Notes on the map, the claim detail area.

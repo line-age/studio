@@ -26,8 +26,8 @@ export const HELP_STEPS: readonly HelpStep[] = [
   },
   {
     id: "sections",
-    title: "Sections",
-    body: "Every section that was traced is listed here: pipelines first, then the sections in no pipeline yet. The counts at the top say how many sections of the whole edition are at each status; moving the map does not change them.",
+    title: "Pipelines and Sections",
+    body: "Two lists, each with its own place in the rail. Pipelines lists the pipelines, then the ones only proposed. Sections lists every section that was traced, in a pipeline or not, by the edition that first shows it. The counts at the top say how many sections of the whole edition are at each status; moving the map does not change them.",
     targets: ["sections"],
     needs: "list",
   },
@@ -97,7 +97,11 @@ export const HELP_WORDS: readonly HelpWord[] = [
     meaning:
       "A continuous stretch of line built and put in use at one time. Claims are made about sections.",
   },
-  { term: "Pipeline", meaning: "Several sections that belong together." },
+  {
+    term: "Pipeline",
+    meaning:
+      "One named system of pipe as a whole, made of one or more sections. Its name, owner and operator are claims on the pipeline, each for a period, not on its sections. A section is in a pipeline once a person has confirmed it.",
+  },
   {
     term: "Claim",
     meaning:

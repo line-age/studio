@@ -4,6 +4,7 @@ import { create } from "zustand"
 import {
   ALWAYS_PRESENT,
   DEFAULT_REQUIRED,
+  ON_PIPELINE,
   STATUSES,
   type SectionStatus,
 } from "@/data/status"
@@ -54,7 +55,10 @@ export function readSettings(): Settings {
     return {
       ...parsed.data,
       requiredAttributes: [...new Set(parsed.data.requiredAttributes)].filter(
-        (attribute) => !ALWAYS_PRESENT.includes(attribute)
+        // A rule saved before owner moved to the pipeline may still name it.
+        (attribute) =>
+          !ALWAYS_PRESENT.includes(attribute) &&
+          !ON_PIPELINE.includes(attribute)
       ),
     }
   } catch {
@@ -87,6 +91,7 @@ export const useSettings = create<SettingsState>((set, get) => {
     ...readSettings(),
     toggleRequired: (attribute) => {
       if (ALWAYS_PRESENT.includes(attribute)) return
+      if (ON_PIPELINE.includes(attribute)) return
       const had = get().requiredAttributes
       save({
         requiredAttributes: had.includes(attribute)

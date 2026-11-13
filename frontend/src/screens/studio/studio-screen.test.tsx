@@ -84,7 +84,7 @@ describe("the search shortcut", () => {
   it("puts the cursor in the search with /, unless one is typing", async () => {
     const user = userEvent.setup()
     await renderScreen()
-    const search = screen.getByRole("combobox", { name: "Search sections" })
+    const search = screen.getByRole("combobox", { name: "Search pipelines" })
     expect(search).not.toHaveFocus()
     await user.keyboard("/")
     await act(frame)
@@ -100,7 +100,7 @@ describe("a shared link", () => {
     window.history.replaceState(
       null,
       "",
-      "/?e=ed-1937&s=not-started&u=Owner&v=0&sel=s-2"
+      "/?e=ed-1937&s=not-started&u=Diameter&v=0&sel=s-2"
     )
     await renderScreen()
     const s = useStudio.getState()
@@ -112,10 +112,10 @@ describe("a shared link", () => {
     ).toHaveAttribute("aria-pressed", "true")
     expect(
       screen.getByRole("group", { name: "Filters in force" })
-    ).toHaveTextContent("Unknown owner")
+    ).toHaveTextContent("Unknown diameter")
     // The address stays as it was: nothing was lost on the way in.
     expect(window.location.search).toBe(
-      "?e=ed-1937&s=not-started&u=Owner&v=0&sel=s-2"
+      "?e=ed-1937&s=not-started&u=Diameter&v=0&sel=s-2"
     )
   })
 
@@ -133,7 +133,7 @@ describe("a shared link", () => {
     expect(s.unknownIn).toEqual([])
     expect(s.selection.size).toBe(0)
     expect(screen.queryByRole("group", { name: "Filters in force" })).toBeNull()
-    expect(screen.getByRole("listbox", { name: "Sections" })).toBeVisible()
+    expect(screen.getByRole("listbox", { name: "Pipelines" })).toBeVisible()
   })
 })
 
@@ -144,8 +144,8 @@ describe("Settings", () => {
     // The dialog hides the page behind it from assistive technology.
     const done = () =>
       screen.getByRole("button", { name: /^Done/, hidden: true })
-    // Owner, Diameter and Build date are asked for: nothing is done yet.
-    expect(done()).toHaveTextContent("Done0")
+    // Diameter and Build date are asked for: two sections in pipelines have both.
+    expect(done()).toHaveTextContent("Done2")
 
     await user.click(screen.getByRole("button", { name: "Settings" }))
     const dialog = screen.getByRole("dialog", { name: "Settings" })
@@ -155,11 +155,13 @@ describe("Settings", () => {
     expect(
       within(rule).getByRole("checkbox", { name: /Geometry/ })
     ).toHaveAttribute("aria-disabled", "true")
-    await user.click(within(rule).getByRole("checkbox", { name: "Build date" }))
+    for (const name of ["Diameter", "Build date"]) {
+      await user.click(within(rule).getByRole("checkbox", { name }))
+    }
 
     // No reload: the counts behind the dialog have already changed.
-    expect(done()).toHaveTextContent("Done2")
-    expect(readSettings().requiredAttributes).toEqual(["Owner", "Diameter"])
+    expect(done()).toHaveTextContent("Done3")
+    expect(readSettings().requiredAttributes).toEqual([])
 
     // The map's lines are a setting too.
     await user.click(

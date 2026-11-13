@@ -98,8 +98,8 @@ describe("store client", () => {
     // The lines traced as gone are read, and are not sections.
     expect(network.sections).toHaveLength(3)
     // One list, one request per section (cut pieces not asked for twice),
-    // two lists of links, one request per line traced as gone.
-    expect(fetchMock).toHaveBeenCalledTimes(1 + 3 + 2 + 3)
+    // three lists of links, one request per line traced as gone.
+    expect(fetchMock).toHaveBeenCalledTimes(1 + 3 + 3 + 3)
     expect(network.sections.flatMap((x) => x.proposedEnds)).toHaveLength(2)
     expect(JSON.stringify(network)).not.toContain("A. Tracer")
   })

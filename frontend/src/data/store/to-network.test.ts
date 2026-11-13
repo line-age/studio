@@ -7,7 +7,11 @@ import {
   ID_C,
   ID_X,
   ID_Y,
+  LINE_1,
+  LINE_2,
   storeFeatures,
+  storeLines,
+  storeMemberships,
   storeLinks,
   storeRemovals,
   storeRows,
@@ -16,13 +20,10 @@ import {
 import { StoreError } from "./client"
 import { toNetwork } from "./to-network"
 
-const network = toNetwork(
-  "Gas network",
-  storeRows(),
-  storeFeatures(),
-  storeLinks(),
-  storeRemovals()
-)
+const network = toNetwork("Gas network", storeRows(), storeFeatures(), {
+  links: storeLinks(),
+  removals: storeRemovals(),
+})
 const section = (id: string) => network.sections.find((s) => s.id === id)!
 const claim = (id: string, attribute: string) =>
   section(id).claims.find((c) => c.attribute === attribute)!
@@ -130,7 +131,9 @@ describe("toNetwork", () => {
   it("never lists or counts a line traced as gone", () => {
     expect(network.sections.map((s) => s.id)).not.toContain(ID_X)
     expect(
-      summarise(network, network.editions[1].id).flatMap((g) => g.sections)
+      summarise(network, network.editions[1].id, undefined, "sections").flatMap(
+        (g) => g.sections
+      )
     ).toHaveLength(2)
   })
 
@@ -142,36 +145,27 @@ describe("toNetwork", () => {
       asserted_by: "agent-stitch",
       asserted_by_kind: "person",
     }
-    const out = toNetwork(
-      "Gas network",
-      storeRows(),
-      features,
-      storeLinks(),
-      storeRemovals()
-    )
+    const out = toNetwork("Gas network", storeRows(), features, {
+      links: storeLinks(),
+      removals: storeRemovals(),
+    })
     expect(out.sections[0].proposedEnds[0].proposer).toBeUndefined()
     // Store says outright that a person asserted the link: no name.
     const links = storeLinks().map((l) => ({
       ...l,
       asserted_by_kind: "person",
     }))
-    const named = toNetwork(
-      "Gas network",
-      storeRows(),
-      storeFeatures(),
+    const named = toNetwork("Gas network", storeRows(), storeFeatures(), {
       links,
-      storeRemovals()
-    )
+      removals: storeRemovals(),
+    })
     expect(JSON.stringify(named)).not.toContain("stitch")
   })
 
   it("leaves out a link whose line traced as gone was not read", () => {
-    const out = toNetwork(
-      "Gas network",
-      storeRows(),
-      storeFeatures(),
-      storeLinks()
-    )
+    const out = toNetwork("Gas network", storeRows(), storeFeatures(), {
+      links: storeLinks(),
+    })
     expect(out.sections.flatMap((s) => s.proposedEnds)).toEqual([])
   })
 
@@ -200,13 +194,13 @@ describe("toNetwork", () => {
     expect(claim(ID_B, "Status").value).not.toBe("operational")
     expect(claim(ID_B, "Geometry").value).toBe("Traced line")
     expect(claim(ID_A, "Diameter").value).toBeNull()
-    expect(claim(ID_A, "Owner").value).toBeNull()
   })
 
   it("shows a candidate claim as a proposal, never as a cited value", () => {
-    const owner = claim(ID_B, "Owner")
-    expect(owner.value).toBeNull()
-    expect(owner.proposals.map((p) => p.value)).toEqual(["Alder Gas Co."])
+    // Beside the accepted value, never in place of it.
+    const diameter = claim(ID_B, "Diameter")
+    expect(diameter.value).toBe("12 in")
+    expect(diameter.proposals.map((p) => p.value)).toEqual(["16 in"])
   })
 
   it("leaves a section with no label unnamed, under a short code", () => {
@@ -233,6 +227,84 @@ describe("toNetwork", () => {
     expect(out.pipelines.map((p) => p.id)).toEqual(["line-1"])
   })
 
+  describe("pipelines", () => {
+    const piped = toNetwork("Gas network", storeRows(), storeFeatures(), {
+      links: storeMemberships(),
+      lines: storeLines(),
+    })
+    const of = (id: string) => piped.sections.find((s) => s.id === id)!
+    const line = (id: string) => piped.pipelines.find((p) => p.id === id)!
+
+    it("puts a section in a pipeline only once the link is confirmed", () => {
+      expect(of(ID_A).pipelineId).toBe(LINE_1)
+      expect(of(ID_B).pipelineId).toBeNull()
+      expect(of(ID_C).pipelineId).toBeNull()
+    })
+
+    it("shows a proposed part_of link as a proposed membership", () => {
+      expect(of(ID_B).proposedMemberships).toEqual([
+        {
+          id: "link-part-b",
+          pipelineId: LINE_2,
+          score: 0.7,
+          proposer: "stitch",
+        },
+      ])
+      // A rejected link is nothing.
+      expect(of(ID_C).proposedMemberships).toEqual([])
+      expect(of(ID_A).proposedMemberships).toEqual([])
+    })
+
+    it("names a pipeline from its name claim, or leaves it Unknown", () => {
+      expect(line(LINE_1).name).toBe("Alder trunk")
+      expect(line(LINE_2).name).toBeNull()
+      expect(line(LINE_2).code).toBe("22222222")
+      expect(line(LINE_2).claims).toEqual([])
+    })
+
+    it("keeps every owner of a pipeline with its period, never merged", () => {
+      const owners = line(LINE_1).claims.filter((c) => c.attribute === "Owner")
+      expect(owners.map((c) => [c.value, c.valid])).toEqual(
+        expect.arrayContaining([
+          ["Alder Gas Co.", "../1931"],
+          ["Yew Fuel Co.", "1936/.."],
+        ])
+      )
+      expect(owners).toHaveLength(2)
+      expect(owners[0].citations[0]).toMatchObject({
+        role: "states",
+        locator: "p. 41",
+      })
+    })
+
+    it("shows a candidate on a pipeline as a proposal on an Unknown row", () => {
+      const operator = line(LINE_1).claims.find(
+        (c) => c.attribute === "Operator"
+      )!
+      expect(operator.value).toBeNull()
+      expect(operator.proposals.map((p) => p.value)).toEqual(["Alder Gas Co."])
+    })
+
+    it("never shows an owner as a section's own", () => {
+      for (const section of piped.sections) {
+        expect(section.claims.map((c) => c.attribute)).not.toContain("Owner")
+      }
+    })
+
+    it("lists pipelines, then the proposed one, and every section apart", () => {
+      const latest = piped.editions[1].id
+      expect(summarise(piped, latest).map((g) => [g.id, g.kind])).toEqual([
+        [LINE_1, "pipeline"],
+        [LINE_2, "proposed"],
+      ])
+      expect(
+        summarise(piped, latest, undefined, "sections").flatMap((g) =>
+          g.sections.map((s) => s.id)
+        )
+      ).toEqual([ID_A, ID_B])
+    })
+  })
+
   it("says so when store has nothing, or a section has no route", () => {
     expect(() => toNetwork("Gas network", [], [])).toThrow(StoreError)
     const broken = storeFeatures()
@@ -247,11 +319,14 @@ describe("toNetwork", () => {
   })
 
   it("lists the sections under the edition that first shows them", () => {
-    const groups = summarise(network, network.editions[1].id)
+    const latest = network.editions[1].id
+    const groups = summarise(network, latest, undefined, "sections")
     expect(groups.map((g) => [g.name, g.sections.map((s) => s.id)])).toEqual([
-      ["Not in a pipeline, 1931 edition", [ID_A]],
-      ["Not in a pipeline, 1937 edition", [ID_B]],
+      ["First seen in the 1931 edition", [ID_A]],
+      ["First seen in the 1937 edition", [ID_B]],
     ])
+    // No pipelines in store: the Pipelines list is empty.
+    expect(summarise(network, latest)).toEqual([])
     expect(groups.every((g) => g.unassigned)).toBe(true)
   })
 })

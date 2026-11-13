@@ -121,10 +121,30 @@ const edition = z.object({
   label: z.string().min(1),
 })
 
+/**
+ * A pipeline: one named system of pipe as a whole, made of one or more
+ * sections. Its name, owner and operator are dated, cited claims on the
+ * pipeline, not on its sections, and may change over its life. An attribute
+ * may come more than once, one claim per period.
+ */
 const pipeline = z.object({
   id: z.string().min(1),
   code: z.string().min(1),
-  name: z.string().min(1),
+  /** null: no source names the pipeline yet. It goes by its code. */
+  name: z.string().min(1).nullable(),
+  claims: z.array(claim).default([]),
+})
+
+/**
+ * A tool or a person proposes that the section is part of a pipeline, and
+ * nobody has confirmed it. Shown, never applied.
+ */
+const proposedMembership = z.object({
+  id: z.string().min(1),
+  pipelineId: z.string().min(1),
+  score: z.number().min(0).max(1),
+  /** The tool that proposed it. Never a person's name. */
+  proposer: z.string().min(1).optional(),
 })
 
 const section = z.object({
@@ -132,8 +152,12 @@ const section = z.object({
   code: z.string().min(1),
   /** null: no source names the section yet. It goes by its code. */
   name: z.string().min(1).nullable(),
-  /** null: the section is not in a pipeline yet. */
+  /**
+   * The pipeline the section is confirmed part of. null: it is in no
+   * pipeline, whatever is proposed for it.
+   */
   pipelineId: z.string().min(1).nullable(),
+  proposedMemberships: z.array(proposedMembership).default([]),
   /** The editions that show this section. */
   editionIds: z.array(z.string().min(1)).min(1),
   geometry,
@@ -243,6 +267,15 @@ export const networkSchema = z
       }
       checkEditions(s.editionIds, ["sections", i])
       unique(s.proposedEnds, `sections.${i}.proposedEnds`)
+      s.proposedMemberships.forEach((m, j) => {
+        if (!pipelineIds.has(m.pipelineId)) {
+          ctx.addIssue({
+            code: "custom",
+            message: `No pipeline with id "${m.pipelineId}".`,
+            path: ["sections", i, "proposedMemberships", j, "pipelineId"],
+          })
+        }
+      })
     })
     n.proposedPaths.forEach((p, i) => {
       if (p.sectionId !== null && !sectionIds.has(p.sectionId)) {
@@ -273,6 +306,7 @@ export type Claim = Section["claims"][number]
 export type Citation = Claim["citations"][number]
 export type Proposal = Claim["proposals"][number]
 export type ProposedEnd = Section["proposedEnds"][number]
+export type ProposedMembership = Section["proposedMemberships"][number]
 export type CitationRole = (typeof citationRoles)[number]
 export type ProposedPath = Network["proposedPaths"][number]
 export type Note = Network["notes"][number]

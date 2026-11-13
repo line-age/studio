@@ -10,12 +10,14 @@ import { ProposalCard } from "@/components/proposal-card"
 import { StatusLabel } from "@/components/status-label"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { sectionLabel } from "@/data/derive"
+import { pipelineLabel, sectionLabel } from "@/data/derive"
 import {
   citationLine,
   editionWords,
   formatValid,
+  PIPELINE_ROW,
   proposedEndsFor,
+  proposedMembershipWords,
   proposedEndWords,
   roleWords,
 } from "@/data/evidence"
@@ -128,6 +130,76 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
 }
 
 /**
+ * Which pipeline a section is in, in full: the pipeline once a person has
+ * confirmed it, what is proposed while nobody has, or Unknown. Read only.
+ */
+function PipelineDetail({ section }: { section: Section }) {
+  const close = useStudio((s) => s.closeAttribute)
+  const { network } = useStudioData()
+  const byId = new Map(network.pipelines.map((p) => [p.id, p]))
+  const pipeline = section.pipelineId ? byId.get(section.pipelineId) : undefined
+  const proposed = pipeline ? [] : section.proposedMemberships
+  return (
+    <section
+      aria-label={`Pipeline of ${sectionLabel(section)}`}
+      className="flex max-h-3/5 shrink-0 flex-col border-t bg-background"
+    >
+      <PanelHeader
+        title={PIPELINE_ROW}
+        meta={[section.name, section.code].filter(Boolean).join(" · ")}
+      >
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Close the claim"
+          onClick={close}
+        >
+          <Icon name="close" className="size-3.5" />
+        </Button>
+      </PanelHeader>
+      <div className="flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain px-3 pb-3">
+        <div className="flex items-center gap-2">
+          {pipeline ? (
+            <>
+              <span className="type-ui-sm-medium break-words">
+                {pipelineLabel(pipeline)}
+              </span>
+              <span className="type-ui-mono-xs text-muted-foreground">
+                {pipeline.code}
+              </span>
+            </>
+          ) : (
+            <StatusLabel status="unknown" size="sm" />
+          )}
+        </div>
+        {proposed.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <GroupLabel>
+              {proposed.length === 1 ? "Proposal" : "Proposals"}
+            </GroupLabel>
+            {proposed.map((membership) => {
+              const target = byId.get(membership.pipelineId)
+              return target ? (
+                <Hint key={membership.id}>
+                  {proposedMembershipWords(membership, target)}
+                </Hint>
+              ) : null
+            })}
+          </div>
+        )}
+        <Hint>
+          {pipeline
+            ? "A person confirmed that this section is part of the pipeline. Which pipeline a section belongs to is a judgement; no source is cited for it."
+            : proposed.length > 0
+              ? "Which pipeline a section belongs to is a judgement a person confirms. No source is cited for it."
+              : "No link places this section in a pipeline, and none is proposed. It shows in the Sections list only."}
+        </Hint>
+      </div>
+    </section>
+  )
+}
+
+/**
  * The claim chosen in the tree above, in full: its value, what is proposed
  * for it, and each source with the place and the passage. Read only. It docks
  * at the bottom of the properties panel.
@@ -137,6 +209,9 @@ export function ClaimDetail() {
   const sectionId = useStudio((s) => s.selectedSectionId)
   const attribute = useStudio((s) => s.selectedAttribute)
   const section = sectionId === null ? undefined : sectionById.get(sectionId)
+  if (section && attribute === PIPELINE_ROW) {
+    return <PipelineDetail key={`${section.id}:pipeline`} section={section} />
+  }
   const claim = section?.claims.find((c) => c.attribute === attribute)
   if (!section || !claim) return null
   return (

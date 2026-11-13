@@ -78,7 +78,7 @@ function toBounds(map: MapRef): Bounds | null {
 }
 
 export function StudioMap({ token }: { token: string }) {
-  const { network, edition, summaries } = useStudioData()
+  const { network, edition, everySection: summaries } = useStudioData()
   const { openPanel } = useLeftPanel()
   const mapRef = useRef<MapRef>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)

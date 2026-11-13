@@ -66,7 +66,7 @@ describe("the Help tour", () => {
     expect(screen.queryByRole("button", { name: "Back" })).toBeNull()
 
     await user.click(screen.getByRole("button", { name: "Next" }))
-    expect(await cardTitle()).toBe("Sections")
+    expect(await cardTitle()).toBe("Pipelines and Sections")
     await user.click(screen.getByRole("button", { name: "Back" }))
     expect(await cardTitle()).toBe("What Studio is")
 
@@ -121,7 +121,7 @@ describe("the Help tour", () => {
     expect(screen.getByRole("log")).toBeInTheDocument()
     act(() => useHelp.getState().end())
     expect(
-      await screen.findByRole("combobox", { name: "Search sections" })
+      await screen.findByRole("combobox", { name: "Search pipelines" })
     ).toBeInTheDocument()
   })
 

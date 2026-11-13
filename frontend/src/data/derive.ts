@@ -1,4 +1,13 @@
-import type { Edition, Geometry, Network, Position, Section } from "./schema"
+import { formatValid } from "./evidence"
+import type {
+  Claim,
+  Edition,
+  Geometry,
+  Network,
+  Pipeline,
+  Position,
+  Section,
+} from "./schema"
 import {
   DEFAULT_REQUIRED,
   groupStatus,
@@ -39,16 +48,86 @@ export function sectionLabel(section: Section): string {
   return section.name ?? section.code
 }
 
+/** What a pipeline goes by in words: its name, or its code when it has none. */
+export function pipelineLabel(pipeline: Pipeline): string {
+  return pipeline.name ?? pipeline.code
+}
+
+/** Which of the two lists: the pipelines, or every section. */
+export type ListKind = "pipelines" | "sections"
+
+/** The list a network opens on: its pipelines, or its sections if it has none. */
+export function defaultList(network: Network): ListKind {
+  return network.pipelines.length > 0 ? "pipelines" : "sections"
+}
+
 /**
- * One group of the list: a pipeline with its sections, or the sections that
- * are in no pipeline and are first seen in one edition.
+ * The claims about a pipeline, in the order the screen lists them: name,
+ * owner, operator. An attribute nobody has a claim for is one Unknown row; an
+ * attribute that changed over the pipeline's life has one row per period.
+ */
+export const PIPELINE_ATTRIBUTES = ["Name", "Owner", "Operator"] as const
+
+export function pipelineClaims(pipeline: Pipeline): Claim[] {
+  return PIPELINE_ATTRIBUTES.flatMap((attribute) => {
+    const claims = pipeline.claims.filter((c) => c.attribute === attribute)
+    return claims.length > 0
+      ? claims
+      : [{ attribute, value: null, citations: [], proposals: [] }]
+  })
+}
+
+/** A claim's value with the period it holds for: "Alder Gas Co., by 1931". */
+export function datedValue(claim: Claim): string | null {
+  if (claim.value === null) return null
+  return claim.valid === undefined
+    ? claim.value
+    : `${claim.value}, ${formatValid(claim.valid)}`
+}
+
+/** For each section in a pipeline, the owners its pipeline is cited as having. */
+export function ownersBySection(
+  network: Network
+): ReadonlyMap<string, readonly string[]> {
+  const owners = new Map(
+    network.pipelines.map((p) => [
+      p.id,
+      [
+        ...new Set(
+          p.claims.flatMap((c) =>
+            c.attribute === COMPANY_ATTRIBUTE && c.value !== null
+              ? [c.value]
+              : []
+          )
+        ),
+      ],
+    ])
+  )
+  const out = new Map<string, readonly string[]>()
+  for (const section of network.sections) {
+    const found = section.pipelineId ? owners.get(section.pipelineId) : null
+    if (found && found.length > 0) out.set(section.id, found)
+  }
+  return out
+}
+
+/**
+ * One row of a list. In the Pipelines list: a pipeline with the sections
+ * confirmed part of it, or a proposed pipeline (no section is confirmed yet)
+ * with the sections proposed for it. In the Sections list: the sections first
+ * seen in one edition, in a pipeline or not.
  */
 export interface PipelineSummary {
   id: string
-  /** null for sections that are in no pipeline. */
+  /** null for a group of sections by first seen. */
   code: string | null
   name: string
-  /** The sections are in no pipeline. */
+  kind: "pipeline" | "proposed" | "first-seen"
+  /** The pipeline behind the row; null for a group by first seen. */
+  pipeline: Pipeline | null
+  /** For a proposed pipeline: the lowest and highest score of its sections. */
+  scores: [number, number] | null
+  /** The row is a group of sections by first seen, not a pipeline. */
   unassigned: boolean
   /** For sections in no pipeline: the edition that first shows them. */
   firstSeen: Edition | null
@@ -142,6 +221,14 @@ export function summaryProgress(
   summary: PipelineSummary,
   form: "short" | "long" = "short"
 ): string {
+  // A proposed pipeline: the best score of its sections in a row, all of
+  // them in full.
+  if (summary.kind === "proposed" && summary.scores) {
+    const [low, high] = summary.scores
+    return form === "short" || low === high
+      ? `Score ${high.toFixed(2)}`
+      : `Scores ${low.toFixed(2)} to ${high.toFixed(2)}`
+  }
   if (!summary.unassigned) {
     return doneLabel(summary.done, summary.sections.length, form)
   }
@@ -253,28 +340,39 @@ export function firstSeenGroupId(editionId: string): string {
 }
 
 /**
- * The groups of the list for the edition in force: one summary per pipeline
- * that has a section in the edition, in file order, then the sections that
- * are in no pipeline, one group per edition that first shows them, oldest
- * first. Data with no pipelines at all is only those last groups.
+ * The rows of one list for the edition in force.
+ *
+ * Pipelines: one row per pipeline that has a confirmed section in the
+ * edition, in file order, then the proposed pipelines: those with no
+ * confirmed section at all, each with the sections proposed for it. A section
+ * in no pipeline is not in this list.
+ *
+ * Sections: every section of the edition, in a pipeline or not, one group per
+ * edition that first shows them, oldest first.
  */
 export function summarise(
   network: Network,
   editionId: string,
-  rule: StatusRule = DEFAULT_REQUIRED
+  rule: StatusRule = DEFAULT_REQUIRED,
+  list: ListKind = "pipelines"
 ): PipelineSummary[] {
   const build = (
     id: string,
     code: string | null,
     name: string,
     sections: Section[],
-    firstSeen: Edition | null = null
+    firstSeen: Edition | null = null,
+    pipeline: Pipeline | null = null,
+    scores: [number, number] | null = null
   ): PipelineSummary => {
     const counts = statusCounts(sections, rule)
     return {
       id,
       code,
       name,
+      kind: firstSeen ? "first-seen" : scores ? "proposed" : "pipeline",
+      pipeline,
+      scores,
       unassigned: firstSeen !== null,
       firstSeen,
       sections,
@@ -296,35 +394,75 @@ export function summarise(
     if (list) list.push(s)
     else map.set(key, [s])
   }
+  const byProposal = new Map<string, Section[]>()
+  const scoresOf = new Map<string, number[]>()
   for (const section of sectionsInEdition(network, editionId)) {
     if (section.pipelineId !== null) {
       push(byPipeline, section.pipelineId, section)
-      continue
+    }
+    for (const proposed of section.proposedMemberships) {
+      push(byProposal, proposed.pipelineId, section)
+      scoresOf.set(proposed.pipelineId, [
+        ...(scoresOf.get(proposed.pipelineId) ?? []),
+        proposed.score,
+      ])
     }
     const first = firstEdition(network, section)
     if (first) push(byEdition, first.id, section)
   }
 
   const out: PipelineSummary[] = []
+  if (list === "sections") {
+    for (const edition of [...network.editions].sort(
+      (a, b) => a.year - b.year
+    )) {
+      const sections = byEdition.get(edition.id)
+      if (sections) {
+        out.push(
+          build(
+            firstSeenGroupId(edition.id),
+            null,
+            `First seen in the ${edition.label}`,
+            sections,
+            edition
+          )
+        )
+      }
+    }
+    return out
+  }
+  // A pipeline is proposed while no section anywhere is confirmed part of it.
+  const confirmed = new Set(network.sections.flatMap((s) => s.pipelineId ?? []))
   for (const pipeline of network.pipelines) {
     const sections = byPipeline.get(pipeline.id)
     if (sections) {
-      out.push(build(pipeline.id, pipeline.code, pipeline.name, sections))
-    }
-  }
-  for (const edition of [...network.editions].sort((a, b) => a.year - b.year)) {
-    const sections = byEdition.get(edition.id)
-    if (sections) {
       out.push(
         build(
-          firstSeenGroupId(edition.id),
-          null,
-          `Not in a pipeline, ${edition.label}`,
+          pipeline.id,
+          pipeline.code,
+          pipelineLabel(pipeline),
           sections,
-          edition
+          null,
+          pipeline
         )
       )
     }
+  }
+  for (const pipeline of network.pipelines) {
+    const sections = byProposal.get(pipeline.id)
+    const scores = scoresOf.get(pipeline.id)
+    if (confirmed.has(pipeline.id) || !sections || !scores) continue
+    out.push(
+      build(
+        pipeline.id,
+        pipeline.code,
+        pipelineLabel(pipeline),
+        sections,
+        null,
+        pipeline,
+        [Math.min(...scores), Math.max(...scores)]
+      )
+    )
   }
   return out
 }
@@ -351,6 +489,11 @@ export interface SectionCriteria {
   needsDecision: boolean
   /** The status rule: the attributes that must be cited. */
   rule: StatusRule
+  /**
+   * The owners of each section's pipeline (`ownersBySection`). Owner is a
+   * claim on the pipeline; without this no section has a company.
+   */
+  owners?: ReadonlyMap<string, readonly string[]>
 }
 
 export const NO_CRITERIA: SectionCriteria = {
@@ -368,9 +511,16 @@ export const NO_CRITERIA: SectionCriteria = {
 const valueOf = (section: Section, attribute: string) =>
   section.claims.find((claim) => claim.attribute === attribute)?.value ?? null
 
-/** The company a section is cited as belonging to; null when Unknown. */
-export function companyOf(section: Section): string | null {
-  return valueOf(section, COMPANY_ATTRIBUTE)
+/**
+ * The companies a section's pipeline is cited as owned by, over its life.
+ * None when the section is in no pipeline or the owner is Unknown: a section
+ * never has an owner of its own.
+ */
+export function companiesOf(
+  section: Section,
+  owners: SectionCriteria["owners"]
+): readonly string[] {
+  return owners?.get(section.id) ?? []
 }
 
 /** The first four-digit year in the section's build date; null when Unknown. */
@@ -415,8 +565,8 @@ export function sectionMatches(
     return false
   }
   if (companies.length > 0) {
-    const company = companyOf(section)
-    if (company === null || !companies.includes(company)) return false
+    const owned = companiesOf(section, criteria.owners)
+    if (!owned.some((company) => companies.includes(company))) return false
   }
   if (builtFrom !== null || builtTo !== null) {
     // An Unknown build date is not in any range.
@@ -475,15 +625,20 @@ export function unknownCounts(
   return counts
 }
 
-/** Each company of the edition with how many sections are cited as its own. */
+/**
+ * Each company of the edition with how many sections are in a pipeline cited
+ * as its own.
+ */
 export function companyCounts(
-  summaries: PipelineSummary[]
+  summaries: PipelineSummary[],
+  owners: SectionCriteria["owners"]
 ): { name: string; count: number }[] {
   const counts = new Map<string, number>()
   for (const summary of summaries) {
     for (const section of summary.sections) {
-      const name = companyOf(section)
-      if (name !== null) counts.set(name, (counts.get(name) ?? 0) + 1)
+      for (const name of companiesOf(section, owners)) {
+        counts.set(name, (counts.get(name) ?? 0) + 1)
+      }
     }
   }
   return [...counts]
@@ -554,6 +709,15 @@ export function filterCounts(
   for (const summary of summaries) {
     if (!inView(summary, view)) continue
     for (const section of summary.sections) {
+      // A pipeline in view counts whole; a group by first seen spans the
+      // map, so only its sections in view count.
+      if (
+        summary.unassigned &&
+        view !== null &&
+        !intersects(geometryBounds(section.geometry), view)
+      ) {
+        continue
+      }
       if (!sectionMatches(section, others)) continue
       const own = sectionStatus(section, criteria.rule)
       const decide = needsDecision(section)
@@ -684,7 +848,11 @@ export function search(
     if (
       !summary.unassigned &&
       (fold(summary.name).includes(needle) ||
-        fold(summary.code ?? "").includes(needle))
+        fold(summary.code ?? "").includes(needle) ||
+        // What is claimed about the pipeline: its owner, its operator.
+        (summary.pipeline?.claims ?? []).some(
+          (claim) => claim.value !== null && fold(claim.value).includes(needle)
+        ))
     ) {
       matches.push({ kind: "pipeline", sections: summary.sections.length })
     }

@@ -30,11 +30,22 @@ describe("settings", () => {
 
   it("keeps a change in the browser", () => {
     useSettings.getState().toggleRequired("Build date")
-    expect(useSettings.getState().requiredAttributes).toEqual([
-      "Owner",
-      "Diameter",
-    ])
-    expect(readSettings().requiredAttributes).toEqual(["Owner", "Diameter"])
+    expect(useSettings.getState().requiredAttributes).toEqual(["Diameter"])
+    expect(readSettings().requiredAttributes).toEqual(["Diameter"])
+    // Owner is the pipeline's: a section's rule never asks for it, and a
+    // rule saved before that still loads without it.
+    useSettings.getState().toggleRequired("Owner")
+    expect(useSettings.getState().requiredAttributes).toEqual(["Diameter"])
+    localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify({
+        requiredAttributes: ["Owner", "Diameter"],
+        lineStyle: DEFAULT_SETTINGS.lineStyle,
+      })
+    )
+    expect(readSettings().requiredAttributes).toEqual(["Diameter"])
+    useSettings.getState().reset()
+    useSettings.getState().toggleRequired("Build date")
 
     useSettings.getState().setLineStyle("in-progress", "solid")
     expect(readSettings().lineStyle["in-progress"]).toBe("solid")

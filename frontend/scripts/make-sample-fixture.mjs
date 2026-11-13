@@ -41,14 +41,89 @@ const BOTH = ["ed-1931", "ed-1937"]
 const LATER = ["ed-1937"]
 const EARLIER = ["ed-1931"]
 
+/*
+ * Pipelines. Name, owner and operator are claims on the pipeline, each with
+ * the period it holds for; a section carries none of them. `owners` is a list
+ * because an owner can change without the pipeline becoming another one.
+ */
+const REVIEW = { source: "Plains Gas Review, 1936", role: "states" }
+function pipeline(id, name, owners = [], operator = null) {
+  const code = id.toUpperCase()
+  const claim = (attribute, value, valid, citation, n = "") => ({
+    id: `c-${id}-${attribute.toLowerCase()}${n}`,
+    attribute,
+    value,
+    valid,
+    citations: [citation],
+    proposals: [],
+  })
+  return {
+    id,
+    code,
+    name,
+    claims: [
+      ...(name
+        ? [
+            claim("Name", name, "../1936", {
+              ...REVIEW,
+              locator: "p. 212",
+              quote: `the ${name} line`,
+            }),
+          ]
+        : []),
+      ...owners.map(([owner, valid, citation], i) =>
+        claim("Owner", owner, valid, citation, i === 0 ? "" : `-${i + 1}`)
+      ),
+      ...(operator
+        ? [
+            claim("Operator", operator, "../1936", {
+              ...REVIEW,
+              locator: "p. 216",
+              quote: `operated by the ${operator}`,
+            }),
+          ]
+        : []),
+    ],
+  }
+}
+const owned = (owner, valid = "../1936", page = "p. 214") => [
+  owner,
+  valid,
+  { ...REVIEW, locator: page, quote: `owned by the ${owner}` },
+]
+
 const pipelines = [
-  { id: "p-012", code: "P-012", name: "Calder Valley" },
-  { id: "p-013", code: "P-013", name: "Tolland" },
-  { id: "p-014", code: "P-014", name: "Adair trunk" },
-  { id: "p-015", code: "P-015", name: "Wexley lateral" },
-  { id: "p-016", code: "P-016", name: "Marsh Fork gathering" },
-  { id: "p-017", code: "P-017", name: "Brecken loop" },
-  { id: "p-041", code: "P-041", name: "Harlow lateral" },
+  pipeline(
+    "p-012",
+    "Calder Valley",
+    [owned("Calder Valley Gas Co.")],
+    "Calder Valley Gas Co."
+  ),
+  // The owner is Unknown: no source says.
+  pipeline("p-013", "Tolland"),
+  // The owner changed; it is still the same pipeline.
+  pipeline("p-014", "Adair trunk", [
+    [
+      "Harlow Gas Co.",
+      "../1931",
+      {
+        source: "Plains Gas Review, 1931",
+        role: "states",
+        locator: "p. 88",
+        quote: "the Harlow Gas Co.'s trunk line",
+      },
+    ],
+    owned("Adair Pipe Line Co.", "1936/..", "p. 219"),
+  ]),
+  pipeline("p-015", "Wexley lateral"),
+  pipeline("p-016", "Marsh Fork gathering", [
+    owned("Marsh Fork Gathering Co."),
+  ]),
+  // No source names it: it goes by its code.
+  pipeline("p-017", null, [owned("Brecken Gas Co.")]),
+  pipeline("p-041", "Harlow lateral", [owned("Harlow Gas Co.")]),
+  // Proposed: sections are proposed for it and none is confirmed.
+  pipeline("p-031", null),
 ]
 
 const round = (n) => Math.round(n * 1e5) / 1e5
@@ -92,7 +167,6 @@ function claims({
   code,
   editionIds,
   grid,
-  owner,
   diameter,
   built,
   points,
@@ -121,12 +195,6 @@ function claims({
           proposals: [],
         }
   return [
-    known(
-      "Owner",
-      owner,
-      [{ ...JOURNAL, locator: "p. 214", quote: `operated by the ${owner}` }],
-      "../1936"
-    ),
     known("Diameter", diameter, [
       {
         ...mapSource(last, `grid ref. ${grid}`, "states"),
@@ -176,7 +244,6 @@ function add(pipelineId, name, from, to, options = {}) {
       code,
       editionIds,
       grid: options.grid ?? "F-7",
-      owner: options.owner ?? "Calder Valley Gas Co.",
       diameter: options.diameter ?? "12 in",
       built: options.built ?? "1934",
       points: geometry.coordinates.length,
@@ -427,7 +494,14 @@ add("p-041", "Harlow to Pell", "Harlow", "Pell", {
 
 // Sections that are in no pipeline yet.
 serial = 899
-const loose = ["Owner", "Diameter", "Build date"]
+const loose = ["Diameter", "Build date"]
+// What a tool proposes for the sections that follow: three of them could be
+// one pipeline. Nobody has confirmed it, so they are in no pipeline.
+const proposedFor = (section, n, score) => {
+  section.proposedMemberships = [
+    { id: `pm-00${n}`, pipelineId: "p-031", score, proposer: "stitch" },
+  ]
+}
 add(null, "Unnamed section near Castell", "Castell", "Coyle", {
   grid: "J-5",
   unknown: loose,
@@ -474,6 +548,15 @@ add(null, "Unnamed section near Dunmore", "Dunmore", [-97.3, 36.1], {
   grid: "E-9",
   unknown: loose,
 })
+
+// Three of the sections in no pipeline are proposed as one; the rest have no
+// link at all.
+const inNone = sections.filter(
+  (s) => s.pipelineId === null && s.editionIds.includes("ed-1937")
+)
+proposedFor(inNone[0], 1, 0.92)
+proposedFor(inNone[1], 2, 0.92)
+proposedFor(inNone[2], 3, 0.61)
 
 const [hx, hy] = places.Harlow
 const [bx, by] = places.Brecken

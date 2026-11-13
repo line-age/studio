@@ -9,7 +9,10 @@ import { PanelHeader } from "@/components/panel-header"
 import { TreeItem } from "@/components/tree-item"
 import {
   citedLabel,
+  datedValue,
   doneLabel,
+  pipelineClaims,
+  pipelineLabel,
   formatCount,
   geometryBounds,
   groupsLabel,
@@ -21,15 +24,20 @@ import {
   unionBounds,
   type SelectionGroup,
 } from "@/data/derive"
-import { proposalCount, proposedEndsFor } from "@/data/evidence"
-import { sectionStatus } from "@/data/status"
+import {
+  OWNER_ROW,
+  PIPELINE_ROW,
+  proposalCount,
+  proposedEndsFor,
+} from "@/data/evidence"
+import { ON_PIPELINE, sectionStatus } from "@/data/status"
 import type { Section } from "@/data/schema"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { useSettings } from "../settings"
-import { useCriteria, useSelectionGroups } from "../studio-data"
+import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { ClaimDetail } from "./claim-detail"
 import { useStudio } from "../studio-store"
 
@@ -69,6 +77,22 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const attachments = useSelectionAttachments()
   const criteria = useCriteria()
   const rule = useSettings((s) => s.requiredAttributes)
+  const { network, edition } = useStudioData()
+  const setList = useStudio((s) => s.setList)
+  const selectPipeline = useStudio((s) => s.selectPipeline)
+  const pipelineById = new Map(network.pipelines.map((p) => [p.id, p]))
+  // "On the pipeline" leads there: the Pipelines list, that pipeline whole.
+  const openPipeline = (pipelineId: string) => {
+    const members = network.sections.filter(
+      (s) => s.pipelineId === pipelineId && s.editionIds.includes(edition.id)
+    )
+    setList("pipelines")
+    selectPipeline(
+      pipelineId,
+      members.map((s) => s.id)
+    )
+    requestFit(unionBounds(members.map((s) => geometryBounds(s.geometry))))
+  }
   // Only the one-click filters dim: they are about the section itself.
   const filtering = criteria.status !== "all" || criteria.needsDecision
 
@@ -142,7 +166,12 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
       <PanelHeader
         icon="line"
         title={multi ? groupsLabel(groups.map((g) => g.summary)) : single.name}
-        meta={multi ? undefined : (single.code ?? undefined)}
+        // An unnamed pipeline goes by its code: do not say it twice.
+        meta={
+          multi || single.name === single.code
+            ? undefined
+            : (single.code ?? undefined)
+        }
         divider
       >
         {progress && (
@@ -151,6 +180,39 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
           </span>
         )}
       </PanelHeader>
+      {/* One pipeline: what is claimed about it as a whole, apart from its
+          sections. Name, owner and operator are never a section's own. */}
+      {!multi && single.pipeline && (
+        <div
+          role="group"
+          aria-label={`Claims about ${single.name}`}
+          className="flex shrink-0 flex-col border-b"
+        >
+          <ListHeader
+            label="Claims about the pipeline"
+            selection={null}
+            trailing={
+              single.kind === "proposed"
+                ? "Proposed, not confirmed"
+                : plural(
+                    single.pipeline.claims.filter((c) => c.value !== null)
+                      .length,
+                    "claim"
+                  )
+            }
+          />
+          {pipelineClaims(single.pipeline).map((claim, index) => (
+            <AttributeRow
+              key={`${claim.attribute}:${index}`}
+              className="pl-3"
+              label={claim.attribute}
+              value={datedValue(claim)}
+              sources={claim.citations.length}
+              proposals={claim.proposals.length}
+            />
+          ))}
+        </div>
+      )}
       <ListHeader
         label="Sections"
         trailing={`${formatCount(checkedCount)} of ${formatCount(allIds.length)} selected`}
@@ -232,50 +294,117 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                       role="group"
                       aria-label={`Claims of ${sectionLabel(section)}`}
                     >
-                      {section.claims.map((claim) => {
+                      {(() => {
+                        const pipeline = section.pipelineId
+                          ? pipelineById.get(section.pipelineId)
+                          : undefined
+                        const proposed = section.proposedMemberships
+                        const first = proposed[0]
+                          ? pipelineById.get(proposed[0].pipelineId)
+                          : undefined
                         const chosen =
-                          selected && claim.attribute === selectedAttribute
-                        const choose = () => {
-                          selectAttribute(section.id, claim.attribute, true)
-                          // A proposed end or cut is drawn on the map: bring
-                          // the section and the line traced as gone into view.
-                          const ends = proposedEndsFor(section, claim.attribute)
-                          const both = unionBounds([
-                            geometryBounds(section.geometry),
-                            ...ends.map((end) => geometryBounds(end.geometry)),
-                          ])
-                          if (ends.length > 0 && both) requestFit(both)
-                        }
+                          selected && selectedAttribute === PIPELINE_ROW
+                        const choose = () =>
+                          selectAttribute(section.id, PIPELINE_ROW, true)
                         return (
-                          <AttributeRow
-                            key={claim.attribute}
-                            role="treeitem"
-                            aria-level={2}
-                            aria-selected={chosen}
-                            data-roving
-                            tabIndex={-1}
-                            label={claim.attribute}
-                            value={claim.value}
-                            sources={claim.citations.length}
-                            proposals={proposalCount(section, claim)}
-                            selected={chosen}
-                            onClick={choose}
-                            onKeyDown={(event) => {
-                              if (isActivate(event)) {
-                                event.preventDefault()
-                                choose()
-                              } else if (event.key === "ArrowLeft") {
-                                event.preventDefault()
-                                treeRef.current
-                                  ?.querySelector<HTMLElement>(
-                                    `[data-section="${CSS.escape(section.id)}"]`
-                                  )
-                                  ?.focus()
+                          <>
+                            <AttributeRow
+                              role="treeitem"
+                              aria-level={2}
+                              aria-selected={chosen}
+                              data-roving
+                              tabIndex={-1}
+                              label={PIPELINE_ROW}
+                              value={
+                                pipeline
+                                  ? pipelineLabel(pipeline)
+                                  : first
+                                    ? `Not yet ${pipelineLabel(first)}'s`
+                                    : null
                               }
-                            }}
-                          />
+                              proposals={pipeline ? 0 : proposed.length}
+                              selected={chosen}
+                              onClick={choose}
+                              onKeyDown={(event) => {
+                                if (isActivate(event)) {
+                                  event.preventDefault()
+                                  choose()
+                                }
+                              }}
+                            />
+                            {pipeline && (
+                              <AttributeRow
+                                role="treeitem"
+                                aria-level={2}
+                                aria-selected={false}
+                                data-roving
+                                tabIndex={-1}
+                                label={OWNER_ROW}
+                                value="On the pipeline"
+                                onClick={() => openPipeline(pipeline.id)}
+                                onKeyDown={(event) => {
+                                  if (isActivate(event)) {
+                                    event.preventDefault()
+                                    openPipeline(pipeline.id)
+                                  }
+                                }}
+                              />
+                            )}
+                          </>
                         )
-                      })}
+                      })()}
+                      {section.claims
+                        // Never a section's own: they are on the pipeline.
+                        .filter((c) => !ON_PIPELINE.includes(c.attribute))
+                        .map((claim) => {
+                          const chosen =
+                            selected && claim.attribute === selectedAttribute
+                          const choose = () => {
+                            selectAttribute(section.id, claim.attribute, true)
+                            // A proposed end or cut is drawn on the map: bring
+                            // the section and the line traced as gone into view.
+                            const ends = proposedEndsFor(
+                              section,
+                              claim.attribute
+                            )
+                            const both = unionBounds([
+                              geometryBounds(section.geometry),
+                              ...ends.map((end) =>
+                                geometryBounds(end.geometry)
+                              ),
+                            ])
+                            if (ends.length > 0 && both) requestFit(both)
+                          }
+                          return (
+                            <AttributeRow
+                              key={claim.attribute}
+                              role="treeitem"
+                              aria-level={2}
+                              aria-selected={chosen}
+                              data-roving
+                              tabIndex={-1}
+                              label={claim.attribute}
+                              value={claim.value}
+                              sources={claim.citations.length}
+                              proposals={proposalCount(section, claim)}
+                              selected={chosen}
+                              onClick={choose}
+                              onKeyDown={(event) => {
+                                if (isActivate(event)) {
+                                  event.preventDefault()
+                                  choose()
+                                } else if (event.key === "ArrowLeft") {
+                                  event.preventDefault()
+                                  treeRef.current
+                                    ?.querySelector<HTMLElement>(
+                                      `[data-section="${CSS.escape(section.id)}"]`
+                                    )
+                                    ?.focus()
+                                }
+                              }}
+                            />
+                          )
+                        })}
                     </div>
                   )}
                 </Fragment>

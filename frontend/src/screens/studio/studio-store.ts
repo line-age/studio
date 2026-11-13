@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-import type { Bounds } from "@/data/derive"
+import type { Bounds, ListKind } from "@/data/derive"
 import type { SectionStatus } from "@/data/status"
 
 /*
@@ -63,6 +63,16 @@ interface StudioState {
   query: string
   /** Search past the filters, through every pipeline of the edition. */
   searchWholeEdition: boolean
+  /**
+   * Which list the left panel shows: the pipelines, or every section. null
+   * until the person chooses: the data then decides (`defaultList`).
+   */
+  list: ListKind | null
+  /**
+   * The pipeline picked as a whole in the Pipelines list; null once the
+   * selection is changed any other way. Kept so a link can name it.
+   */
+  selectedPipelineId: string | null
   /** The selected sections. They may belong to several pipelines. */
   selection: ReadonlySet<string>
   /**
@@ -95,8 +105,11 @@ interface StudioState {
   clearFilters: () => void
   setQuery: (query: string) => void
   setSearchWholeEdition: (on: boolean) => void
+  setList: (list: ListKind) => void
   /** Select exactly these sections; none clears the selection. */
   select: (sectionIds: readonly string[]) => void
+  /** Select a pipeline as a whole: these are its sections. */
+  selectPipeline: (pipelineId: string, sectionIds: readonly string[]) => void
   /** Add these sections to what is selected. */
   addToSelection: (sectionIds: readonly string[]) => void
   /** All of these selected: take them off. Otherwise add them. */
@@ -161,6 +174,8 @@ const selected = (ids: Iterable<string>) => {
   return {
     selection,
     selectedSectionId: selection.size === 1 ? [...selection][0] : null,
+    // Any other way of selecting is not "this pipeline as a whole".
+    selectedPipelineId: null as string | null,
   }
 }
 
@@ -205,6 +220,8 @@ export const useStudio = create<StudioState>((set) => ({
   layers: defaultLayers,
   query: "",
   searchWholeEdition: false,
+  list: null,
+  selectedPipelineId: null,
   selection: new Set(),
   selectedSectionId: null,
   tool: "select",
@@ -261,9 +278,16 @@ export const useStudio = create<StudioState>((set) => ({
       searchWholeEdition: query.trim() === "" ? false : s.searchWholeEdition,
     })),
   setSearchWholeEdition: (searchWholeEdition) => set({ searchWholeEdition }),
+  setList: (list) => set({ list }),
   select: (sectionIds) =>
     set({
       ...selected(sectionIds),
+      selectedAttribute: null,
+    }),
+  selectPipeline: (pipelineId, sectionIds) =>
+    set({
+      ...selected(sectionIds),
+      selectedPipelineId: pipelineId,
       selectedAttribute: null,
     }),
   addToSelection: (sectionIds) =>

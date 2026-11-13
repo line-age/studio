@@ -26,7 +26,7 @@ async function openClaim(attribute: string) {
   })
   const user = userEvent.setup()
   await user.type(
-    screen.getByRole("combobox", { name: "Search sections" }),
+    screen.getByRole("combobox", { name: "Search pipelines" }),
     "fir to{Enter}"
   )
   const claims = screen.getByRole("group", { name: "Claims of Fir to Gale" })
@@ -87,6 +87,6 @@ describe("evidence in the right panel", () => {
       within(
         screen.getByRole("group", { name: "Sections by status" })
       ).getByRole("button", { name: /Needs your decision/ })
-    ).toHaveTextContent("2")
+    ).toHaveTextContent("3")
   })
 })

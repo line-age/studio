@@ -4,6 +4,8 @@ import { testNetwork } from "@/test/network"
 
 import { summarise } from "./derive"
 import {
+  DEFAULT_REQUIRED,
+  ON_PIPELINE,
   groupStatus,
   missingRequired,
   needsDecision,
@@ -14,7 +16,7 @@ import {
 
 const network = testNetwork()
 const [alder, birch, dale, loose] = network.sections
-const two = ["Owner", "Diameter"]
+const two = ["Diameter", "Build date"]
 
 describe("sectionStatus", () => {
   it("is Not started when no required attribute is cited", () => {
@@ -23,11 +25,10 @@ describe("sectionStatus", () => {
   })
 
   it("is In progress when some are cited and not all", () => {
-    // Owner and Diameter are cited; the default rule also asks Build date.
-    expect(sectionStatus(alder)).toBe("in-progress")
-    expect(missingRequired(alder, ["Owner", "Diameter", "Build date"])).toEqual(
-      ["Build date"]
-    )
+    // Diameter and Build date are cited; this rule also asks for a material.
+    const three = [...two, "Material"]
+    expect(sectionStatus(alder, three)).toBe("in-progress")
+    expect(missingRequired(alder, three)).toEqual(["Material"])
   })
 
   it("is Done when all are cited and the section is in a pipeline", () => {
@@ -40,6 +41,12 @@ describe("sectionStatus", () => {
     )
   })
 
+  it("never asks a section for its owner: that is the pipeline's", () => {
+    expect(DEFAULT_REQUIRED).not.toContain("Owner")
+    expect(ON_PIPELINE).toContain("Owner")
+    expect(sectionStatus(alder)).toBe("done")
+  })
+
   it("asks nothing when the rule is empty", () => {
     expect(sectionStatus(birch, [])).toBe("done")
     expect(sectionStatus(loose, [])).toBe("sufficient")
@@ -50,6 +57,9 @@ describe("needsDecision", () => {
   it("marks a section with a proposal waiting, whatever its status", () => {
     expect(needsDecision(birch)).toBe(true)
     expect(needsDecision(alder)).toBe(false)
+    // A pipeline proposed for the section waits for a decision too.
+    expect(needsDecision(loose)).toBe(true)
+    expect(needsDecision({ ...loose, proposedMemberships: [] })).toBe(false)
   })
 })
 
@@ -67,12 +77,16 @@ describe("counts", () => {
   })
 
   it("change when the rule changes", () => {
-    expect(statusCounts(sections).done).toBe(0)
-    expect(statusCounts(sections)["in-progress"]).toBe(2)
+    const more = [...two, "Material"]
+    expect(statusCounts(sections, more).done).toBe(0)
+    expect(statusCounts(sections, more)["in-progress"]).toBe(2)
   })
 
   it("say how many sections have each required attribute Unknown", () => {
-    expect(unknownByAttribute(sections, two)).toEqual({ Owner: 2, Diameter: 2 })
+    expect(unknownByAttribute(sections, two)).toEqual({
+      Diameter: 2,
+      "Build date": 2,
+    })
   })
 })
 
@@ -111,7 +125,7 @@ describe("summarise", () => {
       status: "in-progress",
       done: 1,
       needsDecision: true,
-      unknownByAttribute: { Owner: 1, Diameter: 1 },
+      unknownByAttribute: { Diameter: 1, "Build date": 1 },
     })
     expect(south).toMatchObject({ status: "done", done: 1 })
   })

@@ -6,8 +6,9 @@ app. State as of 2026-11-13: the theme exported from Figma and one screen, **Stu
 working read-only on fixture data or, with `VITE_DATA_SOURCE=store`, on a local Lineage
 store. More screens will follow; each gets its own directory under `src/screens/`.
 
-What Studio does today: gives every section a status; lists pipelines and the sections
-in no pipeline, with counts by status, search and filters; widens that list into a
+What Studio does today: gives every section a status; lists pipelines (and the ones
+only proposed) in one list and every section in another, with counts by status, search
+and filters; shows a pipeline's own name, owner and operator, each with its period; widens that list into a
 table; selects sections across pipelines by row boxes, clicks on the map or a Lasso;
 shows the selection's claims grouped in the right panel, and one claim in full with
 its sources (what each does for the claim, and a map's edition and date) and any
@@ -141,7 +142,11 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   name starting with `VITE_` that holds one, ever goes in the code or the bundle.
 - `src/data/store/to-network.ts` is the only place that knows store's shapes. It shows
   accepted claims as cited values, candidate claims as proposals and everything else as
-  Unknown. It keeps each claim's id and the period it holds for, and each citation's
+  Unknown. A `line` is a pipeline: a section is in it once its `part_of` link is
+  confirmed, and a proposed `part_of` link is a proposed membership that changes
+  nothing. A pipeline's name, owner and operator are the line's own accepted claims,
+  one row per claim, each with its period; an owner store holds on a section is not
+  shown. It keeps each claim's id and the period it holds for, and each citation's
   role and, for a map, the date the map is as of; a map reading's locator in store is
   the trace file, so it is kept apart as `file`. It never changes a section because of
   an end store only proposes. It drops who asserted or reviewed a claim; the proposer
@@ -163,13 +168,33 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   claim is open the map draws the line traced as gone, dashed. There is no button to
   decide. Last seen stays Unknown until a person confirms the link in store; then it is
   cited to both maps (Figma `213:8036`).
-- The list is always "Sections": pipelines, then the sections in no pipeline, one group
-  per edition that first shows them (`summarise`). Store has no pipelines yet, so its
-  data is only those groups. There is no `groupBy`. A row may be a pipeline or such a
-  group (`summary.unassigned`): do not write "pipeline" into a string that covers both.
-  A section with no name goes by its code (`sectionLabel`); never invent a name.
+- Two lists, each with a rail item, its own title and its own search box (Figma
+  `223:9298`, `223:9612`). Pipelines: the pipelines with a confirmed section in the
+  edition, then "Proposed pipelines" (no section confirmed, only proposed; the row shows
+  the best score, all scores on hover). A section in no pipeline is not in it; with no
+  pipelines it says so in words and never borrows sections. Sections: every section of
+  the edition, in a pipeline or not, one group per edition that first shows them.
+  `summarise(network, edition, rule, list)` builds either; `everySection` in
+  `studio-data.tsx` is always the Sections rows, and the status counts, the filters and
+  the map read it whichever list shows. The list opens on Pipelines when the data has
+  any (`defaultList`); the choice is `list` in the store and `l` in the URL. A row's
+  `kind` is `pipeline`, `proposed` or `first-seen`: do not write "pipeline" into a string
+  that covers all three. A section with no name goes by its code (`sectionLabel`), a
+  pipeline with no name by its code (`pipelineLabel`) and shows "Unknown name"; never
+  invent a name.
+- A pipeline's own claims are name, owner and operator (`ON_PIPELINE`), never a
+  section's. The right panel shows them above its sections when one pipeline is
+  selected (`pipelineClaims`, `datedValue`: "Alder Gas Co., by 1931"; an owner that
+  changed is two rows). A section has a Pipeline row: the pipeline's name, "Not yet
+  <code>'s" with the proposal, or Unknown; its detail says which, and who proposed it.
+  In a pipeline it also has an Owner row reading "On the pipeline" that selects the
+  pipeline as a whole (`selectPipeline`, `p` in the URL). A section in no pipeline has
+  no Owner row. The Company filter and search read the pipeline's owners
+  (`ownersBySection`).
 - Status (Not started, In progress, Sufficient, Done) is computed in
-  `src/data/status.ts` from the claims and the rule in Settings, never stored. A proposal
+  `src/data/status.ts` from the claims and the rule in Settings, never stored. The rule
+  never holds Owner, Name or Operator: they are the pipeline's (the owner, 2026-11-13).
+  A saved rule that names Owner loads without it. A proposal
   waiting is a mark ("Needs your decision"), not a status. An attribute looked for and
   not found stays Unknown (the owner, 2026-11-13).
 - Settings (`settings.ts`) are kept in the browser: the required attributes and solid or

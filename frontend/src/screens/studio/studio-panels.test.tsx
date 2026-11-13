@@ -49,22 +49,24 @@ beforeEach(() => {
 describe("Studio panels", () => {
   it("lists the pipelines of the latest edition with their status in words", async () => {
     await renderPanels()
-    const list = screen.getByRole("listbox", { name: "Sections" })
+    const list = screen.getByRole("listbox", { name: "Pipelines" })
     const rows = within(list).getAllByRole("option")
     expect(rows.map((row) => row.textContent)).toEqual([
       expect.stringContaining("North line"),
       expect.stringContaining("South line"),
-      expect.stringContaining("1937 edition"),
+      expect.stringContaining("P-003"),
     ])
     expect(rows[0]).toHaveTextContent("In progress")
     // Progress says what it counts: sections done of the pipeline's sections.
-    expect(rows[0]).toHaveTextContent("0/2 done")
-    // Sections in no pipeline come last, under the edition that first
-    // shows them, and can only get as far as sufficient.
-    expect(list).toHaveTextContent("Not in a pipeline, by first seen")
-    expect(rows[2]).toHaveTextContent("1937 edition1Not started")
-    expect(within(rows[2]).getByTitle("1 section")).toBeInTheDocument()
-    expect(rows[2]).toHaveTextContent("Not started")
+    expect(rows[0]).toHaveTextContent("1/2 done")
+    // A pipeline only proposed comes last, under its own heading, with its
+    // score; no source names it, so its name is Unknown.
+    expect(list).toHaveTextContent("Proposed pipelines")
+    expect(rows[2]).toHaveTextContent("Unknown name")
+    expect(rows[2]).toHaveTextContent("Score 0.70")
+    expect(rows[2]).toHaveTextContent("Proposed")
+    // A section in no pipeline is not in this list.
+    expect(list).not.toHaveTextContent("first seen")
   })
 
   it("shows the sections of the selected pipeline and asks the map to show it", async () => {
@@ -97,10 +99,14 @@ describe("Studio panels", () => {
       name: "Claims of Birch to Cedar",
     })
     const rows = within(claims).getAllByRole("treeitem")
-    expect(rows).toHaveLength(2)
-    expect(rows[0]).toHaveTextContent("Owner")
-    expect(rows[0]).toHaveTextContent("Unknown")
-    expect(rows[1]).toHaveTextContent("1 proposal")
+    expect(rows.map((row) => row.textContent)).toEqual([
+      expect.stringContaining("North line"),
+      // Owner is the pipeline's: the row says so and holds no value.
+      "OwnerOn the pipeline",
+      expect.stringContaining("Build dateUnknown"),
+      expect.stringContaining("1 proposal"),
+    ])
+    expect(rows[0]).toHaveTextContent(/^Pipeline/)
   })
 
   it("follows a selection made elsewhere, as the map does", async () => {
@@ -144,7 +150,7 @@ describe("Studio panels", () => {
   it("adds pipelines by their boxes and lists them grouped on the right", async () => {
     const user = userEvent.setup()
     await renderPanels()
-    const list = screen.getByRole("listbox", { name: "Sections" })
+    const list = screen.getByRole("listbox", { name: "Pipelines" })
 
     await user.click(
       within(list).getByRole("checkbox", { name: "Select North line" })
@@ -177,7 +183,7 @@ describe("Studio panels", () => {
   it("selects a run of rows with Shift, and all or none with the header box", async () => {
     const user = userEvent.setup()
     await renderPanels()
-    const list = screen.getByRole("listbox", { name: "Sections" })
+    const list = screen.getByRole("listbox", { name: "Pipelines" })
     const rows = within(list).getAllByRole("option")
 
     await user.click(rows[0])
@@ -245,7 +251,7 @@ describe("Studio panels", () => {
   it("searches every pipeline and opens the first hit with Enter", async () => {
     const user = userEvent.setup()
     await renderPanels()
-    const input = screen.getByRole("combobox", { name: "Search sections" })
+    const input = screen.getByRole("combobox", { name: "Search pipelines" })
 
     await user.type(input, "cedar")
     const results = screen.getByRole("listbox", { name: "Search results" })
@@ -265,7 +271,7 @@ describe("Studio panels", () => {
   it("says so when nothing matches, and Esc clears the search", async () => {
     const user = userEvent.setup()
     await renderPanels()
-    const input = screen.getByRole("combobox", { name: "Search sections" })
+    const input = screen.getByRole("combobox", { name: "Search pipelines" })
 
     await user.type(input, "zzz")
     expect(screen.getByRole("status")).toHaveTextContent(
@@ -284,16 +290,17 @@ describe("Studio panels", () => {
     ).toHaveTextContent("As of the 1937 edition")
     act(() => useStudio.getState().setEdition("ed-1931"))
     // The 1931 map shows the old route and not the later sections.
-    const list = screen.getByRole("listbox", { name: "Sections" })
+    const list = screen.getByRole("listbox", { name: "Pipelines" })
     const rows = within(list).getAllByRole("option")
     expect(rows.map((row) => row.textContent)).toEqual([
-      expect.stringContaining("North line0/1"),
+      expect.stringContaining("North line1/1"),
       expect.stringContaining("South line0/1"),
     ])
   })
 
   it("lists the sections of a first-seen group once it is opened", async () => {
     const user = userEvent.setup()
+    act(() => useStudio.getState().setList("sections"))
     await renderPanels()
     const list = screen.getByRole("listbox", { name: "Sections" })
     expect(within(list).queryByText("Unnamed section")).toBeNull()
@@ -305,14 +312,16 @@ describe("Studio panels", () => {
     const row = within(list)
       .getByText("Unnamed section")
       .closest("[role=option]")
-    expect(row).toHaveTextContent("0/3")
+    expect(row).toHaveTextContent("0/2")
     expect(row).toHaveTextContent("Not started")
     await user.click(row!)
     expect([...useStudio.getState().selection]).toEqual(["s-4"])
     // The one section opens on the right, to its claims.
     expect(useStudio.getState().selectedSectionId).toBe("s-4")
     const claims = screen.getByRole("group", { name: /^Claims of / })
-    expect(within(claims).getByText("Owner")).toBeVisible()
+    // In no pipeline, only proposed for one: no Owner row at all.
+    expect(within(claims).getByText("Not yet P-003's")).toBeVisible()
+    expect(within(claims).queryByText("Owner")).toBeNull()
     expect(within(claims).getAllByText("Unknown").length).toBeGreaterThan(0)
   })
 
@@ -320,11 +329,11 @@ describe("Studio panels", () => {
     const user = userEvent.setup()
     await renderPanels()
     await user.click(screen.getByRole("button", { name: "Filters" }))
-    // Owner is Unknown on two sections; they sit in two rows of three.
+    // Diameter is Unknown on two sections; they sit in two rows of three.
     const owner = within(screen.getByRole("group", { name: "Unknown in" }))
-      .getByText("Owner")
+      .getByText("Diameter")
       .closest("label")
-    expect(owner).toHaveTextContent("Owner2")
+    expect(owner).toHaveTextContent("Diameter2")
     await user.click(within(owner!).getByRole("checkbox"))
     expect(
       screen.getByRole("button", { name: "Show 2 sections" })
@@ -363,11 +372,12 @@ describe("Studio panels", () => {
     expect(count(/^All/)).toHaveTextContent("All4")
     expect(count(/^Done/)).toHaveTextContent("Done2")
     expect(count(/^Not started/)).toHaveTextContent("Not started2")
-    expect(count(/^Needs your decision/)).toHaveTextContent("1")
+    // A diameter proposed on one section, a pipeline proposed for another.
+    expect(count(/^Needs your decision/)).toHaveTextContent("2")
 
     await user.click(count(/^Not started/))
     expect(count(/^Not started/)).toHaveAttribute("aria-pressed", "true")
-    const list = screen.getByRole("listbox", { name: "Sections" })
+    const list = screen.getByRole("listbox", { name: "Pipelines" })
     // North line stays: one of its two sections is not started.
     expect(
       within(list)
@@ -375,7 +385,7 @@ describe("Studio panels", () => {
         .map((row) => row.textContent)
     ).toEqual([
       expect.stringContaining("North line"),
-      expect.stringContaining("1937 edition"),
+      expect.stringContaining("P-003"),
     ])
 
     // In the right panel the section that does not match is dimmed.
@@ -397,22 +407,22 @@ describe("Studio panels", () => {
     const user = userEvent.setup()
     await renderPanels()
     await user.click(screen.getByRole("button", { name: "Filters" }))
-    expect(screen.queryByRole("listbox", { name: "Sections" })).toBeNull()
+    expect(screen.queryByRole("listbox", { name: "Pipelines" })).toBeNull()
 
-    await user.click(screen.getByRole("checkbox", { name: /Owner/ }))
-    // The count is live: two sections of the edition have no cited owner.
+    await user.click(screen.getByRole("checkbox", { name: /Diameter/ }))
+    // The count is live: two sections of the edition have no cited diameter.
     const show = screen.getByRole("button", { name: "Show 2 sections" })
     await user.click(show)
 
-    expect(screen.getByRole("listbox", { name: "Sections" })).toBeVisible()
-    expect(useStudio.getState().unknownIn).toEqual(["Owner"])
+    expect(screen.getByRole("listbox", { name: "Pipelines" })).toBeVisible()
+    expect(useStudio.getState().unknownIn).toEqual(["Diameter"])
     expect(
       screen.getByRole("button", { name: "Filters, some are on" })
     ).toHaveAttribute("aria-pressed", "true")
 
     // The filter shows as a chip under the counts, and comes off there.
     const chips = screen.getByRole("group", { name: "Filters in force" })
-    expect(chips).toHaveTextContent("Unknown owner")
+    expect(chips).toHaveTextContent("Unknown diameter")
     await user.click(
       within(chips).getByRole("button", { name: /Remove the filter/ })
     )
@@ -433,7 +443,7 @@ describe("Studio panels", () => {
     expect(useStudio.getState().unknownIn).toEqual([])
     expect(useStudio.getState().status).toBe("not-started")
     await user.click(screen.getByRole("button", { name: "Back to the list" }))
-    expect(screen.getByRole("listbox", { name: "Sections" })).toBeVisible()
+    expect(screen.getByRole("listbox", { name: "Pipelines" })).toBeVisible()
   })
 })
 
@@ -463,10 +473,14 @@ describe("Reading is not selecting", () => {
     const claims = screen.getByRole("group", {
       name: "Claims of Birch to Cedar",
     })
-    await user.click(within(claims).getAllByRole("treeitem")[0])
+    await user.click(
+      within(claims)
+        .getAllByRole("treeitem")
+        .find((row) => row.textContent?.startsWith("Diameter"))!
+    )
 
     expect(useStudio.getState().selection).toEqual(new Set(["s-1", "s-2"]))
-    expect(useStudio.getState().selectedAttribute).toBe("Owner")
+    expect(useStudio.getState().selectedAttribute).toBe("Diameter")
   })
 
   it("opens a section that is not ticked without ticking it", async () => {
@@ -515,16 +529,16 @@ describe("Progress says what it counts", () => {
     // No second count of Unknown on the row: Unknown is a word on a claim.
     expect(row()).not.toHaveTextContent(/\d Unknown/)
 
-    act(() => useSettings.setState({ requiredAttributes: ["Owner"] }))
+    act(() => useSettings.setState({ requiredAttributes: ["Diameter"] }))
     expect(row()).toHaveTextContent("0/1 cited")
   })
 
   it("speaks in the header for what is selected, not the pipeline around it", async () => {
     await renderPanels()
     act(() => useStudio.getState().select(["s-1", "s-2"]))
-    expect(screen.getByText("0 of 2 sections done")).toBeInTheDocument()
+    expect(screen.getByText("1 of 2 sections done")).toBeInTheDocument()
 
-    act(() => useStudio.getState().select(["s-1"]))
+    act(() => useStudio.getState().select(["s-2"]))
     expect(screen.getByText("0 of 1 section done")).toBeInTheDocument()
   })
 

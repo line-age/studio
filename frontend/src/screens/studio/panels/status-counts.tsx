@@ -70,7 +70,7 @@ function CountToggle({
  * not change them. Only the list follows the map.
  */
 export function StatusCounts() {
-  const { summaries } = useStudioData()
+  const { everySection: summaries } = useStudioData()
   const criteria = useCriteria()
   const status = useStudio((s) => s.status)
   const setStatus = useStudio((s) => s.setStatus)

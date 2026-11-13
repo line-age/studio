@@ -18,8 +18,11 @@ export function ListHeader({
 }: {
   label: ReactNode
   trailing?: ReactNode
-  /** How much of the list is selected: none, some or all. */
-  selection?: "unchecked" | "checked" | "indeterminate"
+  /**
+   * How much of the list is selected: none, some or all. null: the list
+   * holds nothing that can be selected, and the header has no box.
+   */
+  selection?: "unchecked" | "checked" | "indeterminate" | null
   /** Makes the box a working "select all". Needs `selectionLabel`. */
   onSelectionChange?: () => void
   selectionLabel?: string
@@ -38,12 +41,14 @@ export function ListHeader({
         className
       )}
     >
-      <CheckMark
-        value={selection}
-        label={selectionLabel}
-        onChange={onSelectionChange}
-        tabIndex={0}
-      />
+      {selection !== null && (
+        <CheckMark
+          value={selection}
+          label={selectionLabel}
+          onChange={onSelectionChange}
+          tabIndex={0}
+        />
+      )}
       <span className="flex min-w-0 flex-1">
         <Label
           {...(onSort && {

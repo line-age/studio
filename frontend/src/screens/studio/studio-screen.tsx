@@ -17,11 +17,12 @@ import { RailItem } from "@/components/rail-item"
 import { Button } from "@/components/ui/button"
 import {
   attributeNames,
-  companyOf,
   geometryBounds,
+  summarise,
   groupsLabel,
   sectionLabel,
   unionBounds,
+  type ListKind,
 } from "@/data/derive"
 import { fixtureUrl, loadNetwork } from "@/data/load-network"
 import { FixtureError } from "@/data/schema"
@@ -36,6 +37,7 @@ import { ShowPanels } from "./panel-toggle"
 import { AgentPanel } from "./panels/agent-panel"
 import { PipelinesPanel, SEARCH_INPUT_ID } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
+import { useSettings } from "./settings"
 import { SettingsDialog } from "./settings-dialog"
 import { SidePanel } from "./side-panel"
 import {
@@ -133,6 +135,11 @@ export function StudioScreen() {
   )
 }
 
+const LISTS = [
+  { kind: "pipelines", icon: "line", label: "Pipelines" },
+  { kind: "sections", icon: "section", label: "Sections" },
+] as const
+
 /** The least the map keeps when the list is widened into a table. */
 const MAP_MIN_WIDTH = 400
 
@@ -156,6 +163,7 @@ function Frame({
   onHome,
   agentWaiting = false,
   attributes,
+  list,
   left,
   right,
   busy = false,
@@ -168,6 +176,8 @@ function Frame({
   agentWaiting?: boolean
   /** The attributes of the data. With them, Settings can open. */
   attributes?: readonly string[]
+  /** The list showing. Before the data is here, neither is marked. */
+  list?: ListKind
   left?: ReactNode
   right?: ReactNode
   busy?: boolean
@@ -176,6 +186,7 @@ function Frame({
 }) {
   const { panel, open, togglePanel } = useLeftPanel()
   const hasSelection = useStudio((s) => s.selection.size > 0)
+  const setList = useStudio((s) => s.setList)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const setHelpOpen = useHelp((s) => s.setDialogOpen)
   // Hiding the side panels hides both; the rail stays.
@@ -205,12 +216,26 @@ function Frame({
           aria-label="Panels"
           className="flex w-rail shrink-0 flex-col gap-1 border-r bg-muted py-2"
         >
-          <RailItem
-            icon="line"
-            label="Sections"
-            active={open && panel === "pipelines"}
-            onClick={() => togglePanel("pipelines")}
-          />
+          {/* Two lists, one panel: each rail item shows its own. */}
+          {LISTS.map(({ kind, icon, label }) => {
+            const showing = open && panel === "pipelines"
+            return (
+              <RailItem
+                key={kind}
+                icon={icon}
+                label={label}
+                active={showing && list === kind}
+                onClick={() => {
+                  // From the other list this only switches; the panel stays.
+                  if (showing && list !== kind) setList(kind)
+                  else {
+                    setList(kind)
+                    togglePanel("pipelines")
+                  }
+                }}
+              />
+            )
+          })}
           <RailItem
             icon="ask"
             label="Agent"
@@ -275,7 +300,7 @@ function Frame({
  * `home` clears the selection and shows the whole network again.
  */
 function useTrail(): { trail: Crumb[]; home: () => void } {
-  const { summaries, sectionById } = useStudioData()
+  const { everySection: summaries, sectionById } = useStudioData()
   const groups = useSelectionGroups()
   const sectionId = useStudio((s) => s.selectedSectionId)
   const select = useStudio((s) => s.select)
@@ -312,7 +337,7 @@ function useTrail(): { trail: Crumb[]; home: () => void } {
 }
 
 function Loaded({ linked }: { linked: UrlView }) {
-  const { network, summaries } = useStudioData()
+  const { network, everySection: summaries, list } = useStudioData()
   useLinkedView(linked)
   const { panel } = useLeftPanel()
   const agentWaiting = summaries.some((s) => s.needsDecision)
@@ -325,6 +350,7 @@ function Loaded({ linked }: { linked: UrlView }) {
       onHome={home}
       agentWaiting={agentWaiting}
       attributes={attributes}
+      list={list}
       left={
         <ViewTransition key={panel}>
           <div
@@ -349,14 +375,14 @@ function Loaded({ linked }: { linked: UrlView }) {
  * bar in step with the view.
  */
 function useLinkedView(linked: UrlView) {
-  const { network, edition, sectionById } = useStudioData()
+  const { network, edition, sectionById, owners } = useStudioData()
   const checked = useRef(false)
   useEffect(() => {
     if (!checked.current) {
       checked.current = true
       const s = useStudio.getState()
       const sections = network.sections
-      const companies = new Set(sections.flatMap((x) => companyOf(x) ?? []))
+      const companies = new Set([...owners.values()].flat())
       const attributes = new Set(
         sections.flatMap((x) => x.claims.map((claim) => claim.attribute))
       )
@@ -366,7 +392,23 @@ function useLinkedView(linked: UrlView) {
         unknownIn: s.unknownIn.filter((name) => attributes.has(name)),
       })
       const section = linked.section ? sectionById.get(linked.section) : null
-      if (section?.editionIds.includes(edition.id)) {
+      // A link that names a pipeline opens the Pipelines list on it.
+      const pipeline = linked.pipeline
+        ? summarise(
+            network,
+            edition.id,
+            useSettings.getState().requiredAttributes,
+            "pipelines"
+          ).find((row) => row.id === linked.pipeline)
+        : undefined
+      if (pipeline) {
+        s.setList("pipelines")
+        s.selectPipeline(
+          pipeline.id,
+          pipeline.sections.map((x) => x.id)
+        )
+        if (!linked.camera) s.requestFit(pipeline.bounds)
+      } else if (section?.editionIds.includes(edition.id)) {
         s.selectSection(section.id)
         // A link with the map's place shows that place; else the section.
         if (!linked.camera) s.requestFit(geometryBounds(section.geometry))

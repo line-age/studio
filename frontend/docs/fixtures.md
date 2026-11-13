@@ -33,7 +33,26 @@ committed.
 
   "pipelines": [
     // list order is display order
-    { "id": "p-012", "code": "P-012", "name": "Calder Valley" },
+    {
+      "id": "p-012",
+      "code": "P-012",
+      "name": "Calder Valley", // or null: no source names it; it goes by its code
+      "claims": [
+        // optional: name, owner, operator; one claim per period
+        {
+          "attribute": "Owner",
+          "value": "Calder Valley Gas Co.",
+          "valid": "../1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 214",
+            },
+          ],
+        },
+      ],
+    },
   ],
 
   "sections": [
@@ -41,7 +60,11 @@ committed.
       "id": "s-0142",
       "code": "S-0142",
       "name": "Harlow to Brecken", // or null: it goes by its code
-      "pipelineId": "p-012", // or null: not in a pipeline yet
+      "pipelineId": "p-012", // confirmed only; null: in no pipeline
+      "proposedMemberships": [
+        // optional: a pipeline a tool proposes and nobody has confirmed
+        // { "id": "pm-001", "pipelineId": "p-031", "score": 0.92, "proposer": "stitch" }
+      ],
       "editionIds": ["ed-1937"], // the editions that show it
       "geometry": {
         // GeoJSON, longitude then latitude
@@ -171,12 +194,21 @@ The types and the interface use the project glossary: **section**, **claim**,
 as gone" on the screen. "Pipeline" (a named group of sections), "edition", "proposal" and
 "Unknown" are Studio's words and are not in the glossary yet.
 
+## Pipelines (version 2)
+
+A pipeline's name, owner and operator are claims on the pipeline (`pipelines[].claims`),
+each with its period, never on its sections. An owner that changed is two claims. A
+section's `pipelineId` is the pipeline a person confirmed it part of; a proposal is in
+`proposedMemberships` and changes nothing. A pipeline with no confirmed section, only
+proposed ones, is a proposed pipeline. A section with no pipeline is in the Sections
+list only. An `Owner` claim on a section is not read.
+
 ## Attributes the filters read
 
 Attribute names are free text, but two of them drive filters:
 
-- `Owner`: the company. Its values are the choices under "Company", and search finds
-  sections by it.
+- `Owner`, on a pipeline: the company. Its values are the choices under "Company"; a
+  section has the companies of its pipeline, and search finds the pipeline by them.
 - `Build date`: the first four-digit year in the value is the build year for the
   "Build date" range. `"1934"` and `"Completed 1934"` both read as 1934.
 
@@ -194,8 +226,7 @@ appears in; those are claims with sources.
 
 ## No pipelines yet
 
-Data that has only sections leaves `pipelines` empty and every `pipelineId` null. The
-list is then one group, "Not in a pipeline", with the sections under the edition that is
-the first to show them. Nothing in the file says so: a section with a `pipelineId` goes
-under its pipeline, any other under its first edition. This is how data read from the
+Data that has only sections leaves `pipelines` empty and every `pipelineId` null. Studio
+then opens on the Sections list, the sections under the edition that is the first to
+show them, and the Pipelines list says there are none. This is how data read from the
 Lineage store looks today; see "Real data from store" in the repo `README.md`.

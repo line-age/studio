@@ -257,8 +257,13 @@ The claim detail area is designed as a first draft and not built: Studio page fr
 `112:566` (Unknown claim, proposal waiting) and `112:786` (cited claim). It docks at the
 bottom of the right panel when a claim row is selected.
 
-Section "11. Reading store" (`223:9257`, drawn 2026-11-13, not reviewed by the owner,
-not built) replaces parts of section 10 for the read-only plan; build from it. Two
+Section "11. Reading store" (`223:9257`, drawn 2026-11-13, not reviewed by the owner)
+replaces parts of section 10 for the read-only plan. Built: the two lists and rail, the
+pipeline view and the section's rows. Not built: the Agent answer and the "Ask the
+Agent about this" link. Where the code differs: a proposed pipeline's row shows its best
+score and the range on hover; "Unknown name" rows show no code (it is in the title); the
+claims of a pipeline show only when one pipeline is selected, above its sections; a
+section in no pipeline has no Owner row. Two
 lists with a rail item each: Pipelines `223:9298` and Sections `223:9612` (rails
 `223:9258`, `223:9572`), in place of the mixed list `209:7134`. The pipeline view with
 name, owner and operator as dated claims on the pipeline `223:9866`, in place of

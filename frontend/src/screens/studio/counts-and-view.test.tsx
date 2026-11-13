@@ -81,7 +81,7 @@ const allCount = () =>
   ).textContent
 
 const rows = () =>
-  within(screen.getByRole("listbox", { name: "Sections" })).getAllByRole(
+  within(screen.getByRole("listbox", { name: "Pipelines" })).getAllByRole(
     "option"
   )
 
@@ -104,10 +104,14 @@ describe("Counts and the map view", () => {
     expect(rows()[0]).toHaveTextContent("North line")
   })
 
-  it("says in the list header how many sections of the whole are in view", async () => {
+  it("says in the list header how many of the whole are in view", async () => {
     await renderList()
     act(() => useStudio.getState().setView(NORTH_ONLY))
+    // The Pipelines list counts pipelines.
+    expect(screen.getByText("1 of 3 in view")).toBeInTheDocument()
 
+    // The Sections list counts sections, of the whole edition.
+    act(() => useStudio.getState().setList("sections"))
     const total = Number(allCount()?.replace(/\D/g, ""))
     expect(screen.getByText(`2 of ${total} in view`)).toBeInTheDocument()
   })
@@ -119,9 +123,11 @@ describe("Counts and the map view", () => {
       useStudio.getState().setOnlyInView(false)
     })
 
+    expect(screen.getByText("3 pipelines")).toBeInTheDocument()
+    expect(rows()).toHaveLength(3)
+    act(() => useStudio.getState().setList("sections"))
     const total = Number(allCount()?.replace(/\D/g, ""))
     expect(screen.getByText(`${total} sections`)).toBeInTheDocument()
-    expect(rows()).toHaveLength(3)
   })
 
   it("holds everything while the list is a table, and shows following as paused", async () => {

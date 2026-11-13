@@ -61,7 +61,7 @@ export function Tour() {
     borrowed: string | null
   } | null>(null)
   const { open, panel, openPanel, toggleOpen } = useLeftPanel()
-  const { summaries } = useStudioData()
+  const { everySection: summaries } = useStudioData()
   const running = step !== null
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { z } from "zod"
 
+import type { ListKind } from "@/data/derive"
 import { STATUSES, type SectionStatus } from "@/data/status"
 
 import { useCamera, useStudio } from "./studio-store"
@@ -29,6 +30,10 @@ export interface UrlView {
   camera: { lng: number; lat: number; zoom: number } | null
   /** The one section in focus. A selection of several is not carried. */
   section: string | null
+  /** Which list is showing; null leaves it to the data. */
+  list: ListKind | null
+  /** The pipeline selected as a whole. */
+  pipeline: string | null
 }
 
 export const DEFAULT_VIEW: UrlView = {
@@ -45,6 +50,8 @@ export const DEFAULT_VIEW: UrlView = {
   followMap: true,
   camera: null,
   section: null,
+  list: null,
+  pipeline: null,
 }
 
 const round = (n: number, places: number) => Number(n.toFixed(places))
@@ -69,7 +76,9 @@ export function toSearchParams(view: UrlView): URLSearchParams {
     const { lng, lat, zoom } = view.camera
     params.set("m", [round(lng, 4), round(lat, 4), round(zoom, 2)].join(","))
   }
-  if (view.section) params.set("sel", view.section)
+  if (view.list) params.set("l", view.list)
+  if (view.pipeline) params.set("p", view.pipeline)
+  else if (view.section) params.set("sel", view.section)
   return params
 }
 
@@ -99,6 +108,9 @@ export function fromSearchParams(params: URLSearchParams): UrlView {
   view.unknownIn = [...new Set(params.getAll("u").filter(Boolean))]
   view.followMap = params.get("v") !== "0"
   view.section = params.get("sel") || null
+  view.pipeline = params.get("p") || null
+  const list = params.get("l")
+  view.list = list === "pipelines" || list === "sections" ? list : null
 
   const built = params.get("b")?.split("-")
   if (built?.length === 2) {
@@ -139,6 +151,8 @@ export function currentView(): UrlView {
         ? { lng: center[0], lat: center[1], zoom }
         : null,
     section: s.selection.size === 1 ? s.selectedSectionId : null,
+    list: s.list,
+    pipeline: s.selectedPipelineId,
   }
 }
 
@@ -161,6 +175,7 @@ export function applyUrl(search: string): UrlView {
     addedTo: view.addedTo,
     unknownIn: view.unknownIn,
     onlyInView: view.followMap,
+    list: view.list,
   })
   if (view.camera) {
     useCamera.setState({

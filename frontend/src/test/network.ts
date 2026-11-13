@@ -13,7 +13,13 @@ const cited = (attribute: string, value: string) => ({
 
 const unknown = (attribute: string) => ({ attribute, value: null })
 
-/** A tiny invented network for tests: two pipelines and one loose section. */
+/**
+ * A tiny invented network for tests. As of 1937: North line (Alder to Birch
+ * with diameter and build date cited; Birch to Cedar with neither, and a
+ * diameter proposed), whose owner changed; South line (Dale to Elm, both
+ * cited), owner Unknown; and one section in no pipeline, proposed for a
+ * pipeline nobody has named. Old route is only in the 1931 edition.
+ */
 export function testNetwork(): Network {
   return parseNetwork({
     version: 1,
@@ -23,8 +29,32 @@ export function testNetwork(): Network {
       { id: "ed-1937", year: 1937, label: "1937 edition" },
     ],
     pipelines: [
-      { id: "p-1", code: "P-001", name: "North line" },
+      {
+        id: "p-1",
+        code: "P-001",
+        name: "North line",
+        claims: [
+          {
+            attribute: "Owner",
+            value: "Alder Gas Co.",
+            valid: "../1931",
+            citations: [
+              { source: "Invented Gas Review, 1931", role: "states" },
+            ],
+          },
+          {
+            attribute: "Owner",
+            value: "Yew Fuel Co.",
+            valid: "1936/..",
+            citations: [
+              { source: "Invented Gas Review, 1936", role: "states" },
+            ],
+          },
+        ],
+      },
       { id: "p-2", code: "P-002", name: "South line" },
+      // Proposed: one section is proposed for it and none is confirmed.
+      { id: "p-3", code: "P-003", name: null },
     ],
     sections: [
       {
@@ -37,7 +67,7 @@ export function testNetwork(): Network {
           [0, 10],
           [1, 10],
         ]),
-        claims: [cited("Owner", "Alder Gas Co."), cited("Diameter", "12 in")],
+        claims: [cited("Diameter", "12 in"), cited("Build date", "1930")],
       },
       {
         id: "s-2",
@@ -50,7 +80,7 @@ export function testNetwork(): Network {
           [2, 11],
         ]),
         claims: [
-          unknown("Owner"),
+          unknown("Build date"),
           {
             attribute: "Diameter",
             value: null,
@@ -72,7 +102,7 @@ export function testNetwork(): Network {
           [0, -10],
           [1, -10],
         ]),
-        claims: [cited("Owner", "Alder Gas Co."), cited("Diameter", "6 in")],
+        claims: [cited("Diameter", "6 in"), cited("Build date", "1934")],
       },
       {
         id: "s-4",
@@ -84,7 +114,10 @@ export function testNetwork(): Network {
           [5, 5],
           [6, 5],
         ]),
-        claims: [unknown("Owner")],
+        claims: [unknown("Diameter")],
+        proposedMemberships: [
+          { id: "pm-1", pipelineId: "p-3", score: 0.7, proposer: "stitch" },
+        ],
       },
       {
         id: "s-5",
@@ -96,7 +129,7 @@ export function testNetwork(): Network {
           [0, -11],
           [1, -11],
         ]),
-        claims: [unknown("Owner")],
+        claims: [unknown("Diameter")],
       },
     ],
   })

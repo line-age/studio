@@ -1,11 +1,14 @@
 import { createContext, use, useMemo, type ReactNode } from "react"
 
 import {
+  defaultList,
   groupSelection,
   inView,
+  ownersBySection,
   search,
   summarise,
   visiblePipelines,
+  type ListKind,
   type PipelineSummary,
   type SearchHit,
   type SectionCriteria,
@@ -25,8 +28,18 @@ import { listFollowsMap, useStudio } from "./studio-store"
 interface StudioData {
   network: Network
   edition: Edition
-  /** Every pipeline of the edition, whatever the filters say. */
+  /** The list showing: the pipelines, or every section. */
+  list: ListKind
+  /** Every row of that list for the edition, whatever the filters say. */
   summaries: PipelineSummary[]
+  /**
+   * Every section of the edition, grouped by the edition that first shows
+   * it: the rows of the Sections list. Counts, filters and the map speak for
+   * the whole edition through this, whichever list is showing.
+   */
+  everySection: PipelineSummary[]
+  /** The owners of each section's pipeline; a section has none of its own. */
+  owners: ReadonlyMap<string, readonly string[]>
   summaryById: Map<string, PipelineSummary>
   sectionById: Map<string, Section>
 }
@@ -48,19 +61,28 @@ export function StudioDataProvider({
   const loaded = use(network)
   const editionId = useStudio((s) => s.editionId)
   const rule = useSettings((s) => s.requiredAttributes)
+  const chosen = useStudio((s) => s.list)
 
   const value = useMemo<StudioData>(() => {
     const edition =
       loaded.editions.find((e) => e.id === editionId) ?? latestEdition(loaded)
-    const summaries = summarise(loaded, edition.id, rule)
+    const list = chosen ?? defaultList(loaded)
+    const everySection = summarise(loaded, edition.id, rule, "sections")
+    const summaries =
+      list === "sections"
+        ? everySection
+        : summarise(loaded, edition.id, rule, list)
     return {
       network: loaded,
       edition,
+      list,
       summaries,
+      everySection,
+      owners: ownersBySection(loaded),
       summaryById: new Map(summaries.map((s) => [s.id, s])),
       sectionById: new Map(loaded.sections.map((s) => [s.id, s])),
     }
-  }, [loaded, editionId, rule])
+  }, [loaded, editionId, rule, chosen])
 
   return <StudioDataContext value={value}>{children}</StudioDataContext>
 }
@@ -94,12 +116,19 @@ export function useVisiblePipelines(): PipelineSummary[] {
 
 /** What is selected, sorted into pipelines. Empty when nothing is. */
 export function useSelectionGroups(): SelectionGroup[] {
-  const { summaries } = useStudioData()
+  const { summaries, everySection, list } = useStudioData()
   const selection = useStudio((s) => s.selection)
-  return useMemo(
-    () => groupSelection(summaries, selection),
-    [summaries, selection]
-  )
+  return useMemo(() => {
+    const groups = groupSelection(summaries, selection)
+    if (list === "sections") return groups
+    // A section in no pipeline, picked on the map while the Pipelines list
+    // is showing, is in none of its rows: it goes under its first-seen group.
+    const held = new Set(groups.flatMap((g) => g.sections.map((s) => s.id)))
+    const rest = new Set([...selection].filter((id) => !held.has(id)))
+    return rest.size === 0
+      ? groups
+      : [...groups, ...groupSelection(everySection, rest)]
+  }, [summaries, everySection, list, selection])
 }
 
 /** What a section has to satisfy: the status chosen and the filters. */
@@ -113,8 +142,10 @@ export function useCriteria(): SectionCriteria {
   const status = useStudio((s) => s.status)
   const needsDecision = useStudio((s) => s.needsDecisionOnly)
   const rule = useSettings((s) => s.requiredAttributes)
+  const { owners } = useStudioData()
   return useMemo(
     () => ({
+      owners,
       unknownIn,
       companies,
       builtFrom,
@@ -126,6 +157,7 @@ export function useCriteria(): SectionCriteria {
       rule,
     }),
     [
+      owners,
       unknownIn,
       companies,
       builtFrom,

@@ -8,6 +8,13 @@ import type { Citation, CitationRole, ProposedEnd, Section } from "./schema"
  * (the line was there by then), "between 1929 and 1931", never a bare year.
  */
 
+/**
+ * The row that says which pipeline a section is in. Not a claim with a
+ * source: membership is a judgement a person confirms.
+ */
+export const PIPELINE_ROW = "Pipeline"
+/** The row that sends a reader to the pipeline's owner claim. */
+export const OWNER_ROW = "Owner"
 export const LAST_SEEN_ATTRIBUTE = "Last seen"
 export const GEOMETRY_ATTRIBUTE = "Geometry"
 
@@ -154,6 +161,19 @@ export function proposalCount(
   return (
     claim.proposals.length + proposedEndsFor(section, claim.attribute).length
   )
+}
+
+/** A proposed membership in words: which pipeline, by which tool, how sure. */
+export function proposedMembershipWords(
+  proposed: { score: number; proposer?: string },
+  pipeline: { name: string | null; code: string }
+): string {
+  const who = proposed.proposer ? `The ${proposed.proposer} tool` : "A tool"
+  const which =
+    pipeline.name === null
+      ? `${pipeline.code}, whose name is Unknown`
+      : `${pipeline.name} (${pipeline.code})`
+  return `${who} proposes that this section is part of ${which}. Score ${proposed.score.toFixed(2)}. Nobody has confirmed it, so the section is in no pipeline.`
 }
 
 /** A proposed end or cut in words: what, by which tool, how sure. */

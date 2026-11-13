@@ -17,37 +17,252 @@
     {
       "id": "p-012",
       "code": "P-012",
-      "name": "Calder Valley"
+      "name": "Calder Valley",
+      "claims": [
+        {
+          "id": "c-p-012-name",
+          "attribute": "Name",
+          "value": "Calder Valley",
+          "valid": "../1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 212",
+              "quote": "the Calder Valley line"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "id": "c-p-012-owner",
+          "attribute": "Owner",
+          "value": "Calder Valley Gas Co.",
+          "valid": "../1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 214",
+              "quote": "owned by the Calder Valley Gas Co."
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "id": "c-p-012-operator",
+          "attribute": "Operator",
+          "value": "Calder Valley Gas Co.",
+          "valid": "../1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 216",
+              "quote": "operated by the Calder Valley Gas Co."
+            }
+          ],
+          "proposals": []
+        }
+      ]
     },
     {
       "id": "p-013",
       "code": "P-013",
-      "name": "Tolland"
+      "name": "Tolland",
+      "claims": [
+        {
+          "id": "c-p-013-name",
+          "attribute": "Name",
+          "value": "Tolland",
+          "valid": "../1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 212",
+              "quote": "the Tolland line"
+            }
+          ],
+          "proposals": []
+        }
+      ]
     },
     {
       "id": "p-014",
       "code": "P-014",
-      "name": "Adair trunk"
+      "name": "Adair trunk",
+      "claims": [
+        {
+          "id": "c-p-014-name",
+          "attribute": "Name",
+          "value": "Adair trunk",
+          "valid": "../1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 212",
+              "quote": "the Adair trunk line"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "id": "c-p-014-owner",
+          "attribute": "Owner",
+          "value": "Harlow Gas Co.",
+          "valid": "../1931",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1931",
+              "role": "states",
+              "locator": "p. 88",
+              "quote": "the Harlow Gas Co.'s trunk line"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "id": "c-p-014-owner-2",
+          "attribute": "Owner",
+          "value": "Adair Pipe Line Co.",
+          "valid": "1936/..",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 219",
+              "quote": "owned by the Adair Pipe Line Co."
+            }
+          ],
+          "proposals": []
+        }
+      ]
     },
     {
       "id": "p-015",
       "code": "P-015",
-      "name": "Wexley lateral"
+      "name": "Wexley lateral",
+      "claims": [
+        {
+          "id": "c-p-015-name",
+          "attribute": "Name",
+          "value": "Wexley lateral",
+          "valid": "../1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 212",
+              "quote": "the Wexley lateral line"
+            }
+          ],
+          "proposals": []
+        }
+      ]
     },
     {
       "id": "p-016",
       "code": "P-016",
-      "name": "Marsh Fork gathering"
+      "name": "Marsh Fork gathering",
+      "claims": [
+        {
+          "id": "c-p-016-name",
+          "attribute": "Name",
+          "value": "Marsh Fork gathering",
+          "valid": "../1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 212",
+              "quote": "the Marsh Fork gathering line"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "id": "c-p-016-owner",
+          "attribute": "Owner",
+          "value": "Marsh Fork Gathering Co.",
+          "valid": "../1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 214",
+              "quote": "owned by the Marsh Fork Gathering Co."
+            }
+          ],
+          "proposals": []
+        }
+      ]
     },
     {
       "id": "p-017",
       "code": "P-017",
-      "name": "Brecken loop"
+      "name": null,
+      "claims": [
+        {
+          "id": "c-p-017-owner",
+          "attribute": "Owner",
+          "value": "Brecken Gas Co.",
+          "valid": "../1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 214",
+              "quote": "owned by the Brecken Gas Co."
+            }
+          ],
+          "proposals": []
+        }
+      ]
     },
     {
       "id": "p-041",
       "code": "P-041",
-      "name": "Harlow lateral"
+      "name": "Harlow lateral",
+      "claims": [
+        {
+          "id": "c-p-041-name",
+          "attribute": "Name",
+          "value": "Harlow lateral",
+          "valid": "../1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 212",
+              "quote": "the Harlow lateral line"
+            }
+          ],
+          "proposals": []
+        },
+        {
+          "id": "c-p-041-owner",
+          "attribute": "Owner",
+          "value": "Harlow Gas Co.",
+          "valid": "../1936",
+          "citations": [
+            {
+              "source": "Plains Gas Review, 1936",
+              "role": "states",
+              "locator": "p. 214",
+              "quote": "owned by the Harlow Gas Co."
+            }
+          ],
+          "proposals": []
+        }
+      ]
+    },
+    {
+      "id": "p-031",
+      "code": "P-031",
+      "name": null,
+      "claims": []
     }
   ],
   "sections": [
@@ -66,21 +281,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0140-owner",
-          "attribute": "Owner",
-          "value": "Calder Valley Gas Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Calder Valley Gas Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0140-diameter",
           "attribute": "Diameter",
@@ -174,21 +374,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0141-owner",
-          "attribute": "Owner",
-          "value": "Calder Valley Gas Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Calder Valley Gas Co."
-            }
-          ],
-          "proposals": []
-        },
-        {
           "id": "c-s-0141-diameter",
           "attribute": "Diameter",
           "value": "12 in",
@@ -280,13 +465,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0142-owner",
-          "attribute": "Owner",
-          "value": null,
-          "citations": [],
-          "proposals": []
-        },
-        {
           "id": "c-s-0142-diameter",
           "attribute": "Diameter",
           "value": null,
@@ -376,21 +554,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0143-owner",
-          "attribute": "Owner",
-          "value": "Calder Valley Gas Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Calder Valley Gas Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0143-diameter",
           "attribute": "Diameter",
@@ -483,21 +646,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0144-owner",
-          "attribute": "Owner",
-          "value": "Calder Valley Gas Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Calder Valley Gas Co."
-            }
-          ],
-          "proposals": []
-        },
-        {
           "id": "c-s-0144-diameter",
           "attribute": "Diameter",
           "value": "12 in",
@@ -582,21 +730,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0145-owner",
-          "attribute": "Owner",
-          "value": "Calder Valley Gas Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Calder Valley Gas Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0145-diameter",
           "attribute": "Diameter",
@@ -688,13 +821,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0146-owner",
-          "attribute": "Owner",
-          "value": null,
-          "citations": [],
-          "proposals": []
-        },
         {
           "id": "c-s-0146-diameter",
           "attribute": "Diameter",
@@ -812,13 +938,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0147-owner",
-          "attribute": "Owner",
-          "value": null,
-          "citations": [],
-          "proposals": []
-        },
         {
           "id": "c-s-0147-diameter",
           "attribute": "Diameter",
@@ -938,21 +1057,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0148-owner",
-          "attribute": "Owner",
-          "value": "Tolland Fuel Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Tolland Fuel Co."
-            }
-          ],
-          "proposals": []
-        },
-        {
           "id": "c-s-0148-diameter",
           "attribute": "Diameter",
           "value": null,
@@ -1035,21 +1139,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0149-owner",
-          "attribute": "Owner",
-          "value": "Tolland Fuel Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Tolland Fuel Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0149-diameter",
           "attribute": "Diameter",
@@ -1136,21 +1225,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0150-owner",
-          "attribute": "Owner",
-          "value": "Adair Pipe Line Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Adair Pipe Line Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0150-diameter",
           "attribute": "Diameter",
@@ -1243,21 +1317,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0151-owner",
-          "attribute": "Owner",
-          "value": "Harlow Gas Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Harlow Gas Co."
-            }
-          ],
-          "proposals": []
-        },
-        {
           "id": "c-s-0151-diameter",
           "attribute": "Diameter",
           "value": "16 in",
@@ -1348,21 +1407,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0152-owner",
-          "attribute": "Owner",
-          "value": "Harlow Gas Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Harlow Gas Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0152-diameter",
           "attribute": "Diameter",
@@ -1455,21 +1499,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0153-owner",
-          "attribute": "Owner",
-          "value": "Adair Pipe Line Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Adair Pipe Line Co."
-            }
-          ],
-          "proposals": []
-        },
-        {
           "id": "c-s-0153-diameter",
           "attribute": "Diameter",
           "value": "16 in",
@@ -1560,21 +1589,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0154-owner",
-          "attribute": "Owner",
-          "value": "Adair Pipe Line Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Adair Pipe Line Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0154-diameter",
           "attribute": "Diameter",
@@ -1667,21 +1681,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0155-owner",
-          "attribute": "Owner",
-          "value": "Adair Pipe Line Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Adair Pipe Line Co."
-            }
-          ],
-          "proposals": []
-        },
-        {
           "id": "c-s-0155-diameter",
           "attribute": "Diameter",
           "value": "16 in",
@@ -1772,21 +1771,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0156-owner",
-          "attribute": "Owner",
-          "value": "Adair Pipe Line Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Adair Pipe Line Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0156-diameter",
           "attribute": "Diameter",
@@ -1879,21 +1863,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0157-owner",
-          "attribute": "Owner",
-          "value": "Adair Pipe Line Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Adair Pipe Line Co."
-            }
-          ],
-          "proposals": []
-        },
-        {
           "id": "c-s-0157-diameter",
           "attribute": "Diameter",
           "value": "16 in",
@@ -1984,21 +1953,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0158-owner",
-          "attribute": "Owner",
-          "value": "Adair Pipe Line Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Adair Pipe Line Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0158-diameter",
           "attribute": "Diameter",
@@ -2091,13 +2045,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0159-owner",
-          "attribute": "Owner",
-          "value": null,
-          "citations": [],
-          "proposals": []
-        },
-        {
           "id": "c-s-0159-diameter",
           "attribute": "Diameter",
           "value": null,
@@ -2166,13 +2113,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0160-owner",
-          "attribute": "Owner",
-          "value": null,
-          "citations": [],
-          "proposals": []
-        },
-        {
           "id": "c-s-0160-diameter",
           "attribute": "Diameter",
           "value": null,
@@ -2240,21 +2180,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0161-owner",
-          "attribute": "Owner",
-          "value": "Marsh Fork Gathering Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Marsh Fork Gathering Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0161-diameter",
           "attribute": "Diameter",
@@ -2341,21 +2266,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0162-owner",
-          "attribute": "Owner",
-          "value": "Marsh Fork Gathering Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Marsh Fork Gathering Co."
-            }
-          ],
-          "proposals": []
-        },
-        {
           "id": "c-s-0162-diameter",
           "attribute": "Diameter",
           "value": null,
@@ -2439,21 +2349,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0163-owner",
-          "attribute": "Owner",
-          "value": "Marsh Fork Gathering Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Marsh Fork Gathering Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0163-diameter",
           "attribute": "Diameter",
@@ -2546,13 +2441,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0164-owner",
-          "attribute": "Owner",
-          "value": null,
-          "citations": [],
-          "proposals": []
-        },
-        {
           "id": "c-s-0164-diameter",
           "attribute": "Diameter",
           "value": "6 in",
@@ -2644,21 +2532,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0165-owner",
-          "attribute": "Owner",
-          "value": "Marsh Fork Gathering Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Marsh Fork Gathering Co."
-            }
-          ],
-          "proposals": []
-        },
-        {
           "id": "c-s-0165-diameter",
           "attribute": "Diameter",
           "value": "6 in",
@@ -2743,21 +2616,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0166-owner",
-          "attribute": "Owner",
-          "value": "Brecken Light and Fuel Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Brecken Light and Fuel Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0166-diameter",
           "attribute": "Diameter",
@@ -2850,21 +2708,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0167-owner",
-          "attribute": "Owner",
-          "value": "Brecken Light and Fuel Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Brecken Light and Fuel Co."
-            }
-          ],
-          "proposals": []
-        },
-        {
           "id": "c-s-0167-diameter",
           "attribute": "Diameter",
           "value": "8 in",
@@ -2956,21 +2799,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0168-owner",
-          "attribute": "Owner",
-          "value": "Brecken Light and Fuel Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Brecken Light and Fuel Co."
-            }
-          ],
-          "proposals": []
-        },
-        {
           "id": "c-s-0168-diameter",
           "attribute": "Diameter",
           "value": "8 in",
@@ -3061,21 +2889,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0410-owner",
-          "attribute": "Owner",
-          "value": "Harlow Gas Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Harlow Gas Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0410-diameter",
           "attribute": "Diameter",
@@ -3169,21 +2982,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0411-owner",
-          "attribute": "Owner",
-          "value": "Harlow Gas Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Harlow Gas Co."
-            }
-          ],
-          "proposals": []
-        },
-        {
           "id": "c-s-0411-diameter",
           "attribute": "Diameter",
           "value": "8 in",
@@ -3268,21 +3066,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0412-owner",
-          "attribute": "Owner",
-          "value": "Harlow Gas Co.",
-          "valid": "../1936",
-          "citations": [
-            {
-              "source": "Plains Gas Review, 1936",
-              "role": "states",
-              "locator": "p. 214",
-              "quote": "operated by the Harlow Gas Co."
-            }
-          ],
-          "proposals": []
-        },
         {
           "id": "c-s-0412-diameter",
           "attribute": "Diameter",
@@ -3375,13 +3158,6 @@
       },
       "claims": [
         {
-          "id": "c-s-0900-owner",
-          "attribute": "Owner",
-          "value": null,
-          "citations": [],
-          "proposals": []
-        },
-        {
           "id": "c-s-0900-diameter",
           "attribute": "Diameter",
           "value": null,
@@ -3441,7 +3217,15 @@
         }
       ],
       "changedSinceReview": false,
-      "addedAt": "2026-09-21"
+      "addedAt": "2026-09-21",
+      "proposedMemberships": [
+        {
+          "id": "pm-001",
+          "pipelineId": "p-031",
+          "score": 0.92,
+          "proposer": "stitch"
+        }
+      ]
     },
     {
       "id": "s-0901",
@@ -3458,13 +3242,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0901-owner",
-          "attribute": "Owner",
-          "value": null,
-          "citations": [],
-          "proposals": []
-        },
         {
           "id": "c-s-0901-diameter",
           "attribute": "Diameter",
@@ -3525,7 +3302,15 @@
         }
       ],
       "changedSinceReview": false,
-      "addedAt": "2026-09-26"
+      "addedAt": "2026-09-26",
+      "proposedMemberships": [
+        {
+          "id": "pm-002",
+          "pipelineId": "p-031",
+          "score": 0.92,
+          "proposer": "stitch"
+        }
+      ]
     },
     {
       "id": "s-0902",
@@ -3542,13 +3327,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0902-owner",
-          "attribute": "Owner",
-          "value": null,
-          "citations": [],
-          "proposals": []
-        },
         {
           "id": "c-s-0902-diameter",
           "attribute": "Diameter",
@@ -3600,7 +3378,15 @@
         }
       ],
       "changedSinceReview": false,
-      "addedAt": "2026-10-01"
+      "addedAt": "2026-10-01",
+      "proposedMemberships": [
+        {
+          "id": "pm-003",
+          "pipelineId": "p-031",
+          "score": 0.61,
+          "proposer": "stitch"
+        }
+      ]
     },
     {
       "id": "s-0903",
@@ -3617,13 +3403,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0903-owner",
-          "attribute": "Owner",
-          "value": null,
-          "citations": [],
-          "proposals": []
-        },
         {
           "id": "c-s-0903-diameter",
           "attribute": "Diameter",
@@ -3702,13 +3481,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0904-owner",
-          "attribute": "Owner",
-          "value": null,
-          "citations": [],
-          "proposals": []
-        },
         {
           "id": "c-s-0904-diameter",
           "attribute": "Diameter",
@@ -3793,13 +3565,6 @@
         ]
       },
       "claims": [
-        {
-          "id": "c-s-0905-owner",
-          "attribute": "Owner",
-          "value": null,
-          "citations": [],
-          "proposals": []
-        },
         {
           "id": "c-s-0905-diameter",
           "attribute": "Diameter",

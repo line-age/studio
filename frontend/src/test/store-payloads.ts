@@ -99,12 +99,24 @@ export function storeFeatures(): StoreFeature[] {
           citations: [{ ...sheet(1937), role: "states", quote: '"12 IN."' }],
         },
         {
+          attribute_key: "diameter",
+          value_text: null,
+          value_num: 16,
+          value_unit: "in",
+          value_geom: null,
+          status: "candidate",
+          created_at: "2026-11-12T12:00:00Z",
+          citations: [{ ...sheet(1937), role: "states" }],
+        },
+        // Store may hold an owner on a section; Studio shows owners on the
+        // pipeline only.
+        {
           attribute_key: "owner",
           value_text: "Alder Gas Co.",
           value_num: null,
           value_unit: null,
           value_geom: null,
-          status: "candidate",
+          status: "accepted",
           created_at: "2026-11-12T12:00:00Z",
           citations: [{ ...sheet(1937), role: "states" }],
         },
@@ -201,5 +213,85 @@ export function storeLinks(): StoreLink[] {
     link("link-confirmed", ID_Z, ID_C, "same_as", "confirmed", 1),
     // Not about a removal: Studio leaves it alone.
     link("link-other", ID_A, ID_B, "parallel_to", "proposed", 0.5),
+  ]
+}
+
+/*
+ * Lines: store's pipelines. L1 is named and its owner changed; a section is
+ * proposed part of it and another confirmed. L2 has no claims and no label.
+ */
+export const LINE_1 = "11111111-0000-4000-8000-000000000011"
+export const LINE_2 = "22222222-0000-4000-8000-000000000022"
+
+const journal = (year: number, page: string) => ({
+  id: `cit-journal-${year}`,
+  role: "states",
+  locator: page,
+  quote: null,
+  source_id: `journal-${year}`,
+  source_kind: "issue",
+  source_title: `Invented Gas Journal, ${year}`,
+  as_of_edtf: null,
+})
+
+const said = (
+  id: string,
+  attribute_key: string,
+  value_text: string,
+  valid_edtf: string,
+  year: number,
+  status = "accepted"
+) => ({
+  id,
+  attribute_key,
+  value_text,
+  value_num: null,
+  value_unit: null,
+  value_geom: null,
+  valid_edtf,
+  status,
+  created_at: `2026-11-12T1${year % 10}:00:00Z`,
+  citations: [journal(year, "p. 41")],
+})
+
+export function storeLines(): StoreFeature[] {
+  return [
+    {
+      id: LINE_1,
+      label: null,
+      created_at: "2026-11-12T10:00:00Z",
+      dates: null,
+      links: [],
+      claims: [
+        said("l1-name", "name", "Alder trunk", "../1931", 1931),
+        said("l1-owner-2", "owner", "Yew Fuel Co.", "1936/..", 1936),
+        said("l1-owner-1", "owner", "Alder Gas Co.", "../1931", 1931),
+        said(
+          "l1-operator",
+          "operator",
+          "Alder Gas Co.",
+          "../1931",
+          1931,
+          "candidate"
+        ),
+      ],
+    },
+    {
+      id: LINE_2,
+      label: null,
+      created_at: "2026-11-12T10:00:00Z",
+      dates: null,
+      links: [],
+      claims: [],
+    },
+  ]
+}
+
+/** A is confirmed part of L1; B is proposed for L2, C for L1. */
+export function storeMemberships(): StoreLink[] {
+  return [
+    link("link-part-a", ID_A, LINE_1, "part_of", "confirmed", 1),
+    link("link-part-b", ID_B, LINE_2, "part_of", "proposed", 0.7),
+    link("link-part-c", ID_C, LINE_1, "part_of", "rejected", 0.2),
   ]
 }

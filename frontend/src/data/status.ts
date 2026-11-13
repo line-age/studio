@@ -32,7 +32,13 @@ export const STATUS_LABEL: Record<SectionStatus, string> = {
 /** The rule: the attributes that must be cited for sufficient data. */
 export type StatusRule = readonly string[]
 
-export const DEFAULT_REQUIRED: StatusRule = ["Owner", "Diameter", "Build date"]
+export const DEFAULT_REQUIRED: StatusRule = ["Diameter", "Build date"]
+
+/**
+ * Claims that are made about a pipeline, not about its sections. Never part
+ * of the rule: a section cannot be missing what it does not carry.
+ */
+export const ON_PIPELINE: readonly string[] = ["Name", "Owner", "Operator"]
 
 /** Attributes every section has by being a section. Never part of the rule. */
 export const ALWAYS_PRESENT: readonly string[] = ["First seen", "Geometry"]
@@ -72,6 +78,7 @@ export function sectionStatus(
 export function needsDecision(section: Section): boolean {
   return (
     section.proposedEnds.length > 0 ||
+    section.proposedMemberships.length > 0 ||
     section.claims.some((claim) => claim.proposals.length > 0)
   )
 }

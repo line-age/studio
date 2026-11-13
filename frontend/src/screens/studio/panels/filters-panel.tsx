@@ -95,7 +95,7 @@ const THIS_YEAR = new Date().getFullYear()
  * in sight while they are set. `onBack` returns to the list.
  */
 export function FiltersPanel({ onBack }: { onBack: () => void }) {
-  const { summaries } = useStudioData()
+  const { everySection: summaries, owners } = useStudioData()
   const criteria = useCriteria()
   const clearFilters = useStudio((s) => s.clearFilters)
   const unknownIn = useStudio((s) => s.unknownIn)
@@ -124,7 +124,10 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
       [...unknownCounts(summaries)].map(([name, count]) => ({ name, count })),
     [summaries]
   )
-  const allCompanies = useMemo(() => companyCounts(summaries), [summaries])
+  const allCompanies = useMemo(
+    () => companyCounts(summaries, owners),
+    [summaries, owners]
+  )
   const span = useMemo(() => buildYearSpan(summaries), [summaries])
   const added = useMemo(() => addedSpan(summaries), [summaries])
   const companyNames = useMemo(
