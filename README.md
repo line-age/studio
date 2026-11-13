@@ -38,21 +38,26 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
   from its claims: sufficient when the required attributes (Owner, Diameter and Build
   date unless Settings says otherwise) are cited, done when it is also in a pipeline.
 - **List.** Pipelines, then the sections in no pipeline, grouped by the map edition that
-  first shows them. Counts by status above the list are one-click filters. A filter
+  first shows them. A pipeline says how many of its sections are done ("4/6 done").
+  Counts by status above the list cover the whole edition and are one-click filters;
+  moving the map never changes them. A filter
   button beside the search opens company, build date, date added and which claims are
   Unknown. Search by pipeline, section, code or value.
 - **Table.** Drag the list wider, or press the table button, and it adds the code, the
-  section count, the split by status and a column per required attribute.
+  section count, the split by status and a column per required attribute. The table
+  holds the whole edition, whatever the map shows.
 - **Edition.** One select at the top of the list: the year the network is shown as of.
 - **Map.** One line per section, solid or dotted by its status. A layers button holds
   what the map draws and the line key; another makes the list follow the map or not.
+  When it follows, the list header says how much is in view ("8 of 36 in view").
 - **Link.** The edition, status, filters, search, map position and the one section in
   focus are in the address bar, so a copied link opens the same view.
 - **Settings.** Which attributes must be cited, and which statuses are drawn solid. Kept
   in the browser.
 - **Selection.** Tick rows, click lines or draw a lasso loop. It can span pipelines. The
-  right panel lists the selected sections by pipeline, and each section's claims with
-  their sources.
+  right panel lists the selected sections by pipeline, each with its required claims
+  cited ("2/3 cited"). Click a section to read its claims and their sources; that does
+  not change the selection, and the map draws the section being read heavier.
 - **Agent panel.** Takes a selection as attachments to a message. Nothing is sent.
 - **Panel button.** Hides both side panels; the same button on the map brings them back.
 - **Help.** A ten-step tour of the screen starts on a first visit; Help in the top bar

@@ -64,11 +64,18 @@ export function TreeItem({
         label={checkLabel}
         onChange={onCheck}
       />
-      <span className="truncate type-ui-sm">{name}</span>
+      <span
+        // A name cut short can still be read in full.
+        title={typeof name === "string" ? name : undefined}
+        className="truncate type-ui-sm"
+      >
+        {name}
+      </span>
       <span className="shrink-0 type-ui-mono-xs text-muted-foreground">
         {code}
       </span>
-      <span className="ml-auto flex shrink-0 items-center type-ui-mono-xs">
+      {/* Progress reads as it does in the list: "2/3 cited". */}
+      <span className="ml-auto flex shrink-0 items-center type-ui-xs whitespace-nowrap text-muted-foreground tabular-nums">
         {trailing}
       </span>
     </div>
