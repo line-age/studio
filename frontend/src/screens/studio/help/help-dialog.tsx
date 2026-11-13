@@ -22,6 +22,7 @@ export function HelpDialog() {
   const open = useHelp((s) => s.dialogOpen)
   const setOpen = useHelp((s) => s.setDialogOpen)
   const start = useHelp((s) => s.start)
+  const seen = useHelp((s) => s.seen)
   const [topic, setTopic] = useState(HELP_STEPS[0].id)
   const index = HELP_STEPS.findIndex((step) => step.id === topic)
   const step = index === -1 ? null : HELP_STEPS[index]
@@ -55,13 +56,8 @@ export function HelpDialog() {
                 {item.label}
               </Button>
             ))}
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2"
-              onClick={() => start()}
-            >
-              Take the tour
+            <Button size="sm" className="mt-2" onClick={() => start()}>
+              {seen ? "Take the tour again" : "Take the tour"}
             </Button>
           </nav>
           <div className="flex min-w-0 flex-1 flex-col items-start gap-3 overflow-y-auto p-4">

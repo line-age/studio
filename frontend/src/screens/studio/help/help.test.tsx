@@ -149,7 +149,7 @@ describe("the Help dialog", () => {
 
     await user.click(within(dialog).getByRole("button", { name: "Show me" }))
     await waitFor(async () => expect(await cardTitle()).toBe("The map"))
-    expect(within(await card()).getByText("5 of 10")).toBeVisible()
+    expect(within(await card()).getByText("4 of 10")).toBeVisible()
   })
 
   it("lists the words", async () => {
@@ -168,7 +168,7 @@ describe("the Help dialog", () => {
     await user.click(screen.getByRole("button", { name: "Help" }))
     const dialog = await screen.findByRole("dialog", { name: "Help" })
     await user.click(
-      within(dialog).getByRole("button", { name: "Take the tour" })
+      within(dialog).getByRole("button", { name: "Take the tour again" })
     )
     await waitFor(async () => expect(await cardTitle()).toBe("What Studio is"))
   })

@@ -33,6 +33,8 @@ import {
 import { useLeftPanel } from "../left-panel-context"
 import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
+import { useHelp } from "../help/help-store"
+import { HELP_STEPS } from "../help/steps"
 import { useCamera, useStudio } from "../studio-store"
 import { linesInLoop, type Point } from "./lasso"
 import { readMapColors } from "./map-colors"
@@ -101,6 +103,9 @@ export function StudioMap({ token }: { token: string }) {
   // What the last click or loop on the map selected: the bar at the top of
   // the map offers the Agent for it until the selection changes.
   const [bar, setBar] = useState<ReadonlySet<string> | null>(null)
+  const touring = useHelp(
+    (s) => s.step !== null && HELP_STEPS[s.step].id === "agent"
+  )
   // A click can follow the release that ends a loop; it must not select.
   const skipClick = useRef(false)
   const setView = useStudio((s) => s.setView)
@@ -347,7 +352,9 @@ export function StudioMap({ token }: { token: string }) {
   const visibility = (on: boolean) => (on ? "visible" : "none")
 
   // The bar belongs to the selection the loop made; any change retires it.
-  const barShown = bar !== null && bar === selected
+  // The Help tour shows it too, on the step that explains it.
+  const barShown =
+    (bar !== null && bar === selected) || (touring && selected.size > 0)
 
   if (failed) {
     throw new Error("The map could not load its style.")
@@ -568,8 +575,11 @@ export function StudioMap({ token }: { token: string }) {
             <Icon name="search" />
           </Button>
         </MapControl>
-        <LayersControl />
-        <FollowMapToggle />
+        {/* One area of the Help tour. */}
+        <div data-tour="layers" className="flex flex-col gap-2">
+          <LayersControl />
+          <FollowMapToggle />
+        </div>
         <MapControl label="Zoom">
           <Button
             variant="ghost"

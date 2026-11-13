@@ -17,6 +17,7 @@ export function SelectionBar({
     <div
       role="group"
       aria-label="Selection"
+      data-tour="ask-agent"
       className="absolute top-3 left-1/2 flex max-w-[calc(100%-9rem)] -translate-x-1/2 items-center gap-2.5 rounded-lg border bg-background py-1 pr-1 pl-2.5 whitespace-nowrap shadow-map-control"
     >
       <span className="truncate type-ui-xs text-muted-foreground" role="status">

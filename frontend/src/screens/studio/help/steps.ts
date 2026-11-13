@@ -33,23 +33,22 @@ export const HELP_STEPS: readonly HelpStep[] = [
   },
   {
     id: "search",
-    title: "Search and filters",
-    body: "Type to narrow the list. The button beside the search opens the filters. Press / to jump to the search from anywhere.",
-    targets: ["search"],
-    needs: "list",
-  },
-  {
-    id: "edition",
-    title: "Edition",
-    body: "An edition is a year. Studio shows the network as of the edition chosen here: the sections that maps had shown by then.",
-    targets: ["edition"],
+    title: "Edition, search and filters",
+    body: "The select at the top sets the edition: Studio shows the network as of that year. Type to narrow the list; the button beside the search opens the filters. Press / to jump to the search from anywhere.",
+    targets: ["list-tools"],
     needs: "list",
   },
   {
     id: "map",
     title: "The map",
-    body: 'Each line is a section. How a line is drawn tells its status; the key says which is which. The layers button chooses what is drawn, and "List follows the map" keeps the list to what is in view.',
+    body: "Each line is a section. A line is solid or dotted by its status. Drag to move the map and scroll to zoom.",
     targets: ["map"],
+  },
+  {
+    id: "layers",
+    title: "Map layers",
+    body: 'The layers button says how each status is drawn and chooses what is on the map. "List follows the map", below it, keeps the list to the sections in view.',
+    targets: ["layers", "map"],
   },
   {
     id: "select",
@@ -66,9 +65,10 @@ export const HELP_STEPS: readonly HelpStep[] = [
   },
   {
     id: "agent",
-    title: "The Agent",
-    body: 'The Agent is opened from here. "Ask the Agent" on the map hands it your selection as references. The Agent does not answer yet.',
-    targets: ["agent"],
+    title: "Ask the Agent",
+    body: '"Ask the Agent" hands what you selected to the Agent as references. It shows on the map after a selection made there, and the Agent is always in the rail. The Agent does not answer yet.',
+    targets: ["ask-agent", "agent"],
+    needs: "selection",
   },
   {
     id: "agent-panel",

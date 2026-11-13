@@ -186,50 +186,53 @@ export function PipelinesPanel() {
       </PanelHeader>
 
       <div className="flex shrink-0 flex-col gap-2 border-b px-3 pb-2.5">
-        <div data-tour="edition">
+        {/* One area of the Help tour: the edition, the search, the filters. */}
+        <div data-tour="list-tools" className="flex flex-col gap-2">
           <EditionSelect />
-        </div>
-        <div data-tour="search" className="flex items-center gap-1.5">
-          <div className="relative min-w-0 flex-1">
-            <Icon
-              name="search"
-              className="pointer-events-none absolute top-2 left-2.5 text-muted-foreground"
-            />
-            <Input
-              id={SEARCH_INPUT_ID}
-              type="search"
-              name="pipeline-search"
-              role="combobox"
-              aria-label="Search sections"
-              aria-expanded={searching}
-              aria-controls="pipeline-search-results"
-              aria-activedescendant={
-                searching && hits.length > 0
-                  ? `search-hit-${hits[activeIndex].summary.id}`
-                  : undefined
-              }
-              autoComplete="off"
-              spellCheck={false}
-              placeholder="Search sections"
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value)
-                setActive(0)
-              }}
-              onKeyDown={onSearchKeyDown}
-              className="pr-8 pl-8.5 [&::-webkit-search-cancel-button]:hidden"
-            />
-            {!searching && <Kbd className="absolute top-1.5 right-1.5">/</Kbd>}
+          <div className="flex items-center gap-1.5">
+            <div className="relative min-w-0 flex-1">
+              <Icon
+                name="search"
+                className="pointer-events-none absolute top-2 left-2.5 text-muted-foreground"
+              />
+              <Input
+                id={SEARCH_INPUT_ID}
+                type="search"
+                name="pipeline-search"
+                role="combobox"
+                aria-label="Search sections"
+                aria-expanded={searching}
+                aria-controls="pipeline-search-results"
+                aria-activedescendant={
+                  searching && hits.length > 0
+                    ? `search-hit-${hits[activeIndex].summary.id}`
+                    : undefined
+                }
+                autoComplete="off"
+                spellCheck={false}
+                placeholder="Search sections"
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value)
+                  setActive(0)
+                }}
+                onKeyDown={onSearchKeyDown}
+                className="pr-8 pl-8.5 [&::-webkit-search-cancel-button]:hidden"
+              />
+              {!searching && (
+                <Kbd className="absolute top-1.5 right-1.5">/</Kbd>
+              )}
+            </div>
+            <Button
+              variant={filtered ? "secondary" : "outline"}
+              size="icon"
+              aria-label={filtered ? "Filters, some are on" : "Filters"}
+              aria-pressed={filtered}
+              onClick={() => setMode("filters")}
+            >
+              <Icon name="filter" />
+            </Button>
           </div>
-          <Button
-            variant={filtered ? "secondary" : "outline"}
-            size="icon"
-            aria-label={filtered ? "Filters, some are on" : "Filters"}
-            aria-pressed={filtered}
-            onClick={() => setMode("filters")}
-          >
-            <Icon name="filter" />
-          </Button>
         </div>
         <StatusCounts />
         {chips.length > 0 && (
