@@ -339,6 +339,62 @@ export function firstEdition(
   return first
 }
 
+/**
+ * A group with only some of its sections: what the filters, or the map view,
+ * leave of it. Everything counted from the sections is counted again. Only
+ * for a group; a pipeline is a thing of its own and stays whole.
+ */
+export function withSections(
+  summary: PipelineSummary,
+  sections: Section[],
+  rule: StatusRule
+): PipelineSummary {
+  const counts = statusCounts(sections, rule)
+  return {
+    ...summary,
+    sections,
+    stats: sumStats(sections),
+    status: groupStatus(counts),
+    statusCounts: counts,
+    done: counts.done,
+    needsDecision: sections.some(needsDecision),
+    unknownByAttribute: unknownByAttribute(sections, rule),
+    changed: sections.some((s) => s.changedSinceReview),
+    bounds: unionBounds(sections.map((s) => geometryBounds(s.geometry))),
+  }
+}
+
+/**
+ * The rows the filters leave. A pipeline stays whole when one of its
+ * sections passes. A group (an edition, no pipeline) keeps only the sections
+ * that pass, and with a `view` only those in it: a group spans the map, so
+ * its row is what one can see and select of it.
+ */
+export function narrowRows(
+  summaries: PipelineSummary[],
+  criteria: SectionCriteria,
+  view: Bounds | null = null
+): PipelineSummary[] {
+  const filtering = hasCriteria(criteria)
+  return summaries.flatMap((summary) => {
+    if (!summary.unassigned) {
+      return matchesCriteria(summary, criteria) && inView(summary, view)
+        ? [summary]
+        : []
+    }
+    if (!filtering && view === null) return [summary]
+    const sections = summary.sections.filter(
+      (section) =>
+        (!filtering || sectionMatches(section, criteria)) &&
+        (view === null || intersects(geometryBounds(section.geometry), view))
+    )
+    if (sections.length === 0) return []
+    return sections.length === summary.sections.length
+      ? [summary]
+      : [withSections(summary, sections, criteria.rule)]
+  })
+}
+
 /** The id of the group of sections in no pipeline, first seen in an edition. */
 export function firstSeenGroupId(editionId: string): string {
   return `${UNASSIGNED_ID}:${editionId}`

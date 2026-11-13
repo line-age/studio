@@ -6,6 +6,7 @@ import {
   companiesOf,
   diameterOf,
   membershipOf,
+  narrowRows,
   NO_CRITERIA,
   optionCounts,
   sectionMatches,
@@ -100,5 +101,41 @@ describe("the new filters", () => {
       { name: "in", count: 1 },
       { name: "proposed", count: 0 },
     ])
+  })
+
+  it("cuts a group's row to what the filters leave, and counts it again", () => {
+    const editions = summarise(network, NO_CRITERIA.rule, "sections")
+    const none = { ...NO_CRITERIA, editionYears, memberships: ["proposed"] }
+    const rows = narrowRows(editions, none as SectionCriteria)
+    // Only s-4 is proposed for a pipeline: one row, one section.
+    expect(rows.map((r) => [r.label, r.sections.map((x) => x.id)])).toEqual([
+      ["1937 edition", ["s-4"]],
+    ])
+    expect(Object.values(rows[0].statusCounts).reduce((a, b) => a + b)).toBe(1)
+    // With no filter a row is the group itself, not a copy.
+    expect(narrowRows(editions, NO_CRITERIA)).toEqual(editions)
+    expect(narrowRows(editions, NO_CRITERIA)[0]).toBe(editions[0])
+  })
+
+  it("cuts a group's row to the map view; a pipeline's row stays whole", () => {
+    const north: [number, number, number, number] = [-1, 9, 3, 12]
+    const editions = summarise(network, NO_CRITERIA.rule, "sections")
+    expect(
+      narrowRows(editions, NO_CRITERIA, north).map((r) => [
+        r.label,
+        r.sections.map((x) => x.id),
+      ])
+    ).toEqual([
+      ["1931 edition", ["s-1"]],
+      ["1937 edition", ["s-2"]],
+    ])
+    const pipelines = summarise(network)
+    const rows = narrowRows(
+      pipelines,
+      { ...NO_CRITERIA, changedOnly: true },
+      north
+    )
+    // North line has one section changed since review: the row is all of it.
+    expect(rows.map((r) => [r.id, r.sections.length])).toEqual([["p-1", 2]])
   })
 })

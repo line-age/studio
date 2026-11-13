@@ -4,10 +4,10 @@ import {
   defaultList,
   groupSelection,
   inView,
+  narrowRows,
   ownersBySection,
   search,
   summarise,
-  visiblePipelines,
   type ListKind,
   type PipelineSummary,
   type SearchHit,
@@ -100,7 +100,8 @@ export function useStudioData(): StudioData {
 
 /**
  * What the list holds: what the status and the criteria leave and, while the
- * list follows the map, only what is in the view.
+ * list follows the map, only what is in the view. A group's row is cut to
+ * the sections that pass; a pipeline's row is the pipeline whole.
  */
 export function useVisiblePipelines(): PipelineSummary[] {
   const { summaries } = useStudioData()
@@ -108,11 +109,7 @@ export function useVisiblePipelines(): PipelineSummary[] {
   const view = useStudio((s) => s.view)
   const criteria = useCriteria()
   return useMemo(
-    () =>
-      visiblePipelines(summaries, {
-        ...criteria,
-        view: onlyInView ? view : null,
-      }),
+    () => narrowRows(summaries, criteria, onlyInView ? view : null),
     [summaries, criteria, onlyInView, view]
   )
 }
@@ -121,8 +118,15 @@ export function useVisiblePipelines(): PipelineSummary[] {
 export function useSelectionGroups(): SelectionGroup[] {
   const { summaries, everySection, list } = useStudioData()
   const selection = useStudio((s) => s.selection)
+  const criteria = useCriteria()
+  // Groups as the filters leave them, so "all of a group" means all that
+  // shows. Not cut to the map view: a selection does not change on a pan.
+  const rows = useMemo(
+    () => narrowRows(summaries, criteria),
+    [summaries, criteria]
+  )
   return useMemo(() => {
-    const groups = groupSelection(summaries, selection)
+    const groups = groupSelection(rows, selection)
     if (list === "sections") return groups
     // Grouped by pipeline, a section whose pipeline the data does not list
     // is in no row: it goes under its first-seen group.
@@ -131,7 +135,7 @@ export function useSelectionGroups(): SelectionGroup[] {
     return rest.size === 0
       ? groups
       : [...groups, ...groupSelection(everySection, rest)]
-  }, [summaries, everySection, list, selection])
+  }, [rows, everySection, list, selection])
 }
 
 /** What a section has to satisfy: the status chosen and the filters. */

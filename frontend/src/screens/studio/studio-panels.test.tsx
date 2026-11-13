@@ -317,6 +317,30 @@ describe("Studio panels", () => {
     expect(list).not.toHaveTextContent("first seen")
   })
 
+  it("counts and selects, on an edition's row, only what the filters leave", async () => {
+    const user = userEvent.setup()
+    act(() => {
+      useStudio.getState().setList("sections")
+      useStudio.getState().setMemberships(["in"])
+    })
+    await renderPanels()
+    const list = screen.getByRole("listbox", { name: "Editions" })
+    // s-4 is in no pipeline: the 1937 row is two sections, not three.
+    const row = within(list).getByRole("option", { name: /1937 edition/ })
+    expect(row).toHaveTextContent("1937 edition2")
+    await user.click(row)
+    expect([...useStudio.getState().selection]).toEqual(["s-2", "s-3"])
+    // All that shows is selected: the row is ticked, and the right lists two.
+    expect(within(row).getByRole("checkbox")).toHaveAttribute(
+      "aria-checked",
+      "true"
+    )
+    expect(screen.getByText("2 of 2 selected")).toBeVisible()
+    expect(
+      screen.queryByRole("treeitem", { name: /Unnamed section/ })
+    ).toBeNull()
+  })
+
   it("puts what is in no pipeline in one last row, under its heading", async () => {
     const user = userEvent.setup()
     const network = testNetwork()

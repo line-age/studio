@@ -26,8 +26,8 @@ export function PipelineRow({
   cells?: ReactNode
   /** "4/6": sections done, or required attributes cited. */
   progress: ReactNode
-  /** A StatusBadge. */
-  status: ReactNode
+  /** A StatusBadge. Nothing where the row shows its status another way. */
+  status?: ReactNode
   selected?: boolean
   /** How much of the row's sections is selected. Defaults to `selected`. */
   checked?: "unchecked" | "checked" | "indeterminate"
@@ -61,7 +61,9 @@ export function PipelineRow({
       <span className="shrink-0 text-right type-ui-xs whitespace-nowrap text-muted-foreground tabular-nums">
         {progress}
       </span>
-      <span className="flex w-21 shrink-0 justify-end">{status}</span>
+      {status != null && (
+        <span className="flex w-21 shrink-0 justify-end">{status}</span>
+      )}
     </div>
   )
 }

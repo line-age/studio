@@ -190,7 +190,15 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   row's `kind` is `pipeline`, `proposed`, `first-seen` or `group`: do not write
   "pipeline" into a string that covers them all. A group handed to the Agent goes as
   its section ids, never "all": its id means nothing under another grouping. Only a
-  pipeline row sets `selectedPipelineId` and `p`. A section with no name goes by its code (`sectionLabel`), a
+  pipeline row sets `selectedPipelineId` and `p`.
+- A group's row follows the filters and, while the list follows the map, the view
+  (`narrowRows`, the owner, 2026-11-13): it counts and selects only the sections that
+  pass, so "1929 edition" with the State filter is that edition in that state. A
+  pipeline's row stays the whole pipeline; its sections that do not pass are dimmed on
+  the right. The selection's groups follow the filters but not the view, so a pan
+  never changes what is selected.
+- The table has no Code column when grouped by edition (an edition has no code) and no
+  status badge: its "By status" bar says more. The narrow list keeps the badge. A section with no name goes by its code (`sectionLabel`), a
   pipeline with no name by its code (`pipelineLabel`) and shows "Unknown name"; never
   invent a name.
 - A pipeline's own claims are name, owner and operator (`ON_PIPELINE`), never a

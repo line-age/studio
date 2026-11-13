@@ -522,6 +522,7 @@ function PipelineList({
   const addToSelection = useStudio((s) => s.addToSelection)
   const toggleSelected = useStudio((s) => s.toggleSelected)
   const requestFit = useStudio((s) => s.requestFit)
+  const selection = useStudio((s) => s.selection)
   const onlyInView = useStudio(listFollowsMap)
   const [descending, setDescending] = useState(false)
   const attachments = useSelectionAttachments()
@@ -529,13 +530,6 @@ function PipelineList({
   /** The row last clicked or ticked: where a Shift-click run starts. */
   const anchor = useRef<string | null>(null)
 
-  // How much of each pipeline is selected: all of it, or some sections.
-  const checkedOf = new Map(
-    groups.map((g) => [
-      g.summary.id,
-      g.whole ? ("checked" as const) : ("indeterminate" as const),
-    ])
-  )
   const only = groups.length === 1 ? groups[0] : null
   const onlyId = only?.summary.id ?? null
   const idsOf = (summary: PipelineSummary) => summary.sections.map((s) => s.id)
@@ -562,6 +556,20 @@ function PipelineList({
     loose.reverse()
   }
   const rows = [...inPipelines, ...proposed, ...loose]
+  // How much of each row is selected: all of what it shows, or some. Counted
+  // from the row itself: a group's row is cut to the filters and the view.
+  const checkedOf = new Map<string, "checked" | "indeterminate">()
+  if (selection.size > 0) {
+    for (const { summary } of rows) {
+      const n = summary.sections.filter((s) => selection.has(s.id)).length
+      if (n > 0) {
+        checkedOf.set(
+          summary.id,
+          n === summary.sections.length ? "checked" : "indeterminate"
+        )
+      }
+    }
+  }
   const activeHit = search?.hits[search.activeIndex]
   const tabStop =
     rows.find((row) => checkedOf.has(row.summary.id))?.summary.id ??
@@ -578,7 +586,11 @@ function PipelineList({
       return
     }
     anchor.current = summary.id
-    if (only?.whole && onlyId === summary.id) {
+    // The row is all of the selection already: the click takes it off.
+    if (
+      checkedOf.get(summary.id) === "checked" &&
+      selection.size === summary.sections.length
+    ) {
       select([])
       return
     }
@@ -590,6 +602,8 @@ function PipelineList({
     rows.length > 0 &&
     rows.every((row) => checkedOf.get(row.summary.id) === "checked")
   const column = GROUPING[list].by
+  // Only a pipeline has a code; an edition does not.
+  const hasCodes = list === "pipelines"
   // "Done" is about pipelines; a group in no pipeline shows its size there.
   const panelWidth = usePanelWidth()
   const columns = listColumns(panelWidth?.width ?? 0, rule)
@@ -649,9 +663,11 @@ function PipelineList({
               <>
                 {columns.detail && (
                   <>
-                    <ListCell column="code" className="type-ui-mono-xs">
-                      {summary.code}
-                    </ListCell>
+                    {hasCodes && (
+                      <ListCell column="code" className="type-ui-mono-xs">
+                        {summary.code}
+                      </ListCell>
+                    )}
                     <ListCell column="sections">
                       {formatCount(summary.sections.length)}
                     </ListCell>
@@ -712,7 +728,8 @@ function PipelineList({
               )
             }
             status={
-              summary.kind === "proposed" ? (
+              // The table has the split by status as a bar: no badge too.
+              columns.bar ? null : summary.kind === "proposed" ? (
                 <Badge variant="ai">Proposed</Badge>
               ) : (
                 <StatusBadge status={summary.status} />
@@ -799,7 +816,7 @@ function PipelineList({
           <span className="flex items-center gap-1.5">
             {columns.detail && (
               <>
-                <ListCell column="code">Code</ListCell>
+                {hasCodes && <ListCell column="code">Code</ListCell>}
                 <ListCell column="sections">Sections</ListCell>
               </>
             )}
@@ -810,7 +827,7 @@ function PipelineList({
               </ListCell>
             ))}
             {columns.detail && <ListCell column="progress" />}
-            <span className="w-21 text-right">Status</span>
+            {!columns.bar && <span className="w-21 text-right">Status</span>}
           </span>
         }
         selection={
