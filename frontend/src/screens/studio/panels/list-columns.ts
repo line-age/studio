@@ -15,7 +15,14 @@ export interface ListColumns {
 }
 
 /** Room each extra column takes, in pixels, gaps included. */
-export const COLUMN = { code: 72, sections: 72, bar: 104, attribute: 128 }
+export const COLUMN = {
+  code: 72,
+  sections: 72,
+  bar: 104,
+  attribute: 128,
+  /** What the fixed progress column takes beyond the list's own. */
+  progress: 40,
+}
 
 /** What a row needs at the very least: box, name, done count and status. */
 const BASE = 300
@@ -34,7 +41,7 @@ export function listColumns(
     room -= cost
     return true
   }
-  const detail = take(COLUMN.code + COLUMN.sections)
+  const detail = take(COLUMN.code + COLUMN.sections + COLUMN.progress)
   const bar = detail && take(COLUMN.bar)
   const attributes = bar ? required.filter(() => take(COLUMN.attribute)) : []
   return { detail, bar, attributes }

@@ -45,6 +45,10 @@ import { SelectionBar } from "./selection-bar"
 
 const MAP_STYLE = "mapbox://styles/mapbox/light-v11"
 const HIT_LAYER = "sections-hit"
+/** How the map frames a selection it is asked to show. */
+const FIT_OPTIONS = { padding: 96, maxZoom: 11 }
+/** How long after a move a resize redoes it: a panel's slide, and some. */
+const REFIT_WINDOW = 800
 
 /** Dash patterns are in units of the line width. Dotted needs round caps. */
 const DOTTED = [0.1, 2.4]
@@ -115,6 +119,12 @@ export function StudioMap({ token }: { token: string }) {
 
   const selection = useSelectionAttachments()
   const boxRef = useRef<HTMLDivElement>(null)
+  /** The last move asked for, so a resize right after can redo it. */
+  const lastFit = useRef<{
+    bounds: Bounds
+    follow: boolean
+    at: number
+  } | null>(null)
   const colors = useMemo(() => readMapColors(), [])
 
   // The side panels slide open and shut, so the map's box changes size on
@@ -129,6 +139,21 @@ export function StudioMap({ token }: { token: string }) {
       const map = mapRef.current?.getMap()
       if (!map) return
       map.resize()
+      // Selecting often opens the right panel too: the map was fitted to
+      // its old, wider box and would leave part of the selection outside.
+      // While the panel slides, fit again to the box as it is now.
+      const last = lastFit.current
+      if (last && performance.now() - last.at < REFIT_WINDOW) {
+        const [west, south, east, north] = last.bounds
+        map.fitBounds(
+          [
+            [west, south],
+            [east, north],
+          ],
+          { ...FIT_OPTIONS, duration: 0 },
+          { quiet: !last.follow }
+        )
+      }
       // Not in Mapbox's public API; without it the map falls back to
       // drawing a frame late, which is only the flicker again.
       const drawNow = (map as unknown as { _render?: (now: number) => void })
@@ -213,13 +238,18 @@ export function StudioMap({ token }: { token: string }) {
   // A selection made in a list asks the map to show it.
   useEffect(() => {
     if (!fit) return
+    lastFit.current = {
+      bounds: fit.bounds,
+      follow: fit.follow,
+      at: performance.now(),
+    }
     const [west, south, east, north] = fit.bounds
     mapRef.current?.fitBounds(
       [
         [west, south],
         [east, north],
       ],
-      { padding: 96, maxZoom: 11, duration: reducedMotion() ? 0 : 500 },
+      { ...FIT_OPTIONS, duration: reducedMotion() ? 0 : 500 },
       // Read back in report(): a quiet move does not change the list.
       { quiet: !fit.follow }
     )

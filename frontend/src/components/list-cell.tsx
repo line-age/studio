@@ -7,6 +7,8 @@ const widths = {
   sections: "w-16 text-right tabular-nums",
   bar: "w-24",
   attribute: "w-30",
+  /** "4/6 done", "2/3 cited", "2,324 sections": fixed so the column lines up. */
+  progress: "w-24 justify-end tabular-nums",
 } as const
 
 /**
@@ -26,7 +28,7 @@ export function ListCell({
     <span
       className={cn(
         "flex shrink-0 items-center truncate type-ui-xs text-muted-foreground",
-        column === "sections" && "justify-end",
+        (column === "sections" || column === "progress") && "justify-end",
         widths[column],
         className
       )}

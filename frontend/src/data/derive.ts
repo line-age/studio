@@ -111,7 +111,9 @@ export function selectionSize(groups: SelectionGroup[]): string {
  * Progress, said one way everywhere, always with what it counts. A pipeline
  * counts its sections done; a section counts its required claims cited, the
  * same claims its status is worked out from (the rule in Settings). Sections
- * in no pipeline cannot be done, so a group of them says how many it has.
+ * in no pipeline cannot be done, so a group of them says how many it has: a
+ * bare number in a row, under the "Not in a pipeline" heading that says what
+ * it counts (edition names leave no room for a noun), "312 sections" in full.
  */
 
 /** "4/6 done" (short, for a row) or "4 of 6 sections done" (long). */
@@ -140,9 +142,12 @@ export function summaryProgress(
   summary: PipelineSummary,
   form: "short" | "long" = "short"
 ): string {
-  return summary.unassigned
-    ? plural(summary.sections.length, "section")
-    : doneLabel(summary.done, summary.sections.length, form)
+  if (!summary.unassigned) {
+    return doneLabel(summary.done, summary.sections.length, form)
+  }
+  return form === "short"
+    ? formatCount(summary.sections.length)
+    : plural(summary.sections.length, "section")
 }
 
 /** "3 pipelines", or "3 groups" when some of them are not pipelines. */

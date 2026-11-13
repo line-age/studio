@@ -3,6 +3,11 @@ import { useMemo } from "react"
 import { badgeVariants } from "@/components/ui/badge"
 import { filterCounts, formatCount } from "@/data/derive"
 import { STATUSES, STATUS_LABEL, type SectionStatus } from "@/data/status"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 import { useCriteria, useStudioData } from "../studio-data"
@@ -11,22 +16,26 @@ import { useStudio } from "../studio-store"
 /** A count that is also a one-click filter. */
 function CountToggle({
   label,
+  fullLabel,
   count,
   pressed,
   tone = "plain",
   onClick,
 }: {
   label: string
+  /** The whole name when `label` is a short form: read out and on hover. */
+  fullLabel?: string
   count: number
   pressed: boolean
   /** "ai" is the Agent's colour: something waits for the person. */
   tone?: "plain" | "ai"
   onClick: () => void
 }) {
-  return (
+  const button = (
     <button
       type="button"
       aria-pressed={pressed}
+      aria-label={fullLabel ? `${fullLabel} ${formatCount(count)}` : undefined}
       onClick={onClick}
       className={cn(
         badgeVariants({
@@ -43,6 +52,13 @@ function CountToggle({
         {formatCount(count)}
       </span>
     </button>
+  )
+  if (!fullLabel) return button
+  return (
+    <Tooltip>
+      <TooltipTrigger render={button} />
+      <TooltipContent side="bottom">{fullLabel}</TooltipContent>
+    </Tooltip>
   )
 }
 
@@ -88,7 +104,10 @@ export function StatusCounts() {
         />
       ))}
       <CountToggle
-        label="Needs your decision"
+        // Short so the counts fit on two rows of the list (the owner,
+        // 2026-11-13); the whole name is read out and shown on hover.
+        label="To decide"
+        fullLabel="Needs your decision"
         tone="ai"
         count={counts.needsDecision}
         pressed={needsDecisionOnly}

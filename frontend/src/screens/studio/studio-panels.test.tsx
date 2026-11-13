@@ -62,7 +62,8 @@ describe("Studio panels", () => {
     // Sections in no pipeline come last, under the edition that first
     // shows them, and can only get as far as sufficient.
     expect(list).toHaveTextContent("Not in a pipeline, by first seen")
-    expect(rows[2]).toHaveTextContent("1937 edition1 sectionNot started")
+    expect(rows[2]).toHaveTextContent("1937 edition1Not started")
+    expect(within(rows[2]).getByTitle("1 section")).toBeInTheDocument()
     expect(rows[2]).toHaveTextContent("Not started")
   })
 

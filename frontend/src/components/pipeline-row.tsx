@@ -53,7 +53,7 @@ export function PipelineRow({
     <div
       data-selected={selected || undefined}
       className={cn(
-        "flex h-8 cursor-default items-center gap-2 border-b border-border-subtle pr-3 transition-colors duration-100 select-none [contain-intrinsic-size:auto_32px] [content-visibility:auto] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid",
+        "flex h-8 cursor-default items-center gap-1.5 border-b border-border-subtle pr-3 transition-colors duration-100 select-none [contain-intrinsic-size:auto_32px] [content-visibility:auto] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid",
         indent ? "pl-9" : "pl-3",
         selected
           ? "bg-selected hover:bg-selected-hover"
@@ -97,7 +97,7 @@ export function PipelineRow({
       <span className="shrink-0 text-right type-ui-xs whitespace-nowrap text-muted-foreground tabular-nums">
         {progress}
       </span>
-      <span className="flex w-23 shrink-0 justify-end">{status}</span>
+      <span className="flex w-21 shrink-0 justify-end">{status}</span>
     </div>
   )
 }

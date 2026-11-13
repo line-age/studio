@@ -473,6 +473,10 @@ function PipelineList({
   // "Done" is about pipelines; a group in no pipeline shows its size there.
   const panelWidth = usePanelWidth()
   const columns = listColumns(panelWidth?.width ?? 0, rule)
+  // In the table the progress is a column of its own and lines up under its
+  // head; in the plain list it is as wide as its words, to leave names room.
+  const progressCell = (text: string) =>
+    columns.detail ? <ListCell column="progress">{text}</ListCell> : text
 
   const renderRow = ({ summary, hit }: (typeof rows)[number]) => {
     const open = (shift = false) =>
@@ -543,7 +547,20 @@ function PipelineList({
                 })}
               </>
             }
-            progress={summaryProgress(summary)}
+            progress={
+              summary.unassigned ? (
+                // The table has a Sections column; the list has only this.
+                columns.detail ? (
+                  progressCell("")
+                ) : (
+                  <span title={summaryProgress(summary, "long")}>
+                    {summaryProgress(summary)}
+                  </span>
+                )
+              ) : (
+                progressCell(summaryProgress(summary))
+              )
+            }
             status={<StatusBadge status={summary.status} />}
             {...(summary.unassigned &&
               !hit && {
@@ -631,7 +648,7 @@ function PipelineList({
                       })}
                     </>
                   }
-                  progress={citedLabel(section, rule)}
+                  progress={progressCell(citedLabel(section, rule))}
                   status={<StatusBadge status={sectionStatus(section, rule)} />}
                   onClick={openSection}
                   onKeyDown={(event) => {
@@ -711,7 +728,7 @@ function PipelineList({
         sortLabel={`${column} order: ${descending ? "last first" : "first first"}. Reverse it`}
         onSort={() => setDescending((d) => !d)}
         trailing={
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5">
             {columns.detail && (
               <>
                 <ListCell column="code">Code</ListCell>
@@ -724,7 +741,8 @@ function PipelineList({
                 {attribute}
               </ListCell>
             ))}
-            <span className="w-23 text-right">Status</span>
+            {columns.detail && <ListCell column="progress" />}
+            <span className="w-21 text-right">Status</span>
           </span>
         }
         selection={
@@ -783,12 +801,14 @@ function CameraStatus() {
   const zoom = useCamera((s) => s.zoom)
   const center = useCamera((s) => s.center)
   return (
+    // Each number says what it is: the map's zoom, and the latitude and
+    // longitude at its centre.
     <StatusBar
-      zoom={zoom === null ? "" : zoom.toFixed(2)}
+      zoom={zoom === null ? "" : `Zoom ${zoom.toFixed(2)}`}
       position={
         center === null
           ? ""
-          : `${center[1].toFixed(3)}, ${center[0].toFixed(3)}`
+          : `Centre ${center[1].toFixed(3)}, ${center[0].toFixed(3)}`
       }
     />
   )

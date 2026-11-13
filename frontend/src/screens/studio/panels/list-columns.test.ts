@@ -11,19 +11,19 @@ describe("listColumns", () => {
     expect(isTable(columns)).toBe(false)
   })
 
-  it("adds the code and section count first, then the bar", () => {
-    expect(listColumns(443, required).detail).toBe(false)
-    expect(listColumns(444, required)).toEqual({
+  it("adds the code, section count and a fixed progress column first, then the bar", () => {
+    expect(listColumns(483, required).detail).toBe(false)
+    expect(listColumns(484, required)).toEqual({
       detail: true,
       bar: false,
       attributes: [],
     })
-    expect(listColumns(548, required).bar).toBe(true)
+    expect(listColumns(588, required).bar).toBe(true)
   })
 
   it("adds the required attributes one by one as room allows", () => {
-    expect(listColumns(676, required).attributes).toEqual(["Owner"])
-    expect(listColumns(804, required).attributes).toEqual(["Owner", "Diameter"])
+    expect(listColumns(716, required).attributes).toEqual(["Owner"])
+    expect(listColumns(844, required).attributes).toEqual(["Owner", "Diameter"])
     expect(listColumns(1200, required).attributes).toEqual(required)
     expect(listColumns(1200, []).attributes).toEqual([])
   })

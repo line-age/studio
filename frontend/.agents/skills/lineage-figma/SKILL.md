@@ -248,5 +248,18 @@ The claim detail area is designed as a first draft and not built: Studio page fr
 `112:566` (Unknown claim, proposal waiting) and `112:786` (cited claim). It docks at the
 bottom of the right panel when a claim row is selected.
 
-Do not invent these in code; ask or design in Figma first: the full-width table, linking
-sections into a pipeline, Tooltip, Popover, Dropdown Menu, Tabs, Table.
+Pipelines made from sections, proposed pipelines, and the ends and cuts store proposes
+are designed and not built: Studio page section "10. Pipelines: making one, and deciding
+on proposed ones" (`209:7133`), drawn 2026-11-13, not yet reviewed by the owner. The list
+in three groups `209:7134`; the pipeline view `209:7358`; a proposed pipeline `209:7685`;
+the section menu `209:7993`; moving a section `209:8268`; Last seen proposed `211:8081`;
+a cut proposed `211:8327`; Last seen cited to two maps `213:8036`; screens `213:8451`,
+`213:8956`, `213:9371`. New for it: Badge variant `proposed` (purple, always the word
+"Proposed"), `ClaimSummaryRow` (`208:5465`), and properties `Show name` and `Show Unknown
+name` on PipelineRow, `Show proposed` on TreeItem, `Show quote` on Citation.
+Making a pipeline is a right-click menu item or a request to the Agent, never a button in
+the right panel. Proposals are decided in the Agent on a ProposalCard (`216:9591`,
+`216:9658`); the right panel shows what is proposed and a ProposalLink to the Agent.
+
+Do not invent these in code; ask or design in Figma first: the full-width table,
+Tooltip, Popover, Dropdown Menu, Tabs, Table.
