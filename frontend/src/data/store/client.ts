@@ -157,9 +157,12 @@ async function get<T>(path: string, schema: z.ZodType<T>): Promise<T> {
 
 /** The drawn sections of one network: which exist, and their pipeline. */
 export async function fetchSectionRows(
-  network: string
+  network: string,
+  /** Only the sections that cross this area: "minx,miny,maxx,maxy". */
+  bbox: string | null = null
 ): Promise<StoreSectionRow[]> {
   const query = new URLSearchParams({ network, limit: String(LIST_LIMIT) })
+  if (bbox !== null) query.set("bbox", bbox)
   const { features } = await get(`/sections?${query}`, sectionRows)
   if (features.length >= LIST_LIMIT) {
     // Showing the first ten thousand as if it were everything would be a lie.

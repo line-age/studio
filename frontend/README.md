@@ -26,6 +26,8 @@ file without changing code, see `docs/fixtures.md`.
 
 ## Real data from store
 
+Set `VITE_STORE_BBOX=minx,miny,maxx,maxy` as well to load only the sections that cross one area (for a demo, or a network too large to open whole).
+
 Set `VITE_DATA_SOURCE=store` and `STORE_TOKEN` in `.env.local` and the app reads a local
 Lineage store through its own `/store` path; `vite.config.ts` and `nginx.conf.template`
 pass that on to `STORE_URL` with the token. `src/data/store/client.ts` fetches,
