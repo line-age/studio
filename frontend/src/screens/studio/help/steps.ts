@@ -59,7 +59,7 @@ export const HELP_STEPS: readonly HelpStep[] = [
   {
     id: "claims",
     title: "Claims",
-    body: "What is selected shows here, claim by claim. A cited value comes with its source. Unknown, the orange word with a dotted underline, means no source has been found yet. A proposal is a value the AI suggests and nobody has decided on.",
+    body: "What is selected shows here, claim by claim. Click a section to read it; that does not change what is selected. A cited value comes with its source. Unknown, the orange word with a dotted underline, means no source has been found yet. A proposal is a value the AI suggests and nobody has decided on.",
     targets: ["claims"],
     needs: "selection",
   },

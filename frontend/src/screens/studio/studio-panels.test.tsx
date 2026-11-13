@@ -434,3 +434,71 @@ describe("Studio panels", () => {
     expect(screen.getByRole("listbox", { name: "Sections" })).toBeVisible()
   })
 })
+
+describe("Reading is not selecting", () => {
+  it("opens one section after another and keeps the whole pipeline selected", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("option", { name: /North line/ }))
+    expect(useStudio.getState().selection).toEqual(new Set(["s-1", "s-2"]))
+
+    await user.click(screen.getByRole("treeitem", { name: /Alder to Birch/ }))
+    await user.click(screen.getByRole("treeitem", { name: /Birch to Cedar/ }))
+
+    expect(useStudio.getState().selection).toEqual(new Set(["s-1", "s-2"]))
+    expect(useStudio.getState().selectedSectionId).toBe("s-2")
+    expect(
+      screen.getByRole("treeitem", { name: /Birch to Cedar/ })
+    ).toHaveAttribute("aria-selected", "true")
+    expect(screen.getByText("2 of 2 selected")).toBeInTheDocument()
+  })
+
+  it("keeps the selection when a claim is opened", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("option", { name: /North line/ }))
+    await user.click(screen.getByRole("treeitem", { name: /Birch to Cedar/ }))
+    const claims = screen.getByRole("group", {
+      name: "Claims of Birch to Cedar",
+    })
+    await user.click(within(claims).getAllByRole("treeitem")[0])
+
+    expect(useStudio.getState().selection).toEqual(new Set(["s-1", "s-2"]))
+    expect(useStudio.getState().selectedAttribute).toBe("Owner")
+  })
+
+  it("opens a section that is not ticked without ticking it", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    act(() => useStudio.getState().select(["s-1"]))
+    await user.click(screen.getByRole("treeitem", { name: /Birch to Cedar/ }))
+
+    expect(useStudio.getState().selection).toEqual(new Set(["s-1"]))
+    expect(useStudio.getState().selectedSectionId).toBe("s-2")
+    expect(
+      screen.getByRole("group", { name: "Claims of Birch to Cedar" })
+    ).toBeInTheDocument()
+  })
+
+  it("closes the section being read on a second click", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("option", { name: /North line/ }))
+    const row = () => screen.getByRole("treeitem", { name: /Birch to Cedar/ })
+    await user.click(row())
+    expect(row()).toHaveAttribute("aria-expanded", "true")
+    await user.click(row())
+    expect(row()).toHaveAttribute("aria-expanded", "false")
+    expect(useStudio.getState().selection).toEqual(new Set(["s-1", "s-2"]))
+  })
+
+  it("changes the selection only through the boxes", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("option", { name: /North line/ }))
+    await user.click(
+      screen.getByRole("checkbox", { name: "Select Alder to Birch" })
+    )
+    expect(useStudio.getState().selection).toEqual(new Set(["s-2"]))
+  })
+})

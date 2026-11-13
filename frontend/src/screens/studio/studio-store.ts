@@ -103,7 +103,10 @@ interface StudioState {
   toggleSelected: (sectionIds: readonly string[]) => void
   /** Select exactly this one section and open it. */
   selectSection: (sectionId: string) => void
-  /** Open one of several selected sections without changing the selection. */
+  /**
+   * Open a section to read it, ticked or not, without changing the selection.
+   * The map marks it as the one being read.
+   */
   focusSection: (sectionId: string) => void
   /** Choose a claim. `keep` leaves a selection of several sections as it is. */
   selectAttribute: (
@@ -277,6 +280,10 @@ export const useStudio = create<StudioState>((set) => ({
         sectionIds.forEach((id) => next.add(id))
       }
       const settled = selected(next)
+      // The section being read stays open while it is still ticked.
+      if (s.selectedSectionId && next.has(s.selectedSectionId)) {
+        settled.selectedSectionId = s.selectedSectionId
+      }
       return {
         ...settled,
         selectedAttribute:

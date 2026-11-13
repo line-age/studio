@@ -56,7 +56,6 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const expanded = useStudio((s) => s.expandedSectionIds)
   const selection = useStudio((s) => s.selection)
   const select = useStudio((s) => s.select)
-  const selectSection = useStudio((s) => s.selectSection)
   const focusSection = useStudio((s) => s.focusSection)
   const toggleSelected = useStudio((s) => s.toggleSelected)
   const selectAttribute = useStudio((s) => s.selectAttribute)
@@ -87,12 +86,14 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
     : single.stats
   const check = (section: Section) => toggleSelected([section.id])
 
-  // With one pipeline a click narrows the selection to that section. With
-  // several it only opens the section, so the selection survives reading.
-  const keep = (section: Section) => multi && isChecked(section.id)
+  // Reading is not selecting: a click opens the section (or closes the one
+  // being read) and marks it on the map. Only the boxes change the selection.
   const pick = (section: Section) => {
-    if (keep(section)) focusSection(section.id)
-    else selectSection(section.id)
+    if (section.id === selectedSectionId && expanded.has(section.id)) {
+      toggleExpanded(section.id)
+      return
+    }
+    focusSection(section.id)
     requestFit(geometryBounds(section.geometry))
   }
 
@@ -230,11 +231,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                         const chosen =
                           selected && claim.attribute === selectedAttribute
                         const choose = () =>
-                          selectAttribute(
-                            section.id,
-                            claim.attribute,
-                            keep(section)
-                          )
+                          selectAttribute(section.id, claim.attribute, true)
                         return (
                           <AttributeRow
                             key={claim.attribute}

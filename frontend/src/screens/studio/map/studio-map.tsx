@@ -86,6 +86,8 @@ export function StudioMap({ token }: { token: string }) {
   const solid = statusesDrawn(lineStyle, "solid")
   const dotted = statusesDrawn(lineStyle, "dotted")
   const selected = useStudio((s) => s.selection)
+  /** The section being read in the right panel, ticked or not. */
+  const readingId = useStudio((s) => s.selectedSectionId)
   const groups = useSelectionGroups()
   const fit = useStudio((s) => s.fit)
   const selectSection = useStudio((s) => s.selectSection)
@@ -486,6 +488,21 @@ export function StudioMap({ token }: { token: string }) {
                     ],
                     "line-width": 2.5,
                     "line-dasharray": DOTTED,
+                  }}
+                />
+                {/* The section open in the right panel, drawn over the rest. */}
+                <Layer
+                  id="sections-reading"
+                  type="line"
+                  filter={["==", ["get", "id"], readingId ?? ""]}
+                  layout={{
+                    visibility: visibility(layers.pipelines),
+                    "line-cap": "round",
+                    "line-join": "round",
+                  }}
+                  paint={{
+                    "line-color": colors.selected,
+                    "line-width": 4,
                   }}
                 />
                 <Layer
