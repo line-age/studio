@@ -197,10 +197,9 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   pipeline's row stays the whole pipeline; its sections that do not pass are dimmed on
   the right. The selection's groups follow the filters but not the view, so a pan
   never changes what is selected.
-- The table has no Code column when grouped by edition (an edition has no code) and no
-  status badge: its "By status" bar says more. The narrow list keeps the badge. A section with no name goes by its code (`sectionLabel`), a
-  pipeline with no name by its code (`pipelineLabel`) and shows "Unknown name"; never
-  invent a name.
+- The table has one Status column: the split by status as a bar, then the word for
+  the whole (a status never shows as colour alone). Grouped by edition it has no Code
+  and no progress column: an edition has neither.
 - A pipeline's own claims are name, owner and operator (`ON_PIPELINE`), never a
   section's. The right panel shows them above its sections when one pipeline is
   selected (`pipelineClaims`, `datedValue`: "Alder Gas Co., by 1931"; an owner that

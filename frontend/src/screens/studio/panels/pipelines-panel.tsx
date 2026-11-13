@@ -673,14 +673,6 @@ function PipelineList({
                     </ListCell>
                   </>
                 )}
-                {columns.bar && (
-                  <ListCell column="bar">
-                    <StatusShareBar
-                      counts={summary.statusCounts}
-                      className="w-full"
-                    />
-                  </ListCell>
-                )}
                 {columns.attributes.map((attribute) => {
                   const unknown = summary.unknownByAttribute[attribute] ?? 0
                   return (
@@ -701,7 +693,8 @@ function PipelineList({
               summary.unassigned ? (
                 // The table has a Sections column; the list has only this.
                 columns.detail ? (
-                  progressCell("")
+                  // Grouped by edition no row has a progress: no column.
+                  hasCodes && progressCell("")
                 ) : (
                   <span
                     title={summaryProgress(summary, "long")}
@@ -727,13 +720,23 @@ function PipelineList({
                 </span>
               )
             }
+            // One status: in the table, how the sections split, then the
+            // word for the whole, side by side under one head.
+            statusWide={columns.bar}
             status={
-              // The table has the split by status as a bar: no badge too.
-              columns.bar ? null : summary.kind === "proposed" ? (
-                <Badge variant="ai">Proposed</Badge>
-              ) : (
-                <StatusBadge status={summary.status} />
-              )
+              <>
+                {columns.bar && (
+                  <StatusShareBar
+                    counts={summary.statusCounts}
+                    className="min-w-0 flex-1"
+                  />
+                )}
+                {summary.kind === "proposed" ? (
+                  <Badge variant="ai">Proposed</Badge>
+                ) : (
+                  <StatusBadge status={summary.status} />
+                )}
+              </>
             }
             onClick={(event) => open(event.shiftKey)}
             onKeyDown={(event) => {
@@ -820,14 +823,15 @@ function PipelineList({
                 <ListCell column="sections">Sections</ListCell>
               </>
             )}
-            {columns.bar && <ListCell column="bar">By status</ListCell>}
             {columns.attributes.map((attribute) => (
               <ListCell key={attribute} column="attribute">
                 {attribute}
               </ListCell>
             ))}
-            {columns.detail && <ListCell column="progress" />}
-            {!columns.bar && <span className="w-21 text-right">Status</span>}
+            {columns.detail && hasCodes && <ListCell column="progress" />}
+            <span className={columns.bar ? "w-52 pl-3" : "w-21 text-right"}>
+              Status
+            </span>
           </span>
         }
         selection={
