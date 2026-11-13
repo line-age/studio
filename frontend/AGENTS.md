@@ -1,4 +1,4 @@
-# AGENTS.md: Composer frontend
+# AGENTS.md: Lineage Studio frontend
 
 The web app for reviewing traced pipelines: a map desk where a person checks sections,
 attaches cited facts and decides on what the AI proposes. This directory is the React
