@@ -5,14 +5,24 @@ import {
   ID_A,
   ID_B,
   ID_C,
+  ID_X,
+  ID_Y,
   storeFeatures,
+  storeLinks,
+  storeRemovals,
   storeRows,
 } from "@/test/store-payloads"
 
 import { StoreError } from "./client"
 import { toNetwork } from "./to-network"
 
-const network = toNetwork("Gas network", storeRows(), storeFeatures())
+const network = toNetwork(
+  "Gas network",
+  storeRows(),
+  storeFeatures(),
+  storeLinks(),
+  storeRemovals()
+)
 const section = (id: string) => network.sections.find((s) => s.id === id)!
 const claim = (id: string, attribute: string) =>
   section(id).claims.find((c) => c.attribute === attribute)!
@@ -41,6 +51,128 @@ describe("toNetwork", () => {
 
   it("ends a section only on a confirmed end", () => {
     expect(section(ID_C).editionIds).toEqual([network.editions[0].id])
+    // A is only proposed to end: it is still in every edition.
+    expect(section(ID_A).editionIds).toHaveLength(network.editions.length)
+  })
+
+  it("keeps what a source does for a claim, and a map's date", () => {
+    const [shows] = claim(ID_A, "Geometry").citations
+    expect(shows).toMatchObject({
+      id: "cit-1931",
+      role: "map_shows",
+      asOf: "1931-06",
+    })
+    expect(claim(ID_B, "Diameter").citations[0].role).toBe("states")
+  })
+
+  it("keeps a trace file apart from a place in the source", () => {
+    const [shows] = claim(ID_A, "Geometry").citations
+    expect(shows.file).toBe("traced in test/1931")
+    expect(shows.locator).toBeUndefined()
+    // A text's place stays the place.
+    const [states] = claim(ID_B, "Diameter").citations
+    expect(states.locator).toBe("traced in test/1937")
+    expect(states.file).toBeUndefined()
+  })
+
+  it("keeps a claim's id and the period it holds for", () => {
+    expect(claim(ID_A, "Geometry").valid).toBe("../1931-06")
+    expect(claim(ID_A, "Geometry").id).toMatch(/^route-1931/)
+    expect(claim(ID_A, "First seen").id).toBeUndefined()
+  })
+
+  it("words a status a map supports as shown by the map's date", () => {
+    expect(claim(ID_A, "Status").value).toBe("Shown by June 1931")
+    expect(JSON.stringify(network)).not.toMatch(/operational/i)
+  })
+
+  it("keeps a status a text states as the text gives it", () => {
+    const features = storeFeatures()
+    const status = features[0].claims.find((c) => c.attribute_key === "status")!
+    status.citations = [{ ...status.citations[0], role: "states" }]
+    const out = toNetwork("Gas network", storeRows(), features)
+    const stated = out.sections[0].claims.find((c) => c.attribute === "Status")
+    expect(stated?.value).toBe("operational")
+  })
+
+  it("shows a proposed same_as link as a proposed end, Last seen Unknown", () => {
+    expect(claim(ID_A, "Last seen").value).toBeNull()
+    expect(section(ID_A).proposedEnds).toEqual([
+      expect.objectContaining({
+        id: "link-end",
+        kind: "end",
+        otherSectionId: ID_X,
+        score: 0.986,
+        proposer: "stitch",
+      }),
+    ])
+    const roles = section(ID_A).proposedEnds[0].citations.map((c) => c.role)
+    expect(roles).toEqual(["map_shows", "map_omits"])
+  })
+
+  it("shows a proposed overlaps link as a proposed cut", () => {
+    expect(section(ID_B).proposedEnds).toEqual([
+      expect.objectContaining({ id: "link-cut", kind: "cut", score: 0.75 }),
+    ])
+    expect(section(ID_B).proposedEnds[0].otherSectionId).toBe(ID_Y)
+  })
+
+  it("cites Last seen to both maps once a person has confirmed the end", () => {
+    const last = claim(ID_C, "Last seen")
+    expect(last.value).toBe("1931 edition, not on 1937")
+    expect(last.citations.map((c) => c.role)).toEqual([
+      "map_shows",
+      "map_omits",
+    ])
+    expect(section(ID_C).proposedEnds).toEqual([])
+  })
+
+  it("never lists or counts a line traced as gone", () => {
+    expect(network.sections.map((s) => s.id)).not.toContain(ID_X)
+    expect(
+      summarise(network, network.editions[1].id).flatMap((g) => g.sections)
+    ).toHaveLength(2)
+  })
+
+  it("names who proposed a link only when it is a tool", () => {
+    // The same agent is seen asserting a claim as a person: no name.
+    const features = storeFeatures()
+    features[0].claims[0] = {
+      ...features[0].claims[0],
+      asserted_by: "agent-stitch",
+      asserted_by_kind: "person",
+    }
+    const out = toNetwork(
+      "Gas network",
+      storeRows(),
+      features,
+      storeLinks(),
+      storeRemovals()
+    )
+    expect(out.sections[0].proposedEnds[0].proposer).toBeUndefined()
+    // Store says outright that a person asserted the link: no name.
+    const links = storeLinks().map((l) => ({
+      ...l,
+      asserted_by_kind: "person",
+    }))
+    const named = toNetwork(
+      "Gas network",
+      storeRows(),
+      storeFeatures(),
+      links,
+      storeRemovals()
+    )
+    expect(JSON.stringify(named)).not.toContain("stitch")
+  })
+
+  it("leaves out a link whose line traced as gone was not read", () => {
+    const out = toNetwork(
+      "Gas network",
+      storeRows(),
+      storeFeatures(),
+      storeLinks()
+    )
+    expect(out.sections.flatMap((s) => s.proposedEnds)).toEqual([])
   })
 
   it("draws the route as traced, in two ordinates", () => {
@@ -65,7 +197,7 @@ describe("toNetwork", () => {
   it("shows accepted claims as cited values and the rest as Unknown", () => {
     expect(claim(ID_B, "Diameter").value).toBe("12 in")
     expect(claim(ID_B, "Diameter").citations[0].quote).toBe('"12 IN."')
-    expect(claim(ID_B, "Status").value).toBe("operational")
+    expect(claim(ID_B, "Status").value).not.toBe("operational")
     expect(claim(ID_B, "Geometry").value).toBe("Traced line")
     expect(claim(ID_A, "Diameter").value).toBeNull()
     expect(claim(ID_A, "Owner").value).toBeNull()

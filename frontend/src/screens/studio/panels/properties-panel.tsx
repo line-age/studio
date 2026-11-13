@@ -18,8 +18,10 @@ import {
   sectionMatches,
   selectionSize,
   summaryProgress,
+  unionBounds,
   type SelectionGroup,
 } from "@/data/derive"
+import { proposalCount, proposedEndsFor } from "@/data/evidence"
 import { sectionStatus } from "@/data/status"
 import type { Section } from "@/data/schema"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
@@ -233,8 +235,17 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                       {section.claims.map((claim) => {
                         const chosen =
                           selected && claim.attribute === selectedAttribute
-                        const choose = () =>
+                        const choose = () => {
                           selectAttribute(section.id, claim.attribute, true)
+                          // A proposed end or cut is drawn on the map: bring
+                          // the section and the line traced as gone into view.
+                          const ends = proposedEndsFor(section, claim.attribute)
+                          const both = unionBounds([
+                            geometryBounds(section.geometry),
+                            ...ends.map((end) => geometryBounds(end.geometry)),
+                          ])
+                          if (ends.length > 0 && both) requestFit(both)
+                        }
                         return (
                           <AttributeRow
                             key={claim.attribute}
@@ -246,7 +257,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                             label={claim.attribute}
                             value={claim.value}
                             sources={claim.citations.length}
-                            proposals={claim.proposals.length}
+                            proposals={proposalCount(section, claim)}
                             selected={chosen}
                             onClick={choose}
                             onKeyDown={(event) => {

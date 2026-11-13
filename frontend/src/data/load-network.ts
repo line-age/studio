@@ -1,5 +1,5 @@
 import { FixtureError, parseNetwork, type Network } from "./schema"
-import { fetchFeatures, fetchSectionRows } from "./store/client"
+import { fetchFeatures, fetchLinks, fetchSectionRows } from "./store/client"
 import { toNetwork } from "./store/to-network"
 
 /*
@@ -39,9 +39,30 @@ export async function loadFromStore(
 ): Promise<Network> {
   const rows = await fetchSectionRows(network)
   const ids = [...new Set(rows.map((row) => row.section_id))]
-  const features = await fetchFeatures(ids)
+  const [features, sameAs, overlaps] = await Promise.all([
+    fetchFeatures(ids),
+    fetchLinks("same_as"),
+    fetchLinks("overlaps"),
+  ])
+  // A line traced as gone is at the other end of such a link from a section.
+  // Links between two sections, or of another network, are left alone.
+  const sections = new Set(ids)
+  const links = [...sameAs, ...overlaps].filter(
+    (link) =>
+      sections.has(link.from_feature_id) !== sections.has(link.to_feature_id)
+  )
+  const removalIds = [
+    ...new Set(
+      links.map((link) =>
+        sections.has(link.from_feature_id)
+          ? link.to_feature_id
+          : link.from_feature_id
+      )
+    ),
+  ]
+  const removals = await fetchFeatures(removalIds)
   const name = network.charAt(0).toLocaleUpperCase() + network.slice(1)
-  return toNetwork(`${name} network`, rows, features)
+  return toNetwork(`${name} network`, rows, features, links, removals)
 }
 
 export async function loadFixture(url = fixtureUrl()): Promise<Network> {

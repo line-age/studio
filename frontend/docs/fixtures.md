@@ -24,7 +24,7 @@ committed.
 
 ```jsonc
 {
-  "version": 1,
+  "version": 2, // a version 1 file still loads
   "name": "Calder Valley network", // shown in the top bar
   "editions": [
     // the map editions, any order
@@ -69,11 +69,31 @@ committed.
           ],
         },
         {
+          "id": "c-0142-first-seen", // optional
           "attribute": "First seen",
           "value": "1937 edition",
+          "valid": "../1937", // optional: the period, as the source gave it
           "citations": [
-            { "source": "1937 edition", "locator": "grid ref. F-7" },
+            {
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows", // optional: what the source does for the claim
+              "asOf": "1937", // optional: the date a map is as of
+              "locator": "grid ref. F-7",
+              "file": "traces/1937/base.gpkg", // optional: the trace file
+            },
           ],
+        },
+      ],
+      "proposedEnds": [
+        // optional: an end or a cut a tool proposes; never applied
+        {
+          "id": "pe-001",
+          "kind": "end", // or "cut"
+          "otherSectionId": "gone-001", // the line traced as gone
+          "score": 0.99,
+          "proposer": "stitch", // optional: a tool, never a person
+          "geometry": { "type": "LineString", "coordinates": [] },
+          "citations": [], // the map that shows it, the map that does not
         },
       ],
       "changedSinceReview": false, // optional
@@ -120,10 +140,35 @@ committed.
 - Counts (sections per pipeline, claims cited, Unknown) are never stored. The
   app derives them, so they cannot disagree with the data.
 
+## Evidence (version 2)
+
+Everything here is optional, so a version 1 file still loads.
+
+- A citation's `role` says what the source does for the claim: `map_shows`,
+  `map_omits`, `states` or `confirms`. The screen says "Shown on", "Not on", "States",
+  "Confirms".
+- `asOf` is the date a map's content is as of, written as the source gives it:
+  `"1953"`, `"1929-08"`. The screen shows "1953 edition, as of 31 December 1953". It is
+  never a build date.
+- `locator` is a place in the source (a page, a grid reference). The trace file a map
+  reading was drawn in is not a place in the source; it goes in `file` and is shown
+  last.
+- A claim's `valid` is the period it holds for, as the source gave it: `"../1929-08"`
+  (by August 1929), `"1929-08/1931"` (between August 1929 and 1931), `"1931/.."`
+  (from 1931). The screen never shows it as a bare year.
+- `id` on a claim, a citation or a proposal is the record's id where the data has one.
+- `proposedEnds` on a section: a later map no longer shows all of it (`"end"`) or part
+  of it (`"cut"`). The line traced as gone is not a section: it is in no list and no
+  count, and is only its `geometry` and `citations` here. An end shows as a proposal on
+  the section's `Last seen` claim and a cut on its `Geometry` claim, so the section
+  needs those claims for the proposal to be seen. Last seen stays Unknown while an end
+  is only proposed.
+
 ## Words
 
 The types and the interface use the project glossary: **section**, **claim**,
-**citation**. "Pipeline" (a named group of sections), "edition", "proposal" and
+**citation**. A removal (a line a later map no longer shows) is called "a line traced
+as gone" on the screen. "Pipeline" (a named group of sections), "edition", "proposal" and
 "Unknown" are Studio's words and are not in the glossary yet.
 
 ## Attributes the filters read

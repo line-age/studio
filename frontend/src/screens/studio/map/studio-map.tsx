@@ -21,6 +21,7 @@ import {
   unionBounds,
   type Bounds,
 } from "@/data/derive"
+import { proposedEndsFor } from "@/data/evidence"
 import type { Geometry } from "@/data/schema"
 import { sectionStatus } from "@/data/status"
 
@@ -92,6 +93,7 @@ export function StudioMap({ token }: { token: string }) {
   const selected = useStudio((s) => s.selection)
   /** The section being read in the right panel, ticked or not. */
   const readingId = useStudio((s) => s.selectedSectionId)
+  const readingAttribute = useStudio((s) => s.selectedAttribute)
   const groups = useSelectionGroups()
   const fit = useStudio((s) => s.fit)
   const selectSection = useStudio((s) => s.selectSection)
@@ -197,18 +199,32 @@ export function StudioMap({ token }: { token: string }) {
     [network, edition.id]
   )
 
+  // The lines traced as gone behind the proposal being read: an end on Last
+  // seen, a cut on Geometry. Drawn only while that claim is open.
+  const readingEnds = useMemo(() => {
+    const section = network.sections.find((s) => s.id === readingId)
+    return section && readingAttribute
+      ? proposedEndsFor(section, readingAttribute)
+      : []
+  }, [network, readingId, readingAttribute])
+
   const proposed = useMemo(
     () =>
-      collection(
-        network.proposedPaths
+      collection([
+        ...network.proposedPaths
           .filter((p) => p.editionIds.includes(edition.id))
           .map((p) => ({
             type: "Feature" as const,
             geometry: p.geometry,
             properties: { id: p.id },
-          }))
-      ),
-    [network, edition.id]
+          })),
+        ...readingEnds.map((end) => ({
+          type: "Feature" as const,
+          geometry: end.geometry,
+          properties: { id: end.id },
+        })),
+      ]),
+    [network, edition.id, readingEnds]
   )
 
   const initialBounds = useMemo(

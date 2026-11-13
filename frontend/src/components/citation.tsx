@@ -14,24 +14,49 @@ function Field({ label, children }: { label: string; children: string }) {
 }
 
 /**
- * One source supporting one claim. Closed: the source's title. Open: where in
- * the source, and the passage in the source's own words, never paraphrased.
- * A source with neither recorded has nothing to open.
+ * One source supporting one claim. Closed: the source's title and what it
+ * does for the claim ("Shown on", "Not on", "States"). Open: for a map its
+ * edition and date, where in the source, the passage in the source's own
+ * words (never paraphrased), and last the trace file a map reading was drawn
+ * in. A source with none of these recorded has nothing to open.
  */
 export function Citation({
   source,
+  role,
+  edition,
   locator,
   quote,
+  file,
   open,
   onToggle,
 }: {
   source: string
+  /** What the source does for the claim, in words. */
+  role?: string
+  /** A map's edition and the date it is as of. */
+  edition?: string
   locator?: string
   quote?: string
+  /** The trace file, for a reading off a map. Not a place in the source. */
+  file?: string
   open: boolean
   onToggle: () => void
 }) {
-  const hasDetail = locator !== undefined || quote !== undefined
+  const hasDetail =
+    edition !== undefined ||
+    locator !== undefined ||
+    quote !== undefined ||
+    file !== undefined
+  const title = (
+    <>
+      <span className="min-w-0 flex-1 truncate type-ui-sm">{source}</span>
+      {role !== undefined && (
+        <span className="shrink-0 type-ui-mono-xs text-muted-foreground">
+          {role}
+        </span>
+      )}
+    </>
+  )
   const row =
     "flex h-9 w-full items-center gap-2 border-b border-border-subtle px-3 text-left"
   return (
@@ -50,18 +75,20 @@ export function Citation({
             name={open ? "chevron-down" : "chevron-right"}
             className="size-3.5 text-muted-foreground"
           />
-          <span className="truncate type-ui-sm">{source}</span>
+          {title}
         </button>
       ) : (
         <div className={row}>
           <Icon name="source" className="size-3.5 text-muted-foreground" />
-          <span className="truncate type-ui-sm">{source}</span>
+          {title}
         </div>
       )}
       {hasDetail && open && (
         <dl className="flex flex-col">
+          {edition !== undefined && <Field label="Edition">{edition}</Field>}
           {locator !== undefined && <Field label="Where">{locator}</Field>}
           {quote !== undefined && <Field label="Quote">{quote}</Field>}
+          {file !== undefined && <Field label="File">{file}</Field>}
         </dl>
       )}
     </li>

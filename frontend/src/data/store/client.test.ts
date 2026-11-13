@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { loadFromStore } from "@/data/load-network"
-import { storeFeatures, storeRows } from "@/test/store-payloads"
+import {
+  storeFeatures,
+  storeLinks,
+  storeRemovals,
+  storeRows,
+} from "@/test/store-payloads"
 
 import { StoreError, fetchFeature, fetchSectionRows } from "./client"
 
@@ -68,13 +73,17 @@ describe("store client", () => {
     expect(await kindOf(() => fetchSectionRows("gas"))).toBe("unreadable")
   })
 
-  it("loads a network: the rows, then each section once", async () => {
-    const features = storeFeatures()
+  it("loads a network: the rows, each section once, links, lines traced as gone", async () => {
+    const features = [...storeFeatures(), ...storeRemovals()]
     const fetchMock = answer((path) => {
       if (path.startsWith("/store/sections")) {
         return json({
           features: storeRows().map((properties) => ({ properties })),
         })
+      }
+      if (path.startsWith("/store/links")) {
+        const relation = new URLSearchParams(path.split("?")[1]).get("relation")
+        return json(storeLinks().filter((l) => l.relation === relation))
       }
       const id = decodeURIComponent(path.split("/").pop()!)
       return json({
@@ -86,9 +95,12 @@ describe("store client", () => {
     })
     const network = await loadFromStore("gas")
     expect(network.name).toBe("Gas network")
+    // The lines traced as gone are read, and are not sections.
     expect(network.sections).toHaveLength(3)
-    // One list and one request per section, cut pieces not asked for twice.
-    expect(fetchMock).toHaveBeenCalledTimes(4)
+    // One list, one request per section (cut pieces not asked for twice),
+    // two lists of links, one request per line traced as gone.
+    expect(fetchMock).toHaveBeenCalledTimes(1 + 3 + 2 + 3)
+    expect(network.sections.flatMap((x) => x.proposedEnds)).toHaveLength(2)
     expect(JSON.stringify(network)).not.toContain("A. Tracer")
   })
 })

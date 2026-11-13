@@ -101,3 +101,72 @@ export function testNetwork(): Network {
     ],
   })
 }
+
+/**
+ * The test network with one more section, Fir to Gale: its route read off a
+ * map, and an end a tool proposes because the next map leaves the line out.
+ */
+export function evidenceNetwork(): Network {
+  const network = testNetwork()
+  return parseNetwork({
+    ...network,
+    version: 2,
+    sections: [
+      ...network.sections,
+      {
+        id: "s-6",
+        code: "S-0006",
+        name: "Fir to Gale",
+        pipelineId: "p-2",
+        editionIds: ["ed-1931", "ed-1937"],
+        geometry: line([
+          [2, -10],
+          [3, -10],
+        ]),
+        claims: [
+          unknown("Owner"),
+          unknown("Last seen"),
+          {
+            id: "c-6-geometry",
+            attribute: "Geometry",
+            value: "Traced line",
+            valid: "../1931-06",
+            citations: [
+              {
+                source: "Invented trunk map, 1931",
+                role: "map_shows",
+                asOf: "1931-06",
+                file: "traces/1931/base.gpkg",
+              },
+            ],
+          },
+        ],
+        proposedEnds: [
+          {
+            id: "pe-1",
+            kind: "end",
+            otherSectionId: "gone-1",
+            score: 0.986,
+            proposer: "stitch",
+            geometry: line([
+              [2, -10],
+              [3, -10],
+            ]),
+            citations: [
+              {
+                source: "Invented trunk map, 1931",
+                role: "map_shows",
+                asOf: "1931-06",
+              },
+              {
+                source: "Invented trunk map, 1937",
+                role: "map_omits",
+                asOf: "1937",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  })
+}

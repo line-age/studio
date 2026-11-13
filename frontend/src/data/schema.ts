@@ -1,7 +1,8 @@
 import { z } from "zod"
 
 /*
- * The fixture format, version 1. docs/fixtures.md explains it in words.
+ * The fixture format, version 2. docs/fixtures.md explains it in words. A
+ * version 1 file still loads: everything version 2 adds is optional.
  *
  * Terms follow controlplane/glossary.md: a section is a continuous stretch of
  * line; a claim is one statement about one attribute of one section; a
@@ -26,25 +27,72 @@ const multiLineString = z.object({
 
 const geometry = z.discriminatedUnion("type", [lineString, multiLineString])
 
+/**
+ * What the source does for the claim: a map shows the line or leaves it out,
+ * a text states it, or a source confirms what another said.
+ */
+export const citationRoles = [
+  "map_shows",
+  "map_omits",
+  "states",
+  "confirms",
+] as const
+
 const citation = z.object({
+  /** The citation's id where the data has one. */
+  id: z.string().min(1).optional(),
   /** What is cited, as a person would write it: a map edition, a journal issue. */
   source: z.string().min(1),
+  role: z.enum(citationRoles).optional(),
+  /**
+   * For a map: the date its content is as of, as the source gives it
+   * ("1931", "1929-08"). Never a build date.
+   */
+  asOf: z.string().min(1).optional(),
   /** Where in the source: page, grid reference. */
   locator: z.string().min(1).optional(),
+  /** The trace file a map reading was drawn in. Not a place in the source. */
+  file: z.string().min(1).optional(),
   /** The passage in the source's own words (an attestation). */
   quote: z.string().min(1).optional(),
 })
 
 const proposal = z.object({
+  /** The candidate claim's id where the data has one. */
+  id: z.string().min(1).optional(),
   value: z.string().min(1),
   citation,
 })
 
+/**
+ * An end or a cut that a tool proposes for a section, because a later map no
+ * longer shows all or part of it. Shown, never applied.
+ */
+const proposedEnd = z.object({
+  id: z.string().min(1),
+  /** "end": the whole section is gone. "cut": part of it is. */
+  kind: z.enum(["end", "cut"]),
+  /** The line traced as gone. It is in no list and no count. */
+  otherSectionId: z.string().min(1),
+  /** How well the two lines agree, 0 to 1. */
+  score: z.number().min(0).max(1),
+  /** The tool that proposed it. Never a person's name. */
+  proposer: z.string().min(1).optional(),
+  /** The route of the line traced as gone. */
+  geometry,
+  /** The map that last shows the line, and the one that leaves it out. */
+  citations: z.array(citation).default([]),
+})
+
 const claim = z
   .object({
+    /** The claim's id where the data has one. */
+    id: z.string().min(1).optional(),
     attribute: z.string().min(1),
     /** null means Unknown. Never an empty string, a dash or a guess. */
     value: z.string().min(1).nullable(),
+    /** The period the claim holds for, as the source gave it ("../1929-08"). */
+    valid: z.string().min(1).optional(),
     citations: z.array(citation).default([]),
     /** What the AI proposes. Shown, never applied. */
     proposals: z.array(proposal).default([]),
@@ -90,6 +138,7 @@ const section = z.object({
   editionIds: z.array(z.string().min(1)).min(1),
   geometry,
   claims: z.array(claim),
+  proposedEnds: z.array(proposedEnd).default([]),
   changedSinceReview: z.boolean().default(false),
   /** The day the section's record was added to Lineage, "2026-11-12". */
   addedAt: z.iso.date().optional(),
@@ -143,7 +192,7 @@ const threadItem = z.discriminatedUnion("kind", [
 
 export const networkSchema = z
   .object({
-    version: z.literal(1),
+    version: z.union([z.literal(1), z.literal(2)]),
     name: z.string().min(1),
     editions: z.array(edition).min(1),
     pipelines: z.array(pipeline),
@@ -193,6 +242,7 @@ export const networkSchema = z
         })
       }
       checkEditions(s.editionIds, ["sections", i])
+      unique(s.proposedEnds, `sections.${i}.proposedEnds`)
     })
     n.proposedPaths.forEach((p, i) => {
       if (p.sectionId !== null && !sectionIds.has(p.sectionId)) {
@@ -222,6 +272,8 @@ export type Section = Network["sections"][number]
 export type Claim = Section["claims"][number]
 export type Citation = Claim["citations"][number]
 export type Proposal = Claim["proposals"][number]
+export type ProposedEnd = Section["proposedEnds"][number]
+export type CitationRole = (typeof citationRoles)[number]
 export type ProposedPath = Network["proposedPaths"][number]
 export type Note = Network["notes"][number]
 export type ThreadItem = Network["agentThread"][number]

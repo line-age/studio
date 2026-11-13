@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "Calder Valley network",
   "editions": [
     {
@@ -67,11 +67,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0140-owner",
           "attribute": "Owner",
           "value": "Calder Valley Gas Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Calder Valley Gas Co."
             }
@@ -79,11 +82,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0140-diameter",
           "attribute": "Diameter",
           "value": "12 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. D-5",
               "quote": "\"12 IN.\""
             }
@@ -91,45 +97,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0140-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. D-5"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0140-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. D-5"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0140-build-date",
           "attribute": "Build date",
           "value": "1934",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0140-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. D-5"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. D-5",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -155,11 +174,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0141-owner",
           "attribute": "Owner",
           "value": "Calder Valley Gas Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Calder Valley Gas Co."
             }
@@ -167,11 +189,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0141-diameter",
           "attribute": "Diameter",
           "value": "12 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. D-6",
               "quote": "\"12 IN.\""
             }
@@ -179,45 +204,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0141-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. D-6"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0141-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. D-6"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0141-build-date",
           "attribute": "Build date",
           "value": "1934",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0141-geometry",
           "attribute": "Geometry",
           "value": "4 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. D-6"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. D-6",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -242,20 +280,25 @@
       },
       "claims": [
         {
+          "id": "c-s-0142-owner",
           "attribute": "Owner",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0142-diameter",
           "attribute": "Diameter",
           "value": null,
           "citations": [],
           "proposals": [
             {
               "value": "12 in",
+              "id": "c-s-0142-diameter-candidate",
               "citation": {
-                "source": "1937 edition",
+                "source": "Trunk gas lines map, 1937",
+                "role": "states",
+                "asOf": "1937",
                 "locator": "grid ref. F-7",
                 "quote": "\"12 IN.\""
               }
@@ -263,40 +306,52 @@
           ]
         },
         {
+          "id": "c-s-0142-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. F-7"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0142-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. F-7"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0142-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0142-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. F-7"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. F-7",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -322,11 +377,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0143-owner",
           "attribute": "Owner",
           "value": "Calder Valley Gas Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Calder Valley Gas Co."
             }
@@ -334,11 +392,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0143-diameter",
           "attribute": "Diameter",
           "value": "12 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. E-6",
               "quote": "\"12 IN.\""
             }
@@ -346,45 +407,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0143-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. E-6"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0143-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. E-6"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0143-build-date",
           "attribute": "Build date",
           "value": "1934",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0143-geometry",
           "attribute": "Geometry",
           "value": "4 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. E-6"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. E-6",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -409,11 +483,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0144-owner",
           "attribute": "Owner",
           "value": "Calder Valley Gas Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Calder Valley Gas Co."
             }
@@ -421,11 +498,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0144-diameter",
           "attribute": "Diameter",
           "value": "12 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. G-8",
               "quote": "\"12 IN.\""
             }
@@ -433,40 +513,52 @@
           "proposals": []
         },
         {
+          "id": "c-s-0144-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. G-8"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0144-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. G-8"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0144-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0144-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. G-8"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. G-8",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -491,11 +583,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0145-owner",
           "attribute": "Owner",
           "value": "Calder Valley Gas Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Calder Valley Gas Co."
             }
@@ -503,11 +598,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0145-diameter",
           "attribute": "Diameter",
           "value": "8 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. G-9",
               "quote": "\"8 IN.\""
             }
@@ -515,45 +613,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0145-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. G-9"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0145-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. G-9"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0145-build-date",
           "attribute": "Build date",
           "value": "1934",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0145-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. G-9"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. G-9",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -578,17 +689,21 @@
       },
       "claims": [
         {
+          "id": "c-s-0146-owner",
           "attribute": "Owner",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0146-diameter",
           "attribute": "Diameter",
           "value": "10 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. B-8",
               "quote": "\"10 IN.\""
             }
@@ -596,52 +711,91 @@
           "proposals": []
         },
         {
+          "id": "c-s-0146-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. B-8"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0146-last-seen",
           "attribute": "Last seen",
-          "value": "1937 edition",
-          "citations": [
-            {
-              "source": "1937 edition",
-              "locator": "grid ref. B-8"
-            }
-          ],
+          "value": null,
+          "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0146-build-date",
           "attribute": "Build date",
           "value": "1929",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0146-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. B-8"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. B-8",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
         }
       ],
       "changedSinceReview": false,
-      "addedAt": "2026-10-01"
+      "addedAt": "2026-10-01",
+      "proposedEnds": [
+        {
+          "id": "pe-001",
+          "kind": "end",
+          "otherSectionId": "gone-001",
+          "score": 0.99,
+          "proposer": "stitch",
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [-98.1, 36.2],
+              [-97.9425, 36.14],
+              [-97.8, 36.05]
+            ]
+          },
+          "citations": [
+            {
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
+              "locator": "grid ref. B-8",
+              "file": "traces/1931/base.gpkg"
+            },
+            {
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_omits",
+              "asOf": "1937",
+              "locator": "grid ref. B-8",
+              "file": "traces/1931_1937/removed.gpkg"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "s-0147",
@@ -659,17 +813,21 @@
       },
       "claims": [
         {
+          "id": "c-s-0147-owner",
           "attribute": "Owner",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0147-diameter",
           "attribute": "Diameter",
           "value": "10 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. C-9",
               "quote": "\"10 IN.\""
             }
@@ -677,47 +835,92 @@
           "proposals": []
         },
         {
+          "id": "c-s-0147-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. C-9"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0147-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. C-9"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0147-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0147-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. C-9"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. C-9",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
         }
       ],
       "changedSinceReview": false,
-      "addedAt": "2026-10-06"
+      "addedAt": "2026-10-06",
+      "proposedEnds": [
+        {
+          "id": "pe-002",
+          "kind": "cut",
+          "otherSectionId": "gone-002",
+          "score": 0.75,
+          "proposer": "stitch",
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [-97.8, 36.05],
+              [-97.7288, 36.0342],
+              [-97.66, 36.01]
+            ]
+          },
+          "citations": [
+            {
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
+              "locator": "grid ref. C-9",
+              "file": "traces/1931/base.gpkg"
+            },
+            {
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_omits",
+              "asOf": "1937",
+              "locator": "grid ref. C-9",
+              "file": "traces/1931_1937/removed.gpkg"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "s-0148",
@@ -735,11 +938,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0148-owner",
           "attribute": "Owner",
           "value": "Tolland Fuel Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Tolland Fuel Co."
             }
@@ -747,51 +953,65 @@
           "proposals": []
         },
         {
+          "id": "c-s-0148-diameter",
           "attribute": "Diameter",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0148-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. E-10"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0148-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. E-10"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0148-build-date",
           "attribute": "Build date",
           "value": "1929",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0148-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. E-10"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. E-10",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -816,11 +1036,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0149-owner",
           "attribute": "Owner",
           "value": "Tolland Fuel Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Tolland Fuel Co."
             }
@@ -828,11 +1051,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0149-diameter",
           "attribute": "Diameter",
           "value": "10 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. A-7",
               "quote": "\"10 IN.\""
             }
@@ -840,40 +1066,52 @@
           "proposals": []
         },
         {
+          "id": "c-s-0149-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. A-7"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0149-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. A-7"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0149-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0149-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. A-7"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. A-7",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -899,11 +1137,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0150-owner",
           "attribute": "Owner",
           "value": "Adair Pipe Line Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Adair Pipe Line Co."
             }
@@ -911,11 +1152,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0150-diameter",
           "attribute": "Diameter",
           "value": "16 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. F-10",
               "quote": "\"16 IN.\""
             }
@@ -923,45 +1167,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0150-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. F-10"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0150-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. F-10"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0150-build-date",
           "attribute": "Build date",
           "value": "1930",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0150-geometry",
           "attribute": "Geometry",
           "value": "4 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. F-10"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. F-10",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -986,11 +1243,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0151-owner",
           "attribute": "Owner",
           "value": "Harlow Gas Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Harlow Gas Co."
             }
@@ -998,11 +1258,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0151-diameter",
           "attribute": "Diameter",
           "value": "16 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. H-10",
               "quote": "\"16 IN.\""
             }
@@ -1010,45 +1273,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0151-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. H-10"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0151-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. H-10"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0151-build-date",
           "attribute": "Build date",
           "value": "1930",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0151-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. H-10"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. H-10",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -1073,11 +1349,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0152-owner",
           "attribute": "Owner",
           "value": "Harlow Gas Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Harlow Gas Co."
             }
@@ -1085,11 +1364,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0152-diameter",
           "attribute": "Diameter",
           "value": "16 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. H-9",
               "quote": "\"16 IN.\""
             }
@@ -1097,45 +1379,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0152-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. H-9"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0152-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. H-9"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0152-build-date",
           "attribute": "Build date",
           "value": "1930",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0152-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. H-9"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. H-9",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -1160,11 +1455,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0153-owner",
           "attribute": "Owner",
           "value": "Adair Pipe Line Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Adair Pipe Line Co."
             }
@@ -1172,11 +1470,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0153-diameter",
           "attribute": "Diameter",
           "value": "16 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. H-8",
               "quote": "\"16 IN.\""
             }
@@ -1184,45 +1485,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0153-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. H-8"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0153-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. H-8"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0153-build-date",
           "attribute": "Build date",
           "value": "1930",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0153-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. H-8"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. H-8",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -1247,11 +1561,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0154-owner",
           "attribute": "Owner",
           "value": "Adair Pipe Line Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Adair Pipe Line Co."
             }
@@ -1259,11 +1576,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0154-diameter",
           "attribute": "Diameter",
           "value": "16 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. H-7",
               "quote": "\"16 IN.\""
             }
@@ -1271,45 +1591,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0154-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. H-7"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0154-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. H-7"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0154-build-date",
           "attribute": "Build date",
           "value": "1930",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0154-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. H-7"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. H-7",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -1334,11 +1667,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0155-owner",
           "attribute": "Owner",
           "value": "Adair Pipe Line Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Adair Pipe Line Co."
             }
@@ -1346,11 +1682,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0155-diameter",
           "attribute": "Diameter",
           "value": "16 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. G-10",
               "quote": "\"16 IN.\""
             }
@@ -1358,45 +1697,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0155-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. G-10"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0155-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. G-10"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0155-build-date",
           "attribute": "Build date",
           "value": "1930",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0155-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. G-10"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. G-10",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -1421,11 +1773,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0156-owner",
           "attribute": "Owner",
           "value": "Adair Pipe Line Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Adair Pipe Line Co."
             }
@@ -1433,11 +1788,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0156-diameter",
           "attribute": "Diameter",
           "value": "16 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. J-6",
               "quote": "\"16 IN.\""
             }
@@ -1445,45 +1803,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0156-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. J-6"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0156-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. J-6"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0156-build-date",
           "attribute": "Build date",
           "value": "1930",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0156-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. J-6"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. J-6",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -1508,11 +1879,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0157-owner",
           "attribute": "Owner",
           "value": "Adair Pipe Line Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Adair Pipe Line Co."
             }
@@ -1520,11 +1894,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0157-diameter",
           "attribute": "Diameter",
           "value": "16 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. I-5",
               "quote": "\"16 IN.\""
             }
@@ -1532,45 +1909,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0157-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. I-5"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0157-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. I-5"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0157-build-date",
           "attribute": "Build date",
           "value": "1930",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0157-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. I-5"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. I-5",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -1595,11 +1985,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0158-owner",
           "attribute": "Owner",
           "value": "Adair Pipe Line Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Adair Pipe Line Co."
             }
@@ -1607,11 +2000,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0158-diameter",
           "attribute": "Diameter",
           "value": "8 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. K-8",
               "quote": "\"8 IN.\""
             }
@@ -1619,45 +2015,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0158-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. K-8"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0158-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. K-8"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0158-build-date",
           "attribute": "Build date",
           "value": "1930",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0158-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. K-8"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. K-8",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -1682,46 +2091,56 @@
       },
       "claims": [
         {
+          "id": "c-s-0159-owner",
           "attribute": "Owner",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0159-diameter",
           "attribute": "Diameter",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0159-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. H-6"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0159-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. H-6"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0159-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0159-geometry",
           "attribute": "Geometry",
           "value": null,
           "citations": [],
@@ -1747,46 +2166,56 @@
       },
       "claims": [
         {
+          "id": "c-s-0160-owner",
           "attribute": "Owner",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0160-diameter",
           "attribute": "Diameter",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0160-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. I-7"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0160-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. I-7"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0160-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0160-geometry",
           "attribute": "Geometry",
           "value": null,
           "citations": [],
@@ -1812,11 +2241,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0161-owner",
           "attribute": "Owner",
           "value": "Marsh Fork Gathering Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Marsh Fork Gathering Co."
             }
@@ -1824,11 +2256,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0161-diameter",
           "attribute": "Diameter",
           "value": "6 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. B-4",
               "quote": "\"6 IN.\""
             }
@@ -1836,40 +2271,52 @@
           "proposals": []
         },
         {
+          "id": "c-s-0161-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. B-4"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0161-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. B-4"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0161-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0161-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. B-4"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. B-4",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -1894,11 +2341,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0162-owner",
           "attribute": "Owner",
           "value": "Marsh Fork Gathering Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Marsh Fork Gathering Co."
             }
@@ -1906,51 +2356,65 @@
           "proposals": []
         },
         {
+          "id": "c-s-0162-diameter",
           "attribute": "Diameter",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0162-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. C-3"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0162-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. C-3"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0162-build-date",
           "attribute": "Build date",
           "value": "1935",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0162-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. C-3"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. C-3",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -1976,11 +2440,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0163-owner",
           "attribute": "Owner",
           "value": "Marsh Fork Gathering Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Marsh Fork Gathering Co."
             }
@@ -1988,11 +2455,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0163-diameter",
           "attribute": "Diameter",
           "value": "6 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. D-3",
               "quote": "\"6 IN.\""
             }
@@ -2000,45 +2470,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0163-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. D-3"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0163-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. D-3"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0163-build-date",
           "attribute": "Build date",
           "value": "1935",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0163-geometry",
           "attribute": "Geometry",
           "value": "4 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. D-3"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. D-3",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -2063,17 +2546,21 @@
       },
       "claims": [
         {
+          "id": "c-s-0164-owner",
           "attribute": "Owner",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0164-diameter",
           "attribute": "Diameter",
           "value": "6 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. B-3",
               "quote": "\"6 IN.\""
             }
@@ -2081,45 +2568,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0164-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. B-3"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0164-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. B-3"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0164-build-date",
           "attribute": "Build date",
           "value": "1935",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0164-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. B-3"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. B-3",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -2144,11 +2644,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0165-owner",
           "attribute": "Owner",
           "value": "Marsh Fork Gathering Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Marsh Fork Gathering Co."
             }
@@ -2156,11 +2659,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0165-diameter",
           "attribute": "Diameter",
           "value": "6 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. A-5",
               "quote": "\"6 IN.\""
             }
@@ -2168,40 +2674,52 @@
           "proposals": []
         },
         {
+          "id": "c-s-0165-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. A-5"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0165-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. A-5"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0165-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0165-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. A-5"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. A-5",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -2226,11 +2744,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0166-owner",
           "attribute": "Owner",
           "value": "Brecken Light and Fuel Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Brecken Light and Fuel Co."
             }
@@ -2238,11 +2759,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0166-diameter",
           "attribute": "Diameter",
           "value": "8 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. F-4",
               "quote": "\"8 IN.\""
             }
@@ -2250,45 +2774,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0166-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. F-4"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0166-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. F-4"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0166-build-date",
           "attribute": "Build date",
           "value": "1933",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0166-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. F-4"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. F-4",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -2313,11 +2850,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0167-owner",
           "attribute": "Owner",
           "value": "Brecken Light and Fuel Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Brecken Light and Fuel Co."
             }
@@ -2325,11 +2865,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0167-diameter",
           "attribute": "Diameter",
           "value": "8 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. E-3",
               "quote": "\"8 IN.\""
             }
@@ -2337,45 +2880,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0167-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. E-3"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0167-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. E-3"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0167-build-date",
           "attribute": "Build date",
           "value": "1933",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0167-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. E-3"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. E-3",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -2400,11 +2956,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0168-owner",
           "attribute": "Owner",
           "value": "Brecken Light and Fuel Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Brecken Light and Fuel Co."
             }
@@ -2412,11 +2971,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0168-diameter",
           "attribute": "Diameter",
           "value": "8 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. E-4",
               "quote": "\"8 IN.\""
             }
@@ -2424,45 +2986,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0168-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. E-4"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0168-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. E-4"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0168-build-date",
           "attribute": "Build date",
           "value": "1933",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0168-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. E-4"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. E-4",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -2487,11 +3062,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0410-owner",
           "attribute": "Owner",
           "value": "Harlow Gas Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Harlow Gas Co."
             }
@@ -2499,11 +3077,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0410-diameter",
           "attribute": "Diameter",
           "value": "8 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. E-8",
               "quote": "\"8 IN.\""
             }
@@ -2511,45 +3092,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0410-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. E-8"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0410-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. E-8"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0410-build-date",
           "attribute": "Build date",
           "value": "1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0410-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. E-8"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. E-8",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -2575,11 +3169,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0411-owner",
           "attribute": "Owner",
           "value": "Harlow Gas Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Harlow Gas Co."
             }
@@ -2587,11 +3184,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0411-diameter",
           "attribute": "Diameter",
           "value": "8 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. B-10",
               "quote": "\"8 IN.\""
             }
@@ -2599,40 +3199,52 @@
           "proposals": []
         },
         {
+          "id": "c-s-0411-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. B-10"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0411-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. B-10"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0411-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0411-geometry",
           "attribute": "Geometry",
           "value": "4 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. B-10"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. B-10",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -2657,11 +3269,14 @@
       },
       "claims": [
         {
+          "id": "c-s-0412-owner",
           "attribute": "Owner",
           "value": "Harlow Gas Co.",
+          "valid": "../1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 214",
               "quote": "operated by the Harlow Gas Co."
             }
@@ -2669,11 +3284,14 @@
           "proposals": []
         },
         {
+          "id": "c-s-0412-diameter",
           "attribute": "Diameter",
           "value": "8 in",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "states",
+              "asOf": "1937",
               "locator": "grid ref. D-8",
               "quote": "\"8 IN.\""
             }
@@ -2681,45 +3299,58 @@
           "proposals": []
         },
         {
+          "id": "c-s-0412-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. D-8"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0412-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. D-8"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0412-build-date",
           "attribute": "Build date",
           "value": "1936",
           "citations": [
             {
               "source": "Plains Gas Review, 1936",
+              "role": "states",
               "locator": "p. 215"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0412-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. D-8"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. D-8",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -2744,52 +3375,66 @@
       },
       "claims": [
         {
+          "id": "c-s-0900-owner",
           "attribute": "Owner",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0900-diameter",
           "attribute": "Diameter",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0900-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. J-5"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0900-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. J-5"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0900-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0900-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. J-5"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. J-5",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -2814,52 +3459,66 @@
       },
       "claims": [
         {
+          "id": "c-s-0901-owner",
           "attribute": "Owner",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0901-diameter",
           "attribute": "Diameter",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0901-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. G-4"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0901-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. G-4"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0901-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0901-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. G-4"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. G-4",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -2884,46 +3543,56 @@
       },
       "claims": [
         {
+          "id": "c-s-0902-owner",
           "attribute": "Owner",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0902-diameter",
           "attribute": "Diameter",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0902-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. A-9"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0902-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. A-9"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0902-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0902-geometry",
           "attribute": "Geometry",
           "value": null,
           "citations": [],
@@ -2949,52 +3618,66 @@
       },
       "claims": [
         {
+          "id": "c-s-0903-owner",
           "attribute": "Owner",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0903-diameter",
           "attribute": "Diameter",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0903-first-seen",
           "attribute": "First seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. E-11"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0903-last-seen",
           "attribute": "Last seen",
           "value": "1937 edition",
           "citations": [
             {
-              "source": "1937 edition",
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
               "locator": "grid ref. E-11"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0903-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0903-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1937",
           "citations": [
             {
-              "source": "1937 edition",
-              "locator": "grid ref. E-11"
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_shows",
+              "asOf": "1937",
+              "locator": "grid ref. E-11",
+              "file": "traces/1937/base.gpkg"
             }
           ],
           "proposals": []
@@ -3020,52 +3703,73 @@
       },
       "claims": [
         {
+          "id": "c-s-0904-owner",
           "attribute": "Owner",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0904-diameter",
           "attribute": "Diameter",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0904-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. F-7"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0904-last-seen",
           "attribute": "Last seen",
-          "value": "1931 edition",
+          "value": "1931 edition, not on 1937",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
+              "locator": "grid ref. F-7"
+            },
+            {
+              "source": "Trunk gas lines map, 1937",
+              "role": "map_omits",
+              "asOf": "1937",
               "locator": "grid ref. F-7"
             }
           ],
-          "proposals": []
+          "proposals": [],
+          "valid": "1931/1937"
         },
         {
+          "id": "c-s-0904-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0904-geometry",
           "attribute": "Geometry",
           "value": "4 points, traced",
+          "valid": "../1931",
           "citations": [
             {
-              "source": "1931 edition",
-              "locator": "grid ref. F-7"
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
+              "locator": "grid ref. F-7",
+              "file": "traces/1931/base.gpkg"
             }
           ],
           "proposals": []
@@ -3090,52 +3794,66 @@
       },
       "claims": [
         {
+          "id": "c-s-0905-owner",
           "attribute": "Owner",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0905-diameter",
           "attribute": "Diameter",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0905-first-seen",
           "attribute": "First seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. E-9"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0905-last-seen",
           "attribute": "Last seen",
           "value": "1931 edition",
           "citations": [
             {
-              "source": "1931 edition",
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
               "locator": "grid ref. E-9"
             }
           ],
           "proposals": []
         },
         {
+          "id": "c-s-0905-build-date",
           "attribute": "Build date",
           "value": null,
           "citations": [],
           "proposals": []
         },
         {
+          "id": "c-s-0905-geometry",
           "attribute": "Geometry",
           "value": "3 points, traced",
+          "valid": "../1931",
           "citations": [
             {
-              "source": "1931 edition",
-              "locator": "grid ref. E-9"
+              "source": "Trunk gas lines map, 1931",
+              "role": "map_shows",
+              "asOf": "1931",
+              "locator": "grid ref. E-9",
+              "file": "traces/1931/base.gpkg"
             }
           ],
           "proposals": []
@@ -3168,7 +3886,7 @@
       "position": [-97.2346, 36.414],
       "text": "The 1937 edition letters the diameter along this section.",
       "quote": "\"12 IN.\"",
-      "source": "1937 edition, grid ref. F-7"
+      "source": "Trunk gas lines map, 1937, grid ref. F-7"
     }
   ],
   "agentThread": [

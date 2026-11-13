@@ -164,6 +164,7 @@ export function sectionStats(section: Section): Stats {
     if (claim.value !== null) cited += 1
     proposals += claim.proposals.length
   }
+  proposals += section.proposedEnds.length
   const total = section.claims.length
   return { total, cited, unknown: total - cited, proposals }
 }

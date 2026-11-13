@@ -72,16 +72,24 @@ function path(from, to, bend = 0.04, points = 1) {
   return { type: "LineString", coordinates: out }
 }
 
-const mapSource = (editionId, locator) => ({
-  source: editions.find((e) => e.id === editionId).label,
-  locator,
+const yearOf = (editionId) => editions.find((e) => e.id === editionId).year
+
+/** A map edition that shows the line (or, with `role`, leaves it out). */
+const mapSource = (editionId, locator, role = "map_shows") => ({
+  source: `Trunk gas lines map, ${yearOf(editionId)}`,
+  role,
+  asOf: String(yearOf(editionId)),
+  ...(locator ? { locator } : {}),
 })
+
+const JOURNAL = { source: "Plains Gas Review, 1936", role: "states" }
 
 /**
  * The six claims of a section. `unknown` lists the attributes nobody has a
  * source for; those get value null and no citation.
  */
 function claims({
+  code,
   editionIds,
   grid,
   owner,
@@ -93,32 +101,52 @@ function claims({
   const first = editionIds[0]
   const last = editionIds[editionIds.length - 1]
   const label = (id) => editions.find((e) => e.id === id).label
-  const known = (attribute, value, citations) =>
+  const id = (attribute) =>
+    `c-${code.toLowerCase()}-${attribute.toLowerCase().replace(" ", "-")}`
+  const known = (attribute, value, citations, valid) =>
     unknown.includes(attribute)
-      ? { attribute, value: null, citations: [], proposals: [] }
-      : { attribute, value, citations, proposals: [] }
+      ? {
+          id: id(attribute),
+          attribute,
+          value: null,
+          citations: [],
+          proposals: [],
+        }
+      : {
+          id: id(attribute),
+          attribute,
+          value,
+          ...(valid ? { valid } : {}),
+          citations,
+          proposals: [],
+        }
   return [
-    known("Owner", owner, [
-      {
-        source: "Plains Gas Review, 1936",
-        locator: "p. 214",
-        quote: `operated by the ${owner}`,
-      },
-    ]),
+    known(
+      "Owner",
+      owner,
+      [{ ...JOURNAL, locator: "p. 214", quote: `operated by the ${owner}` }],
+      "../1936"
+    ),
     known("Diameter", diameter, [
       {
-        ...mapSource(last, `grid ref. ${grid}`),
+        ...mapSource(last, `grid ref. ${grid}`, "states"),
         quote: `"${diameter.toUpperCase()}."`,
       },
     ]),
     known("First seen", label(first), [mapSource(first, `grid ref. ${grid}`)]),
     known("Last seen", label(last), [mapSource(last, `grid ref. ${grid}`)]),
-    known("Build date", built, [
-      { source: "Plains Gas Review, 1936", locator: "p. 215" },
-    ]),
-    known("Geometry", `${points} points, traced`, [
-      mapSource(last, `grid ref. ${grid}`),
-    ]),
+    known("Build date", built, [{ ...JOURNAL, locator: "p. 215" }]),
+    known(
+      "Geometry",
+      `${points} points, traced`,
+      [
+        {
+          ...mapSource(last, `grid ref. ${grid}`),
+          file: `traces/${yearOf(last)}/base.gpkg`,
+        },
+      ],
+      `../${yearOf(last)}`
+    ),
   ]
 }
 
@@ -136,14 +164,16 @@ function add(pipelineId, name, from, to, options = {}) {
   const editionIds = options.editionIds ?? LATER
   const geometry =
     options.geometry ?? path(from, to, options.bend, options.points)
+  const code = `S-${String(serial).padStart(4, "0")}`
   const section = {
     id: `s-${String(serial).padStart(4, "0")}`,
-    code: `S-${String(serial).padStart(4, "0")}`,
+    code,
     name,
     pipelineId,
     editionIds,
     geometry,
     claims: claims({
+      code,
       editionIds,
       grid: options.grid ?? "F-7",
       owner: options.owner ?? "Calder Valley Gas Co.",
@@ -178,9 +208,9 @@ harlowBrecken.claims
   .find((c) => c.attribute === "Diameter")
   .proposals.push({
     value: "12 in",
+    id: "c-s-0142-diameter-candidate",
     citation: {
-      source: "1937 edition",
-      locator: "grid ref. F-7",
+      ...mapSource("ed-1937", "grid ref. F-7", "states"),
       quote: '"12 IN."',
     },
   })
@@ -201,18 +231,59 @@ add("p-012", "Adair spur", "Adair", [-96.52, 36.18], {
 
 // P-013 Tolland: four sections, five Unknown claims.
 const tolland = { owner: "Tolland Fuel Co.", diameter: "10 in", built: "1929" }
-add("p-013", "Tolland to Pell", "Tolland", "Pell", {
+/*
+ * A line traced as gone between the two editions: the 1931 map shows it, the
+ * 1937 map does not. It is no section of its own; it hangs on the section it
+ * runs along, as an end or a cut that a tool proposes and nobody has decided.
+ */
+const tracedAsGone = (grid) => [
+  {
+    ...mapSource("ed-1931", `grid ref. ${grid}`),
+    file: "traces/1931/base.gpkg",
+  },
+  {
+    ...mapSource("ed-1937", `grid ref. ${grid}`, "map_omits"),
+    file: "traces/1931_1937/removed.gpkg",
+  },
+]
+
+// Proposed to end: the whole section is traced as gone. Last seen stays
+// Unknown until a person confirms it.
+const tollandPell = add("p-013", "Tolland to Pell", "Tolland", "Pell", {
   ...tolland,
   editionIds: BOTH,
   grid: "B-8",
-  unknown: ["Owner"],
+  unknown: ["Owner", "Last seen"],
 })
-add("p-013", "Pell to Dunmore", "Pell", "Dunmore", {
+tollandPell.proposedEnds = [
+  {
+    id: "pe-001",
+    kind: "end",
+    otherSectionId: "gone-001",
+    score: 0.99,
+    proposer: "stitch",
+    geometry: path("Tolland", "Pell", 0.05),
+    citations: tracedAsGone("B-8"),
+  },
+]
+// Proposed to be cut: part of the section is traced as gone.
+const pellDunmore = add("p-013", "Pell to Dunmore", "Pell", "Dunmore", {
   ...tolland,
   editionIds: BOTH,
   grid: "C-9",
   unknown: ["Owner", "Build date"],
 })
+pellDunmore.proposedEnds = [
+  {
+    id: "pe-002",
+    kind: "cut",
+    otherSectionId: "gone-002",
+    score: 0.75,
+    proposer: "stitch",
+    geometry: path("Pell", [-97.66, 36.01], 0.03),
+    citations: tracedAsGone("C-9"),
+  },
+]
 add("p-013", "Dunmore to Orrin", "Dunmore", "Orrin", {
   ...tolland,
   grid: "E-10",
@@ -376,13 +447,28 @@ add(null, "Unnamed section near Orrin", "Orrin", [-97.25, 35.72], {
 })
 
 // Sections only the earlier edition shows. Drawn as ghosts under 1937.
-add("p-012", "Harlow to Brecken, earlier route", "Harlow", "Brecken", {
-  editionIds: EARLIER,
-  grid: "F-7",
-  bend: -0.16,
-  points: 2,
-  unknown: ["Owner", "Diameter", "Build date"],
-})
+// An end a person has confirmed: Last seen is cited to both maps.
+const earlierRoute = add(
+  "p-012",
+  "Harlow to Brecken, earlier route",
+  "Harlow",
+  "Brecken",
+  {
+    editionIds: EARLIER,
+    grid: "F-7",
+    bend: -0.16,
+    points: 2,
+    unknown: ["Owner", "Diameter", "Build date"],
+  }
+)
+Object.assign(
+  earlierRoute.claims.find((c) => c.attribute === "Last seen"),
+  {
+    value: "1931 edition, not on 1937",
+    valid: "1931/1937",
+    citations: tracedAsGone("F-7").map(({ file: _file, ...c }) => c),
+  }
+)
 add(null, "Unnamed section near Dunmore", "Dunmore", [-97.3, 36.1], {
   editionIds: EARLIER,
   grid: "E-9",
@@ -393,7 +479,7 @@ const [hx, hy] = places.Harlow
 const [bx, by] = places.Brecken
 
 const network = {
-  version: 1,
+  version: 2,
   name: "Calder Valley network",
   editions,
   pipelines,
@@ -421,7 +507,7 @@ const network = {
       position: harlowBrecken.geometry.coordinates[1],
       text: "The 1937 edition letters the diameter along this section.",
       quote: '"12 IN."',
-      source: "1937 edition, grid ref. F-7",
+      source: "Trunk gas lines map, 1937, grid ref. F-7",
     },
   ],
   agentThread: [

@@ -1,4 +1,8 @@
-import type { StoreFeature, StoreSectionRow } from "@/data/store/client"
+import type {
+  StoreFeature,
+  StoreLink,
+  StoreSectionRow,
+} from "@/data/store/client"
 
 /*
  * Invented answers shaped like store's, for tests. Two map sheets (1931 and
@@ -6,6 +10,7 @@ import type { StoreFeature, StoreSectionRow } from "@/data/store/client"
  */
 
 const sheet = (year: number) => ({
+  id: `cit-${year}`,
   role: "map_shows",
   locator: `traced in test/${year}`,
   quote: null,
@@ -16,7 +21,11 @@ const sheet = (year: number) => ({
 })
 
 const route = (year: number, coordinates: number[][]) => ({
+  id: `route-${year}-${coordinates[0].join("-")}`,
   attribute_key: "route",
+  valid_edtf: `../${year}-06`,
+  asserted_by: "agent-tracer",
+  asserted_by_kind: "person",
   value_text: null,
   value_num: null,
   value_unit: null,
@@ -27,7 +36,9 @@ const route = (year: number, coordinates: number[][]) => ({
 })
 
 const operational = (year: number) => ({
+  id: `status-${year}`,
   attribute_key: "status",
+  valid_edtf: `../${year}-06`,
   value_text: "operational",
   value_num: null,
   value_unit: null,
@@ -56,6 +67,7 @@ export function storeFeatures(): StoreFeature[] {
       label: null,
       created_at: "2026-11-12T10:00:00Z",
       dates: { time_end: null },
+      links: [],
       claims: [
         route(1931, [
           [0, 10, 0],
@@ -69,6 +81,7 @@ export function storeFeatures(): StoreFeature[] {
       label: null,
       created_at: "2026-11-12T10:00:00Z",
       dates: { time_end: null },
+      links: [],
       claims: [
         route(1937, [
           [1, 10],
@@ -102,6 +115,7 @@ export function storeFeatures(): StoreFeature[] {
       label: "Dale to Elm",
       created_at: null,
       dates: { time_end: "1934-01-01" },
+      links: [],
       claims: [
         route(1931, [
           [0, -10],
@@ -110,5 +124,82 @@ export function storeFeatures(): StoreFeature[] {
         operational(1931),
       ],
     },
+  ]
+}
+
+/*
+ * Lines traced as gone. Store keeps each as a section of its own, cited to the
+ * map that shows it and to the next one, which does not. X runs along all of
+ * A; Y along part of B; Z along all of C, and a person has confirmed that one.
+ */
+export const ID_X = "dddddddd-0000-4000-8000-000000000004"
+export const ID_Y = "eeeeeeee-0000-4000-8000-000000000005"
+export const ID_Z = "ffffffff-0000-4000-8000-000000000006"
+
+const gone = (id: string, shown: number, omitted: number): StoreFeature => ({
+  id,
+  label: null,
+  created_at: "2026-11-12T10:00:00Z",
+  dates: { time_end: `${omitted}-12-31` },
+  links: [],
+  claims: [
+    route(shown, [
+      [0, 10],
+      [1, 10],
+    ]),
+    {
+      id: `gone-${id}`,
+      attribute_key: "status",
+      value_text: "decommissioned",
+      value_num: null,
+      value_unit: null,
+      value_geom: null,
+      valid_edtf: `${shown}-06/${omitted}`,
+      status: "accepted",
+      created_at: "2026-11-12T10:00:00Z",
+      citations: [
+        {
+          ...sheet(omitted),
+          role: "map_omits",
+          as_of_edtf: String(omitted),
+        },
+      ],
+    },
+  ],
+})
+
+export function storeRemovals(): StoreFeature[] {
+  return [
+    gone(ID_X, 1931, 1937),
+    gone(ID_Y, 1937, 1941),
+    gone(ID_Z, 1931, 1937),
+  ]
+}
+
+const link = (
+  id: string,
+  from: string,
+  to: string,
+  relation: string,
+  status: string,
+  score: number
+): StoreLink => ({
+  id,
+  from_feature_id: from,
+  to_feature_id: to,
+  relation,
+  status,
+  score,
+  asserted_by: "agent-stitch",
+  asserted_by_name: "stitch",
+})
+
+export function storeLinks(): StoreLink[] {
+  return [
+    link("link-end", ID_X, ID_A, "same_as", "proposed", 0.986),
+    link("link-cut", ID_Y, ID_B, "overlaps", "proposed", 0.75),
+    link("link-confirmed", ID_Z, ID_C, "same_as", "confirmed", 1),
+    // Not about a removal: Studio leaves it alone.
+    link("link-other", ID_A, ID_B, "parallel_to", "proposed", 0.5),
   ]
 }

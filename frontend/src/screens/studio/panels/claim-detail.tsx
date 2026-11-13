@@ -11,16 +11,18 @@ import { StatusLabel } from "@/components/status-label"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { sectionLabel } from "@/data/derive"
-import type { Citation as CitationData, Claim, Section } from "@/data/schema"
+import {
+  citationLine,
+  editionWords,
+  formatValid,
+  proposedEndsFor,
+  proposedEndWords,
+  roleWords,
+} from "@/data/evidence"
+import type { Claim, Section } from "@/data/schema"
 
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
-
-/** A citation as one line: the passage, then the source and the place in it. */
-function evidenceOf({ source, locator, quote }: CitationData): string {
-  const where = locator === undefined ? source : `${source}, ${locator}`
-  return quote === undefined ? `${where}.` : `${quote} ${where}.`
-}
 
 function Detail({ section, claim }: { section: Section; claim: Claim }) {
   const close = useStudio((s) => s.closeAttribute)
@@ -34,6 +36,8 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
       if (!next.delete(index)) next.add(index)
       return next
     })
+  const ends = proposedEndsFor(section, claim.attribute)
+  const waiting = claim.proposals.length + ends.length
   return (
     <section
       aria-label={`${claim.attribute} of ${sectionLabel(section)}`}
@@ -53,30 +57,42 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
         </Button>
       </PanelHeader>
       <div className="flex min-h-0 flex-col overflow-y-auto overscroll-contain">
-        <div className="flex items-center gap-2 px-3 pb-3">
-          {claim.value === null ? (
-            <StatusLabel status="unknown" size="sm" />
-          ) : (
-            <>
-              <span className="type-ui-sm-medium break-words">
-                {claim.value}
-              </span>
-              <Badge variant="cited">Cited</Badge>
-            </>
-          )}
+        <div className="flex flex-col gap-1 px-3 pb-3">
+          <div className="flex items-center gap-2">
+            {claim.value === null ? (
+              <StatusLabel status="unknown" size="sm" />
+            ) : (
+              <>
+                <span className="type-ui-sm-medium break-words">
+                  {claim.value}
+                </span>
+                <Badge variant="cited">Cited</Badge>
+              </>
+            )}
+          </div>
+          {/* Not twice: "Shown by August 1929" already says its period. */}
+          {claim.value !== null &&
+            claim.valid !== undefined &&
+            !claim.value.endsWith(formatValid(claim.valid)) && (
+              <p className="type-ui-xs text-muted-foreground">
+                Holds {formatValid(claim.valid)}.
+              </p>
+            )}
         </div>
-        {claim.proposals.length > 0 && (
+        {waiting > 0 && (
           <div className="flex flex-col gap-2 px-3 pb-3">
-            <GroupLabel>
-              {claim.proposals.length === 1 ? "Proposal" : "Proposals"}
-            </GroupLabel>
+            <GroupLabel>{waiting === 1 ? "Proposal" : "Proposals"}</GroupLabel>
             {claim.proposals.map((proposal, index) => (
               <ProposalCard
                 key={index}
                 now={claim.value}
                 proposed={proposal.value}
-                evidence={evidenceOf(proposal.citation)}
+                evidence={citationLine(proposal.citation)}
               />
+            ))}
+            {/* An end or a cut is told, never decided here. */}
+            {ends.map((end) => (
+              <Hint key={end.id}>{proposedEndWords(end)}</Hint>
             ))}
           </div>
         )}
@@ -84,13 +100,22 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
           Sources
         </ListGroupHeader>
         {claim.citations.length === 0 ? (
-          <Hint className="px-3 py-3">No source cites this claim yet.</Hint>
+          <Hint className="px-3 py-3">
+            {ends.some((end) => end.kind === "end")
+              ? "No source cites this claim yet. Confirming cites both editions."
+              : "No source cites this claim yet."}
+          </Hint>
         ) : (
           <ul aria-label="Sources" className="flex flex-col">
             {claim.citations.map((citation, index) => (
               <Citation
                 key={index}
-                {...citation}
+                source={citation.source}
+                role={roleWords(citation.role)}
+                edition={editionWords(citation)}
+                locator={citation.locator}
+                quote={citation.quote}
+                file={citation.file}
                 open={open.has(index)}
                 onToggle={() => toggle(index)}
               />

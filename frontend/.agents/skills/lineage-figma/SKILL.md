@@ -156,6 +156,15 @@ page (2026-11-13): several sections of one pipeline `173:5367`, several pipeline
 
 Where code knowingly differs from the Figma frame:
 
+- Ends and cuts store proposes (`211:8081`, `211:8327`, `213:8036`) are built, read
+  only. The proposal is told in words with the tool and the score; the ProposalLink
+  "Decide in the Agent" and "Find a source" are left out. A Citation shows its role on
+  the right of its row ("Shown on", "Not on", "States") and, opened, Edition, Where,
+  Quote and File; the frame's Supports, Kind, Dated, How, Link, Added and "Copy
+  reference" rows are left out because the data does not hold them. The row badge is
+  the `ai` Badge reading "1 proposal", as on any claim, not the `proposed` variant. The
+  line traced as gone is drawn in `map/proposed`, dashed.
+
 - The map is a live Mapbox light basemap, not the yellow fill. Lines use the `map/*`
   tokens. The selected halo is `map/selected` at 25% opacity, 9 wide, as in the frame.
 - When a pipeline is selected and no section is, all its sections get the halo. Figma
@@ -248,8 +257,8 @@ The claim detail area is designed as a first draft and not built: Studio page fr
 `112:566` (Unknown claim, proposal waiting) and `112:786` (cited claim). It docks at the
 bottom of the right panel when a claim row is selected.
 
-Pipelines made from sections, proposed pipelines, and the ends and cuts store proposes
-are designed and not built: Studio page section "10. Pipelines: making one, and deciding
+The ends and cuts store proposes are built (see the differences above). Pipelines made
+from sections and proposed pipelines are designed and not built: Studio page section "10. Pipelines: making one, and deciding
 on proposed ones" (`209:7133`), drawn 2026-11-13, not yet reviewed by the owner. The list
 in three groups `209:7134`; the pipeline view `209:7358`; a proposed pipeline `209:7685`;
 the section menu `209:7993`; moving a section `209:8268`; Last seen proposed `211:8081`;

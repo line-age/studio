@@ -121,7 +121,20 @@ which; it never falls back to the sample.
 
 Store has no pipelines yet, only sections. So the list is one group, "Not in a pipeline",
 with the sections under the map edition that first shows each one, and every section
-starts as Not started. An attribute store has no accepted claim for is Unknown. Real data stays on your machine: never in this repository, its tests or its
+starts as Not started. An attribute store has no accepted claim for is Unknown.
+
+Each source says what it does for a claim: a map is "Shown on" or "Not on", a text
+"States". A map comes with its edition and the date it is as of, and a status that
+rests on a map reads "Shown by" that date, never "Operational". Where a later map no
+longer shows a section, or part of one, store proposes an end or a cut. Studio shows
+it as a proposal on Last seen or on Geometry, with the tool and its score, and draws
+the line traced as gone on the map while you read it. Last seen stays Unknown until a
+person confirms the end in store, which Studio cannot do yet. Loading asks store once
+per section, so a large network takes a while to appear.
+
+<img src="docs/screenshots/evidence.jpg" alt="A section whose Last seen is Unknown, with one proposal: a tool proposes that it ends, because the next map edition no longer shows it. The line traced as gone is dashed on the map." width="100%">
+
+Real data stays on your machine: never in this repository, its tests or its
 screenshots.
 
 ## Data
@@ -164,7 +177,8 @@ more detail on running and tokens is in [`frontend/README.md`](frontend/README.m
 ## Not there yet
 
 - Writing to store: reading it is all there is.
-- Removals (lines a later map no longer shows) and the proposed links behind them.
+- Deciding on a proposed end or cut, and a list of the lines traced as gone that match
+  no section.
 - Placing sections in pipelines.
 - Editing, and accepting or rejecting what the Agent proposes.
 - An Agent that answers.

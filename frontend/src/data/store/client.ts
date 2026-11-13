@@ -6,8 +6,10 @@ import { z } from "zod"
  * front (Vite in development, nginx in the container) passes the request on
  * with the token. So no token is ever in this code or in the bundle.
  *
- * Only the fields Studio shows are read. Who asserted or reviewed a claim is
- * in store's answer and is left out here on purpose.
+ * Only the fields Studio uses are read. The name of whoever asserted or
+ * reviewed a claim is in store's answer and is left out here on purpose. For a
+ * link the name is read, because a link proposed by a tool is shown with the
+ * tool's name; to-network.ts drops it whenever it may be a person's.
  */
 
 const BASE = "/store"
@@ -53,6 +55,7 @@ const sectionRows = z.object({
 })
 
 const citation = z.object({
+  id: z.string().min(1).nullish(),
   role: z.string(),
   locator: z.string().nullish(),
   quote: z.string().nullish(),
@@ -63,7 +66,12 @@ const citation = z.object({
 })
 
 const claim = z.object({
+  id: z.string().min(1).nullish(),
   attribute_key: z.string().min(1),
+  /** The period the claim holds for, as the source gave it. */
+  valid_edtf: z.string().nullish(),
+  asserted_by: z.string().nullish(),
+  asserted_by_kind: z.string().nullish(),
   value_text: z.string().nullish(),
   value_num: z.number().nullish(),
   value_unit: z.string().nullish(),
@@ -71,6 +79,20 @@ const claim = z.object({
   status: z.string(),
   created_at: z.string().nullish(),
   citations: z.array(citation).default([]),
+})
+
+const link = z.object({
+  id: z.string().min(1),
+  from_feature_id: z.string().min(1),
+  to_feature_id: z.string().min(1),
+  relation: z.string().min(1),
+  status: z.string().min(1),
+  score: z.number().nullish(),
+  asserted_by: z.string().nullish(),
+  /** Only on the links inside a feature's answer. */
+  asserted_by_name: z.string().nullish(),
+  /** Store does not send this yet; read when it does. */
+  asserted_by_kind: z.string().nullish(),
 })
 
 const feature = z.object({
@@ -82,8 +104,10 @@ const feature = z.object({
     .nullish()
     .transform((dates) => dates ?? null),
   claims: z.array(claim).default([]),
+  links: z.array(link).default([]),
 })
 
+export type StoreLink = z.infer<typeof link>
 export type StoreSectionRow = z.infer<
   typeof sectionRows
 >["features"][number]["properties"]
@@ -145,6 +169,22 @@ export async function fetchSectionRows(
     )
   }
   return features.map((f) => f.properties)
+}
+
+/**
+ * The links of one relation, whatever their status. Store has no filter by
+ * network here, so the caller keeps the ones that touch its sections.
+ */
+export async function fetchLinks(relation: string): Promise<StoreLink[]> {
+  const query = new URLSearchParams({ relation, limit: String(LIST_LIMIT) })
+  const links = await get(`/links?${query}`, z.array(link))
+  if (links.length >= LIST_LIMIT) {
+    throw new StoreError(
+      "unreadable",
+      `Store has more than ${LIST_LIMIT} ${relation} links, more than Studio can load at once.`
+    )
+  }
+  return links
 }
 
 export function fetchFeature(id: string): Promise<StoreFeature> {

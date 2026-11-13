@@ -70,7 +70,10 @@ export function sectionStatus(
 
 /** A proposal is waiting on a claim of the section. A mark, not a status. */
 export function needsDecision(section: Section): boolean {
-  return section.claims.some((claim) => claim.proposals.length > 0)
+  return (
+    section.proposedEnds.length > 0 ||
+    section.claims.some((claim) => claim.proposals.length > 0)
+  )
 }
 
 export function statusCounts(
