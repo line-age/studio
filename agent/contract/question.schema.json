@@ -1,0 +1,117 @@
+{
+  "$defs": {
+    "QuestionItem": {
+      "additionalProperties": false,
+      "description": "One attached thing: its kind and store id, or where it is when it has no id.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "pipeline",
+            "section",
+            "claim",
+            "citation",
+            "link"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "on": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Where"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "QuestionItem",
+      "type": "object"
+    },
+    "Where": {
+      "additionalProperties": false,
+      "properties": {
+        "sectionId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sectionid"
+        },
+        "pipelineId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pipelineid"
+        },
+        "attribute": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attribute"
+        }
+      },
+      "title": "Where",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Everything a question carries. The selection, the map view and the filters are\nnot sent: \"this\" means what is attached.",
+  "properties": {
+    "words": {
+      "title": "Words",
+      "type": "string"
+    },
+    "about": {
+      "items": {
+        "$ref": "#/$defs/QuestionItem"
+      },
+      "title": "About",
+      "type": "array"
+    },
+    "network": {
+      "default": "gas",
+      "title": "Network",
+      "type": "string"
+    }
+  },
+  "required": [
+    "words"
+  ],
+  "title": "Question",
+  "type": "object"
+}

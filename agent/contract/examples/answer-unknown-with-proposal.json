@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "checked": true,
+  "statements": [
+    {
+      "kind": "unknown",
+      "text": "Store does not say who owns this section.",
+      "refs": [
+        {
+          "type": "feature",
+          "id": "11111111-1111-4111-8111-111111111111",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null
+        }
+      ],
+      "attribute": "owner"
+    },
+    {
+      "kind": "fact",
+      "text": "A tool proposed Sample Gas Co. as the owner, by 1938. Nobody has decided on it yet.",
+      "refs": [
+        {
+          "type": "claim",
+          "id": "33333333-3333-4333-8333-333333333333",
+          "feature_id": "11111111-1111-4111-8111-111111111111",
+          "attribute": "owner",
+          "status": "candidate",
+          "asserter": "pipeline"
+        }
+      ],
+      "attribute": null
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "$defs": {
+    "Ref": {
+      "additionalProperties": false,
+      "description": "What a statement rests on, by store id, so Studio can open it.",
+      "properties": {
+        "type": {
+          "enum": [
+            "claim",
+            "citation",
+            "link",
+            "feature",
+            "source",
+            "help",
+            "set"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "feature_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Feature Id"
+        },
+        "attribute": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attribute"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "enum": [
+                "accepted",
+                "candidate",
+                "rejected",
+                "proposed",
+                "confirmed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status"
+        },
+        "asserter": {
+          "anyOf": [
+            {
+              "enum": [
+                "person",
+                "pipeline"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asserter"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ],
+      "title": "Ref",
+      "type": "object"
+    },
+    "Statement": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "fact",
+            "unknown",
+            "set",
+            "reading",
+            "help",
+            "clarify",
+            "refusal",
+            "greeting",
+            "failure"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "refs": {
+          "items": {
+            "$ref": "#/$defs/Ref"
+          },
+          "title": "Refs",
+          "type": "array"
+        },
+        "attribute": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attribute"
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "title": "Statement",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Only an answer that passed the grounding check is `checked`, and Studio shows no\nother.",
+  "properties": {
+    "version": {
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "checked": {
+      "default": false,
+      "title": "Checked",
+      "type": "boolean"
+    },
+    "statements": {
+      "items": {
+        "$ref": "#/$defs/Statement"
+      },
+      "title": "Statements",
+      "type": "array"
+    }
+  },
+  "required": [
+    "statements"
+  ],
+  "title": "Answer",
+  "type": "object"
+}

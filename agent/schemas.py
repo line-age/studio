@@ -1,27 +1,107 @@
-"""The answer the service gives Studio. The full contract arrives in contract/ (S2)."""
+"""The contract: the question Studio sends, the draft the model writes, the answer
+Studio renders. `contract/` holds the same shapes as JSON Schema with examples, checked
+on both sides so the service and Studio cannot drift apart.
+"""
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 CONTRACT_VERSION = 1
 
 StatementKind = Literal[
     "fact", "unknown", "set", "reading", "help", "clarify", "refusal", "greeting", "failure"
 ]
-
 # Kinds whose text is written by code, never by the model, and which carry no reference.
 FIXED_KINDS: frozenset[str] = frozenset({"refusal", "greeting", "failure"})
+# Kinds that must rest on something read from store in this run.
+GROUNDED_KINDS: frozenset[str] = frozenset({"fact", "unknown", "set", "reading"})
 
 
-class Statement(BaseModel):
+class _Strict(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+# The question -----------------------------------------------------------------------------
+
+
+class Where(_Strict):
+    sectionId: str | None = None
+    pipelineId: str | None = None
+    attribute: str | None = None
+
+
+class QuestionItem(_Strict):
+    """One attached thing: its kind and store id, or where it is when it has no id."""
+
+    kind: Literal["pipeline", "section", "claim", "citation", "link"]
+    id: str | None = None
+    on: Where | None = None
+
+
+class Question(_Strict):
+    """Everything a question carries. The selection, the map view and the filters are
+    not sent: "this" means what is attached."""
+
+    words: str
+    about: list[QuestionItem] = Field(default_factory=list)
+    network: str = "gas"
+
+
+# The draft: what the model writes ---------------------------------------------------------
+
+
+class DraftRef(_Strict):
+    key: str = Field(description="A short local name used in slots: c1, c2, f1.")
+    type: Literal["claim", "feature", "link"]
+    id: str = Field(description="The store id, copied exactly from a tool result.")
+
+
+class DraftStatement(_Strict):
+    kind: Literal["fact", "unknown", "reading", "help", "clarify", "refusal", "greeting"]
+    text: str = Field(
+        description=(
+            "One plain sentence. Values enter only through slots such as {c1.value}; "
+            "for refusal and greeting leave it empty, code writes the line."
+        )
+    )
+    refs: list[DraftRef] = Field(default_factory=list)
+    attribute: str | None = Field(
+        None, description="For kind unknown: the store attribute key that was checked."
+    )
+
+
+class Draft(_Strict):
+    statements: list[DraftStatement]
+
+
+# The answer: what Studio renders ----------------------------------------------------------
+
+
+class Ref(_Strict):
+    """What a statement rests on, by store id, so Studio can open it."""
+
+    type: Literal["claim", "citation", "link", "feature", "source", "help", "set"]
+    id: str
+    # For a claim: which feature it is on, its attribute, and whether it is what is known
+    # (accepted), a proposal (candidate) or a value somebody ruled out (rejected).
+    feature_id: str | None = None
+    attribute: str | None = None
+    status: Literal["accepted", "candidate", "rejected", "proposed", "confirmed"] | None = None
+    asserter: Literal["person", "pipeline"] | None = None
+
+
+class Statement(_Strict):
     kind: StatementKind
     text: str
-    refs: list[dict] = Field(default_factory=list)
+    refs: list[Ref] = Field(default_factory=list)
+    # For kind unknown: what was looked for and not found.
+    attribute: str | None = None
 
 
-class Answer(BaseModel):
-    """What Studio renders. Only an answer that passed the grounding check is `checked`."""
+class Answer(_Strict):
+    """Only an answer that passed the grounding check is `checked`, and Studio shows no
+    other."""
 
     version: int = CONTRACT_VERSION
     checked: bool = False
