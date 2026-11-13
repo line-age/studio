@@ -1,0 +1,17 @@
+# Keys and tokens. Never commit them.
+.env
+.env.*
+!.env.example
+
+# Threads kept by `langgraph dev`. On a real stack they hold store's data.
+.langgraph_api/
+.data/
+
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Eval runs that were not saved on purpose to evals/history/.
+evals/runs/
