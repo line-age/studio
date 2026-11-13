@@ -84,6 +84,8 @@ export function PipelineRow({
         </button>
       )}
       <span
+        // A name cut short can still be read in full.
+        title={typeof name === "string" ? name : undefined}
         className={cn(
           "min-w-0 flex-1 truncate",
           indent ? "type-ui-sm" : "type-ui-sm-medium"
@@ -92,7 +94,7 @@ export function PipelineRow({
         {name}
       </span>
       {cells}
-      <span className="w-9 shrink-0 text-right type-ui-xs text-muted-foreground tabular-nums">
+      <span className="shrink-0 text-right type-ui-xs whitespace-nowrap text-muted-foreground tabular-nums">
         {progress}
       </span>
       <span className="flex w-23 shrink-0 justify-end">{status}</span>

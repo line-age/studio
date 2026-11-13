@@ -57,11 +57,12 @@ describe("Studio panels", () => {
       expect.stringContaining("1937 edition"),
     ])
     expect(rows[0]).toHaveTextContent("In progress")
-    expect(rows[0]).toHaveTextContent("0/2")
+    // Progress says what it counts: sections done of the pipeline's sections.
+    expect(rows[0]).toHaveTextContent("0/2 done")
     // Sections in no pipeline come last, under the edition that first
     // shows them, and can only get as far as sufficient.
     expect(list).toHaveTextContent("Not in a pipeline, by first seen")
-    expect(rows[2]).toHaveTextContent("1937 edition1Not started")
+    expect(rows[2]).toHaveTextContent("1937 edition1 sectionNot started")
     expect(rows[2]).toHaveTextContent("Not started")
   })
 
@@ -500,5 +501,35 @@ describe("Reading is not selecting", () => {
       screen.getByRole("checkbox", { name: "Select Alder to Birch" })
     )
     expect(useStudio.getState().selection).toEqual(new Set(["s-2"]))
+  })
+})
+
+describe("Progress says what it counts", () => {
+  it("counts a section's required claims cited, by the rule in Settings", async () => {
+    await renderPanels()
+    act(() => useStudio.getState().select(["s-1", "s-2"]))
+    const row = () => screen.getByRole("treeitem", { name: /Birch to Cedar/ })
+    const required = useSettings.getState().requiredAttributes.length
+    expect(row()).toHaveTextContent(new RegExp(`\\d/${required} cited`))
+    // No second count of Unknown on the row: Unknown is a word on a claim.
+    expect(row()).not.toHaveTextContent(/\d Unknown/)
+
+    act(() => useSettings.setState({ requiredAttributes: ["Owner"] }))
+    expect(row()).toHaveTextContent("0/1 cited")
+  })
+
+  it("speaks in the header for what is selected, not the pipeline around it", async () => {
+    await renderPanels()
+    act(() => useStudio.getState().select(["s-1", "s-2"]))
+    expect(screen.getByText("0 of 2 sections done")).toBeInTheDocument()
+
+    act(() => useStudio.getState().select(["s-1"]))
+    expect(screen.getByText("0 of 1 section done")).toBeInTheDocument()
+  })
+
+  it("says selected of all in each group of a selection across pipelines", async () => {
+    await renderPanels()
+    act(() => useStudio.getState().select(["s-1", "s-3"]))
+    expect(screen.getAllByText(/^1 of \d selected$/).length).toBe(2)
   })
 })

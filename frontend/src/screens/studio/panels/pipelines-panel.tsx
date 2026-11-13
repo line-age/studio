@@ -29,15 +29,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import {
+  citedLabel,
   filterCounts,
   formatCount,
   geometryBounds,
   plural,
   sectionLabel,
+  summaryProgress,
   type PipelineSummary,
   type SearchHit,
 } from "@/data/derive"
-import { missingRequired, sectionStatus } from "@/data/status"
+import { sectionStatus } from "@/data/status"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
@@ -469,7 +471,6 @@ function PipelineList({
     rows.every((row) => checkedOf.get(row.summary.id) === "checked")
   const column = inPipelines.length > 0 ? "Pipeline" : "Section"
   // "Done" is about pipelines; a group in no pipeline shows its size there.
-  const progressHead = inPipelines.length > 0 ? "Done" : ""
   const panelWidth = usePanelWidth()
   const columns = listColumns(panelWidth?.width ?? 0, rule)
 
@@ -542,13 +543,7 @@ function PipelineList({
                 })}
               </>
             }
-            // A pipeline says how many of its sections are done. Sections
-            // in no pipeline cannot be done, so the group says how many it has.
-            progress={
-              summary.unassigned
-                ? formatCount(summary.sections.length)
-                : `${formatCount(summary.done)}/${formatCount(summary.sections.length)}`
-            }
+            progress={summaryProgress(summary)}
             status={<StatusBadge status={summary.status} />}
             {...(summary.unassigned &&
               !hit && {
@@ -636,7 +631,7 @@ function PipelineList({
                       })}
                     </>
                   }
-                  progress={`${rule.length - missingRequired(section, rule).length}/${rule.length}`}
+                  progress={citedLabel(section, rule)}
                   status={<StatusBadge status={sectionStatus(section, rule)} />}
                   onClick={openSection}
                   onKeyDown={(event) => {
@@ -729,7 +724,6 @@ function PipelineList({
                 {attribute}
               </ListCell>
             ))}
-            <span className="w-9 text-right">{progressHead}</span>
             <span className="w-23 text-right">Status</span>
           </span>
         }

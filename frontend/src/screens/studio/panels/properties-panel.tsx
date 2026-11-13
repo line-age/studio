@@ -6,25 +6,27 @@ import { ListGroupHeader } from "@/components/list-group-header"
 import { ListHeader } from "@/components/list-header"
 import { PanelFooter } from "@/components/panel-footer"
 import { PanelHeader } from "@/components/panel-header"
-import { StatusLabel } from "@/components/status-label"
 import { TreeItem } from "@/components/tree-item"
-import { Badge } from "@/components/ui/badge"
 import {
+  citedLabel,
+  doneLabel,
   formatCount,
   geometryBounds,
   groupsLabel,
-  sectionStats,
+  plural,
   sectionLabel,
   sectionMatches,
   selectionSize,
-  sumStats,
+  summaryProgress,
   type SelectionGroup,
 } from "@/data/derive"
+import { sectionStatus } from "@/data/status"
 import type { Section } from "@/data/schema"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
+import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups } from "../studio-data"
 import { ClaimDetail } from "./claim-detail"
 import { useStudio } from "../studio-store"
@@ -64,6 +66,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const treeRef = useRef<HTMLDivElement>(null)
   const attachments = useSelectionAttachments()
   const criteria = useCriteria()
+  const rule = useSettings((s) => s.requiredAttributes)
   // Only the one-click filters dim: they are about the section itself.
   const filtering = criteria.status !== "all" || criteria.needsDecision
 
@@ -81,9 +84,19 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const allIds = allSections.map((s) => s.id)
   const isChecked = (id: string) => selection.has(id)
   const checkedCount = selection.size
-  const stats = multi
-    ? sumStats(groups.flatMap((g) => g.sections))
-    : single.stats
+  // The header speaks for what is selected, not for the pipeline around it.
+  const progress = multi
+    ? undefined
+    : groups[0].whole
+      ? summaryProgress(single, "long")
+      : single.unassigned
+        ? `${plural(groups[0].sections.length, "section")} selected`
+        : doneLabel(
+            groups[0].sections.filter((x) => sectionStatus(x, rule) === "done")
+              .length,
+            groups[0].sections.length,
+            "long"
+          )
   const check = (section: Section) => toggleSelected([section.id])
 
   // Reading is not selecting: a click opens the section (or closes the one
@@ -130,11 +143,10 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
         meta={multi ? undefined : (single.code ?? undefined)}
         divider
       >
-        {stats.cited > 0 && (
-          <Badge variant="cited">{formatCount(stats.cited)} cited</Badge>
-        )}
-        {stats.unknown > 0 && (
-          <Badge variant="unknown">{formatCount(stats.unknown)} Unknown</Badge>
+        {progress && (
+          <span className="shrink-0 type-ui-xs whitespace-nowrap text-muted-foreground tabular-nums">
+            {progress}
+          </span>
         )}
       </PanelHeader>
       <ListHeader
@@ -159,13 +171,12 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
           <Fragment key={group.summary.id}>
             {multi && (
               <ListGroupHeader
-                count={`${group.sections.length} of ${group.summary.sections.length}`}
+                count={`${formatCount(group.sections.length)} of ${formatCount(group.summary.sections.length)} selected`}
               >
                 {group.summary.name}
               </ListGroupHeader>
             )}
             {group.summary.sections.map((section) => {
-              const stats = sectionStats(section)
               const open = expanded.has(section.id)
               const selected = section.id === selectedSectionId
               return (
@@ -208,15 +219,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                       checked={isChecked(section.id)}
                       onCheck={() => check(section)}
                       checkLabel={`Select ${sectionLabel(section)}`}
-                      trailing={
-                        stats.unknown > 0 ? (
-                          <StatusLabel status="unknown">
-                            {formatCount(stats.unknown)} Unknown
-                          </StatusLabel>
-                        ) : (
-                          `${stats.cited} of ${stats.total}`
-                        )
-                      }
+                      trailing={citedLabel(section, rule)}
                       onToggle={() => toggleExpanded(section.id)}
                       onClick={() => pick(section)}
                       onKeyDown={(event) => onSectionKeyDown(event, section)}

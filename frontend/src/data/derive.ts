@@ -2,6 +2,7 @@ import type { Edition, Geometry, Network, Position, Section } from "./schema"
 import {
   DEFAULT_REQUIRED,
   groupStatus,
+  missingRequired,
   needsDecision,
   sectionStatus,
   statusCounts,
@@ -104,6 +105,44 @@ export function selectionSize(groups: SelectionGroup[]): string {
   if (pipelines === 0) return words
   if (pipelines < groups.length) return `${words}, some in no pipeline`
   return `${words} in ${plural(pipelines, "pipeline")}`
+}
+
+/*
+ * Progress, said one way everywhere, always with what it counts. A pipeline
+ * counts its sections done; a section counts its required claims cited, the
+ * same claims its status is worked out from (the rule in Settings). Sections
+ * in no pipeline cannot be done, so a group of them says how many it has.
+ */
+
+/** "4/6 done" (short, for a row) or "4 of 6 sections done" (long). */
+export function doneLabel(
+  done: number,
+  total: number,
+  form: "short" | "long" = "short"
+): string {
+  return form === "short"
+    ? `${formatCount(done)}/${formatCount(total)} done`
+    : `${formatCount(done)} of ${plural(total, "section")} done`
+}
+
+/**
+ * "2/3 cited": the required claims of a section that are cited. Empty when
+ * the rule requires nothing, where there is nothing to count.
+ */
+export function citedLabel(section: Section, rule: StatusRule): string {
+  if (rule.length === 0) return ""
+  const cited = rule.length - missingRequired(section, rule).length
+  return `${formatCount(cited)}/${formatCount(rule.length)} cited`
+}
+
+/** The progress of a row of the list: a pipeline, or a group in none. */
+export function summaryProgress(
+  summary: PipelineSummary,
+  form: "short" | "long" = "short"
+): string {
+  return summary.unassigned
+    ? plural(summary.sections.length, "section")
+    : doneLabel(summary.done, summary.sections.length, form)
 }
 
 /** "3 pipelines", or "3 groups" when some of them are not pipelines. */
