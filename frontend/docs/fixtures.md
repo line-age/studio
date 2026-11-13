@@ -146,7 +146,33 @@ committed.
     },
   ],
 
-  "agentThread": [], // optional: one static conversation
+  "agentThread": [
+    // optional: one static conversation
+    {
+      "kind": "user",
+      "text": "What does store say about this?",
+      "attachment": { "sectionId": "s-0142" },
+    },
+    {
+      "kind": "assistant",
+      "text": "Store holds these claims about Harlow to Brecken.",
+      "statements": [
+        // version 2: each statement with what it rests on
+        {
+          "text": "It is first seen on the 1937 edition.",
+          "refs": [
+            {
+              "kind": "claim",
+              "owner": "section",
+              "ownerId": "s-0142",
+              "attribute": "First seen",
+            },
+          ],
+        },
+        { "text": "Store does not say when it was built." }, // no refs: store has nothing
+      ],
+    },
+  ],
 }
 ```
 

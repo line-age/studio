@@ -1,6 +1,7 @@
 import { create } from "zustand"
 
 import type { Bounds, ListKind } from "@/data/derive"
+import { refKey, type AgentRef, type Question } from "@/data/question"
 import type { SectionStatus } from "@/data/status"
 
 /*
@@ -87,8 +88,14 @@ interface StudioState {
   view: Bounds | null
   fit: FitRequest | null
   agentAttachments: AgentAttachment[]
+  /** Claims, sources and proposals attached to the next question. */
+  agentRefs: AgentRef[]
+  /** Words a starter question put in the message box; null leaves it alone. */
+  agentDraft: string | null
   /** Goes up each time something is handed to the Agent; the chat takes focus. */
   agentAsked: number
+  /** Questions sent in this visit, each with what was attached to it. */
+  sentQuestions: SentQuestion[]
 
   setEdition: (editionId: string) => void
   /** Choose a status; the one already chosen goes back to all. */
@@ -140,9 +147,30 @@ interface StudioState {
   /** `follow` also moves the "in view" list to the new place. */
   requestFit: (bounds: Bounds | null, follow?: boolean) => void
   attachToAgent: (items: AgentAttachment[]) => void
-  /** Attach, and ask the chat to take the cursor. */
-  askAgent: (items: AgentAttachment[]) => void
+  /**
+   * Attach, and ask the chat to take the cursor. With `words` a starter
+   * question goes in the message box; the person can change it.
+   */
+  askAgent: (
+    items: AgentAttachment[],
+    more?: { refs?: readonly AgentRef[]; words?: string }
+  ) => void
   detachFromAgent: (pipelineId: string) => void
+  detachRef: (key: string) => void
+  /** Keep a sent question in the thread and clear what was attached. */
+  sendQuestion: (sent: SentQuestion) => void
+}
+
+/** A question as sent, with what the screen needs to show it again. */
+export interface SentQuestion {
+  question: Question
+  attachments: AgentAttachment[]
+  refs: AgentRef[]
+}
+
+function mergeRefs(had: AgentRef[], refs: readonly AgentRef[]): AgentRef[] {
+  const keys = new Set(had.map(refKey))
+  return [...had, ...refs.filter((ref) => !keys.has(refKey(ref)))]
 }
 
 function mergeAttachments(
@@ -230,7 +258,10 @@ export const useStudio = create<StudioState>((set) => ({
   view: null,
   fit: null,
   agentAttachments: [],
+  agentRefs: [],
+  agentDraft: null,
   agentAsked: 0,
+  sentQuestions: [],
 
   setEdition: (editionId) =>
     set({
@@ -357,10 +388,23 @@ export const useStudio = create<StudioState>((set) => ({
     set((s) => ({
       agentAttachments: mergeAttachments(s.agentAttachments, items),
     })),
-  askAgent: (items) =>
+  askAgent: (items, more = {}) =>
     set((s) => ({
       agentAttachments: mergeAttachments(s.agentAttachments, items),
+      agentRefs: mergeRefs(s.agentRefs, more.refs ?? []),
+      agentDraft: more.words ?? null,
       agentAsked: s.agentAsked + 1,
+    })),
+  detachRef: (key) =>
+    set((s) => ({
+      agentRefs: s.agentRefs.filter((ref) => refKey(ref) !== key),
+    })),
+  sendQuestion: (sent) =>
+    set((s) => ({
+      sentQuestions: [...s.sentQuestions, sent],
+      agentAttachments: [],
+      agentRefs: [],
+      agentDraft: null,
     })),
   detachFromAgent: (pipelineId) =>
     set((s) => ({

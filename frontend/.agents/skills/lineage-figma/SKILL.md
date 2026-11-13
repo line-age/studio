@@ -157,8 +157,9 @@ page (2026-11-13): several sections of one pipeline `173:5367`, several pipeline
 Where code knowingly differs from the Figma frame:
 
 - Ends and cuts store proposes (`211:8081`, `211:8327`, `213:8036`) are built, read
-  only. The proposal is told in words with the tool and the score; the ProposalLink
-  "Decide in the Agent" and "Find a source" are left out. A Citation shows its role on
+  only. The proposal is told in words with the tool and the score; under it the
+  ProposalLink reads "Ask the Agent about this" (section 11), and "Find a source" is
+  left out. A Citation shows its role on
   the right of its row ("Shown on", "Not on", "States") and, opened, Edition, Where,
   Quote and File; the frame's Supports, Kind, Dated, How, Link, Added and "Copy
   reference" rows are left out because the data does not hold them. The row badge is
@@ -259,8 +260,9 @@ bottom of the right panel when a claim row is selected.
 
 Section "11. Reading store" (`223:9257`, drawn 2026-11-13, not reviewed by the owner)
 replaces parts of section 10 for the read-only plan. Built: the two lists and rail, the
-pipeline view and the section's rows. Not built: the Agent answer and the "Ask the
-Agent about this" link. Where the code differs: a proposed pipeline's row shows its best
+pipeline view, the section's rows, the Agent answer (`223:11488`: a statement, then
+each reference as an Attachment that opens what it names) and "Ask the Agent about
+this" (`223:11018`, `223:11259`). Where the code differs: a proposed pipeline's row shows its best
 score and the range on hover; "Unknown name" rows show no code (it is in the title); the
 claims of a pipeline show only when one pipeline is selected, above its sections; a
 section in no pipeline has no Owner row. Two

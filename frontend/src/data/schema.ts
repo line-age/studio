@@ -185,6 +185,46 @@ const note = z.object({
   source: z.string().min(1).optional(),
 })
 
+/**
+ * A thing on screen finer than a section, which a question can be about and
+ * an answer can rest on: a claim of a section or a pipeline, one source under
+ * a section's claim, or something proposed and not decided.
+ */
+export const agentRef = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("claim"),
+    owner: z.enum(["section", "pipeline"]),
+    ownerId: z.string().min(1),
+    attribute: z.string().min(1),
+    /** Which claim when an attribute has one per period. */
+    index: z.number().int().min(0).optional(),
+  }),
+  z.object({
+    kind: z.literal("citation"),
+    sectionId: z.string().min(1),
+    attribute: z.string().min(1),
+    index: z.number().int().min(0),
+  }),
+  z.object({
+    kind: z.literal("proposal"),
+    sectionId: z.string().min(1),
+    what: z.enum(["value", "end", "cut", "pipeline"]),
+    /** The attribute it waits on: "Diameter", "Last seen", "Pipeline". */
+    attribute: z.string().min(1),
+    /** The proposal's id, or a candidate's index on the claim. */
+    key: z.string().min(1),
+  }),
+])
+
+/**
+ * One statement of an answer and what in store it rests on. A statement
+ * with nothing to rest on says that store does not say.
+ */
+const statement = z.object({
+  text: z.string().min(1),
+  refs: z.array(agentRef).default([]),
+})
+
 const threadItem = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("marker"),
@@ -204,6 +244,8 @@ const threadItem = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("assistant"),
     text: z.string().min(1),
+    /** An answer from store: each statement with the claims it rests on. */
+    statements: z.array(statement).default([]),
     noteIds: z.array(z.string().min(1)).default([]),
     proposal: z
       .object({
@@ -311,6 +353,7 @@ export type CitationRole = (typeof citationRoles)[number]
 export type ProposedPath = Network["proposedPaths"][number]
 export type Note = Network["notes"][number]
 export type ThreadItem = Network["agentThread"][number]
+export type AgentRef = z.infer<typeof agentRef>
 export type Geometry = Section["geometry"]
 export type Position = z.infer<typeof position>
 

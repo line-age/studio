@@ -5,14 +5,16 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 /**
- * Link from an Agent answer to the proposal it made. The purple badge always
- * carries the word AI.
+ * A link between a proposal and the Agent: from an answer to the proposal it
+ * made, or from a proposal to a question about it. The purple badge always
+ * carries a word: "AI" by default, or "Proposed".
  */
 export function ProposalLink({
+  badge = "AI",
   className,
   children,
   ...props
-}: ComponentProps<"button">) {
+}: ComponentProps<"button"> & { badge?: string }) {
   return (
     <button
       type="button"
@@ -22,7 +24,7 @@ export function ProposalLink({
       )}
       {...props}
     >
-      <Badge variant="ai">AI</Badge>
+      <Badge variant="ai">{badge}</Badge>
       <span className="min-w-0 flex-1 truncate type-ui-xs-medium">
         {children}
       </span>

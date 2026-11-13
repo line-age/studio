@@ -1,3 +1,5 @@
+import type { ComponentProps } from "react"
+
 import { Icon } from "@/components/icons/icon"
 import { cn } from "@/lib/utils"
 
@@ -29,6 +31,7 @@ export function Citation({
   file,
   open,
   onToggle,
+  ...props
 }: {
   source: string
   /** What the source does for the claim, in words. */
@@ -41,7 +44,7 @@ export function Citation({
   file?: string
   open: boolean
   onToggle: () => void
-}) {
+} & Omit<ComponentProps<"li">, "children" | "role">) {
   const hasDetail =
     edition !== undefined ||
     locator !== undefined ||
@@ -60,7 +63,7 @@ export function Citation({
   const row =
     "flex h-9 w-full items-center gap-2 border-b border-border-subtle px-3 text-left"
   return (
-    <li className="flex flex-col">
+    <li {...props} className={cn("flex flex-col", props.className)}>
       {hasDetail ? (
         <button
           type="button"

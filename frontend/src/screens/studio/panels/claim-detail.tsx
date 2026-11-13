@@ -23,8 +23,34 @@ import {
 } from "@/data/evidence"
 import type { Claim, Section } from "@/data/schema"
 
+import { ProposalLink } from "@/components/proposal-link"
+import {
+  membershipRefs,
+  proposalRefs,
+  STARTERS,
+  type AgentRef,
+} from "@/data/question"
+
+import { AddToAgentMenu, useAskAgent } from "../add-to-agent"
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
+
+/**
+ * Under a proposal: asks the Agent what is proposed and why. It decides
+ * nothing (Figma `223:11018`).
+ */
+function AskAboutProposals({ refs }: { refs: AgentRef[] }) {
+  const askAgent = useAskAgent()
+  if (refs.length === 0) return null
+  return (
+    <ProposalLink
+      badge="Proposed"
+      onClick={() => askAgent([], { refs, words: STARTERS.proposed })}
+    >
+      Ask the Agent about this
+    </ProposalLink>
+  )
+}
 
 function Detail({ section, claim }: { section: Section; claim: Claim }) {
   const close = useStudio((s) => s.closeAttribute)
@@ -96,6 +122,7 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
             {ends.map((end) => (
               <Hint key={end.id}>{proposedEndWords(end)}</Hint>
             ))}
+            <AskAboutProposals refs={proposalRefs(section, claim.attribute)} />
           </div>
         )}
         <ListGroupHeader count={claim.citations.length}>
@@ -110,17 +137,29 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
         ) : (
           <ul aria-label="Sources" className="flex flex-col">
             {claim.citations.map((citation, index) => (
-              <Citation
+              <AddToAgentMenu
                 key={index}
-                source={citation.source}
-                role={roleWords(citation.role)}
-                edition={editionWords(citation)}
-                locator={citation.locator}
-                quote={citation.quote}
-                file={citation.file}
-                open={open.has(index)}
-                onToggle={() => toggle(index)}
-              />
+                refs={[
+                  {
+                    kind: "citation",
+                    sectionId: section.id,
+                    attribute: claim.attribute,
+                    index,
+                  },
+                ]}
+                starters={[{ words: STARTERS.say }]}
+              >
+                <Citation
+                  source={citation.source}
+                  role={roleWords(citation.role)}
+                  edition={editionWords(citation)}
+                  locator={citation.locator}
+                  quote={citation.quote}
+                  file={citation.file}
+                  open={open.has(index)}
+                  onToggle={() => toggle(index)}
+                />
+              </AddToAgentMenu>
             ))}
           </ul>
         )}
@@ -185,6 +224,7 @@ function PipelineDetail({ section }: { section: Section }) {
                 </Hint>
               ) : null
             })}
+            <AskAboutProposals refs={membershipRefs(section)} />
           </div>
         )}
         <Hint>

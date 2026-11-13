@@ -593,19 +593,57 @@ const network = {
       source: "Trunk gas lines map, 1937, grid ref. F-7",
     },
   ],
+  // An answer as the answering service is to give it: only what store
+  // holds, each statement with what it rests on, and "store does not say"
+  // where it holds nothing. It changes nothing.
   agentThread: [
-    { kind: "marker", text: "12 Nov 2026", separator: true },
+    { kind: "marker", text: "13 Nov 2026", separator: true },
     {
       kind: "user",
-      text: "Find a source for the diameter of this section.",
-      attachment: { sectionId: harlowBrecken.id, attribute: "Diameter" },
+      text: "What does store say about this?",
+      attachment: { sectionId: harlowBrecken.id },
     },
-    { kind: "marker", text: "Read the 1937 and 1931 editions" },
+    { kind: "marker", text: "Read the claims about this section in store" },
     {
       kind: "assistant",
-      text: "One edition states it. The other shows the line with no lettering.",
-      noteIds: ["n-001"],
-      proposal: { sectionId: harlowBrecken.id, attribute: "Diameter" },
+      text: "Store holds these claims about Harlow to Brecken.",
+      statements: [
+        {
+          text: "It is first seen on the 1937 edition.",
+          refs: [
+            {
+              kind: "claim",
+              owner: "section",
+              ownerId: harlowBrecken.id,
+              attribute: "First seen",
+            },
+          ],
+        },
+        {
+          text: "Its diameter is Unknown. A candidate says 12 in, lettered on the 1937 edition. Nobody has accepted it.",
+          refs: [
+            {
+              kind: "proposal",
+              sectionId: harlowBrecken.id,
+              what: "value",
+              attribute: "Diameter",
+              key: "0",
+            },
+          ],
+        },
+        {
+          text: "Owner is a claim on its pipeline, Calder Valley: the Calder Valley Gas Co., by 1936.",
+          refs: [
+            {
+              kind: "claim",
+              owner: "pipeline",
+              ownerId: "p-012",
+              attribute: "Owner",
+            },
+          ],
+        },
+        { text: "Store does not say when it was built." },
+      ],
     },
     { kind: "marker", text: "Nothing has been changed." },
   ],

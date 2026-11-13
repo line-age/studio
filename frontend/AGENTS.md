@@ -15,7 +15,11 @@ its sources (what each does for the claim, and a map's edition and date) and any
 proposal, among them an end or a cut that store proposes for a section; hands a selection to the Agent
 chat as references; shows the network as of the edition chosen; keeps the view in the
 URL; walks a first-time visitor through the screen with a Help tour, and explains each
-area and the words in a Help dialog. Nothing can be edited and the Agent does not answer yet. The repo `README.md` one level
+area and the words in a Help dialog; lets a person ask the Agent about a section, a
+claim, a source or a proposal with questions that only read, keeps a sent question in
+the thread, and shows an answer's statements with what each rests on. Nothing can be
+edited and the Agent does not answer yet: a sent question goes nowhere, and the thread
+says so. The repo `README.md` one level
 up shows it with screenshots; keep those current when the screen changes visibly.
 
 The workspace `AGENTS.md` two levels up holds the project-wide rules and the full Figma
@@ -212,8 +216,14 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   the tokens. No raw colour in map code either.
 - Not designed means not built: nothing new until Figma has it. Section 7 of the Studio
   page has the status counts, in-place filters, layers button, Settings and the table.
-  The one menu is the right-click "Add to the Agent chat" (stock shadcn Context Menu,
-  the owner's request). Tooltips are on the filter icon, the filter chips and the
+  The one menu is the right click (stock shadcn Context Menu, the owner's request):
+  "Add to the Agent chat" everywhere, and above it the starter questions that only read
+  (`starters.ts`): "What does store say about this?" on a section, a claim or a source,
+  "Why is this Unknown?" on an Unknown claim, "What is proposed here, and why?" where a
+  proposal waits. Questions that search the sources or change a claim are not offered
+  until something can answer them. "Ask the Agent about this" under a proposal (Figma
+  `223:11018`) asks the same and decides nothing. Choosing an item leaves the cursor in
+  the chat (`finalFocus`). Tooltips are on the filter icon, the filter chips and the
   "List follows the map" button (stock shadcn Tooltip).
 - On the map a click adds a section to the selection and a click on a selected one takes
   it off; a click on empty map steps the selection back. Every selection made on the map
@@ -229,14 +239,23 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   (`ProposalCard`) and each source (`Citation`) with the place and the quote. It is read
   only. Accept, Reject and "Find a source" are in the drawing and left out until they
   work. A citation shows only what the data holds: the source and its role; opened,
-  a map's edition and date, where, the quote, and last the trace file. In Figma the
-  link under a proposal reads "Decide in the Agent"; it is left out until the Agent
-  can be asked.
+  a map's edition and date, where, the quote, and last the trace file. Under a
+  proposal, "Ask the Agent about this" (Figma `223:11018`), not "Decide in the Agent"
+  (section 10, parked with deciding).
 - Notes are off the screen for now (owner, 2026-11-12): no pins, no layer row. The
   fixture still holds them. Do not bring them back without being asked.
 - The selection is a set of sections (`selection` in the Studio store) and may span
   pipelines. Derive pipelines from it with `groupSelection`; do not store a selected
   pipeline. Use `aria-label` on icon-only buttons.
+- Asking (`src/data/question.ts`): a question carries the words, each attached thing by
+  kind and store id (or its section and attribute when the data has no id), the edition
+  in force and the network; `buildQuestion` makes it, and nothing else leaves the
+  screen. There is no service yet: a sent question stays in the thread
+  (`sentQuestions`) with the line "The Agent cannot answer yet". An answer in the data is
+  `statements`, each with the claims, sources or proposals it rests on (`refs`); a
+  statement with none says store does not say. A reference opens what it names. The
+  answer contract (only what store holds, every statement referenced, no writes) is in
+  the plan; the service is later work.
 - Help (`src/screens/studio/help/`): a tour that starts by itself on a first visit
   (remembered in the browser as `studio.tour-seen`) and a Help dialog. Both read their
   words from `help/steps.ts`; never write the same text twice. An area is found by its

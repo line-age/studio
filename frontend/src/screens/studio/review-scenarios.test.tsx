@@ -255,7 +255,14 @@ describe("reviewing", () => {
     expect(detail).toHaveTextContent(
       "The stitch tool proposes that this section is part of P-003, whose name is Unknown. Score 0.70."
     )
-    expect(within(detail).getAllByRole("button")).toHaveLength(1)
+    // Nothing decides: one button closes, the other only asks the Agent.
+    expect(
+      within(detail)
+        .getAllByRole("button")
+        .map(
+          (button) => button.getAttribute("aria-label") ?? button.textContent
+        )
+    ).toEqual(["Close the claim", "ProposedAsk the Agent about this"])
     expect(window.location.search).toContain("l=sections")
   })
 

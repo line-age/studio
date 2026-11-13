@@ -184,7 +184,9 @@ more detail on running and tokens is in [`frontend/README.md`](frontend/README.m
   no section.
 - Placing sections in pipelines, and deciding on a proposed one.
 - Editing, and accepting or rejecting what the Agent proposes.
-- An Agent that answers.
+- An Agent that answers. A person can already ask: right click a section, a claim, a
+  source or a proposal for a question that only reads. The question is kept in the chat
+  with a line saying the Agent cannot answer yet; nothing is sent anywhere.
 - Notes on the map, the claim detail area.
 - Settings shared by a project: they are kept in each browser.
 

@@ -35,7 +35,14 @@ import type { Section } from "@/data/schema"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
+import { STARTERS } from "@/data/question"
+
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
+import {
+  claimStarters,
+  pipelineRowStarters,
+  sectionClaimStarters,
+} from "../starters"
 import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { ClaimDetail } from "./claim-detail"
@@ -201,16 +208,36 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                   )
             }
           />
-          {pipelineClaims(single.pipeline).map((claim, index) => (
-            <AttributeRow
-              key={`${claim.attribute}:${index}`}
-              className="pl-3"
-              label={claim.attribute}
-              value={datedValue(claim)}
-              sources={claim.citations.length}
-              proposals={claim.proposals.length}
-            />
-          ))}
+          {pipelineClaims(single.pipeline).map((claim, index, all) => {
+            const owner = single.pipeline!
+            // Which claim of its attribute: an owner that changed is two.
+            const nth = all
+              .slice(0, index)
+              .filter((c) => c.attribute === claim.attribute).length
+            return (
+              <AddToAgentMenu
+                key={`${claim.attribute}:${index}`}
+                refs={[
+                  {
+                    kind: "claim",
+                    owner: "pipeline",
+                    ownerId: owner.id,
+                    attribute: claim.attribute,
+                    index: nth,
+                  },
+                ]}
+                starters={claimStarters(claim)}
+              >
+                <AttributeRow
+                  className="pl-3"
+                  label={claim.attribute}
+                  value={datedValue(claim)}
+                  sources={claim.citations.length}
+                  proposals={claim.proposals.length}
+                />
+              </AddToAgentMenu>
+            )
+          })}
         </div>
       )}
       <ListHeader
@@ -257,6 +284,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                             },
                           ]
                     }
+                    starters={[{ words: STARTERS.say }]}
                   >
                     <TreeItem
                       role="treeitem"
@@ -308,30 +336,40 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                           selectAttribute(section.id, PIPELINE_ROW, true)
                         return (
                           <>
-                            <AttributeRow
-                              role="treeitem"
-                              aria-level={2}
-                              aria-selected={chosen}
-                              data-roving
-                              tabIndex={-1}
-                              label={PIPELINE_ROW}
-                              value={
-                                pipeline
-                                  ? pipelineLabel(pipeline)
-                                  : first
-                                    ? `Not yet ${pipelineLabel(first)}'s`
-                                    : null
-                              }
-                              proposals={pipeline ? 0 : proposed.length}
-                              selected={chosen}
-                              onClick={choose}
-                              onKeyDown={(event) => {
-                                if (isActivate(event)) {
-                                  event.preventDefault()
-                                  choose()
+                            <AddToAgentMenu
+                              items={[
+                                {
+                                  pipelineId: group.summary.id,
+                                  sectionIds: [section.id],
+                                },
+                              ]}
+                              starters={pipelineRowStarters(section)}
+                            >
+                              <AttributeRow
+                                role="treeitem"
+                                aria-level={2}
+                                aria-selected={chosen}
+                                data-roving
+                                tabIndex={-1}
+                                label={PIPELINE_ROW}
+                                value={
+                                  pipeline
+                                    ? pipelineLabel(pipeline)
+                                    : first
+                                      ? `Not yet ${pipelineLabel(first)}'s`
+                                      : null
                                 }
-                              }}
-                            />
+                                proposals={pipeline ? 0 : proposed.length}
+                                selected={chosen}
+                                onClick={choose}
+                                onKeyDown={(event) => {
+                                  if (isActivate(event)) {
+                                    event.preventDefault()
+                                    choose()
+                                  }
+                                }}
+                              />
+                            </AddToAgentMenu>
                             {pipeline && (
                               <AttributeRow
                                 role="treeitem"
@@ -376,33 +414,45 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                             if (ends.length > 0 && both) requestFit(both)
                           }
                           return (
-                            <AttributeRow
+                            <AddToAgentMenu
                               key={claim.attribute}
-                              role="treeitem"
-                              aria-level={2}
-                              aria-selected={chosen}
-                              data-roving
-                              tabIndex={-1}
-                              label={claim.attribute}
-                              value={claim.value}
-                              sources={claim.citations.length}
-                              proposals={proposalCount(section, claim)}
-                              selected={chosen}
-                              onClick={choose}
-                              onKeyDown={(event) => {
-                                if (isActivate(event)) {
-                                  event.preventDefault()
-                                  choose()
-                                } else if (event.key === "ArrowLeft") {
-                                  event.preventDefault()
-                                  treeRef.current
-                                    ?.querySelector<HTMLElement>(
-                                      `[data-section="${CSS.escape(section.id)}"]`
-                                    )
-                                    ?.focus()
-                                }
-                              }}
-                            />
+                              refs={[
+                                {
+                                  kind: "claim",
+                                  owner: "section",
+                                  ownerId: section.id,
+                                  attribute: claim.attribute,
+                                },
+                              ]}
+                              starters={sectionClaimStarters(section, claim)}
+                            >
+                              <AttributeRow
+                                role="treeitem"
+                                aria-level={2}
+                                aria-selected={chosen}
+                                data-roving
+                                tabIndex={-1}
+                                label={claim.attribute}
+                                value={claim.value}
+                                sources={claim.citations.length}
+                                proposals={proposalCount(section, claim)}
+                                selected={chosen}
+                                onClick={choose}
+                                onKeyDown={(event) => {
+                                  if (isActivate(event)) {
+                                    event.preventDefault()
+                                    choose()
+                                  } else if (event.key === "ArrowLeft") {
+                                    event.preventDefault()
+                                    treeRef.current
+                                      ?.querySelector<HTMLElement>(
+                                        `[data-section="${CSS.escape(section.id)}"]`
+                                      )
+                                      ?.focus()
+                                  }
+                                }}
+                              />
+                            </AddToAgentMenu>
                           )
                         })}
                     </div>

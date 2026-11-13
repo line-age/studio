@@ -74,11 +74,14 @@ describe("evidence in the right panel", () => {
     )
     expect(detail).toHaveTextContent("Score 0.99.")
     expect(detail).toHaveTextContent("Confirming cites both editions.")
+    // Nothing decides: one button closes, the other only asks the Agent.
     expect(
       within(detail)
         .getAllByRole("button")
-        .map((button) => button.getAttribute("aria-label"))
-    ).toEqual(["Close the claim"])
+        .map(
+          (button) => button.getAttribute("aria-label") ?? button.textContent
+        )
+    ).toEqual(["Close the claim", "ProposedAsk the Agent about this"])
   })
 
   it("marks a section with a proposed end as waiting for a decision", async () => {

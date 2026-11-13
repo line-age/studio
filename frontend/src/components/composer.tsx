@@ -15,6 +15,7 @@ export function Composer({
   onAttach,
   attachments,
   inputRef,
+  draft,
   className,
 }: {
   placeholder: string
@@ -24,10 +25,22 @@ export function Composer({
   attachments?: ReactNode
   /** The message box, for moving the cursor into it. */
   inputRef?: Ref<HTMLTextAreaElement>
+  /**
+   * Words to put in the message box, such as a starter question. A new
+   * `nonce` puts them in again; the person can change them before sending.
+   */
+  draft?: { text: string; nonce: number }
   className?: string
 }) {
   const id = useId()
-  const [message, setMessage] = useState("")
+  const [message, setMessage] = useState(draft?.text ?? "")
+  const [drafted, setDrafted] = useState(draft?.nonce)
+  // A new draft replaces what is in the box (React's "adjust state on a prop
+  // change" pattern: set during render, no effect).
+  if (draft && draft.nonce !== drafted) {
+    setDrafted(draft.nonce)
+    setMessage(draft.text)
+  }
   const empty = message.trim().length === 0
 
   return (
@@ -38,7 +51,9 @@ export function Composer({
       )}
       onSubmit={(event) => {
         event.preventDefault()
-        if (!empty) onSend?.(message)
+        if (empty || !onSend) return
+        onSend(message)
+        setMessage("")
       }}
     >
       {attachments && (
