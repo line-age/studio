@@ -298,24 +298,21 @@ describe("Studio panels", () => {
     ])
   })
 
-  it("lists the sections of a first-seen group once it is opened", async () => {
+  it("lists a first-seen group's sections on the right, not in the list", async () => {
     const user = userEvent.setup()
     act(() => useStudio.getState().setList("sections"))
     await renderPanels()
     const list = screen.getByRole("listbox", { name: "Sections" })
+    // The list has one row per group and nothing to open under it.
+    expect(
+      within(list).queryByRole("button", { name: /^List the sections/ })
+    ).toBeNull()
+    await user.click(within(list).getByRole("option", { name: /1937 edition/ }))
     expect(within(list).queryByText("Unnamed section")).toBeNull()
-    await user.click(
-      screen.getByRole("button", {
-        name: "List the sections first seen in the 1937 edition",
-      })
-    )
-    const row = within(list)
-      .getByText("Unnamed section")
-      .closest("[role=option]")
-    expect(row).toHaveTextContent("0/2")
-    expect(row).toHaveTextContent("Not started")
-    await user.click(row!)
-    expect([...useStudio.getState().selection]).toEqual(["s-4"])
+    const row = screen.getByRole("treeitem", { name: /Unnamed section/ })
+    await user.click(row)
+    // Reading one section keeps the group selected.
+    expect([...useStudio.getState().selection]).toEqual(["s-2", "s-3", "s-4"])
     // The one section opens on the right, to its claims.
     expect(useStudio.getState().selectedSectionId).toBe("s-4")
     const claims = screen.getByRole("group", { name: /^Claims of / })

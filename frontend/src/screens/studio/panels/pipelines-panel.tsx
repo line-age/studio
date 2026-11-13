@@ -30,17 +30,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import {
-  citedLabel,
   filterCounts,
   formatCount,
   geometryBounds,
   plural,
-  sectionLabel,
   summaryProgress,
   type PipelineSummary,
   type SearchHit,
 } from "@/data/derive"
-import { sectionStatus } from "@/data/status"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
@@ -395,17 +392,13 @@ function PipelineList({
   const { edition, list } = useStudioData()
   const rule = useSettings((s) => s.requiredAttributes)
   const groups = useSelectionGroups()
-  const selection = useStudio((s) => s.selection)
   const select = useStudio((s) => s.select)
   const selectPipeline = useStudio((s) => s.selectPipeline)
-  const selectSection = useStudio((s) => s.selectSection)
   const addToSelection = useStudio((s) => s.addToSelection)
   const toggleSelected = useStudio((s) => s.toggleSelected)
   const requestFit = useStudio((s) => s.requestFit)
   const onlyInView = useStudio(listFollowsMap)
   const [descending, setDescending] = useState(false)
-  /** The first-seen groups whose sections are listed. They start closed. */
-  const [opened, setOpened] = useState<ReadonlySet<string>>(new Set())
   const attachments = useSelectionAttachments()
   const listRef = useRef<HTMLDivElement>(null)
   /** The row last clicked or ticked: where a Shift-click run starts. */
@@ -472,12 +465,6 @@ function PipelineList({
     else selectPipeline(summary.id, idsOf(summary))
     requestFit(summary.bounds)
   }
-  const toggleOpened = (id: string) =>
-    setOpened((had) => {
-      const next = new Set(had)
-      if (!next.delete(id)) next.add(id)
-      return next
-    })
   const allShown =
     rows.length > 0 &&
     rows.every((row) => checkedOf.get(row.summary.id) === "checked")
@@ -505,7 +492,6 @@ function PipelineList({
       ) : (
         (summary.firstSeen?.label ?? summary.name)
       )
-    const expanded = opened.has(summary.id)
     return (
       <Fragment key={summary.id}>
         {/* On a row of the selection the menu offers all of the selection. */}
@@ -593,12 +579,6 @@ function PipelineList({
                 <StatusBadge status={summary.status} />
               )
             }
-            {...(summary.unassigned &&
-              !hit && {
-                expanded,
-                onToggle: () => toggleOpened(summary.id),
-                toggleLabel: `${expanded ? "Hide" : "List"} the sections first seen in the ${summary.firstSeen?.label ?? summary.name}`,
-              })}
             onClick={(event) => open(event.shiftKey)}
             onKeyDown={(event) => {
               if (event.target !== event.currentTarget) return
@@ -610,92 +590,10 @@ function PipelineList({
               } else if (isActivate(event)) {
                 event.preventDefault()
                 open()
-              } else if (
-                summary.unassigned &&
-                !hit &&
-                ((event.key === "ArrowRight" && !expanded) ||
-                  (event.key === "ArrowLeft" && expanded))
-              ) {
-                event.preventDefault()
-                toggleOpened(summary.id)
               }
             }}
           />
         </AddToAgentMenu>
-        {/* The sections of a first-seen group, once it is opened. */}
-        {!hit &&
-          expanded &&
-          summary.sections.map((section) => {
-            const openSection = () => {
-              selectSection(section.id)
-              requestFit(geometryBounds(section.geometry))
-            }
-            return (
-              <AddToAgentMenu
-                key={section.id}
-                items={
-                  selection.has(section.id)
-                    ? attachments
-                    : [{ pipelineId: summary.id, sectionIds: [section.id] }]
-                }
-              >
-                <PipelineRow
-                  indent
-                  role="option"
-                  aria-selected={selection.has(section.id)}
-                  data-roving
-                  tabIndex={-1}
-                  selected={selection.has(section.id)}
-                  checked={selection.has(section.id) ? "checked" : "unchecked"}
-                  checkLabel={`Select ${sectionLabel(section)}`}
-                  onCheck={() => toggleSelected([section.id])}
-                  name={sectionLabel(section)}
-                  cells={
-                    <>
-                      {columns.detail && (
-                        <>
-                          <ListCell column="code" className="type-ui-mono-xs">
-                            {section.name === null ? null : section.code}
-                          </ListCell>
-                          <ListCell column="sections" />
-                        </>
-                      )}
-                      {columns.bar && <ListCell column="bar" />}
-                      {columns.attributes.map((attribute) => {
-                        const value = section.claims.find(
-                          (claim) => claim.attribute === attribute
-                        )?.value
-                        return (
-                          <ListCell key={attribute} column="attribute">
-                            {value ? (
-                              <span className="truncate text-foreground">
-                                {value}
-                              </span>
-                            ) : (
-                              <StatusLabel status="unknown" />
-                            )}
-                          </ListCell>
-                        )
-                      })}
-                    </>
-                  }
-                  progress={progressCell(citedLabel(section, rule))}
-                  status={<StatusBadge status={sectionStatus(section, rule)} />}
-                  onClick={openSection}
-                  onKeyDown={(event) => {
-                    if (event.target !== event.currentTarget) return
-                    if (event.key === " ") {
-                      event.preventDefault()
-                      toggleSelected([section.id])
-                    } else if (isActivate(event)) {
-                      event.preventDefault()
-                      openSection()
-                    }
-                  }}
-                />
-              </AddToAgentMenu>
-            )
-          })}
         {/* The sections the search found, each one a way straight in. */}
         {hit &&
           search &&

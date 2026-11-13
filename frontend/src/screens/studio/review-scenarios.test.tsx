@@ -232,16 +232,12 @@ describe("reviewing", () => {
     expect(
       screen.getByRole("combobox", { name: "Search sections" })
     ).toBeVisible()
+    // A group's sections are listed on the right, where they are read.
     await user.click(
-      screen.getByRole("button", {
-        name: "List the sections first seen in the 1937 edition",
-      })
+      within(sections).getByRole("option", { name: /1937 edition/ })
     )
-    const section = within(sections)
-      .getByText("Unnamed section")
-      .closest<HTMLElement>("[role=option]")!
+    const section = screen.getByRole("treeitem", { name: /Unnamed section/ })
     expect(section).toHaveTextContent("0/2")
-    expect(section).toHaveTextContent("Not started")
     await user.click(section)
     // In no pipeline, one proposed: the Pipeline row says so; no Owner row.
     const pipeline = rowOf("Unnamed section", "Pipeline")

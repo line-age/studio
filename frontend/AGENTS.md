@@ -276,6 +276,9 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - Reading is not selecting. A click on a section in the right panel opens it (or
   closes the one being read) and the map draws it heavier (`sections-reading`); only
   the boxes, the list and the map change the selection.
+- The left list has one row per pipeline or first-seen group and nothing opens under
+  it: a row's sections are listed in the right panel only, so they are never shown
+  twice. Search is the exception; it lists the sections it found under each hit.
 - Progress is said one way, with its noun, from `derive.ts`: a pipeline "4/6 done", a
   section "2/3 cited" (required claims, by the rule in Settings), a group in no
   pipeline "2 sections". No Unknown count on a section row; Unknown is a word on a
