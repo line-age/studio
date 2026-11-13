@@ -253,6 +253,6 @@ appears in; those are claims with sources.
 ## No pipelines yet
 
 Data that has only sections leaves `pipelines` empty and every `pipelineId` null. Studio
-then opens on the Sections list, the sections under the edition that is the first to
-show them, and the Pipelines list says there are none. This is how data read from the
+then opens grouped by edition, the sections under the edition that is the first to
+show them; grouped by pipeline they are one row, "No pipeline". This is how data read from the
 Lineage store looks today; see "Real data from store" in the repo `README.md`.

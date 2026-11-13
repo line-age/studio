@@ -15,7 +15,7 @@ All names here are invented.
 | R3  | List every section with no owner     | Filters, tick Owner under "Unknown in", "Show n sections"        | A chip "Unknown owner"; counts and list narrowed; the section's Owner reads Unknown                  |
 | R4  | Find what waits for a decision       | Click "Needs your decision". Open the pipeline, then the section | The claim carries "1 proposal". The proposed value is not shown as cited                             |
 | R5  | Work through sections in no pipeline | Open a first-seen group. Click a section                         | Its status and "0/3"; its claims on the right                                                        |
-| R6  | See an earlier edition               | Choose it in "As of the ... edition"                             | List, counts and map as that edition shows them; the link carries the edition                        |
+| R6  | Group the same sections another way  | Choose Edition in "Group by"                                     | Title, column and rows follow; selection, filters and map stay; the link carries the grouping        |
 | R7  | Hand a set to the Agent              | Tick two pipelines. Right click one, "Add to the Agent chat"     | Agent panel open, both attached, cursor in the message box                                           |
 | R8  | Change what counts as done           | Settings, untick an attribute                                    | Every count changes at once                                                                          |
 
