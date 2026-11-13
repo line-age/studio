@@ -31,14 +31,14 @@ Tick pipelines in the list, click lines on the map, or draw a loop around an are
 selection can span several pipelines; the right panel lists it grouped by pipeline, with
 each section opening to its claims.
 
-<img src="docs/screenshots/multi-select.jpg" alt="Twenty-nine sections in seven pipelines selected with the lasso, listed by pipeline on the right" width="100%">
+<img src="docs/screenshots/multi-select.jpg" alt="Twenty-seven sections in eight pipelines selected with the lasso, listed by pipeline on the right" width="100%">
 
 ### Ask the Agent about what you selected
 
 Any selection made on the map offers **Ask the Agent**. It opens the chat with the
 selection attached as references, one per pipeline, and the cursor in the message box.
 
-<img src="docs/screenshots/agent.jpg" alt="The Agent panel with four pipelines attached to the message being written" width="100%">
+<img src="docs/screenshots/agent.jpg" alt="The Agent panel with the selected pipelines attached to the message being written" width="100%">
 
 ### Search and filters
 
@@ -47,6 +47,20 @@ owner is Unknown. Narrow the list and the map by company, build date, the day a 
 was added, or by which claims are Unknown.
 
 <img src="docs/screenshots/filters.jpg" alt="The Filters panel: layers, Show choices, company, build date, added date and Unknown in" width="100%">
+
+### The whole map when you want it
+
+One button in the left panel's header hides both side panels and leaves the rail. The
+same button, floating at the top left of the map, brings them back. The selection stays.
+
+<img src="docs/screenshots/full-map.jpg" alt="Both side panels hidden: the rail, the full-width map with the selection highlighted, and the button that brings the panels back" width="100%">
+
+### Editions
+
+Each map edition is listed with how many of the sections it first shows are placed in a
+pipeline. Choosing an edition shows the network as that map has it.
+
+<img src="docs/screenshots/editions.jpg" alt="The Editions panel: two editions, each with a bar for how many of its sections are in a pipeline" width="100%">
 
 ## Quick start
 
