@@ -22,12 +22,11 @@ import {
 } from "@/components/ui/combobox"
 import {
   addedSpan,
-  attributeNames,
   buildYearSpan,
   companyCounts,
   filterCounts,
   formatCount,
-  matchesUnknownIn,
+  unknownCounts,
   plural,
 } from "@/data/derive"
 import { cn } from "@/lib/utils"
@@ -120,13 +119,10 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
       ? counts.all
       : counts.status[criteria.status]
   }, [summaries, criteria, onlyInView, view])
-  // Per attribute: how many pipelines have a section where it is Unknown.
+  // Per attribute: how many sections have it Unknown.
   const attributes = useMemo(
     () =>
-      attributeNames(summaries).map((name) => ({
-        name,
-        count: summaries.filter((s) => matchesUnknownIn(s, [name])).length,
-      })),
+      [...unknownCounts(summaries)].map(([name, count]) => ({ name, count })),
     [summaries]
   )
   const allCompanies = useMemo(() => companyCounts(summaries), [summaries])

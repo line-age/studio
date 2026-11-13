@@ -410,16 +410,36 @@ export function matchesUnknownIn(
   return matchesCriteria(summary, { ...NO_CRITERIA, unknownIn: attributes })
 }
 
-/** Each company of the edition with how many pipelines it has a section in. */
+/**
+ * For each attribute, how many sections have it Unknown. Sections, as every
+ * number on the screen is, not the rows that hold them.
+ */
+export function unknownCounts(
+  summaries: PipelineSummary[]
+): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const name of attributeNames(summaries)) counts.set(name, 0)
+  for (const summary of summaries) {
+    for (const section of summary.sections) {
+      const unknown = new Set(
+        section.claims.flatMap((c) => (c.value === null ? c.attribute : []))
+      )
+      for (const name of unknown) counts.set(name, (counts.get(name) ?? 0) + 1)
+    }
+  }
+  return counts
+}
+
+/** Each company of the edition with how many sections are cited as its own. */
 export function companyCounts(
   summaries: PipelineSummary[]
 ): { name: string; count: number }[] {
   const counts = new Map<string, number>()
   for (const summary of summaries) {
-    const names = new Set(
-      summary.sections.flatMap((section) => companyOf(section) ?? [])
-    )
-    for (const name of names) counts.set(name, (counts.get(name) ?? 0) + 1)
+    for (const section of summary.sections) {
+      const name = companyOf(section)
+      if (name !== null) counts.set(name, (counts.get(name) ?? 0) + 1)
+    }
   }
   return [...counts]
     .map(([name, count]) => ({ name, count }))

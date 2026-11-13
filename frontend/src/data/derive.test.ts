@@ -22,6 +22,7 @@ import {
   geometryBounds,
   inView,
   matchesUnknownIn,
+  unknownCounts,
   intersects,
   search,
   sectionStats,
@@ -158,6 +159,16 @@ describe("filters", () => {
     }
   })
 
+  it("counts the sections with an attribute Unknown, not the rows", () => {
+    // Owner is Unknown on one section of North line and on the loose one.
+    expect(unknownCounts(summaries).get("Owner")).toBe(2)
+    for (const [name, count] of unknownCounts(summaries)) {
+      expect(
+        filterCounts(summaries, { ...NO_CRITERIA, unknownIn: [name] }).all
+      ).toBe(count)
+    }
+  })
+
   it("narrows by company and by build year, on the same section", () => {
     const companies = companyCounts(summaries)
     expect(companies.length).toBeGreaterThan(0)
@@ -166,7 +177,13 @@ describe("filters", () => {
         view: null,
         companies: [name],
       })
-      expect(kept).toHaveLength(count)
+      // The number beside a company is sections, as every number is.
+      expect(
+        kept.flatMap((s) => s.sections).filter((sec) => companyOf(sec) === name)
+      ).toHaveLength(count)
+      expect(
+        filterCounts(summaries, { ...NO_CRITERIA, companies: [name] }).all
+      ).toBe(count)
       expect(
         kept.every((s) => s.sections.some((sec) => companyOf(sec) === name))
       ).toBe(true)
