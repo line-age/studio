@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { useCriteria, useSelectionGroups } from "../studio-data"
+import { ClaimDetail } from "./claim-detail"
 import { useStudio } from "../studio-store"
 
 export function PropertiesPanel() {
@@ -272,6 +273,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
           </Fragment>
         ))}
       </div>
+      <ClaimDetail />
       <PanelFooter>
         <span className="truncate">{selectionSize(groups)}</span>
       </PanelFooter>

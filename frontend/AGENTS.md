@@ -9,7 +9,8 @@ store. More screens will follow; each gets its own directory under `src/screens/
 What Studio does today: gives every section a status; lists pipelines and the sections
 in no pipeline, with counts by status, search and filters; widens that list into a
 table; selects sections across pipelines by row boxes, clicks on the map or a Lasso;
-shows the selection's claims grouped in the right panel; hands a selection to the Agent
+shows the selection's claims grouped in the right panel, and one claim in full with
+its sources and any proposal; hands a selection to the Agent
 chat as references; shows the network as of the edition chosen; keeps the view in the
 URL. Nothing can be edited and the Agent does not answer yet. The repo `README.md` one level
 up shows it with screenshots; keep those current when the screen changes visibly.
@@ -177,6 +178,11 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - A move the app makes to show a selection is quiet (`requestFit` without `follow`): it
   does not change the "in view" list. Pass `follow` only when the person asked to go
   somewhere (search hit, the app name in the breadcrumb).
+- A claim chosen in the right panel opens its detail at the bottom of that panel
+  (`panels/claim-detail.tsx`, Figma `112:566` and `112:786`): the value, any proposal
+  (`ProposalCard`) and each source (`Citation`) with the place and the quote. It is read
+  only. Accept, Reject and "Find a source" are in the drawing and left out until they
+  work. A citation shows only what the data holds: source, where, quote.
 - Notes are off the screen for now (owner, 2026-11-12): no pins, no layer row. The
   fixture still holds them. Do not bring them back without being asked.
 - The selection is a set of sections (`selection` in the Studio store) and may span

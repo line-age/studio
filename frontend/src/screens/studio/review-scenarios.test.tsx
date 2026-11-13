@@ -91,6 +91,37 @@ describe("reviewing", () => {
     expect(window.location.search).toContain("sel=s-1")
   })
 
+  it("reads the source behind a value: which one, where, and puts it away", async () => {
+    const user = await open()
+    await user.type(
+      screen.getByRole("combobox", { name: "Search sections" }),
+      "alder to{Enter}"
+    )
+    await user.click(
+      within(claimsOf("Alder to Birch")).getAllByRole("treeitem")[0]
+    )
+    const detail = screen.getByRole("region", {
+      name: "Owner of Alder to Birch",
+    })
+    expect(detail).toHaveTextContent("Alder Gas Co.")
+    expect(detail).toHaveTextContent("Cited")
+    // One source: it is shown open, with the place in it.
+    const sources = within(detail).getByRole("list", { name: "Sources" })
+    const source = within(sources).getByRole("button", { name: "1937 edition" })
+    expect(source).toHaveAttribute("aria-expanded", "true")
+    expect(sources).toHaveTextContent("Where")
+    expect(sources).toHaveTextContent("grid ref. A-1")
+    await user.click(source)
+    expect(sources).not.toHaveTextContent("grid ref. A-1")
+
+    await user.click(
+      within(detail).getByRole("button", { name: "Close the claim" })
+    )
+    expect(screen.queryByRole("region", { name: /^Owner of/ })).toBeNull()
+    // The section stays open above.
+    expect(claimsOf("Alder to Birch")).toBeVisible()
+  })
+
   it("lists every section with no owner and opens one", async () => {
     const user = await open()
     await user.click(screen.getByRole("button", { name: "Filters" }))
@@ -134,6 +165,21 @@ describe("reviewing", () => {
     // The proposed value is not shown as if it were cited.
     expect(diameter).toHaveTextContent("Unknown")
     expect(diameter).not.toHaveTextContent("8 in")
+
+    // Opening the claim shows what is proposed and on what evidence.
+    await user.click(diameter)
+    const detail = screen.getByRole("region", {
+      name: "Diameter of Birch to Cedar",
+    })
+    const proposal = within(detail).getByRole("article")
+    expect(proposal).toHaveTextContent("Unknown")
+    expect(proposal).toHaveTextContent("8 in")
+    expect(proposal).toHaveTextContent("1937 edition.")
+    expect(detail).toHaveTextContent("No source cites this claim yet.")
+    // Deciding is not built: nothing here pretends to accept or reject.
+    expect(
+      within(detail).queryByRole("button", { name: /Accept|Reject/ })
+    ).toBeNull()
   })
 
   it("works through the sections in no pipeline, one by one", async () => {

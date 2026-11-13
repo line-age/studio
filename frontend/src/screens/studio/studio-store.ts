@@ -104,6 +104,8 @@ interface StudioState {
     attribute: string,
     keep?: boolean
   ) => void
+  /** Put the claim detail away; the section stays open. */
+  closeAttribute: () => void
   toggleExpanded: (sectionId: string) => void
   /**
    * Step the selection back: from some sections to their whole pipelines
@@ -287,6 +289,7 @@ export const useStudio = create<StudioState>((set) => ({
       selectedAttribute: attribute,
       expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
     })),
+  closeAttribute: () => set({ selectedAttribute: null }),
   toggleExpanded: (sectionId) =>
     set((s) => {
       const next = new Set(s.expandedSectionIds)

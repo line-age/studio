@@ -22,24 +22,37 @@ All names here are invented.
 On the map (checked by hand, not by a test): click a line to select, more clicks add,
 Lasso selects an area, "Ask the Agent" appears above the map.
 
+## Reading a claim in full (works, tested)
+
+Click a claim under a section. Its detail docks at the bottom of the right panel; the
+cross puts it away.
+
+| #   | The person wants to            | Sees                                                                                             |
+| --- | ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| R9  | Read the source behind a value | The value marked Cited, then each source. One source is shown open: where in it, and the quote   |
+| R10 | See what a proposal says       | A card: the value now, the value proposed, and the evidence given. No source cites the claim yet |
+
 ## Editing (not built)
 
-| #   | The person wants to                                               | Where it stops today                                                                                          |
-| --- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| E1  | Read the source behind a value: which map, where on it, the quote | The claim shows only a number of sources. The data holds source, locator and quote; nothing shows them        |
-| E2  | Accept or reject a proposal                                       | The claim says "1 proposal". The proposed value and its source cannot be opened; there is no Accept or Reject |
-| E3  | Fill an Unknown value with a cited one                            | No control. Unknown is only read                                                                              |
-| E4  | Correct a cited value                                             | No control                                                                                                    |
-| E5  | Put sections into a pipeline, or make a pipeline                  | No control. On store data nothing can reach Done, because Done needs a pipeline                               |
-| E6  | Ask the Agent to find a source                                    | The message can be typed; sending does nothing; the Agent never answers                                       |
-| E7  | Undo, or review changes before they are kept                      | "Undo", "Redo" and "Review changes" are in the top bar and do nothing                                         |
+Each of these needs store to take a change from a person. Studio reads store with a
+pipeline's token, which may not accept, reject or assert for a person, so none of them
+can be built in Studio alone.
 
-Order they would have to be built in: E1 (read-only, needs no store change), then E2
-(store already has accept and reject for a person's token), then E3 and E4, then E5.
-E6 and E7 depend on those.
+| #   | The person wants to                              | Where it stops today                                                            |
+| --- | ------------------------------------------------ | ------------------------------------------------------------------------------- |
+| E2  | Accept or reject a proposal                      | The proposal can be read (R10). There is no Accept or Reject                    |
+| E3  | Fill an Unknown value with a cited one           | No control. Unknown is only read                                                |
+| E4  | Correct a cited value                            | No control                                                                      |
+| E5  | Put sections into a pipeline, or make a pipeline | No control. On store data nothing can reach Done, because Done needs a pipeline |
+| E6  | Ask the Agent to find a source                   | The message can be typed; sending does nothing; the Agent never answers         |
+| E7  | Undo, or review changes before they are kept     | "Undo", "Redo" and "Review changes" are in the top bar and do nothing           |
+
+What each waits for: E2 to E5, a way for the person using Studio to sign in to store as
+themselves; E5 also a design. E6, an Agent service. E7, E2 to E5.
 
 ## Found while writing these
 
 - Right click on a ticked row in the list handed only that row to the Agent, while the
   right panel and the map handed the whole selection. Fixed: a row of the selection now
   offers all of it (R7).
+- A claim showed only how many sources it had. Fixed: R9 and R10.
