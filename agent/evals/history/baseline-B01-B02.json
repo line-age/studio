@@ -1,0 +1,1423 @@
+{
+ "meta": {
+  "name": "baseline-B01-B02",
+  "at": "2026-11-13T23:09:53+00:00",
+  "model": "anthropic:claude-sonnet-5-5",
+  "commit": "73f3b0c",
+  "prompt": "e3b0c44298fc",
+  "repeat": 2
+ },
+ "cases": {
+  "B01-001": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "the first statement is ['failure'], not unknown"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": false,
+       "comment": "does not say store has no owner for s01"
+      },
+      "tools_ok": {
+       "score": false,
+       "comment": "did not call read_feature"
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, unknown_kept, tools_ok"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "the first statement is ['failure'], not unknown"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": false,
+       "comment": "does not say store has no owner for s01"
+      },
+      "tools_ok": {
+       "score": false,
+       "comment": "did not call read_feature"
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, unknown_kept, tools_ok"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B01-002": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.owner.accepted; does not say 'Example Pipe Line Co.'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": false,
+       "comment": "did not call read_feature"
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, tools_ok"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.owner.accepted; does not say 'Example Pipe Line Co.'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": false,
+       "comment": "did not call read_feature"
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, tools_ok"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B01-003": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "the first statement is ['failure'], not unknown; does not rest on s03.owner.candidate"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": false,
+       "comment": "does not say store has no owner for s03"
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, unknown_kept"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "the first statement is ['failure'], not unknown; does not rest on s03.owner.candidate"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": false,
+       "comment": "does not say store has no owner for s03"
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, unknown_kept"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B01-004": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "the first statement is ['failure'], not unknown; does not rest on s04.owner.rejected"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": false,
+       "comment": "does not say store has no owner for s04"
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, unknown_kept"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "the first statement is ['failure'], not unknown; does not rest on s04.owner.rejected"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": false,
+       "comment": "does not say store has no owner for s04"
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, unknown_kept"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B01-005": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": false,
+       "comment": "did not call read_feature"
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_found'"
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "tools_ok, fixed_line"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": false,
+       "comment": "did not call read_feature"
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_found'"
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "tools_ok, fixed_line"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B01-006": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "the first statement is ['failure'], not unknown; does not rest on l01.owner.accepted"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": false,
+       "comment": "does not say store has no owner for s06"
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, unknown_kept"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "the first statement is ['failure'], not unknown; does not rest on l01.owner.accepted"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": false,
+       "comment": "does not say store has no owner for s06"
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, unknown_kept"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B01-007": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on d13.owner.accepted; does not say 'Placeholder Fuel and Light Co.'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on d13.owner.accepted; does not say 'Placeholder Fuel and Light Co.'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B01-008": {
+   "behaviour": "B01",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "the first statement is ['failure'], not unknown"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": false,
+       "comment": "does not say store has no diameter for s01"
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, unknown_kept"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "the first statement is ['failure'], not unknown"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": false,
+       "comment": "does not say store has no diameter for s01"
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, unknown_kept"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B01-009": {
+   "behaviour": "B01",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.owner.accepted"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": false,
+       "comment": "does not say store has no operator for s02"
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, unknown_kept"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.owner.accepted"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": false,
+       "comment": "does not say store has no operator for s02"
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, unknown_kept"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B02-001": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.owner.accepted; does not rest on s02.diameter.accepted; does not say 'Example Pipe Line Co.'; does not say '20 in'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": false,
+       "comment": "did not call read_feature"
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, tools_ok"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.owner.accepted; does not rest on s02.diameter.accepted; does not say 'Example Pipe Line Co.'; does not say '20 in'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": false,
+       "comment": "did not call read_feature"
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, tools_ok"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B02-002": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s05.operator.accepted; does not rest on s05.operator.accepted#1; does not say 'Example Pipe Line Co.'; does not say 'Sample Gas Co.'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s05.operator.accepted; does not rest on s05.operator.accepted#1; does not say 'Example Pipe Line Co.'; does not say 'Sample Gas Co.'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B02-003": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s03.owner.candidate; does not say 'propos'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s03.owner.candidate; does not say 'propos'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B02-004": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s04.owner.rejected; does not say 'rejected'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s04.owner.rejected; does not say 'rejected'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B02-005": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s07.diameter.accepted; does not say '16 in'; does not say 'by 1938'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s07.diameter.accepted; does not say '16 in'; does not say 'by 1938'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B02-006": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on l01.name.accepted; does not rest on l01.owner.accepted; does not say 'Example trunk line'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on l01.name.accepted; does not rest on l01.owner.accepted; does not say 'Example trunk line'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B02-007": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.owner.accepted; does not say 'Example Gazette, vol. 32 no. 3'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.owner.accepted; does not say 'Example Gazette, vol. 32 no. 3'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  },
+  "B02-008": {
+   "behaviour": "B02",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s11.name.accepted; does not rest on s11.diameter.candidate; does not say 'Mockville loop'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s11.name.accepted; does not rest on s11.diameter.candidate; does not say 'Mockville loop'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+     "tools": []
+    }
+   ]
+  }
+ }
+}

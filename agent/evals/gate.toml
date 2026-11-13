@@ -1,0 +1,11 @@
+# The gates a run must hold before a change is kept (requirements R33, R42).
+
+[gates]
+# No repeat of any case, reviewed or not, may say something store does not back.
+ungrounded_max = 0
+# On cases a person has reviewed: nothing forbidden in any repeat, and each case passes
+# in more than half of its repeats. Draft cases are reported and do not gate.
+forbidden_max_reviewed = 0
+majority_reviewed = true
+# A case that passed in the run it is compared with must not fail now.
+no_regression = true

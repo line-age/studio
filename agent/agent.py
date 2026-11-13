@@ -12,6 +12,7 @@ from langgraph.graph import END, START, MessagesState, StateGraph
 
 from render import as_text, failure
 from settings import MAX_QUESTION_CHARS
+from store_client import StoreClient
 
 
 class AgentState(MessagesState):
@@ -53,7 +54,12 @@ def could_not_answer(state: AgentState) -> dict:
     }
 
 
-def build_graph():
+def build_graph(store: StoreClient | None = None):
+    """The graph. `store` is the client it reads with; evals pass one over a fake store.
+
+    Nothing reads store yet, so it is accepted and not used.
+    """
+    del store
     builder = StateGraph(AgentState)
     builder.add_node("ingress", ingress)
     builder.add_node("answer", could_not_answer)

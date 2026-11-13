@@ -30,6 +30,7 @@ FIXED_LINES = {
     "what_is_meant": (
         "What do you mean? Attach the section, claim or source you are asking about."
     ),
+    "not_found": "Store no longer has that. Attach it again from the list or the map.",
     "greeting": "Hello. Ask me about what store holds, its sources or how Studio works.",
 }
 UNKNOWN_OPENING = "Store does not say"

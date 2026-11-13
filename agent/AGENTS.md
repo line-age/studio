@@ -6,8 +6,10 @@ it does, takes in and gives out is in the controlplane's
 this file says how it is built and the rules for working on it. It wins over any file
 above it for anything inside `agent/`.
 
-State: a scaffold. The graph answers every question with the fixed "could not answer"
-line. Behaviours are added one at a time, each with its eval first.
+State: the contract, the store client and the eval harness are built; no behaviour yet.
+The graph answers every question with the fixed "could not answer" line, and every
+case fails, as the saved baseline shows. Behaviours are added one at a time, each with
+its eval first.
 
 ## Rules
 
@@ -36,13 +38,16 @@ line. Behaviours are added one at a time, each with its eval first.
 | --- | --- |
 | `graph.py` | Exposes the graph to the server. Nothing else |
 | `agent.py` | The graph. No serving code, no checkpointer |
-| `schemas.py` | The answer Studio renders: typed statements with references |
-| `render.py` | The fixed lines, and the one place values become words |
+| `schemas.py` | The contract: the question, the draft the model writes, the answer Studio renders |
+| `render.py` | The fixed lines, and the one place values become words: fills the model's slots from what was read |
+| `contract/` | The question and answer as JSON Schema, with examples; checked against the code |
+| `prompts.py` | The prompts, reviewed like code |
 | `settings.py` | Settings from the environment, and the tracing switch |
 | `serve.py` | Starts the service: decides tracing, then hands over to `langgraph dev` |
 | `store_client.py` | Store over HTTP. Only GET can leave it; it keeps a listed set of fields (no people's names), checks attribute keys and ids, and flags a list that may be cut off |
 | `evals/make_world.py` | Makes the invented store states (`worlds/`) that tests and evals run on |
 | `evals/fake_store.py` | Serves one world through the real store client; can be told to fail |
+| `evals/` | Cases, checks, gates, runs and reports: see `evals/README.md` |
 | `tests/` | Offline: no network, no key, no trace |
 | `Dockerfile` | The service for a local stack |
 
