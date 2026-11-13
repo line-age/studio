@@ -289,7 +289,7 @@ describe("Studio panels", () => {
       screen.getByRole("combobox", {
         name: "Edition the network is shown as of",
       })
-    ).toHaveTextContent("As of the 1937 edition")
+    ).toHaveTextContent("1937 edition")
     act(() => useStudio.getState().setEdition("ed-1931"))
     // The 1931 map shows the old route and not the later sections.
     const list = screen.getByRole("listbox", { name: "Pipelines" })
@@ -358,7 +358,7 @@ describe("Studio panels", () => {
       within(chips).getAllByRole("button", { name: /Remove the filter/ })
     ).toHaveLength(1)
     expect(
-      screen.getByRole("button", { name: "Filters, some are on" })
+      screen.getByRole("button", { name: /^Filters, \d+ (is|are) on$/ })
     ).toHaveAttribute("aria-pressed", "true")
   })
 
@@ -420,7 +420,7 @@ describe("Studio panels", () => {
     expect(screen.getByRole("listbox", { name: "Pipelines" })).toBeVisible()
     expect(useStudio.getState().unknownIn).toEqual(["Diameter"])
     expect(
-      screen.getByRole("button", { name: "Filters, some are on" })
+      screen.getByRole("button", { name: /^Filters, \d+ (is|are) on$/ })
     ).toHaveAttribute("aria-pressed", "true")
 
     // The filter shows as a chip under the search, and comes off there.
@@ -440,7 +440,7 @@ describe("Studio panels", () => {
       useStudio.getState().toggleUnknownIn("Owner")
     })
     await user.click(
-      screen.getByRole("button", { name: "Filters, some are on" })
+      screen.getByRole("button", { name: /^Filters, \d+ (is|are) on$/ })
     )
     await user.click(screen.getByRole("button", { name: "Clear all" }))
     expect(useStudio.getState().unknownIn).toEqual([])

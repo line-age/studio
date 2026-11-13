@@ -1,6 +1,7 @@
 import { act, render, screen, within } from "@testing-library/react"
 import { Suspense, type ReactNode } from "react"
-import { beforeEach, describe, expect, it } from "vitest"
+import userEvent from "@testing-library/user-event"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { testNetwork } from "@/test/network"
 
@@ -29,9 +30,11 @@ const network = () => Promise.resolve(testNetwork())
 function Screen({
   data,
   wide,
+  toggleWide = () => {},
 }: {
   data: ReturnType<typeof network>
   wide: boolean
+  toggleWide?: () => void
 }) {
   return (
     <Suspense fallback="Loading">
@@ -50,7 +53,7 @@ function Screen({
               width: wide ? 760 : 300,
               min: 300,
               wide,
-              toggleWide: () => {},
+              toggleWide,
             }}
           >
             <StudioDataProvider network={data}>
@@ -65,11 +68,16 @@ function Screen({
 }
 
 /** Renders the list; the returned function widens it into a table or back. */
-async function renderList({ wide = false } = {}) {
+async function renderList({
+  wide = false,
+  toggleWide,
+}: { wide?: boolean; toggleWide?: () => void } = {}) {
   const data = network()
   let rerender: (ui: ReactNode) => void = () => {}
   await act(async () => {
-    rerender = render(<Screen data={data} wide={wide} />).rerender
+    rerender = render(
+      <Screen data={data} wide={wide} toggleWide={toggleWide} />
+    ).rerender
   })
   return (next: boolean) =>
     act(() => rerender(<Screen data={data} wide={next} />))
@@ -158,5 +166,22 @@ describe("Counts and the map view", () => {
     const whole = await allCount()
     await pickStatus("Not started")
     expect(await allCount()).toBe(whole)
+  })
+
+  it("says the status of the edition in one line, to read, not to click", async () => {
+    await renderList()
+    const line = screen.getByText(/not started/)
+    expect(line.tagName).toBe("P")
+    expect(within(line).queryByRole("button")).toBeNull()
+  })
+
+  it("folds the table to open the filters and unfolds it on the way back", async () => {
+    const user = userEvent.setup()
+    const toggleWide = vi.fn()
+    await renderList({ wide: true, toggleWide })
+    await user.click(screen.getByRole("button", { name: /^Filters/ }))
+    expect(toggleWide).toHaveBeenCalledTimes(1)
+    await user.click(screen.getByRole("button", { name: "Back to the list" }))
+    expect(toggleWide).toHaveBeenCalledTimes(2)
   })
 })

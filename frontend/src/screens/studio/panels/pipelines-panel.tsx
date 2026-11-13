@@ -38,7 +38,7 @@ import {
   type PipelineSummary,
   type SearchHit,
 } from "@/data/derive"
-import { STATUS_LABEL } from "@/data/status"
+import { STATUSES, STATUS_LABEL } from "@/data/status"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
@@ -96,6 +96,23 @@ export function PipelinesPanel() {
   const panelWidth = usePanelWidth()
   /** The filters open in place of the list, in this same panel. */
   const [mode, setMode] = useState<"list" | "filters">("list")
+  /** The table was folded to open the filters: unfold it on the way back. */
+  const folded = useRef(false)
+  const openFilters = () => {
+    // Filters are a narrow form: they open at the list's own width.
+    if (panelWidth?.wide) {
+      folded.current = true
+      panelWidth.toggleWide()
+    }
+    setMode("filters")
+  }
+  const closeFilters = () => {
+    setMode("list")
+    if (folded.current) {
+      folded.current = false
+      panelWidth?.toggleWide()
+    }
+  }
   const filtered = useStudio(filtersApplied)
 
   // A list widened into a table holds everything: the map beside it is
@@ -115,6 +132,20 @@ export function PipelinesPanel() {
       all: pick(filterCounts(everySection, criteria)),
     }
   }, [everySection, criteria, view])
+
+  // The status of the whole edition, after the filters: read, not clicked.
+  // Choosing a status is a filter, in Filters.
+  const statusLine = useMemo(() => {
+    const counts = filterCounts(everySection, criteria)
+    const parts = STATUSES.filter((s) => counts.status[s] > 0).map(
+      (s) =>
+        `${formatCount(counts.status[s])} ${STATUS_LABEL[s].toLocaleLowerCase()}`
+    )
+    if (counts.needsDecision > 0) {
+      parts.push(`${formatCount(counts.needsDecision)} to decide`)
+    }
+    return parts.join(" · ")
+  }, [everySection, criteria])
 
   const searching = query.trim().length > 0
   const activeIndex = Math.min(active, Math.max(hits.length - 1, 0))
@@ -181,6 +212,9 @@ export function PipelinesPanel() {
     }
   }
 
+  /** How many filters are on, as the chips list them. */
+  const onCount = searching && whole ? 0 : chips.length
+
   function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
       if (query.length > 0) {
@@ -205,7 +239,7 @@ export function PipelinesPanel() {
   }
 
   if (mode === "filters") {
-    return <FiltersPanel onBack={() => setMode("list")} />
+    return <FiltersPanel onBack={closeFilters} />
   }
 
   return (
@@ -293,14 +327,32 @@ export function PipelinesPanel() {
             <Button
               variant={filtered ? "secondary" : "outline"}
               size="icon"
-              aria-label={filtered ? "Filters, some are on" : "Filters"}
+              aria-label={
+                filtered
+                  ? `Filters, ${plural(onCount, "is on", "are on")}`
+                  : "Filters"
+              }
               aria-pressed={filtered}
-              onClick={() => setMode("filters")}
+              className="relative"
+              onClick={openFilters}
             >
               <Icon name="filter" />
+              {filtered && onCount > 0 && (
+                <span
+                  aria-hidden
+                  className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 type-ui-mono-xs text-primary-foreground"
+                >
+                  {onCount}
+                </span>
+              )}
             </Button>
           </div>
         </div>
+        {statusLine && (
+          <p className="type-ui-xs text-muted-foreground tabular-nums">
+            {statusLine}
+          </p>
+        )}
         {chips.length > 0 && (
           <div
             role="group"
