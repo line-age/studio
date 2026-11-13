@@ -257,7 +257,9 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   answer contract (only what store holds, every statement referenced, no writes) is in
   the plan; the service is later work.
 - Help (`src/screens/studio/help/`): a tour that starts by itself on a first visit
-  (remembered in the browser as `studio.tour-seen`) and a Help dialog. Both read their
+  (remembered in the browser as `studio.tour-seen`) and a Help dialog. The Help button
+  is a menu (the owner, 2026-11-13): "Take the tour", "Ask the Agent" (opens the Agent
+  with the cursor in the message box) and "Help topics" (the dialog). Both read their
   words from `help/steps.ts`; never write the same text twice. An area is found by its
   `data-tour` name; a step that needs a panel open says so with `needs`. A feature that lands gets a step there and a `data-tour` name on
   its area; a step covers only what works. `help.test.tsx` fails when a step's area

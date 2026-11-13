@@ -80,7 +80,7 @@ export const HELP_STEPS: readonly HelpStep[] = [
   {
     id: "settings",
     title: "Settings and Help",
-    body: "Settings decides which attributes a section needs cited to have sufficient data, and how each status is drawn on the map. Help opens these pages and this tour again.",
+    body: "Settings decides which attributes a section needs cited to have sufficient data, and how each status is drawn on the map. Help runs this tour again, opens the Agent to ask a question, and has a page on each area.",
     targets: ["settings"],
   },
 ]

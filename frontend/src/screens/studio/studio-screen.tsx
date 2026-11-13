@@ -184,11 +184,13 @@ function Frame({
   /** The centre: the map, or a message. */
   children?: ReactNode
 }) {
-  const { panel, open, togglePanel } = useLeftPanel()
+  const { panel, open, togglePanel, openPanel } = useLeftPanel()
   const hasSelection = useStudio((s) => s.selection.size > 0)
   const setList = useStudio((s) => s.setList)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const setHelpOpen = useHelp((s) => s.setDialogOpen)
+  const startTour = useHelp((s) => s.start)
+  const askAgent = useStudio((s) => s.askAgent)
   // Hiding the side panels hides both; the rail stays.
   const rightOpen = open && hasSelection
   return (
@@ -198,7 +200,20 @@ function Frame({
         trail={trail}
         onRoot={onHome}
         onSettings={attributes ? () => setSettingsOpen(true) : undefined}
-        onHelp={attributes ? () => setHelpOpen(true) : undefined}
+        help={
+          attributes
+            ? {
+                tour: () => startTour(),
+                ask: () => {
+                  openPanel("agent")
+                  // After the menu has closed and handed focus back to Help,
+                  // so the cursor ends up in the message box.
+                  setTimeout(() => askAgent([]))
+                },
+                topics: () => setHelpOpen(true),
+              }
+            : undefined
+        }
       />
       {attributes && (
         <>
