@@ -16,6 +16,7 @@ import { PanelHeader } from "@/components/panel-header"
 import { RailItem } from "@/components/rail-item"
 import { Button } from "@/components/ui/button"
 import {
+  attributeNames,
   companyOf,
   geometryBounds,
   groupsLabel,
@@ -32,6 +33,7 @@ import { ShowPanels } from "./panel-toggle"
 import { AgentPanel } from "./panels/agent-panel"
 import { PipelinesPanel, SEARCH_INPUT_ID } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
+import { SettingsDialog } from "./settings-dialog"
 import { SidePanel } from "./side-panel"
 import {
   StudioDataProvider,
@@ -134,6 +136,7 @@ function Frame({
   trail,
   onHome,
   agentWaiting = false,
+  attributes,
   left,
   right,
   busy = false,
@@ -144,6 +147,8 @@ function Frame({
   onHome?: () => void
   /** The Agent has proposals the person has not decided on. */
   agentWaiting?: boolean
+  /** The attributes of the data. With them, Settings can open. */
+  attributes?: readonly string[]
   left?: ReactNode
   right?: ReactNode
   busy?: boolean
@@ -152,11 +157,24 @@ function Frame({
 }) {
   const { panel, open, togglePanel } = useLeftPanel()
   const hasSelection = useStudio((s) => s.selection.size > 0)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   // Hiding the side panels hides both; the rail stays.
   const rightOpen = open && hasSelection
   return (
     <>
-      <TopBar networkName={networkName} trail={trail} onRoot={onHome} />
+      <TopBar
+        networkName={networkName}
+        trail={trail}
+        onRoot={onHome}
+        onSettings={attributes ? () => setSettingsOpen(true) : undefined}
+      />
+      {attributes && (
+        <SettingsDialog
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          attributes={attributes}
+        />
+      )}
       <div className="flex min-h-0 flex-1" aria-busy={busy}>
         <nav
           aria-label="Panels"
@@ -260,12 +278,14 @@ function Loaded({ linked }: { linked: UrlView }) {
   const { panel } = useLeftPanel()
   const agentWaiting = summaries.some((s) => s.needsDecision)
   const { trail, home } = useTrail()
+  const attributes = useMemo(() => attributeNames(summaries), [summaries])
   return (
     <Frame
       networkName={network.name}
       trail={trail}
       onHome={home}
       agentWaiting={agentWaiting}
+      attributes={attributes}
       left={
         <ViewTransition key={panel}>
           <div className="flex min-h-0 flex-1 flex-col">

@@ -1,9 +1,10 @@
-import { act, render, screen } from "@testing-library/react"
+import { act, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { testNetwork } from "@/test/network"
 
+import { readSettings, useSettings } from "./settings"
 import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
 
@@ -27,6 +28,8 @@ const sidePanels = () =>
   }))
 
 beforeEach(() => {
+  localStorage.clear()
+  useSettings.getState().reset()
   window.history.replaceState(null, "", "/")
   useStudio.setState(useStudio.getInitialState(), true)
   useCamera.setState(useCamera.getInitialState(), true)
@@ -114,5 +117,45 @@ describe("a shared link", () => {
     expect(s.selection.size).toBe(0)
     expect(screen.queryByRole("group", { name: "Filters in force" })).toBeNull()
     expect(screen.getByRole("listbox", { name: "Sections" })).toBeVisible()
+  })
+})
+
+describe("Settings", () => {
+  it("recounts every status at once when the rule changes, and keeps it", async () => {
+    const user = userEvent.setup()
+    await renderScreen()
+    // The dialog hides the page behind it from assistive technology.
+    const done = () =>
+      screen.getByRole("button", { name: /^Done/, hidden: true })
+    // Owner, Diameter and Build date are asked for: nothing is done yet.
+    expect(done()).toHaveTextContent("Done0")
+
+    await user.click(screen.getByRole("button", { name: "Settings" }))
+    const dialog = screen.getByRole("dialog", { name: "Settings" })
+    const rule = within(dialog).getByRole("group", {
+      name: "Attributes that must be cited",
+    })
+    expect(
+      within(rule).getByRole("checkbox", { name: /Geometry/ })
+    ).toHaveAttribute("aria-disabled", "true")
+    await user.click(within(rule).getByRole("checkbox", { name: "Build date" }))
+
+    // No reload: the counts behind the dialog have already changed.
+    expect(done()).toHaveTextContent("Done2")
+    expect(readSettings().requiredAttributes).toEqual(["Owner", "Diameter"])
+
+    // The map's lines are a setting too.
+    await user.click(
+      within(
+        within(dialog).getByRole("radiogroup", { name: "Line for In progress" })
+      ).getByRole("radio", { name: "Solid" })
+    )
+    expect(readSettings().lineStyle["in-progress"]).toBe("solid")
+  })
+
+  it("sits immediately to the left of Help", async () => {
+    await renderScreen()
+    const settings = screen.getByRole("button", { name: "Settings" })
+    expect(settings.nextElementSibling).toHaveTextContent("Help")
   })
 })

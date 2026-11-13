@@ -12,8 +12,8 @@ import {
 import { Button } from "@/components/ui/button"
 
 /*
- * The dark bar across the top. Its actions have nothing behind them yet; they
- * are shown as designed and do nothing when pressed.
+ * The dark bar across the top. Settings opens; the other actions have nothing
+ * behind them yet: they are shown as designed and do nothing when pressed.
  */
 export interface Crumb {
   label: string
@@ -25,12 +25,15 @@ export function TopBar({
   networkName,
   trail = [],
   onRoot,
+  onSettings,
 }: {
   networkName?: string
   /** The selected pipeline, then the selected section. */
   trail?: Crumb[]
   /** Clears the selection: what the app name does when there is a trail. */
   onRoot?: () => void
+  /** Opens Settings. Without it the button is shown and does nothing. */
+  onSettings?: () => void
 }) {
   return (
     <header className="flex h-topbar shrink-0 items-center justify-between bg-topbar px-3 text-topbar-foreground">
@@ -97,6 +100,7 @@ export function TopBar({
         </Breadcrumb>
       </div>
       <div className="flex shrink-0 items-center gap-0.5">
+        <TopbarButton onClick={onSettings}>Settings</TopbarButton>
         <TopbarButton>Help</TopbarButton>
         <TopbarButton kind="icon" aria-label="Undo">
           <Icon name="undo" />
@@ -104,7 +108,6 @@ export function TopBar({
         <TopbarButton kind="icon" aria-label="Redo">
           <Icon name="redo" />
         </TopbarButton>
-        <TopbarButton>Settings</TopbarButton>
         <TopbarButton>Export</TopbarButton>
         <Button className="ml-2.5">Review changes</Button>
       </div>
