@@ -4,51 +4,51 @@ import {
   defaultList,
   groupSelection,
   inView,
+  narrowRows,
   ownersBySection,
   search,
   summarise,
-  visiblePipelines,
   type ListKind,
   type PipelineSummary,
   type SearchHit,
   type SectionCriteria,
   type SelectionGroup,
 } from "@/data/derive"
-import type { Edition, Network, Section } from "@/data/schema"
+import type { Network, Section } from "@/data/schema"
+import { statesBySection, type StatesLookup } from "@/data/us-states"
 
 import { useSettings } from "./settings"
 import { listFollowsMap, useStudio } from "./studio-store"
 
 /*
  * The loaded network plus what the Studio screen derives from it once: the
- * edition in force and one summary per pipeline. Panels and the map read it
+ * rows of the list for the grouping chosen. Panels and the map read it
  * through useStudioData, never from a fixture.
  */
 
 interface StudioData {
   network: Network
-  edition: Edition
-  /** The list showing: the pipelines, or every section. */
+  /** How the list is grouped: by pipeline, or by edition. */
   list: ListKind
-  /** Every row of that list for the edition, whatever the filters say. */
+  /** Every row of the list, whatever the filters say. */
   summaries: PipelineSummary[]
   /**
-   * Every section of the edition, grouped by the edition that first shows
-   * it: the rows of the Sections list. Counts, filters and the map speak for
-   * the whole edition through this, whichever list is showing.
+   * Every section once, grouped by the edition that first shows it. Counts,
+   * filters and the map speak for the whole network through this, however
+   * the list is grouped.
    */
   everySection: PipelineSummary[]
   /** The owners of each section's pipeline; a section has none of its own. */
   owners: ReadonlyMap<string, readonly string[]>
+  /** The year of each edition, by id. */
+  editionYears: ReadonlyMap<string, number>
+  /** The US states each section runs through, worked out when first asked. */
+  statesOf: StatesLookup
   summaryById: Map<string, PipelineSummary>
   sectionById: Map<string, Section>
 }
 
 const StudioDataContext = createContext<StudioData | null>(null)
-
-function latestEdition(network: Network): Edition {
-  return network.editions.reduce((a, b) => (b.year > a.year ? b : a))
-}
 
 export function StudioDataProvider({
   network,
@@ -59,30 +59,33 @@ export function StudioDataProvider({
   children: ReactNode
 }) {
   const loaded = use(network)
-  const editionId = useStudio((s) => s.editionId)
   const rule = useSettings((s) => s.requiredAttributes)
   const chosen = useStudio((s) => s.list)
 
+  // These depend on the network only, not on the edition or the rule.
+  const editionYears = useMemo(
+    () => new Map(loaded.editions.map((e) => [e.id, e.year])),
+    [loaded]
+  )
+  const statesOf = useMemo(() => statesBySection(loaded.sections), [loaded])
+
   const value = useMemo<StudioData>(() => {
-    const edition =
-      loaded.editions.find((e) => e.id === editionId) ?? latestEdition(loaded)
     const list = chosen ?? defaultList(loaded)
-    const everySection = summarise(loaded, edition.id, rule, "sections")
+    const everySection = summarise(loaded, rule, "sections")
     const summaries =
-      list === "sections"
-        ? everySection
-        : summarise(loaded, edition.id, rule, list)
+      list === "sections" ? everySection : summarise(loaded, rule, list)
     return {
       network: loaded,
-      edition,
       list,
       summaries,
       everySection,
       owners: ownersBySection(loaded),
+      editionYears,
+      statesOf,
       summaryById: new Map(summaries.map((s) => [s.id, s])),
       sectionById: new Map(loaded.sections.map((s) => [s.id, s])),
     }
-  }, [loaded, editionId, rule, chosen])
+  }, [loaded, rule, chosen, editionYears, statesOf])
 
   return <StudioDataContext value={value}>{children}</StudioDataContext>
 }
@@ -97,7 +100,8 @@ export function useStudioData(): StudioData {
 
 /**
  * What the list holds: what the status and the criteria leave and, while the
- * list follows the map, only what is in the view.
+ * list follows the map, only what is in the view. A group's row is cut to
+ * the sections that pass; a pipeline's row is the pipeline whole.
  */
 export function useVisiblePipelines(): PipelineSummary[] {
   const { summaries } = useStudioData()
@@ -105,11 +109,7 @@ export function useVisiblePipelines(): PipelineSummary[] {
   const view = useStudio((s) => s.view)
   const criteria = useCriteria()
   return useMemo(
-    () =>
-      visiblePipelines(summaries, {
-        ...criteria,
-        view: onlyInView ? view : null,
-      }),
+    () => narrowRows(summaries, criteria, onlyInView ? view : null),
     [summaries, criteria, onlyInView, view]
   )
 }
@@ -118,17 +118,24 @@ export function useVisiblePipelines(): PipelineSummary[] {
 export function useSelectionGroups(): SelectionGroup[] {
   const { summaries, everySection, list } = useStudioData()
   const selection = useStudio((s) => s.selection)
+  const criteria = useCriteria()
+  // Groups as the filters leave them, so "all of a group" means all that
+  // shows. Not cut to the map view: a selection does not change on a pan.
+  const rows = useMemo(
+    () => narrowRows(summaries, criteria),
+    [summaries, criteria]
+  )
   return useMemo(() => {
-    const groups = groupSelection(summaries, selection)
+    const groups = groupSelection(rows, selection)
     if (list === "sections") return groups
-    // A section in no pipeline, picked on the map while the Pipelines list
-    // is showing, is in none of its rows: it goes under its first-seen group.
+    // Grouped by pipeline, a section whose pipeline the data does not list
+    // is in no row: it goes under its first-seen group.
     const held = new Set(groups.flatMap((g) => g.sections.map((s) => s.id)))
     const rest = new Set([...selection].filter((id) => !held.has(id)))
     return rest.size === 0
       ? groups
       : [...groups, ...groupSelection(everySection, rest)]
-  }, [summaries, everySection, list, selection])
+  }, [rows, everySection, list, selection])
 }
 
 /** What a section has to satisfy: the status chosen and the filters. */
@@ -141,11 +148,25 @@ export function useCriteria(): SectionCriteria {
   const addedTo = useStudio((s) => s.addedTo)
   const status = useStudio((s) => s.status)
   const needsDecision = useStudio((s) => s.needsDecisionOnly)
+  const memberships = useStudio((s) => s.memberships)
+  const firstSeenFrom = useStudio((s) => s.firstSeenFrom)
+  const firstSeenTo = useStudio((s) => s.firstSeenTo)
+  const changedOnly = useStudio((s) => s.changedOnly)
+  const diameters = useStudio((s) => s.diameters)
+  const states = useStudio((s) => s.states)
   const rule = useSettings((s) => s.requiredAttributes)
-  const { owners } = useStudioData()
+  const { owners, editionYears, statesOf } = useStudioData()
   return useMemo(
     () => ({
       owners,
+      editionYears,
+      statesOf,
+      memberships,
+      firstSeenFrom,
+      firstSeenTo,
+      changedOnly,
+      diameters,
+      states,
       unknownIn,
       companies,
       builtFrom,
@@ -158,6 +179,14 @@ export function useCriteria(): SectionCriteria {
     }),
     [
       owners,
+      editionYears,
+      statesOf,
+      memberships,
+      firstSeenFrom,
+      firstSeenTo,
+      changedOnly,
+      diameters,
+      states,
       unknownIn,
       companies,
       builtFrom,
@@ -172,7 +201,7 @@ export function useCriteria(): SectionCriteria {
 }
 
 /**
- * Search hits inside the filters in force, or through the whole edition when
+ * Search hits inside the filters in force, or through the whole network when
  * the person asked for that. `outside` is how many more pipelines match
  * beyond the filters. Hits in the map view are listed first.
  */

@@ -2,7 +2,8 @@ import { STATUSES, STATUS_LABEL, type StatusCounts } from "@/data/status"
 import { cn } from "@/lib/utils"
 
 const fills = {
-  "not-started": "bg-border",
+  // On a selected row the row itself is this grey: the bar turns white.
+  "not-started": "bg-border in-data-selected:bg-background",
   "in-progress": "bg-state-note",
   sufficient: "bg-state-cited-subtle",
   done: "bg-state-cited",
@@ -28,7 +29,7 @@ export function StatusShareBar({
       role="img"
       aria-label={words || "No sections"}
       className={cn(
-        "flex h-1.5 overflow-hidden rounded-full bg-border",
+        "flex h-1.5 overflow-hidden rounded-full bg-border in-data-selected:bg-background",
         className
       )}
     >

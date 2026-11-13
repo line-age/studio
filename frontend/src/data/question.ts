@@ -1,6 +1,6 @@
 import { pipelineLabel, sectionLabel } from "./derive"
 import { proposedEndsFor } from "./evidence"
-import type { AgentRef, Edition, Network, Section } from "./schema"
+import type { AgentRef, Network, Section } from "./schema"
 
 export type { AgentRef }
 
@@ -92,8 +92,6 @@ export interface QuestionItem {
 export interface Question {
   words: string
   about: QuestionItem[]
-  /** The edition in force: what the person sees the network as of. */
-  edition: { id: string; year: number }
   network: string
 }
 
@@ -170,13 +168,11 @@ export function buildQuestion({
   sections,
   refs,
   network,
-  edition,
 }: {
   words: string
   sections: readonly SectionsAttached[]
   refs: readonly AgentRef[]
   network: Network
-  edition: Edition
 }): Question {
   return {
     words: words.trim(),
@@ -184,7 +180,6 @@ export function buildQuestion({
       ...sections.flatMap((s) => sectionItems(s, network)),
       ...refs.map((ref) => refItem(ref, network)),
     ],
-    edition: { id: edition.id, year: edition.year },
     network: network.name,
   }
 }

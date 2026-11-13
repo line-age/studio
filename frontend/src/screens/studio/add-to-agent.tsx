@@ -18,7 +18,13 @@ import { useStudio, type AgentAttachment } from "./studio-store"
 export function useSelectionAttachments(): AgentAttachment[] {
   return useSelectionGroups().map((group) => ({
     pipelineId: group.summary.id,
-    sectionIds: group.whole ? "all" : group.sections.map((s) => s.id),
+    // A whole pipeline is "all" of it. A group (an edition, no pipeline) is
+    // only a way of listing: it goes as its sections, which still mean the
+    // same after the list is grouped another way.
+    sectionIds:
+      group.whole && !group.summary.unassigned
+        ? "all"
+        : group.sections.map((s) => s.id),
   }))
 }
 

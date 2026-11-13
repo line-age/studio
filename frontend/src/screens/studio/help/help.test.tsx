@@ -66,7 +66,7 @@ describe("the Help tour", () => {
     expect(screen.queryByRole("button", { name: "Back" })).toBeNull()
 
     await user.click(screen.getByRole("button", { name: "Next" }))
-    expect(await cardTitle()).toBe("Pipelines and Sections")
+    expect(await cardTitle()).toBe("The network")
     await user.click(screen.getByRole("button", { name: "Back" }))
     expect(await cardTitle()).toBe("What Studio is")
 
@@ -121,7 +121,7 @@ describe("the Help tour", () => {
     expect(screen.getByRole("log")).toBeInTheDocument()
     act(() => useHelp.getState().end())
     expect(
-      await screen.findByRole("combobox", { name: "Search pipelines" })
+      await screen.findByRole("combobox", { name: "Search name or code" })
     ).toBeInTheDocument()
   })
 
@@ -136,12 +136,54 @@ describe("the Help tour", () => {
   })
 })
 
+/** Help is a menu; its last item opens the help topics. */
+async function openTopics(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: "Help" }))
+  await user.click(await screen.findByRole("menuitem", { name: "Help topics" }))
+  return screen.findByRole("dialog", { name: "Help" })
+}
+
+describe("the Help menu", () => {
+  it("offers the tour, the Agent and the help topics", async () => {
+    const user = userEvent.setup()
+    await renderScreen()
+    await user.click(screen.getByRole("button", { name: "Help" }))
+    const items = await screen.findAllByRole("menuitem")
+    expect(items.map((item) => item.textContent)).toEqual([
+      "Take the tour",
+      "Ask the Agent",
+      "Help topics",
+    ])
+  })
+
+  it("starts the tour", async () => {
+    const user = userEvent.setup()
+    await renderScreen()
+    await user.click(screen.getByRole("button", { name: "Help" }))
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Take the tour" })
+    )
+    await waitFor(async () => expect(await cardTitle()).toBe("What Studio is"))
+  })
+
+  it("opens the Agent with the cursor in the message box", async () => {
+    const user = userEvent.setup()
+    await renderScreen()
+    await user.click(screen.getByRole("button", { name: "Help" }))
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Ask the Agent" })
+    )
+    await waitFor(() =>
+      expect(document.activeElement?.tagName).toBe("TEXTAREA")
+    )
+  })
+})
+
 describe("the Help dialog", () => {
   it("opens from Help with the tour's words, and shows an area", async () => {
     const user = userEvent.setup()
     await renderScreen()
-    await user.click(screen.getByRole("button", { name: "Help" }))
-    const dialog = await screen.findByRole("dialog", { name: "Help" })
+    const dialog = await openTopics(user)
 
     await user.click(within(dialog).getByRole("button", { name: "The map" }))
     const map = HELP_STEPS.find((step) => step.id === "map")!
@@ -155,8 +197,7 @@ describe("the Help dialog", () => {
   it("lists the words", async () => {
     const user = userEvent.setup()
     await renderScreen()
-    await user.click(screen.getByRole("button", { name: "Help" }))
-    const dialog = await screen.findByRole("dialog", { name: "Help" })
+    const dialog = await openTopics(user)
     await user.click(within(dialog).getByRole("button", { name: "Words" }))
     expect(within(dialog).getByText("Claim")).toBeVisible()
     expect(within(dialog).getByText("Unknown")).toBeVisible()
@@ -165,8 +206,7 @@ describe("the Help dialog", () => {
   it("runs the tour from the start", async () => {
     const user = userEvent.setup()
     await renderScreen()
-    await user.click(screen.getByRole("button", { name: "Help" }))
-    const dialog = await screen.findByRole("dialog", { name: "Help" })
+    const dialog = await openTopics(user)
     await user.click(
       within(dialog).getByRole("button", { name: "Take the tour again" })
     )

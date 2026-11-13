@@ -163,7 +163,6 @@ describe("asking the Agent", () => {
           on: { sectionId: "s-2", attribute: "Build date" },
         },
       ],
-      edition: { id: "ed-1937", year: 1937 },
       network: "Test network",
     })
   })

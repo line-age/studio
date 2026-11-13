@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-import type { Bounds, ListKind } from "@/data/derive"
+import type { Bounds, ListKind, Membership } from "@/data/derive"
 import { refKey, type AgentRef, type Question } from "@/data/question"
 import type { SectionStatus } from "@/data/status"
 
@@ -9,10 +9,14 @@ import type { SectionStatus } from "@/data/status"
  * (src/data); this is only selection and filters.
  */
 
-/** "pipelines" is the list: pipelines, then the sections in no pipeline. */
+/** "pipelines" is the list, however it is grouped. */
 export type LeftPanel = "pipelines" | "agent"
 
-export type LayerId = "pipelines" | "proposed" | "ghost"
+/**
+ * What the map key can switch: the paths a tool proposed, and the sections
+ * the filters leave out, drawn faint.
+ */
+export type LayerId = "proposed" | "faint"
 
 export interface FitRequest {
   bounds: Bounds
@@ -38,7 +42,6 @@ export interface AgentAttachment {
 export type MapTool = "select" | "lasso"
 
 interface StudioState {
-  editionId: string | null
   /** Keep what has a section with this status. */
   status: SectionStatus | "all"
   /** Keep what has a section with a proposal waiting. */
@@ -60,17 +63,28 @@ interface StudioState {
   /** Keep pipelines with a section added to Lineage in this range of days. */
   addedFrom: string | null
   addedTo: string | null
+  /** Keep sections that stand this way with pipelines. */
+  memberships: readonly Membership[]
+  /** Keep sections first seen on an edition of these years. */
+  firstSeenFrom: number | null
+  firstSeenTo: number | null
+  /** Keep sections changed since a person last reviewed them. */
+  changedOnly: boolean
+  /** Keep sections whose cited diameter is one of these. */
+  diameters: readonly string[]
+  /** Keep sections running through one of these states. */
+  states: readonly string[]
   layers: Record<LayerId, boolean>
   query: string
-  /** Search past the filters, through every pipeline of the edition. */
+  /** Search past the filters, through the whole network. */
   searchWholeEdition: boolean
   /**
-   * Which list the left panel shows: the pipelines, or every section. null
-   * until the person chooses: the data then decides (`defaultList`).
+   * How the list is grouped: by pipeline, or by edition. null until the
+   * person chooses: the data then decides (`defaultList`).
    */
   list: ListKind | null
   /**
-   * The pipeline picked as a whole in the Pipelines list; null once the
+   * The pipeline picked as a whole in the list; null once the
    * selection is changed any other way. Kept so a link can name it.
    */
   selectedPipelineId: string | null
@@ -97,7 +111,6 @@ interface StudioState {
   /** Questions sent in this visit, each with what was attached to it. */
   sentQuestions: SentQuestion[]
 
-  setEdition: (editionId: string) => void
   /** Choose a status; the one already chosen goes back to all. */
   setStatus: (status: SectionStatus | "all") => void
   setNeedsDecisionOnly: (on: boolean) => void
@@ -108,6 +121,11 @@ interface StudioState {
   setCompanies: (companies: readonly string[]) => void
   setBuilt: (from: number | null, to: number | null) => void
   setAdded: (from: string | null, to: string | null) => void
+  setMemberships: (memberships: readonly Membership[]) => void
+  setFirstSeen: (from: number | null, to: number | null) => void
+  setChangedOnly: (on: boolean) => void
+  setDiameters: (diameters: readonly string[]) => void
+  setStates: (states: readonly string[]) => void
   toggleLayer: (layer: LayerId) => void
   clearFilters: () => void
   setQuery: (query: string) => void
@@ -208,24 +226,58 @@ const selected = (ids: Iterable<string>) => {
 }
 
 const defaultLayers: Record<LayerId, boolean> = {
-  pipelines: true,
   proposed: true,
-  ghost: true,
+  faint: false,
+}
+
+export const LAYERS_KEY = "studio.map-key"
+
+/** The two switches as this browser last left them. */
+function readLayers(): Record<LayerId, boolean> {
+  try {
+    const held = JSON.parse(localStorage.getItem(LAYERS_KEY) ?? "{}")
+    return {
+      proposed:
+        typeof held.proposed === "boolean"
+          ? held.proposed
+          : defaultLayers.proposed,
+      faint: typeof held.faint === "boolean" ? held.faint : defaultLayers.faint,
+    }
+  } catch {
+    return defaultLayers
+  }
+}
+
+function writeLayers(layers: Record<LayerId, boolean>) {
+  try {
+    localStorage.setItem(LAYERS_KEY, JSON.stringify(layers))
+  } catch {
+    // Storage blocked or full: the switch holds for this visit only.
+  }
 }
 
 let nonce = 0
 
 /**
- * True when one of the filters behind the filter button is on. The status
- * counts and "list follows the map" have their own controls and do not count.
+ * True when one of the filters behind the filter button is on, a status or
+ * "Needs your decision" among them. "List follows the map" has its own
+ * control and does not count.
  */
 export const filtersApplied = (s: StudioState) =>
+  s.status !== "all" ||
+  s.needsDecisionOnly ||
   s.unknownIn.length > 0 ||
   s.companies.length > 0 ||
   s.builtFrom !== null ||
   s.builtTo !== null ||
   s.addedFrom !== null ||
-  s.addedTo !== null
+  s.addedTo !== null ||
+  s.memberships.length > 0 ||
+  s.firstSeenFrom !== null ||
+  s.firstSeenTo !== null ||
+  s.changedOnly ||
+  s.diameters.length > 0 ||
+  s.states.length > 0
 
 /**
  * The list holds only what is in the map view right now: the person wants it,
@@ -234,7 +286,6 @@ export const filtersApplied = (s: StudioState) =>
 export const listFollowsMap = (s: StudioState) => s.onlyInView && !s.tableOpen
 
 export const useStudio = create<StudioState>((set) => ({
-  editionId: null,
   status: "all",
   needsDecisionOnly: false,
   onlyInView: true,
@@ -245,7 +296,13 @@ export const useStudio = create<StudioState>((set) => ({
   builtTo: null,
   addedFrom: null,
   addedTo: null,
-  layers: defaultLayers,
+  memberships: [],
+  firstSeenFrom: null,
+  firstSeenTo: null,
+  changedOnly: false,
+  diameters: [],
+  states: [],
+  layers: readLayers(),
   query: "",
   searchWholeEdition: false,
   list: null,
@@ -263,13 +320,6 @@ export const useStudio = create<StudioState>((set) => ({
   agentAsked: 0,
   sentQuestions: [],
 
-  setEdition: (editionId) =>
-    set({
-      editionId,
-      ...selected([]),
-      selectedAttribute: null,
-      expandedSectionIds: new Set(),
-    }),
   setStatus: (status) =>
     set((s) => ({ status: s.status === status ? "all" : status })),
   setNeedsDecisionOnly: (needsDecisionOnly) => set({ needsDecisionOnly }),
@@ -282,7 +332,11 @@ export const useStudio = create<StudioState>((set) => ({
         : [...s.unknownIn, attribute],
     })),
   toggleLayer: (layer) =>
-    set((s) => ({ layers: { ...s.layers, [layer]: !s.layers[layer] } })),
+    set((s) => {
+      const layers = { ...s.layers, [layer]: !s.layers[layer] }
+      writeLayers(layers)
+      return { layers }
+    }),
   toggleCompany: (company) =>
     set((s) => ({
       companies: s.companies.includes(company)
@@ -292,15 +346,29 @@ export const useStudio = create<StudioState>((set) => ({
   setCompanies: (companies) => set({ companies }),
   setBuilt: (builtFrom, builtTo) => set({ builtFrom, builtTo }),
   setAdded: (addedFrom, addedTo) => set({ addedFrom, addedTo }),
-  // Only the filters behind the filter button; the status stays as chosen.
+  setMemberships: (memberships) => set({ memberships }),
+  setFirstSeen: (firstSeenFrom, firstSeenTo) =>
+    set({ firstSeenFrom, firstSeenTo }),
+  setChangedOnly: (changedOnly) => set({ changedOnly }),
+  setDiameters: (diameters) => set({ diameters }),
+  setStates: (states) => set({ states }),
+  // Every filter behind the filter button, the status among them.
   clearFilters: () =>
     set({
+      status: "all",
+      needsDecisionOnly: false,
       unknownIn: [],
       companies: [],
       builtFrom: null,
       builtTo: null,
       addedFrom: null,
       addedTo: null,
+      memberships: [],
+      firstSeenFrom: null,
+      firstSeenTo: null,
+      changedOnly: false,
+      diameters: [],
+      states: [],
     }),
   // A new search starts inside the filters again.
   setQuery: (query) =>

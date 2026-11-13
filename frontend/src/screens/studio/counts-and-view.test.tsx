@@ -1,7 +1,7 @@
 import { act, render, screen, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
 import { Suspense, type ReactNode } from "react"
-import { beforeEach, describe, expect, it } from "vitest"
+import userEvent from "@testing-library/user-event"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { testNetwork } from "@/test/network"
 
@@ -9,6 +9,8 @@ import { LeftPanelContext } from "./left-panel-context"
 import { FollowMapToggle } from "./map/follow-map-toggle"
 import { PanelWidthContext } from "./panel-width-context"
 import { PipelinesPanel } from "./panels/pipelines-panel"
+import { pickStatus, statusCount } from "@/test/status-filter"
+
 import { useSettings } from "./settings"
 import { StudioDataProvider } from "./studio-data"
 import { useStudio } from "./studio-store"
@@ -28,9 +30,11 @@ const network = () => Promise.resolve(testNetwork())
 function Screen({
   data,
   wide,
+  toggleWide = () => {},
 }: {
   data: ReturnType<typeof network>
   wide: boolean
+  toggleWide?: () => void
 }) {
   return (
     <Suspense fallback="Loading">
@@ -49,7 +53,7 @@ function Screen({
               width: wide ? 760 : 300,
               min: 300,
               wide,
-              toggleWide: () => {},
+              toggleWide,
             }}
           >
             <StudioDataProvider network={data}>
@@ -64,21 +68,22 @@ function Screen({
 }
 
 /** Renders the list; the returned function widens it into a table or back. */
-async function renderList({ wide = false } = {}) {
+async function renderList({
+  wide = false,
+  toggleWide,
+}: { wide?: boolean; toggleWide?: () => void } = {}) {
   const data = network()
   let rerender: (ui: ReactNode) => void = () => {}
   await act(async () => {
-    rerender = render(<Screen data={data} wide={wide} />).rerender
+    rerender = render(
+      <Screen data={data} wide={wide} toggleWide={toggleWide} />
+    ).rerender
   })
   return (next: boolean) =>
     act(() => rerender(<Screen data={data} wide={next} />))
 }
 
-const allCount = () =>
-  within(screen.getByRole("group", { name: "Sections by status" })).getByRole(
-    "button",
-    { name: /^All/ }
-  ).textContent
+const allCount = () => statusCount("All")
 
 const rows = () =>
   within(screen.getByRole("listbox", { name: "Pipelines" })).getAllByRole(
@@ -94,12 +99,12 @@ beforeEach(() => {
 describe("Counts and the map view", () => {
   it("keeps the status counts whole when the map moves; only the list follows", async () => {
     await renderList()
-    const whole = allCount()
+    const whole = await allCount()
     expect(rows()).toHaveLength(3)
 
     act(() => useStudio.getState().setView(NORTH_ONLY))
 
-    expect(allCount()).toBe(whole)
+    expect(await allCount()).toBe(whole)
     expect(rows()).toHaveLength(1)
     expect(rows()[0]).toHaveTextContent("North line")
   })
@@ -107,26 +112,24 @@ describe("Counts and the map view", () => {
   it("says in the list header how many of the whole are in view", async () => {
     await renderList()
     act(() => useStudio.getState().setView(NORTH_ONLY))
-    // The Pipelines list counts pipelines.
-    expect(screen.getByText("1 of 3 in view")).toBeInTheDocument()
-
-    // The Sections list counts sections, of the whole edition.
+    // Sections of the whole network, however the list is grouped.
+    const total = await allCount()
+    expect(screen.getByText(`2 of ${total} in view`)).toBeInTheDocument()
     act(() => useStudio.getState().setList("sections"))
-    const total = Number(allCount()?.replace(/\D/g, ""))
     expect(screen.getByText(`2 of ${total} in view`)).toBeInTheDocument()
   })
 
-  it("counts the whole edition in the header when the list does not follow", async () => {
+  it("counts the whole network in the header when the list does not follow", async () => {
     await renderList()
     act(() => {
       useStudio.getState().setView(NORTH_ONLY)
       useStudio.getState().setOnlyInView(false)
     })
 
-    expect(screen.getByText("3 pipelines")).toBeInTheDocument()
+    const total = await allCount()
+    expect(screen.getByText(`${total} sections`)).toBeInTheDocument()
     expect(rows()).toHaveLength(3)
     act(() => useStudio.getState().setList("sections"))
-    const total = Number(allCount()?.replace(/\D/g, ""))
     expect(screen.getByText(`${total} sections`)).toBeInTheDocument()
   })
 
@@ -157,10 +160,25 @@ describe("Counts and the map view", () => {
   })
 
   it("does not change the status counts when the person filters by a status", async () => {
-    const user = userEvent.setup()
     await renderList()
-    const whole = allCount()
-    await user.click(screen.getByRole("button", { name: /^Not started/ }))
-    expect(allCount()).toBe(whole)
+    const whole = await allCount()
+    await pickStatus("Not started")
+    expect(await allCount()).toBe(whole)
+  })
+
+  it("keeps status counts out of the list header: they are in Filters", async () => {
+    await renderList()
+    expect(screen.queryByText(/\d+ not started/)).toBeNull()
+    expect(screen.queryByText(/to decide/)).toBeNull()
+  })
+
+  it("folds the table to open the filters and unfolds it on the way back", async () => {
+    const user = userEvent.setup()
+    const toggleWide = vi.fn()
+    await renderList({ wide: true, toggleWide })
+    await user.click(screen.getByRole("button", { name: /^Filters/ }))
+    expect(toggleWide).toHaveBeenCalledTimes(1)
+    await user.click(screen.getByRole("button", { name: "Back to the list" }))
+    expect(toggleWide).toHaveBeenCalledTimes(2)
   })
 })

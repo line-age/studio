@@ -14,7 +14,7 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
 
 [Quick start](#quick-start) · [Docker](#run-in-docker) · [Real data](#real-data-from-store) · [Keys](#keys) · [Develop](#develop) · [Not there yet](#not-there-yet)
 
-<img src="docs/screenshots/studio.jpg" alt="The Pipelines list with status counts, the map with one pipeline selected, and on the right its own name, owner and operator above its sections" width="100%">
+<img src="docs/screenshots/studio.jpg" alt="The list grouped by pipeline, the map with one pipeline selected, and on the right its own name, owner and operator above its sections" width="100%">
 
 </div>
 
@@ -25,32 +25,41 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
 
 ## In this repo
 
-| Path | What |
-| --- | --- |
-| `frontend/` | The app: React 19, TypeScript, Vite, Tailwind v4, shadcn/ui, Mapbox GL JS |
-| `compose.yaml` | Builds the app and serves it with nginx, on the sample |
-| `compose.store.yaml` | The same, reading a local store |
-| `docs/screenshots/` | The images on this page |
+| Path                 | What                                                                      |
+| -------------------- | ------------------------------------------------------------------------- |
+| `frontend/`          | The app: React 19, TypeScript, Vite, Tailwind v4, shadcn/ui, Mapbox GL JS |
+| `compose.yaml`       | Builds the app and serves it with nginx, on the sample                    |
+| `compose.store.yaml` | The same, reading a local store                                           |
+| `docs/screenshots/`  | The images on this page                                                   |
 
 ## What the screen has
 
 - **Status.** Every section is Not started, In progress, Sufficient or Done, worked out
   from its claims: sufficient when the required attributes (Owner, Diameter and Build
   date unless Settings says otherwise) are cited, done when it is also in a pipeline.
-- **List.** Pipelines, then the sections in no pipeline, grouped by the map edition that
-  first shows them. A pipeline says how many of its sections are done ("4/6 done").
-  Counts by status above the list cover the whole edition and are one-click filters;
-  moving the map never changes them. A filter
-  button beside the search opens company, build date, date added and which claims are
-  Unknown. Search by pipeline, section, code or value.
+- **List.** One list of every section, under "Network" in the rail, grouped the way
+  "Group by" says. By pipeline: the pipelines, each with how many of its sections are
+  done ("4/6"), then the proposed pipelines, then one row for the sections in no
+  pipeline. By edition: one row per map edition, with the sections it is the first to
+  show. A row's sections are listed on the right. Changing the grouping changes the
+  rows only; the selection, the filters and the map stay. A filter button beside the
+  search opens
+  every filter on one screen: status, pipeline, first seen, US state, company,
+  diameter, build date, date added and which claims are Unknown. The ones that are on
+  show as chips under the search; the counts by status are in the filters. Search by
+  pipeline, section, code or value.
 - **Table.** Drag the list wider, or press the table button, and it adds the code, the
   section count, the split by status and a column per required attribute. The table
-  holds the whole edition, whatever the map shows.
-- **Edition.** One select at the top of the list: the year the network is shown as of.
-- **Map.** One line per section, solid or dotted by its status. A layers button holds
-  what the map draws and the line key; another makes the list follow the map or not.
+  holds the whole network, whatever the map shows.
+- **Edition.** One year's printing of the source map. There is none to choose: the
+  list and the map always show the whole network. To see it as an earlier map draws
+  it, filter by "First seen", or group by edition.
+- **Map.** One line per section, solid or dotted by its status. The map key says how
+  each line is drawn; its two eyes show or hide the paths a tool proposed and, faint,
+  the sections the filters leave out. Another button makes the list follow the map or
+  not.
   When it follows, the list header says how much is in view ("8 of 36 in view").
-- **Link.** The edition, status, filters, search, map position and the one section in
+- **Link.** The grouping, status, filters, search, map position and the one section in
   focus are in the address bar, so a copied link opens the same view.
 - **Settings.** Which attributes must be cited, and which statuses are drawn solid. Kept
   in the browser.
@@ -63,7 +72,7 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
 - **Help.** A ten-step tour of the screen starts on a first visit; Help in the top bar
   has the same pages, a list of the words, and runs the tour again.
 
-<img src="docs/screenshots/table.jpg" alt="The Pipelines list widened into a table, with a proposed pipeline at the end, three pipelines ticked, their sections listed by pipeline on the right" width="100%">
+<img src="docs/screenshots/table.jpg" alt="The list by pipeline widened into a table, with a proposed pipeline at the end, three pipelines ticked, their sections listed by pipeline on the right" width="100%">
 
 ## Quick start
 
@@ -119,10 +128,10 @@ server or nginx passes the request on with the token added. If store cannot be r
 refuses the token or answers in a form the app does not understand, the screen says
 which; it never falls back to the sample.
 
-Store has no pipelines yet, only sections. So Studio opens on the Sections list, with the
-sections under the map edition that first shows each one, and the Pipelines list says
-there are none. A pipeline is a `line` in store; once a person has confirmed a section
-part of one, it shows in the Pipelines list with its own name, owner and operator, and a
+Store has no pipelines yet, only sections. So Studio opens grouped by edition, with the
+sections under the map edition that first shows each one; grouped by pipeline they are
+one row, "No pipeline". A pipeline is a `line` in store; once a person has confirmed a
+section part of one, it has its own row with its name, owner and operator, and a
 `part_of` link that is only proposed shows as a proposal. An attribute store has no
 accepted claim for is Unknown.
 
@@ -148,14 +157,14 @@ code, see [`frontend/docs/fixtures.md`](frontend/docs/fixtures.md).
 
 ## Keys
 
-| Key | Does |
-| --- | --- |
-| `/` | Jump to the search box |
-| `V` / `L` | Select tool / Lasso tool |
-| `Shift` while drawing a lasso | Add to the selection |
-| `Space` on a row | Tick or untick it |
-| `Enter` on a row | Select just that one |
-| `Esc` | Cancel a loop, close the Ask bar, clear a search |
+| Key                           | Does                                             |
+| ----------------------------- | ------------------------------------------------ |
+| `/`                           | Jump to the search box                           |
+| `V` / `L`                     | Select tool / Lasso tool                         |
+| `Shift` while drawing a lasso | Add to the selection                             |
+| `Space` on a row              | Tick or untick it                                |
+| `Enter` on a row              | Select just that one                             |
+| `Esc`                         | Cancel a loop, close the Ask bar, clear a search |
 
 ## Develop
 
@@ -164,14 +173,14 @@ pnpm check   # tokens, types, lint, format, tests
 pnpm build
 ```
 
-| Path | What |
-| --- | --- |
-| `frontend/src/screens/studio/` | The Studio screen: panels, map, store |
-| `frontend/src/components/` | Lineage parts any screen can use |
-| `frontend/src/components/ui/` | shadcn components, added by the CLI |
-| `frontend/src/data/` | Schema, loader and derived values |
-| `frontend/src/data/store/` | Reading the Lineage store and turning its answers into the same schema |
-| `frontend/src/styles/tokens.css` | Theme generated from the Figma variables |
+| Path                             | What                                                                   |
+| -------------------------------- | ---------------------------------------------------------------------- |
+| `frontend/src/screens/studio/`   | The Studio screen: panels, map, store                                  |
+| `frontend/src/components/`       | Lineage parts any screen can use                                       |
+| `frontend/src/components/ui/`    | shadcn components, added by the CLI                                    |
+| `frontend/src/data/`             | Schema, loader and derived values                                      |
+| `frontend/src/data/store/`       | Reading the Lineage store and turning its answers into the same schema |
+| `frontend/src/styles/tokens.css` | Theme generated from the Figma variables                               |
 
 The design lives in Figma and the code follows it. Rules for working in this repo,
 for people and for coding agents, are in [`frontend/AGENTS.md`](frontend/AGENTS.md);

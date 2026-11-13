@@ -12,7 +12,6 @@ import {
 } from "./url-state"
 
 const full: UrlView = {
-  edition: "ed-1931",
   status: "in-progress",
   needsDecision: true,
   query: "alder gas",
@@ -22,6 +21,12 @@ const full: UrlView = {
   addedFrom: "2026-10-01",
   addedTo: "2026-10-31",
   unknownIn: ["Owner", "Build date"],
+  memberships: ["proposed", "none"],
+  firstSeenFrom: 1929,
+  firstSeenTo: 1937,
+  changedOnly: true,
+  diameters: ['8"', '12"'],
+  states: ["Georgia", "South Carolina"],
   followMap: false,
   camera: { lng: -97.305, lat: 36.412, zoom: 6.37 },
   section: "s-2",
@@ -61,8 +66,20 @@ describe("the view in the URL", () => {
     }
     expect(toSearchParams(view).toString()).toBe("l=pipelines&p=p-1")
     expect(parse("l=pipelines&p=p-1")).toEqual(view)
-    // A list the app does not have is dropped.
+    // A grouping the app does not have is dropped.
     expect(parse("l=tables").list).toBeNull()
+  })
+
+  it("opens a link from when an edition was in force as first seen up to it", () => {
+    expect(parse("e=ed-1937")).toEqual({ ...DEFAULT_VIEW, firstSeenTo: 1937 })
+    // A First seen range of the link's own wins.
+    expect(parse("e=ed-1937&f=1929-1931")).toMatchObject({
+      firstSeenFrom: 1929,
+      firstSeenTo: 1931,
+    })
+    expect(parse("e=latest")).toEqual(DEFAULT_VIEW)
+    // The edition is never written again.
+    expect(toSearchParams(parse("e=ed-1937")).toString()).toBe("f=-1937")
   })
 
   it("carries a range that is open at one end", () => {
@@ -85,7 +102,6 @@ describe("the view in the URL", () => {
     const linked = applyUrl(`?${toSearchParams(full)}`)
     expect(linked.section).toBe("s-2")
     const s = useStudio.getState()
-    expect(s.editionId).toBe("ed-1931")
     expect(s.status).toBe("in-progress")
     expect(s.onlyInView).toBe(false)
     expect(s.companies).toEqual(full.companies)

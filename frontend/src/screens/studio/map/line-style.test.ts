@@ -9,11 +9,9 @@ describe("map lines by status", () => {
       "sufficient",
       "done",
     ])
-    expect(legendText(DEFAULT_LINE_STYLE, "solid")).toBe(
-      "Solid: Sufficient, Done"
-    )
+    expect(legendText(DEFAULT_LINE_STYLE, "solid")).toBe("Sufficient or done")
     expect(legendText(DEFAULT_LINE_STYLE, "dotted")).toBe(
-      "Dotted: Not started, In progress"
+      "Not started or in progress"
     )
   })
 
@@ -24,8 +22,8 @@ describe("map lines by status", () => {
       "in-progress": "solid",
     } as const
     expect(legendText(all, "solid")).toBe(
-      "Solid: Not started, In progress, Sufficient, Done"
+      "Not started or in progress or sufficient or done"
     )
-    expect(legendText(all, "dotted")).toBe("Dotted: no status")
+    expect(legendText(all, "dotted")).toBe("No status")
   })
 })

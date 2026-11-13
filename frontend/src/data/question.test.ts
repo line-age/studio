@@ -12,7 +12,6 @@ import {
 } from "./question"
 
 const network = evidenceNetwork()
-const edition = network.editions[1]
 const section = (id: string) => network.sections.find((s) => s.id === id)!
 
 describe("a question for the Agent", () => {
@@ -33,7 +32,6 @@ describe("a question for the Agent", () => {
         ...proposalRefs(section("s-6"), "Last seen"),
       ],
       network,
-      edition,
     })
     expect(question).toEqual({
       words: "What does store say about this?",
@@ -49,7 +47,6 @@ describe("a question for the Agent", () => {
         // A proposed end is a link in store.
         { kind: "link", id: "pe-1", on: { sectionId: "s-6" } },
       ],
-      edition: { id: "ed-1937", year: 1937 },
       network: "Test network",
     })
   })
@@ -71,7 +68,6 @@ describe("a question for the Agent", () => {
         ...membershipRefs(section("s-4")),
       ],
       network,
-      edition,
     })
     expect(about).toEqual([
       {

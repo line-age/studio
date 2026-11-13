@@ -30,17 +30,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import {
-  citedLabel,
   filterCounts,
   formatCount,
   geometryBounds,
   plural,
-  sectionLabel,
   summaryProgress,
   type PipelineSummary,
   type SearchHit,
+  GROUPING,
+  MEMBERSHIP_LABEL,
 } from "@/data/derive"
-import { sectionStatus } from "@/data/status"
+import { STATUS_LABEL } from "@/data/status"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
@@ -61,16 +61,14 @@ import {
   useCamera,
   useStudio,
 } from "../studio-store"
-import { EditionSelect } from "./edition-select"
 import { FiltersPanel } from "./filters-panel"
+import { GroupBySelect } from "./group-by-select"
 import { listColumns } from "./list-columns"
-import { StatusCounts } from "./status-counts"
 
 export const SEARCH_INPUT_ID = "pipeline-search"
 
 export function PipelinesPanel() {
   const { summaries, everySection, list } = useStudioData()
-  const noun = list === "pipelines" ? "pipelines" : "sections"
   const visible = useVisiblePipelines()
   const { hits, outside } = useSearchHits()
   const whole = useStudio((s) => s.searchWholeEdition)
@@ -86,15 +84,47 @@ export function PipelinesPanel() {
   const builtFrom = useStudio((s) => s.builtFrom)
   const builtTo = useStudio((s) => s.builtTo)
   const added = useStudio((s) => formatDateRange(s.addedFrom, s.addedTo))
+  const status = useStudio((s) => s.status)
+  const setStatus = useStudio((s) => s.setStatus)
+  const needsDecisionOnly = useStudio((s) => s.needsDecisionOnly)
+  const setNeedsDecisionOnly = useStudio((s) => s.setNeedsDecisionOnly)
   const toggleUnknownIn = useStudio((s) => s.toggleUnknownIn)
   const setCompanies = useStudio((s) => s.setCompanies)
   const setBuilt = useStudio((s) => s.setBuilt)
   const setAdded = useStudio((s) => s.setAdded)
+  const memberships = useStudio((s) => s.memberships)
+  const setMemberships = useStudio((s) => s.setMemberships)
+  const firstSeenFrom = useStudio((s) => s.firstSeenFrom)
+  const firstSeenTo = useStudio((s) => s.firstSeenTo)
+  const setFirstSeen = useStudio((s) => s.setFirstSeen)
+  const changedOnly = useStudio((s) => s.changedOnly)
+  const setChangedOnly = useStudio((s) => s.setChangedOnly)
+  const diameters = useStudio((s) => s.diameters)
+  const setDiameters = useStudio((s) => s.setDiameters)
+  const states = useStudio((s) => s.states)
+  const setStates = useStudio((s) => s.setStates)
   const openHit = useOpenHit()
   const [active, setActive] = useState(0)
   const panelWidth = usePanelWidth()
   /** The filters open in place of the list, in this same panel. */
   const [mode, setMode] = useState<"list" | "filters">("list")
+  /** The table was folded to open the filters: unfold it on the way back. */
+  const folded = useRef(false)
+  const openFilters = () => {
+    // Filters are a narrow form: they open at the list's own width.
+    if (panelWidth?.wide) {
+      folded.current = true
+      panelWidth.toggleWide()
+    }
+    setMode("filters")
+  }
+  const closeFilters = () => {
+    setMode("list")
+    if (folded.current) {
+      folded.current = false
+      panelWidth?.toggleWide()
+    }
+  }
   const filtered = useStudio(filtersApplied)
 
   // A list widened into a table holds everything: the map beside it is
@@ -105,7 +135,7 @@ export function PipelinesPanel() {
     return () => setTableOpen(false)
   }, [wide, setTableOpen])
 
-  // Sections, like the status counts: in the map view, of the whole edition.
+  // Sections the filters leave: in the map view, of the whole network.
   const shown = useMemo(() => {
     const pick = (counts: ReturnType<typeof filterCounts>) =>
       criteria.status === "all" ? counts.all : counts.status[criteria.status]
@@ -119,15 +149,29 @@ export function PipelinesPanel() {
   const activeIndex = Math.min(active, Math.max(hits.length - 1, 0))
 
   // The filters in force, each with the way to take it off. A search stays
-  // inside the filters unless it was widened to the whole edition.
+  // inside the filters unless it was widened to the whole network.
   const chips: { label: string; hint: string; remove: () => void }[] = []
   if (searching && whole) {
     chips.push({
-      label: "Whole edition",
-      hint: "The search looks through every section of the edition, not only what the filters leave.",
+      label: "Whole network",
+      hint: "The search looks through every section of the network, not only what the filters leave.",
       remove: () => setWhole(false),
     })
   } else {
+    if (status !== "all") {
+      chips.push({
+        label: STATUS_LABEL[status],
+        hint: `Only sections that are ${STATUS_LABEL[status].toLocaleLowerCase()}.`,
+        remove: () => setStatus("all"),
+      })
+    }
+    if (needsDecisionOnly) {
+      chips.push({
+        label: "Needs your decision",
+        hint: "Only sections with a proposal waiting for a person.",
+        remove: () => setNeedsDecisionOnly(false),
+      })
+    }
     if (unknownIn.length > 0) {
       chips.push({
         label: `Unknown ${unknownIn.join(", ").toLocaleLowerCase()}`,
@@ -164,7 +208,52 @@ export function PipelinesPanel() {
         remove: () => setAdded(null, null),
       })
     }
+    if (changedOnly) {
+      chips.push({
+        label: "Changed since review",
+        hint: "Only sections changed since a person last reviewed them.",
+        remove: () => setChangedOnly(false),
+      })
+    }
+    if (memberships.length > 0) {
+      chips.push({
+        label: memberships.map((m) => MEMBERSHIP_LABEL[m]).join(" or "),
+        hint: "Only sections that stand this way with pipelines.",
+        remove: () => setMemberships([]),
+      })
+    }
+    if (firstSeenFrom !== null || firstSeenTo !== null) {
+      chips.push({
+        label:
+          firstSeenFrom !== null && firstSeenTo !== null
+            ? firstSeenFrom === firstSeenTo
+              ? `First seen ${firstSeenFrom}`
+              : `First seen ${firstSeenFrom} to ${firstSeenTo}`
+            : firstSeenFrom !== null
+              ? `First seen ${firstSeenFrom} or later`
+              : `First seen ${firstSeenTo} or earlier`,
+        hint: "Only sections a map of these years first shows.",
+        remove: () => setFirstSeen(null, null),
+      })
+    }
+    if (states.length > 0) {
+      chips.push({
+        label: states.length === 1 ? states[0] : plural(states.length, "state"),
+        hint: `Only sections that run through ${states.join(", ")}.`,
+        remove: () => setStates([]),
+      })
+    }
+    if (diameters.length > 0) {
+      chips.push({
+        label: `Diameter ${diameters.join(", ")}`,
+        hint: "Only sections with one of these cited diameters. Unknown is left out.",
+        remove: () => setDiameters([]),
+      })
+    }
   }
+
+  /** How many filters are on, as the chips list them. */
+  const onCount = searching && whole ? 0 : chips.length
 
   function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
@@ -190,23 +279,21 @@ export function PipelinesPanel() {
   }
 
   if (mode === "filters") {
-    return <FiltersPanel onBack={() => setMode("list")} />
+    return <FiltersPanel onBack={closeFilters} />
   }
 
   return (
     <>
       <PanelHeader
-        title={list === "pipelines" ? "Pipelines" : "Sections"}
+        title={GROUPING[list].title}
+        // Sections, however the list is grouped: a row count would change
+        // with the grouping while the same sections are shown.
         meta={
           searching
             ? `${formatCount(hits.length)} match`
-            : list === "pipelines"
-              ? onlyInView && visible.length < summaries.length
-                ? `${formatCount(visible.length)} of ${formatCount(summaries.length)} in view`
-                : plural(summaries.length, "pipeline")
-              : onlyInView
-                ? `${formatCount(shown.inView)} of ${formatCount(shown.all)} in view`
-                : plural(shown.all, "section", "sections")
+            : onlyInView && shown.inView < shown.all
+              ? `${formatCount(shown.inView)} of ${formatCount(shown.all)} in view`
+              : plural(shown.all, "section")
         }
       >
         {panelWidth && (
@@ -225,9 +312,9 @@ export function PipelinesPanel() {
       </PanelHeader>
 
       <div className="flex shrink-0 flex-col gap-2 border-b px-3 pb-2.5">
-        {/* One area of the Help tour: the edition, the search, the filters. */}
+        {/* One area of the Help tour: the grouping, the search, the filters. */}
         <div data-tour="list-tools" className="flex flex-col gap-2">
-          <EditionSelect />
+          <GroupBySelect />
           <div className="flex items-center gap-1.5">
             <div className="relative min-w-0 flex-1">
               <Icon
@@ -239,7 +326,7 @@ export function PipelinesPanel() {
                 type="search"
                 name="pipeline-search"
                 role="combobox"
-                aria-label={`Search ${noun}`}
+                aria-label="Search name or code"
                 aria-expanded={searching}
                 aria-controls="pipeline-search-results"
                 aria-activedescendant={
@@ -249,7 +336,7 @@ export function PipelinesPanel() {
                 }
                 autoComplete="off"
                 spellCheck={false}
-                placeholder={`Search ${noun}`}
+                placeholder="Search name or code"
                 value={query}
                 onChange={(event) => {
                   setQuery(event.target.value)
@@ -258,22 +345,47 @@ export function PipelinesPanel() {
                 onKeyDown={onSearchKeyDown}
                 className="pr-8 pl-8.5 [&::-webkit-search-cancel-button]:hidden"
               />
-              {!searching && (
+              {searching ? (
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label="Clear the search"
+                  className="absolute top-1 right-1 text-muted-foreground"
+                  onClick={() => {
+                    setQuery("")
+                    document.getElementById(SEARCH_INPUT_ID)?.focus()
+                  }}
+                >
+                  <Icon name="close" />
+                </Button>
+              ) : (
                 <Kbd className="absolute top-1.5 right-1.5">/</Kbd>
               )}
             </div>
             <Button
               variant={filtered ? "secondary" : "outline"}
               size="icon"
-              aria-label={filtered ? "Filters, some are on" : "Filters"}
+              aria-label={
+                filtered
+                  ? `Filters, ${plural(onCount, "is on", "are on")}`
+                  : "Filters"
+              }
               aria-pressed={filtered}
-              onClick={() => setMode("filters")}
+              className="relative"
+              onClick={openFilters}
             >
               <Icon name="filter" />
+              {filtered && onCount > 0 && (
+                <span
+                  aria-hidden
+                  className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 type-ui-mono-xs text-primary-foreground"
+                >
+                  {onCount}
+                </span>
+              )}
             </Button>
           </div>
         </div>
-        <StatusCounts />
         {chips.length > 0 && (
           <div
             role="group"
@@ -309,6 +421,16 @@ export function PipelinesPanel() {
                 {chip.label}
               </FilterChip>
             ))}
+            {chips.length > 1 && (
+              <Button
+                variant="ghost"
+                size="xs"
+                className="text-muted-foreground"
+                onClick={() => chips.forEach((chip) => chip.remove())}
+              >
+                Clear all
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -327,11 +449,11 @@ export function PipelinesPanel() {
         <div className="flex shrink-0 items-center justify-between gap-2 border-t px-3 py-1.5">
           <Hint>
             {whole
-              ? "Searching the whole edition."
+              ? "Searching the whole network."
               : `${formatCount(outside)} more ${outside === 1 ? "matches" : "match"} outside the filters.`}
           </Hint>
           <Button variant="ghost" size="xs" onClick={() => setWhole(!whole)}>
-            {whole ? "Search inside the filters" : "Search the whole edition"}
+            {whole ? "Search inside the filters" : "Search the whole network"}
           </Button>
         </div>
       )}
@@ -378,10 +500,10 @@ interface ListSearch {
 }
 
 /**
- * One of the two lists. Pipelines: the pipelines, then the proposed ones.
- * Sections: every section, grouped by the edition that first shows it. A
- * search narrows the same list to its hits and lists the sections it found
- * under each one.
+ * The list, grouped one of two ways. By pipeline: the pipelines, the
+ * proposed ones, then the sections in no pipeline as one row. By edition:
+ * every section under the edition that first shows it. A search narrows the
+ * same list to its hits and lists the sections it found under each one.
  */
 function PipelineList({
   visible,
@@ -392,32 +514,22 @@ function PipelineList({
   total: number
   search: ListSearch | null
 }) {
-  const { edition, list } = useStudioData()
+  const { list } = useStudioData()
   const rule = useSettings((s) => s.requiredAttributes)
   const groups = useSelectionGroups()
-  const selection = useStudio((s) => s.selection)
   const select = useStudio((s) => s.select)
   const selectPipeline = useStudio((s) => s.selectPipeline)
-  const selectSection = useStudio((s) => s.selectSection)
   const addToSelection = useStudio((s) => s.addToSelection)
   const toggleSelected = useStudio((s) => s.toggleSelected)
   const requestFit = useStudio((s) => s.requestFit)
+  const selection = useStudio((s) => s.selection)
   const onlyInView = useStudio(listFollowsMap)
   const [descending, setDescending] = useState(false)
-  /** The first-seen groups whose sections are listed. They start closed. */
-  const [opened, setOpened] = useState<ReadonlySet<string>>(new Set())
   const attachments = useSelectionAttachments()
   const listRef = useRef<HTMLDivElement>(null)
   /** The row last clicked or ticked: where a Shift-click run starts. */
   const anchor = useRef<string | null>(null)
 
-  // How much of each pipeline is selected: all of it, or some sections.
-  const checkedOf = new Map(
-    groups.map((g) => [
-      g.summary.id,
-      g.whole ? ("checked" as const) : ("indeterminate" as const),
-    ])
-  )
   const only = groups.length === 1 ? groups[0] : null
   const onlyId = only?.summary.id ?? null
   const idsOf = (summary: PipelineSummary) => summary.sections.map((s) => s.id)
@@ -433,7 +545,7 @@ function PipelineList({
   const all = search
     ? search.hits.map((hit) => ({ summary: hit.summary, hit }))
     : visible.map((summary) => ({ summary, hit: null }))
-  // Pipelines, then proposed pipelines; or the groups by first seen.
+  // Pipelines, proposed pipelines, then what is in none; or the editions.
   // Whichever way each runs.
   const inPipelines = all.filter((row) => row.summary.kind === "pipeline")
   const proposed = all.filter((row) => row.summary.kind === "proposed")
@@ -444,10 +556,20 @@ function PipelineList({
     loose.reverse()
   }
   const rows = [...inPipelines, ...proposed, ...loose]
-  const looseSections = loose.reduce(
-    (n, row) => n + row.summary.sections.length,
-    0
-  )
+  // How much of each row is selected: all of what it shows, or some. Counted
+  // from the row itself: a group's row is cut to the filters and the view.
+  const checkedOf = new Map<string, "checked" | "indeterminate">()
+  if (selection.size > 0) {
+    for (const { summary } of rows) {
+      const n = summary.sections.filter((s) => selection.has(s.id)).length
+      if (n > 0) {
+        checkedOf.set(
+          summary.id,
+          n === summary.sections.length ? "checked" : "indeterminate"
+        )
+      }
+    }
+  }
   const activeHit = search?.hits[search.activeIndex]
   const tabStop =
     rows.find((row) => checkedOf.has(row.summary.id))?.summary.id ??
@@ -464,24 +586,24 @@ function PipelineList({
       return
     }
     anchor.current = summary.id
-    if (only?.whole && onlyId === summary.id) {
+    // The row is all of the selection already: the click takes it off.
+    if (
+      checkedOf.get(summary.id) === "checked" &&
+      selection.size === summary.sections.length
+    ) {
       select([])
       return
     }
-    if (summary.unassigned) select(idsOf(summary))
-    else selectPipeline(summary.id, idsOf(summary))
+    if (summary.pipeline) selectPipeline(summary.id, idsOf(summary))
+    else select(idsOf(summary))
     requestFit(summary.bounds)
   }
-  const toggleOpened = (id: string) =>
-    setOpened((had) => {
-      const next = new Set(had)
-      if (!next.delete(id)) next.add(id)
-      return next
-    })
   const allShown =
     rows.length > 0 &&
     rows.every((row) => checkedOf.get(row.summary.id) === "checked")
-  const column = list === "pipelines" ? "Pipeline" : "Section"
+  const column = GROUPING[list].by
+  // Only a pipeline has a code; an edition does not.
+  const hasCodes = list === "pipelines"
   // "Done" is about pipelines; a group in no pipeline shows its size there.
   const panelWidth = usePanelWidth()
   const columns = listColumns(panelWidth?.width ?? 0, rule)
@@ -503,9 +625,8 @@ function PipelineList({
           <span className="sr-only">, {summary.code}</span>
         </span>
       ) : (
-        (summary.firstSeen?.label ?? summary.name)
+        summary.label
       )
-    const expanded = opened.has(summary.id)
     return (
       <Fragment key={summary.id}>
         {/* On a row of the selection the menu offers all of the selection. */}
@@ -513,7 +634,13 @@ function PipelineList({
           items={
             checked !== "unchecked"
               ? attachments
-              : [{ pipelineId: summary.id, sectionIds: "all" }]
+              : [
+                  {
+                    pipelineId: summary.id,
+                    // A group goes as its sections; see add-to-agent.
+                    sectionIds: summary.unassigned ? idsOf(summary) : "all",
+                  },
+                ]
           }
         >
           <PipelineRow
@@ -536,21 +663,15 @@ function PipelineList({
               <>
                 {columns.detail && (
                   <>
-                    <ListCell column="code" className="type-ui-mono-xs">
-                      {summary.code}
-                    </ListCell>
+                    {hasCodes && (
+                      <ListCell column="code" className="type-ui-mono-xs">
+                        {summary.code}
+                      </ListCell>
+                    )}
                     <ListCell column="sections">
                       {formatCount(summary.sections.length)}
                     </ListCell>
                   </>
-                )}
-                {columns.bar && (
-                  <ListCell column="bar">
-                    <StatusShareBar
-                      counts={summary.statusCounts}
-                      className="w-full"
-                    />
-                  </ListCell>
                 )}
                 {columns.attributes.map((attribute) => {
                   const unknown = summary.unknownByAttribute[attribute] ?? 0
@@ -572,9 +693,13 @@ function PipelineList({
               summary.unassigned ? (
                 // The table has a Sections column; the list has only this.
                 columns.detail ? (
-                  progressCell("")
+                  // Grouped by edition no row has a progress: no column.
+                  hasCodes && progressCell("")
                 ) : (
-                  <span title={summaryProgress(summary, "long")}>
+                  <span
+                    title={summaryProgress(summary, "long")}
+                    className="type-ui-mono-xs"
+                  >
                     {summaryProgress(summary)}
                   </span>
                 )
@@ -582,23 +707,37 @@ function PipelineList({
                 <span title={summaryProgress(summary, "long")}>
                   {progressCell(summaryProgress(summary))}
                 </span>
-              ) : (
+              ) : columns.detail ? (
                 progressCell(summaryProgress(summary))
-              )
-            }
-            status={
-              summary.kind === "proposed" ? (
-                <Badge variant="ai">Proposed</Badge>
               ) : (
-                <StatusBadge status={summary.status} />
+                // The narrow list leaves the name its room: "4/7", with what
+                // it counts in the title.
+                <span
+                  title={summaryProgress(summary, "long")}
+                  className="type-ui-mono-xs"
+                >
+                  {summaryProgress(summary).replace(" done", "")}
+                </span>
               )
             }
-            {...(summary.unassigned &&
-              !hit && {
-                expanded,
-                onToggle: () => toggleOpened(summary.id),
-                toggleLabel: `${expanded ? "Hide" : "List"} the sections first seen in the ${summary.firstSeen?.label ?? summary.name}`,
-              })}
+            // One status: in the table, how the sections split, then the
+            // word for the whole, side by side under one head.
+            statusWide={columns.bar}
+            status={
+              <>
+                {columns.bar && (
+                  <StatusShareBar
+                    counts={summary.statusCounts}
+                    className="min-w-0 flex-1"
+                  />
+                )}
+                {summary.kind === "proposed" ? (
+                  <Badge variant="ai">Proposed</Badge>
+                ) : (
+                  <StatusBadge status={summary.status} />
+                )}
+              </>
+            }
             onClick={(event) => open(event.shiftKey)}
             onKeyDown={(event) => {
               if (event.target !== event.currentTarget) return
@@ -610,92 +749,10 @@ function PipelineList({
               } else if (isActivate(event)) {
                 event.preventDefault()
                 open()
-              } else if (
-                summary.unassigned &&
-                !hit &&
-                ((event.key === "ArrowRight" && !expanded) ||
-                  (event.key === "ArrowLeft" && expanded))
-              ) {
-                event.preventDefault()
-                toggleOpened(summary.id)
               }
             }}
           />
         </AddToAgentMenu>
-        {/* The sections of a first-seen group, once it is opened. */}
-        {!hit &&
-          expanded &&
-          summary.sections.map((section) => {
-            const openSection = () => {
-              selectSection(section.id)
-              requestFit(geometryBounds(section.geometry))
-            }
-            return (
-              <AddToAgentMenu
-                key={section.id}
-                items={
-                  selection.has(section.id)
-                    ? attachments
-                    : [{ pipelineId: summary.id, sectionIds: [section.id] }]
-                }
-              >
-                <PipelineRow
-                  indent
-                  role="option"
-                  aria-selected={selection.has(section.id)}
-                  data-roving
-                  tabIndex={-1}
-                  selected={selection.has(section.id)}
-                  checked={selection.has(section.id) ? "checked" : "unchecked"}
-                  checkLabel={`Select ${sectionLabel(section)}`}
-                  onCheck={() => toggleSelected([section.id])}
-                  name={sectionLabel(section)}
-                  cells={
-                    <>
-                      {columns.detail && (
-                        <>
-                          <ListCell column="code" className="type-ui-mono-xs">
-                            {section.name === null ? null : section.code}
-                          </ListCell>
-                          <ListCell column="sections" />
-                        </>
-                      )}
-                      {columns.bar && <ListCell column="bar" />}
-                      {columns.attributes.map((attribute) => {
-                        const value = section.claims.find(
-                          (claim) => claim.attribute === attribute
-                        )?.value
-                        return (
-                          <ListCell key={attribute} column="attribute">
-                            {value ? (
-                              <span className="truncate text-foreground">
-                                {value}
-                              </span>
-                            ) : (
-                              <StatusLabel status="unknown" />
-                            )}
-                          </ListCell>
-                        )
-                      })}
-                    </>
-                  }
-                  progress={progressCell(citedLabel(section, rule))}
-                  status={<StatusBadge status={sectionStatus(section, rule)} />}
-                  onClick={openSection}
-                  onKeyDown={(event) => {
-                    if (event.target !== event.currentTarget) return
-                    if (event.key === " ") {
-                      event.preventDefault()
-                      toggleSelected([section.id])
-                    } else if (isActivate(event)) {
-                      event.preventDefault()
-                      openSection()
-                    }
-                  }}
-                />
-              </AddToAgentMenu>
-            )
-          })}
         {/* The sections the search found, each one a way straight in. */}
         {hit &&
           search &&
@@ -762,18 +819,19 @@ function PipelineList({
           <span className="flex items-center gap-1.5">
             {columns.detail && (
               <>
-                <ListCell column="code">Code</ListCell>
+                {hasCodes && <ListCell column="code">Code</ListCell>}
                 <ListCell column="sections">Sections</ListCell>
               </>
             )}
-            {columns.bar && <ListCell column="bar">By status</ListCell>}
             {columns.attributes.map((attribute) => (
               <ListCell key={attribute} column="attribute">
                 {attribute}
               </ListCell>
             ))}
-            {columns.detail && <ListCell column="progress" />}
-            <span className="w-21 text-right">Status</span>
+            {columns.detail && hasCodes && <ListCell column="progress" />}
+            <span className={columns.bar ? "w-52 pl-3" : "w-21 text-right"}>
+              Status
+            </span>
           </span>
         }
         selection={
@@ -794,17 +852,11 @@ function PipelineList({
         ref={listRef}
         id="pipeline-search-results"
         role="listbox"
-        aria-label={
-          search
-            ? "Search results"
-            : list === "pipelines"
-              ? "Pipelines"
-              : "Sections"
-        }
+        aria-label={search ? "Search results" : GROUPING[list].title}
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         onKeyDown={moveRovingFocus}
       >
-        {proposed.length > 0 && inPipelines.length > 0 && (
+        {list === "pipelines" && inPipelines.length > 0 && (
           <ListGroupHeader count={formatCount(inPipelines.length)}>
             Pipelines
           </ListGroupHeader>
@@ -816,27 +868,22 @@ function PipelineList({
           </ListGroupHeader>
         )}
         {proposed.map(renderRow)}
-        {loose.length > 0 && (
-          <ListGroupHeader count={formatCount(looseSections)}>
-            All sections, by first seen
+        {list === "pipelines" && loose.length > 0 && (
+          <ListGroupHeader count={formatCount(loose.length)}>
+            Not in a pipeline
           </ListGroupHeader>
         )}
         {loose.map(renderRow)}
         {rows.length === 0 &&
           (search ? (
             <Hint className="p-3" role="status">
-              Nothing{" "}
-              {search.outside > 0
-                ? "inside the filters"
-                : `in the ${edition.label}`}{" "}
-              matches “{search.query.trim()}”.
+              Nothing{search.outside > 0 ? " inside the filters" : ""} matches “
+              {search.query.trim()}”.
             </Hint>
           ) : (
             <Hint className="p-3">
               {total === 0
-                ? list === "pipelines"
-                  ? "No pipelines yet. A section is in a pipeline once a person has confirmed it. Every section is in the Sections list."
-                  : "This edition has no sections."
+                ? "This network has no sections."
                 : onlyInView
                   ? "Nothing in the map view. Zoom out or pan, or switch off “List follows the map” on the map."
                   : "Nothing matches the filters."}

@@ -42,10 +42,10 @@ export function FollowMapToggle() {
         />
         <TooltipContent side="left">
           {paused
-            ? "Paused while the list is a table: the table shows the whole edition. Following takes up again when you show it as a list."
+            ? "Paused while the list is a table: the table shows the whole network. Following takes up again when you show it as a list."
             : on
-              ? "The list shows only what is in this view. Click to list the whole edition."
-              : "The list shows the whole edition. Click to list only what is in this view."}
+              ? "The list shows only what is in this view. Click to list the whole network."
+              : "The list shows the whole network. Click to list only what is in this view."}
         </TooltipContent>
       </Tooltip>
     </MapControl>

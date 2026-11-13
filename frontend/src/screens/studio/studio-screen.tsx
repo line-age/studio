@@ -22,7 +22,6 @@ import {
   groupsLabel,
   sectionLabel,
   unionBounds,
-  type ListKind,
 } from "@/data/derive"
 import { fixtureUrl, loadNetwork } from "@/data/load-network"
 import { FixtureError } from "@/data/schema"
@@ -37,7 +36,7 @@ import { ShowPanels } from "./panel-toggle"
 import { AgentPanel } from "./panels/agent-panel"
 import { PipelinesPanel, SEARCH_INPUT_ID } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
-import { useSettings } from "./settings"
+import { useSettings, useSettingsOpen } from "./settings"
 import { SettingsDialog } from "./settings-dialog"
 import { SidePanel } from "./side-panel"
 import {
@@ -50,7 +49,7 @@ import { TopBar, type Crumb } from "./top-bar"
 import { applyUrl, followView, type UrlView } from "./url-state"
 
 /*
- * Studio: the map desk. Top bar, rail, one left panel (Sections or
+ * Studio: the map desk. Top bar, rail, one left panel (the list or the
  * Agent), the map, and the properties of what is selected. One
  * button hides both side panels and leaves the rail. Read-only: it
  * shows the network and what the AI proposes; nothing can be changed here yet.
@@ -135,11 +134,6 @@ export function StudioScreen() {
   )
 }
 
-const LISTS = [
-  { kind: "pipelines", icon: "line", label: "Pipelines" },
-  { kind: "sections", icon: "section", label: "Sections" },
-] as const
-
 /** The least the map keeps when the list is widened into a table. */
 const MAP_MIN_WIDTH = 400
 
@@ -163,7 +157,6 @@ function Frame({
   onHome,
   agentWaiting = false,
   attributes,
-  list,
   left,
   right,
   busy = false,
@@ -176,19 +169,19 @@ function Frame({
   agentWaiting?: boolean
   /** The attributes of the data. With them, Settings can open. */
   attributes?: readonly string[]
-  /** The list showing. Before the data is here, neither is marked. */
-  list?: ListKind
   left?: ReactNode
   right?: ReactNode
   busy?: boolean
   /** The centre: the map, or a message. */
   children?: ReactNode
 }) {
-  const { panel, open, togglePanel } = useLeftPanel()
+  const { panel, open, togglePanel, openPanel } = useLeftPanel()
   const hasSelection = useStudio((s) => s.selection.size > 0)
-  const setList = useStudio((s) => s.setList)
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  const settingsOpen = useSettingsOpen((s) => s.open)
+  const setSettingsOpen = useSettingsOpen((s) => s.setOpen)
   const setHelpOpen = useHelp((s) => s.setDialogOpen)
+  const startTour = useHelp((s) => s.start)
+  const askAgent = useStudio((s) => s.askAgent)
   // Hiding the side panels hides both; the rail stays.
   const rightOpen = open && hasSelection
   return (
@@ -198,7 +191,20 @@ function Frame({
         trail={trail}
         onRoot={onHome}
         onSettings={attributes ? () => setSettingsOpen(true) : undefined}
-        onHelp={attributes ? () => setHelpOpen(true) : undefined}
+        help={
+          attributes
+            ? {
+                tour: () => startTour(),
+                ask: () => {
+                  openPanel("agent")
+                  // After the menu has closed and handed focus back to Help,
+                  // so the cursor ends up in the message box.
+                  setTimeout(() => askAgent([]))
+                },
+                topics: () => setHelpOpen(true),
+              }
+            : undefined
+        }
       />
       {attributes && (
         <>
@@ -216,26 +222,13 @@ function Frame({
           aria-label="Panels"
           className="flex w-rail shrink-0 flex-col gap-1 border-r bg-muted py-2"
         >
-          {/* Two lists, one panel: each rail item shows its own. */}
-          {LISTS.map(({ kind, icon, label }) => {
-            const showing = open && panel === "pipelines"
-            return (
-              <RailItem
-                key={kind}
-                icon={icon}
-                label={label}
-                active={showing && list === kind}
-                onClick={() => {
-                  // From the other list this only switches; the panel stays.
-                  if (showing && list !== kind) setList(kind)
-                  else {
-                    setList(kind)
-                    togglePanel("pipelines")
-                  }
-                }}
-              />
-            )
-          })}
+          {/* One list of the whole network; Group by, in it, says by what. */}
+          <RailItem
+            icon="line"
+            label="Network"
+            active={open && panel === "pipelines"}
+            onClick={() => togglePanel("pipelines")}
+          />
           <RailItem
             icon="ask"
             label="Agent"
@@ -337,7 +330,7 @@ function useTrail(): { trail: Crumb[]; home: () => void } {
 }
 
 function Loaded({ linked }: { linked: UrlView }) {
-  const { network, everySection: summaries, list } = useStudioData()
+  const { network, everySection: summaries } = useStudioData()
   useLinkedView(linked)
   const { panel } = useLeftPanel()
   const agentWaiting = summaries.some((s) => s.needsDecision)
@@ -350,7 +343,6 @@ function Loaded({ linked }: { linked: UrlView }) {
       onHome={home}
       agentWaiting={agentWaiting}
       attributes={attributes}
-      list={list}
       left={
         <ViewTransition key={panel}>
           <div
@@ -375,7 +367,7 @@ function Loaded({ linked }: { linked: UrlView }) {
  * bar in step with the view.
  */
 function useLinkedView(linked: UrlView) {
-  const { network, edition, sectionById, owners } = useStudioData()
+  const { network, sectionById, owners } = useStudioData()
   const checked = useRef(false)
   useEffect(() => {
     if (!checked.current) {
@@ -386,20 +378,27 @@ function useLinkedView(linked: UrlView) {
       const attributes = new Set(
         sections.flatMap((x) => x.claims.map((claim) => claim.attribute))
       )
+      // An old link's edition became "first seen up to that year"; one the
+      // data does not have asks for nothing.
+      const params = new URLSearchParams(window.location.search)
+      const edition = params.get("e")
+      const noSuchEdition =
+        edition !== null &&
+        !params.has("f") &&
+        !network.editions.some((e) => e.id === edition)
       useStudio.setState({
-        editionId: s.editionId === edition.id ? s.editionId : null,
+        ...(noSuchEdition && { firstSeenTo: null }),
         companies: s.companies.filter((name) => companies.has(name)),
         unknownIn: s.unknownIn.filter((name) => attributes.has(name)),
       })
       const section = linked.section ? sectionById.get(linked.section) : null
-      // A link that names a pipeline opens the Pipelines list on it.
+      // A link that names a pipeline opens the list by pipeline, on it.
       const pipeline = linked.pipeline
         ? summarise(
             network,
-            edition.id,
             useSettings.getState().requiredAttributes,
             "pipelines"
-          ).find((row) => row.id === linked.pipeline)
+          ).find((row) => row.pipeline && row.id === linked.pipeline)
         : undefined
       if (pipeline) {
         s.setList("pipelines")
@@ -408,7 +407,7 @@ function useLinkedView(linked: UrlView) {
           pipeline.sections.map((x) => x.id)
         )
         if (!linked.camera) s.requestFit(pipeline.bounds)
-      } else if (section?.editionIds.includes(edition.id)) {
+      } else if (section) {
         s.selectSection(section.id)
         // A link with the map's place shows that place; else the section.
         if (!linked.camera) s.requestFit(geometryBounds(section.geometry))

@@ -81,6 +81,12 @@ interface SettingsState extends Settings {
   reset: () => void
 }
 
+/** Whether Settings is open: the top bar opens it, and so does the map key. */
+export const useSettingsOpen = create<{
+  open: boolean
+  setOpen: (open: boolean) => void
+}>((set) => ({ open: false, setOpen: (open) => set({ open }) }))
+
 export const useSettings = create<SettingsState>((set, get) => {
   const save = (next: Partial<Settings>) => {
     set(next)

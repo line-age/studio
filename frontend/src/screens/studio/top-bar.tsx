@@ -9,6 +9,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 import { HELP_BUTTON_ID } from "./help/help-store"
 
@@ -17,8 +23,19 @@ import { HELP_BUTTON_ID } from "./help/help-store"
  * and Help. The menu, Undo, Redo, Export and "Review changes" are in the
  * design but hidden until there is something behind them (the owner,
  * 2026-11-13; this replaces showing them as designed). Each comes back with
- * its feature.
+ * its feature. Help is a menu (the owner, 2026-11-13): take the tour, ask
+ * the Agent, or read the help topics. Stock shadcn, not in Figma yet.
  */
+
+/** What the Help menu offers. */
+export interface HelpActions {
+  /** Runs the tour from the start. */
+  tour: () => void
+  /** Opens the Agent with the cursor in the message box. */
+  ask: () => void
+  /** Opens the help topics and the words. */
+  topics: () => void
+}
 export interface Crumb {
   label: string
   /** Goes back to this level. The last crumb is where the person is. */
@@ -30,7 +47,7 @@ export function TopBar({
   trail = [],
   onRoot,
   onSettings,
-  onHelp,
+  help,
 }: {
   networkName?: string
   /** The selected pipeline, then the selected section. */
@@ -39,8 +56,8 @@ export function TopBar({
   onRoot?: () => void
   /** Opens Settings. Without it the button is shown and does nothing. */
   onSettings?: () => void
-  /** Opens Help. Without it the button is shown and does nothing. */
-  onHelp?: () => void
+  /** What Help offers. Without it the button is shown and does nothing. */
+  help?: HelpActions
 }) {
   return (
     <header className="flex h-topbar shrink-0 items-center justify-between bg-topbar px-3 text-topbar-foreground">
@@ -107,9 +124,31 @@ export function TopBar({
         {/* One area of the Help tour. */}
         <div data-tour="settings" className="flex items-center gap-0.5">
           <TopbarButton onClick={onSettings}>Settings</TopbarButton>
-          <TopbarButton id={HELP_BUTTON_ID} onClick={onHelp}>
-            Help
-          </TopbarButton>
+          {help ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<TopbarButton id={HELP_BUTTON_ID} />}
+              >
+                Help
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-48">
+                <DropdownMenuItem onClick={help.tour}>
+                  <Icon name="tour" />
+                  Take the tour
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={help.ask}>
+                  <Icon name="ask" />
+                  Ask the Agent
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={help.topics}>
+                  <Icon name="help" />
+                  Help topics
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <TopbarButton id={HELP_BUTTON_ID}>Help</TopbarButton>
+          )}
         </div>
       </div>
     </header>

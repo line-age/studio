@@ -1,13 +1,18 @@
 import { z } from "zod"
 
-import type { ListKind } from "@/data/derive"
+import {
+  LIST_KINDS,
+  MEMBERSHIPS,
+  type ListKind,
+  type Membership,
+} from "@/data/derive"
 import { STATUSES, type SectionStatus } from "@/data/status"
 
 import { useCamera, useStudio } from "./studio-store"
 
 /*
  * The view in the address bar, so a link shows another person the same set:
- * the edition, the status, the filters, the search, whether the list follows
+ * the grouping, the status, the filters, the search, whether the list follows
  * the map, where the map is, and the one section in focus. Not the layout:
  * panel widths, layer switches and Settings stay with each person.
  *
@@ -15,7 +20,6 @@ import { useCamera, useStudio } from "./studio-store"
  */
 
 export interface UrlView {
-  edition: string | null
   status: SectionStatus | "all"
   needsDecision: boolean
   query: string
@@ -25,19 +29,24 @@ export interface UrlView {
   addedFrom: string | null
   addedTo: string | null
   unknownIn: string[]
+  memberships: Membership[]
+  firstSeenFrom: number | null
+  firstSeenTo: number | null
+  changedOnly: boolean
+  diameters: string[]
+  states: string[]
   followMap: boolean
   /** Longitude, latitude and zoom of the map. */
   camera: { lng: number; lat: number; zoom: number } | null
   /** The one section in focus. A selection of several is not carried. */
   section: string | null
-  /** Which list is showing; null leaves it to the data. */
+  /** How the list is grouped; null leaves it to the data. */
   list: ListKind | null
   /** The pipeline selected as a whole. */
   pipeline: string | null
 }
 
 export const DEFAULT_VIEW: UrlView = {
-  edition: null,
   status: "all",
   needsDecision: false,
   query: "",
@@ -47,6 +56,12 @@ export const DEFAULT_VIEW: UrlView = {
   addedFrom: null,
   addedTo: null,
   unknownIn: [],
+  memberships: [],
+  firstSeenFrom: null,
+  firstSeenTo: null,
+  changedOnly: false,
+  diameters: [],
+  states: [],
   followMap: true,
   camera: null,
   section: null,
@@ -59,7 +74,6 @@ const round = (n: number, places: number) => Number(n.toFixed(places))
 /** Only what differs from how the screen opens goes in the URL. */
 export function toSearchParams(view: UrlView): URLSearchParams {
   const params = new URLSearchParams()
-  if (view.edition) params.set("e", view.edition)
   if (view.status !== "all") params.set("s", view.status)
   if (view.needsDecision) params.set("n", "1")
   if (view.query.trim() !== "") params.set("q", view.query)
@@ -71,6 +85,13 @@ export function toSearchParams(view: UrlView): URLSearchParams {
     params.set("a", `${view.addedFrom ?? ""}~${view.addedTo ?? ""}`)
   }
   for (const attribute of view.unknownIn) params.append("u", attribute)
+  for (const m of view.memberships) params.append("pm", m)
+  if (view.firstSeenFrom !== null || view.firstSeenTo !== null) {
+    params.set("f", `${view.firstSeenFrom ?? ""}-${view.firstSeenTo ?? ""}`)
+  }
+  if (view.changedOnly) params.set("ch", "1")
+  for (const d of view.diameters) params.append("d", d)
+  for (const state of view.states) params.append("st", state)
   if (!view.followMap) params.set("v", "0")
   if (view.camera) {
     const { lng, lat, zoom } = view.camera
@@ -100,17 +121,35 @@ function read<T>(schema: z.ZodType<T>, text: string | undefined): T | null {
 
 export function fromSearchParams(params: URLSearchParams): UrlView {
   const view: UrlView = { ...DEFAULT_VIEW }
-  view.edition = params.get("e") || null
   view.status = read(status, params.get("s") ?? undefined) ?? "all"
   view.needsDecision = params.get("n") === "1"
   view.query = params.get("q") ?? ""
   view.companies = [...new Set(params.getAll("co").filter(Boolean))]
   view.unknownIn = [...new Set(params.getAll("u").filter(Boolean))]
+  view.memberships = [
+    ...new Set(
+      params
+        .getAll("pm")
+        .filter((m): m is Membership => MEMBERSHIPS.includes(m as Membership))
+    ),
+  ]
+  view.changedOnly = params.get("ch") === "1"
+  view.diameters = [...new Set(params.getAll("d").filter(Boolean))]
+  view.states = [...new Set(params.getAll("st").filter(Boolean))]
+  const seen = params.get("f")?.split("-")
+  if (seen?.length === 2) {
+    view.firstSeenFrom = read(year, seen[0])
+    view.firstSeenTo = read(year, seen[1])
+  } else {
+    // A link from when an edition was in force ("e=ed-1937") showed the
+    // network as of that year: what was first seen up to then.
+    view.firstSeenTo = read(year, params.get("e")?.match(/\d{4}$/)?.[0])
+  }
   view.followMap = params.get("v") !== "0"
   view.section = params.get("sel") || null
   view.pipeline = params.get("p") || null
   const list = params.get("l")
-  view.list = list === "pipelines" || list === "sections" ? list : null
+  view.list = LIST_KINDS.includes(list as ListKind) ? (list as ListKind) : null
 
   const built = params.get("b")?.split("-")
   if (built?.length === 2) {
@@ -135,7 +174,6 @@ export function currentView(): UrlView {
   const s = useStudio.getState()
   const { zoom, center } = useCamera.getState()
   return {
-    edition: s.editionId,
     status: s.status,
     needsDecision: s.needsDecisionOnly,
     query: s.query,
@@ -145,6 +183,12 @@ export function currentView(): UrlView {
     addedFrom: s.addedFrom,
     addedTo: s.addedTo,
     unknownIn: [...s.unknownIn],
+    memberships: [...s.memberships],
+    firstSeenFrom: s.firstSeenFrom,
+    firstSeenTo: s.firstSeenTo,
+    changedOnly: s.changedOnly,
+    diameters: [...s.diameters],
+    states: [...s.states],
     followMap: s.onlyInView,
     camera:
       zoom !== null && center !== null
@@ -164,7 +208,6 @@ export function currentView(): UrlView {
 export function applyUrl(search: string): UrlView {
   const view = fromSearchParams(new URLSearchParams(search))
   useStudio.setState({
-    editionId: view.edition,
     status: view.status,
     needsDecisionOnly: view.needsDecision,
     query: view.query,
@@ -174,6 +217,12 @@ export function applyUrl(search: string): UrlView {
     addedFrom: view.addedFrom,
     addedTo: view.addedTo,
     unknownIn: view.unknownIn,
+    memberships: view.memberships,
+    firstSeenFrom: view.firstSeenFrom,
+    firstSeenTo: view.firstSeenTo,
+    changedOnly: view.changedOnly,
+    diameters: view.diameters,
+    states: view.states,
     onlyInView: view.followMap,
     list: view.list,
   })
