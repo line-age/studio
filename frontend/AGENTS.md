@@ -171,6 +171,9 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - On the map a click adds a section to the selection and a click on a selected one takes
   it off; a click on empty map steps the selection back. Every selection made on the map
   shows the `SelectionBar` ("Ask the Agent") at the top centre of the map.
+- Ctrl and drag turns the map (the owner, 2026-11-13); "Reset north" in the zoom group
+  turns it back. The map never tilts. On a Mac, Ctrl and click is a right click, so the
+  map swallows it and the menu does not open. The turn is not in the URL.
 - A move the app makes to show a selection is quiet (`requestFit` without `follow`): it
   does not change the "in view" list. Pass `follow` only when the person asked to go
   somewhere (search hit, the app name in the breadcrumb).
