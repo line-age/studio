@@ -14,7 +14,7 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
 
 [Quick start](#quick-start) · [Docker](#run-in-docker) · [Real data](#real-data-from-store) · [Keys](#keys) · [Develop](#develop) · [Not there yet](#not-there-yet)
 
-<img src="docs/screenshots/studio.jpg" alt="The Pipelines list with status counts, the map with one pipeline selected, and on the right its own name, owner and operator above its sections" width="100%">
+<img src="docs/screenshots/studio.jpg" alt="The Pipelines list with its status line, the map with one pipeline selected, and on the right its own name, owner and operator above its sections" width="100%">
 
 </div>
 

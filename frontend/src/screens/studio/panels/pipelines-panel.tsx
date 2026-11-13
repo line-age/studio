@@ -156,7 +156,7 @@ export function PipelinesPanel() {
     if (counts.needsDecision > 0) {
       parts.push(`${formatCount(counts.needsDecision)} to decide`)
     }
-    return parts.join(" · ")
+    return parts
   }, [everySection, criteria])
 
   const searching = query.trim().length > 0
@@ -402,9 +402,15 @@ export function PipelinesPanel() {
             </Button>
           </div>
         </div>
-        {statusLine && (
-          <p className="type-ui-xs text-muted-foreground tabular-nums">
-            {statusLine}
+        {statusLine.length > 0 && (
+          // Each part keeps together; a long line wraps between them.
+          <p className="flex flex-wrap gap-x-1 type-ui-xs text-muted-foreground tabular-nums">
+            {statusLine.map((part, i) => (
+              <span key={part} className="whitespace-nowrap">
+                {part}
+                {i < statusLine.length - 1 && " ·"}
+              </span>
+            ))}
           </p>
         )}
         {chips.length > 0 && (

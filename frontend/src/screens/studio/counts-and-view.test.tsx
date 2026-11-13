@@ -170,8 +170,8 @@ describe("Counts and the map view", () => {
 
   it("says the status of the edition in one line, to read, not to click", async () => {
     await renderList()
-    const line = screen.getByText(/not started/)
-    expect(line.tagName).toBe("P")
+    const line = screen.getByText(/not started/).closest("p")!
+    expect(line).toHaveTextContent(/^\d+ not started/)
     expect(within(line).queryByRole("button")).toBeNull()
   })
 
