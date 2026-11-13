@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-import type { Bounds, ListKind } from "@/data/derive"
+import type { Bounds, ListKind, Membership } from "@/data/derive"
 import { refKey, type AgentRef, type Question } from "@/data/question"
 import type { SectionStatus } from "@/data/status"
 
@@ -60,6 +60,17 @@ interface StudioState {
   /** Keep pipelines with a section added to Lineage in this range of days. */
   addedFrom: string | null
   addedTo: string | null
+  /** Keep sections that stand this way with pipelines. */
+  memberships: readonly Membership[]
+  /** Keep sections first seen on an edition of these years. */
+  firstSeenFrom: number | null
+  firstSeenTo: number | null
+  /** Keep sections changed since a person last reviewed them. */
+  changedOnly: boolean
+  /** Keep sections whose cited diameter is one of these. */
+  diameters: readonly string[]
+  /** Keep sections running through one of these states. */
+  states: readonly string[]
   layers: Record<LayerId, boolean>
   query: string
   /** Search past the filters, through every pipeline of the edition. */
@@ -108,6 +119,11 @@ interface StudioState {
   setCompanies: (companies: readonly string[]) => void
   setBuilt: (from: number | null, to: number | null) => void
   setAdded: (from: string | null, to: string | null) => void
+  setMemberships: (memberships: readonly Membership[]) => void
+  setFirstSeen: (from: number | null, to: number | null) => void
+  setChangedOnly: (on: boolean) => void
+  setDiameters: (diameters: readonly string[]) => void
+  setStates: (states: readonly string[]) => void
   toggleLayer: (layer: LayerId) => void
   clearFilters: () => void
   setQuery: (query: string) => void
@@ -228,7 +244,13 @@ export const filtersApplied = (s: StudioState) =>
   s.builtFrom !== null ||
   s.builtTo !== null ||
   s.addedFrom !== null ||
-  s.addedTo !== null
+  s.addedTo !== null ||
+  s.memberships.length > 0 ||
+  s.firstSeenFrom !== null ||
+  s.firstSeenTo !== null ||
+  s.changedOnly ||
+  s.diameters.length > 0 ||
+  s.states.length > 0
 
 /**
  * The list holds only what is in the map view right now: the person wants it,
@@ -248,6 +270,12 @@ export const useStudio = create<StudioState>((set) => ({
   builtTo: null,
   addedFrom: null,
   addedTo: null,
+  memberships: [],
+  firstSeenFrom: null,
+  firstSeenTo: null,
+  changedOnly: false,
+  diameters: [],
+  states: [],
   layers: defaultLayers,
   query: "",
   searchWholeEdition: false,
@@ -295,7 +323,13 @@ export const useStudio = create<StudioState>((set) => ({
   setCompanies: (companies) => set({ companies }),
   setBuilt: (builtFrom, builtTo) => set({ builtFrom, builtTo }),
   setAdded: (addedFrom, addedTo) => set({ addedFrom, addedTo }),
-  // Only the filters behind the filter button; the status stays as chosen.
+  setMemberships: (memberships) => set({ memberships }),
+  setFirstSeen: (firstSeenFrom, firstSeenTo) =>
+    set({ firstSeenFrom, firstSeenTo }),
+  setChangedOnly: (changedOnly) => set({ changedOnly }),
+  setDiameters: (diameters) => set({ diameters }),
+  setStates: (states) => set({ states }),
+  // Every filter behind the filter button, the status among them.
   clearFilters: () =>
     set({
       status: "all",
@@ -306,6 +340,12 @@ export const useStudio = create<StudioState>((set) => ({
       builtTo: null,
       addedFrom: null,
       addedTo: null,
+      memberships: [],
+      firstSeenFrom: null,
+      firstSeenTo: null,
+      changedOnly: false,
+      diameters: [],
+      states: [],
     }),
   // A new search starts inside the filters again.
   setQuery: (query) =>

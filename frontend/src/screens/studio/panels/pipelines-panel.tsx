@@ -37,6 +37,7 @@ import {
   summaryProgress,
   type PipelineSummary,
   type SearchHit,
+  MEMBERSHIP_LABEL,
 } from "@/data/derive"
 import { STATUSES, STATUS_LABEL } from "@/data/status"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
@@ -91,6 +92,17 @@ export function PipelinesPanel() {
   const setCompanies = useStudio((s) => s.setCompanies)
   const setBuilt = useStudio((s) => s.setBuilt)
   const setAdded = useStudio((s) => s.setAdded)
+  const memberships = useStudio((s) => s.memberships)
+  const setMemberships = useStudio((s) => s.setMemberships)
+  const firstSeenFrom = useStudio((s) => s.firstSeenFrom)
+  const firstSeenTo = useStudio((s) => s.firstSeenTo)
+  const setFirstSeen = useStudio((s) => s.setFirstSeen)
+  const changedOnly = useStudio((s) => s.changedOnly)
+  const setChangedOnly = useStudio((s) => s.setChangedOnly)
+  const diameters = useStudio((s) => s.diameters)
+  const setDiameters = useStudio((s) => s.setDiameters)
+  const states = useStudio((s) => s.states)
+  const setStates = useStudio((s) => s.setStates)
   const openHit = useOpenHit()
   const [active, setActive] = useState(0)
   const panelWidth = usePanelWidth()
@@ -208,6 +220,48 @@ export function PipelinesPanel() {
         label: `Added: ${added}`,
         hint: "Only what has a section added to Lineage on these days.",
         remove: () => setAdded(null, null),
+      })
+    }
+    if (changedOnly) {
+      chips.push({
+        label: "Changed since review",
+        hint: "Only sections changed since a person last reviewed them.",
+        remove: () => setChangedOnly(false),
+      })
+    }
+    if (memberships.length > 0) {
+      chips.push({
+        label: memberships.map((m) => MEMBERSHIP_LABEL[m]).join(" or "),
+        hint: "Only sections that stand this way with pipelines.",
+        remove: () => setMemberships([]),
+      })
+    }
+    if (firstSeenFrom !== null || firstSeenTo !== null) {
+      chips.push({
+        label:
+          firstSeenFrom !== null && firstSeenTo !== null
+            ? firstSeenFrom === firstSeenTo
+              ? `First seen ${firstSeenFrom}`
+              : `First seen ${firstSeenFrom} to ${firstSeenTo}`
+            : firstSeenFrom !== null
+              ? `First seen ${firstSeenFrom} or later`
+              : `First seen ${firstSeenTo} or earlier`,
+        hint: "Only sections a map of these years first shows.",
+        remove: () => setFirstSeen(null, null),
+      })
+    }
+    if (states.length > 0) {
+      chips.push({
+        label: states.length === 1 ? states[0] : plural(states.length, "state"),
+        hint: `Only sections that run through ${states.join(", ")}.`,
+        remove: () => setStates([]),
+      })
+    }
+    if (diameters.length > 0) {
+      chips.push({
+        label: `Diameter ${diameters.join(", ")}`,
+        hint: "Only sections with one of these cited diameters. Unknown is left out.",
+        remove: () => setDiameters([]),
       })
     }
   }

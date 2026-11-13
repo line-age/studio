@@ -15,6 +15,7 @@ import {
   type SelectionGroup,
 } from "@/data/derive"
 import type { Edition, Network, Section } from "@/data/schema"
+import { statesBySection } from "@/data/us-states"
 
 import { useSettings } from "./settings"
 import { listFollowsMap, useStudio } from "./studio-store"
@@ -40,6 +41,10 @@ interface StudioData {
   everySection: PipelineSummary[]
   /** The owners of each section's pipeline; a section has none of its own. */
   owners: ReadonlyMap<string, readonly string[]>
+  /** The year of each edition, by id. */
+  editionYears: ReadonlyMap<string, number>
+  /** The US states each section runs through, by id. Worked out once. */
+  statesOf: ReadonlyMap<string, readonly string[]>
   summaryById: Map<string, PipelineSummary>
   sectionById: Map<string, Section>
 }
@@ -63,6 +68,13 @@ export function StudioDataProvider({
   const rule = useSettings((s) => s.requiredAttributes)
   const chosen = useStudio((s) => s.list)
 
+  // These depend on the network only, not on the edition or the rule.
+  const editionYears = useMemo(
+    () => new Map(loaded.editions.map((e) => [e.id, e.year])),
+    [loaded]
+  )
+  const statesOf = useMemo(() => statesBySection(loaded.sections), [loaded])
+
   const value = useMemo<StudioData>(() => {
     const edition =
       loaded.editions.find((e) => e.id === editionId) ?? latestEdition(loaded)
@@ -79,10 +91,12 @@ export function StudioDataProvider({
       summaries,
       everySection,
       owners: ownersBySection(loaded),
+      editionYears,
+      statesOf,
       summaryById: new Map(summaries.map((s) => [s.id, s])),
       sectionById: new Map(loaded.sections.map((s) => [s.id, s])),
     }
-  }, [loaded, editionId, rule, chosen])
+  }, [loaded, editionId, rule, chosen, editionYears, statesOf])
 
   return <StudioDataContext value={value}>{children}</StudioDataContext>
 }
@@ -141,11 +155,25 @@ export function useCriteria(): SectionCriteria {
   const addedTo = useStudio((s) => s.addedTo)
   const status = useStudio((s) => s.status)
   const needsDecision = useStudio((s) => s.needsDecisionOnly)
+  const memberships = useStudio((s) => s.memberships)
+  const firstSeenFrom = useStudio((s) => s.firstSeenFrom)
+  const firstSeenTo = useStudio((s) => s.firstSeenTo)
+  const changedOnly = useStudio((s) => s.changedOnly)
+  const diameters = useStudio((s) => s.diameters)
+  const states = useStudio((s) => s.states)
   const rule = useSettings((s) => s.requiredAttributes)
-  const { owners } = useStudioData()
+  const { owners, editionYears, statesOf } = useStudioData()
   return useMemo(
     () => ({
       owners,
+      editionYears,
+      statesOf,
+      memberships,
+      firstSeenFrom,
+      firstSeenTo,
+      changedOnly,
+      diameters,
+      states,
       unknownIn,
       companies,
       builtFrom,
@@ -158,6 +186,14 @@ export function useCriteria(): SectionCriteria {
     }),
     [
       owners,
+      editionYears,
+      statesOf,
+      memberships,
+      firstSeenFrom,
+      firstSeenTo,
+      changedOnly,
+      diameters,
+      states,
       unknownIn,
       companies,
       builtFrom,

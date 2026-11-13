@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import type { ListKind } from "@/data/derive"
+import { MEMBERSHIPS, type ListKind, type Membership } from "@/data/derive"
 import { STATUSES, type SectionStatus } from "@/data/status"
 
 import { useCamera, useStudio } from "./studio-store"
@@ -25,6 +25,12 @@ export interface UrlView {
   addedFrom: string | null
   addedTo: string | null
   unknownIn: string[]
+  memberships: Membership[]
+  firstSeenFrom: number | null
+  firstSeenTo: number | null
+  changedOnly: boolean
+  diameters: string[]
+  states: string[]
   followMap: boolean
   /** Longitude, latitude and zoom of the map. */
   camera: { lng: number; lat: number; zoom: number } | null
@@ -47,6 +53,12 @@ export const DEFAULT_VIEW: UrlView = {
   addedFrom: null,
   addedTo: null,
   unknownIn: [],
+  memberships: [],
+  firstSeenFrom: null,
+  firstSeenTo: null,
+  changedOnly: false,
+  diameters: [],
+  states: [],
   followMap: true,
   camera: null,
   section: null,
@@ -71,6 +83,13 @@ export function toSearchParams(view: UrlView): URLSearchParams {
     params.set("a", `${view.addedFrom ?? ""}~${view.addedTo ?? ""}`)
   }
   for (const attribute of view.unknownIn) params.append("u", attribute)
+  for (const m of view.memberships) params.append("pm", m)
+  if (view.firstSeenFrom !== null || view.firstSeenTo !== null) {
+    params.set("f", `${view.firstSeenFrom ?? ""}-${view.firstSeenTo ?? ""}`)
+  }
+  if (view.changedOnly) params.set("ch", "1")
+  for (const d of view.diameters) params.append("d", d)
+  for (const state of view.states) params.append("st", state)
   if (!view.followMap) params.set("v", "0")
   if (view.camera) {
     const { lng, lat, zoom } = view.camera
@@ -106,6 +125,21 @@ export function fromSearchParams(params: URLSearchParams): UrlView {
   view.query = params.get("q") ?? ""
   view.companies = [...new Set(params.getAll("co").filter(Boolean))]
   view.unknownIn = [...new Set(params.getAll("u").filter(Boolean))]
+  view.memberships = [
+    ...new Set(
+      params
+        .getAll("pm")
+        .filter((m): m is Membership => MEMBERSHIPS.includes(m as Membership))
+    ),
+  ]
+  view.changedOnly = params.get("ch") === "1"
+  view.diameters = [...new Set(params.getAll("d").filter(Boolean))]
+  view.states = [...new Set(params.getAll("st").filter(Boolean))]
+  const seen = params.get("f")?.split("-")
+  if (seen?.length === 2) {
+    view.firstSeenFrom = read(year, seen[0])
+    view.firstSeenTo = read(year, seen[1])
+  }
   view.followMap = params.get("v") !== "0"
   view.section = params.get("sel") || null
   view.pipeline = params.get("p") || null
@@ -145,6 +179,12 @@ export function currentView(): UrlView {
     addedFrom: s.addedFrom,
     addedTo: s.addedTo,
     unknownIn: [...s.unknownIn],
+    memberships: [...s.memberships],
+    firstSeenFrom: s.firstSeenFrom,
+    firstSeenTo: s.firstSeenTo,
+    changedOnly: s.changedOnly,
+    diameters: [...s.diameters],
+    states: [...s.states],
     followMap: s.onlyInView,
     camera:
       zoom !== null && center !== null
@@ -174,6 +214,12 @@ export function applyUrl(search: string): UrlView {
     addedFrom: view.addedFrom,
     addedTo: view.addedTo,
     unknownIn: view.unknownIn,
+    memberships: view.memberships,
+    firstSeenFrom: view.firstSeenFrom,
+    firstSeenTo: view.firstSeenTo,
+    changedOnly: view.changedOnly,
+    diameters: view.diameters,
+    states: view.states,
     onlyInView: view.followMap,
     list: view.list,
   })

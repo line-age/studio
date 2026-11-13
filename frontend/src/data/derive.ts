@@ -470,6 +470,24 @@ export function summarise(
 /** The attribute that holds the company, and the one that holds the build year. */
 export const COMPANY_ATTRIBUTE = "Owner"
 export const BUILD_DATE_ATTRIBUTE = "Build date"
+export const DIAMETER_ATTRIBUTE = "Diameter"
+
+/**
+ * Where a section stands with pipelines: confirmed part of one, proposed for
+ * one and in none yet, or in none with nothing proposed.
+ */
+export const MEMBERSHIPS = ["in", "proposed", "none"] as const
+export type Membership = (typeof MEMBERSHIPS)[number]
+export const MEMBERSHIP_LABEL: Record<Membership, string> = {
+  in: "In a pipeline",
+  proposed: "Proposed for one",
+  none: "In none",
+}
+
+export function membershipOf(section: Section): Membership {
+  if (section.pipelineId !== null) return "in"
+  return section.proposedMemberships.length > 0 ? "proposed" : "none"
+}
 
 /** What a section has to satisfy to pass the filters. Empty parts ask nothing. */
 export interface SectionCriteria {
@@ -487,6 +505,17 @@ export interface SectionCriteria {
   status: SectionStatus | "all"
   /** A proposal is waiting on the section. */
   needsDecision: boolean
+  /** The section stands this way with pipelines. */
+  memberships: readonly Membership[]
+  /** The year of the edition that first shows the section is in this range. */
+  firstSeenFrom: number | null
+  firstSeenTo: number | null
+  /** The section changed since a person last reviewed it. */
+  changedOnly: boolean
+  /** The section's cited diameter is one of these. */
+  diameters: readonly string[]
+  /** The section runs through one of these states. */
+  states: readonly string[]
   /** The status rule: the attributes that must be cited. */
   rule: StatusRule
   /**
@@ -494,6 +523,10 @@ export interface SectionCriteria {
    * claim on the pipeline; without this no section has a company.
    */
   owners?: ReadonlyMap<string, readonly string[]>
+  /** The year of each edition, by id, for First seen. */
+  editionYears?: ReadonlyMap<string, number>
+  /** The states each section runs through (`statesBySection`). */
+  statesOf?: ReadonlyMap<string, readonly string[]>
 }
 
 export const NO_CRITERIA: SectionCriteria = {
@@ -505,6 +538,12 @@ export const NO_CRITERIA: SectionCriteria = {
   addedTo: null,
   status: "all",
   needsDecision: false,
+  memberships: [],
+  firstSeenFrom: null,
+  firstSeenTo: null,
+  changedOnly: false,
+  diameters: [],
+  states: [],
   rule: DEFAULT_REQUIRED,
 }
 
@@ -512,15 +551,28 @@ const valueOf = (section: Section, attribute: string) =>
   section.claims.find((claim) => claim.attribute === attribute)?.value ?? null
 
 /**
- * The companies a section's pipeline is cited as owned by, over its life.
- * None when the section is in no pipeline or the owner is Unknown: a section
- * never has an owner of its own.
+ * The companies a section is cited as owned by: its pipeline's owners over
+ * its life, and its own Owner claim where a source gives one. None when both
+ * are Unknown.
  */
 export function companiesOf(
   section: Section,
   owners: SectionCriteria["owners"]
 ): readonly string[] {
-  return owners?.get(section.id) ?? []
+  const own = valueOf(section, COMPANY_ATTRIBUTE)
+  const ofPipeline = owners?.get(section.id) ?? []
+  return own === null || ofPipeline.includes(own)
+    ? ofPipeline
+    : [...ofPipeline, own]
+}
+
+/** The year of the first edition that shows the section; null when none is known. */
+export function firstSeenYear(
+  section: Section,
+  editionYears: SectionCriteria["editionYears"]
+): number | null {
+  const years = section.editionIds.flatMap((id) => editionYears?.get(id) ?? [])
+  return years.length > 0 ? Math.min(...years) : null
 }
 
 /** The first four-digit year in the section's build date; null when Unknown. */
@@ -538,7 +590,13 @@ export function hasCriteria(criteria: SectionCriteria): boolean {
     criteria.addedFrom !== null ||
     criteria.addedTo !== null ||
     criteria.status !== "all" ||
-    criteria.needsDecision
+    criteria.needsDecision ||
+    criteria.memberships.length > 0 ||
+    criteria.firstSeenFrom !== null ||
+    criteria.firstSeenTo !== null ||
+    criteria.changedOnly ||
+    criteria.diameters.length > 0 ||
+    criteria.states.length > 0
   )
 }
 
@@ -582,7 +640,67 @@ export function sectionMatches(
     if (addedFrom !== null && added < addedFrom) return false
     if (addedTo !== null && added > addedTo) return false
   }
+  if (
+    criteria.memberships.length > 0 &&
+    !criteria.memberships.includes(membershipOf(section))
+  ) {
+    return false
+  }
+  if (criteria.firstSeenFrom !== null || criteria.firstSeenTo !== null) {
+    const year = firstSeenYear(section, criteria.editionYears)
+    if (year === null) return false
+    if (criteria.firstSeenFrom !== null && year < criteria.firstSeenFrom)
+      return false
+    if (criteria.firstSeenTo !== null && year > criteria.firstSeenTo)
+      return false
+  }
+  if (criteria.changedOnly && !section.changedSinceReview) return false
+  if (criteria.diameters.length > 0) {
+    // An Unknown diameter is none of these.
+    const diameter = valueOf(section, DIAMETER_ATTRIBUTE)
+    if (diameter === null || !criteria.diameters.includes(diameter))
+      return false
+  }
+  if (criteria.states.length > 0) {
+    const through = criteria.statesOf?.get(section.id) ?? []
+    if (!through.some((state) => criteria.states.includes(state))) return false
+  }
   return true
+}
+
+/**
+ * How many sections of the edition have each value, from `valuesOf`, with
+ * every filter in force but `without`: what choosing a value would show.
+ * Values in the order given by `order`, or by name.
+ */
+export function optionCounts<K extends keyof SectionCriteria>(
+  summaries: PipelineSummary[],
+  criteria: SectionCriteria,
+  without: K,
+  valuesOf: (section: Section) => readonly string[]
+): { name: string; count: number }[] {
+  const others = { ...criteria, [without]: NO_CRITERIA[without] }
+  const counts = new Map<string, number>()
+  for (const summary of summaries) {
+    for (const section of summary.sections) {
+      for (const name of valuesOf(section)) {
+        if (!counts.has(name)) counts.set(name, 0)
+      }
+      if (!sectionMatches(section, others)) continue
+      for (const name of new Set(valuesOf(section))) {
+        counts.set(name, (counts.get(name) ?? 0) + 1)
+      }
+    }
+  }
+  return [...counts]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+}
+
+/** The cited diameter of a section, as its only value; none when Unknown. */
+export function diameterOf(section: Section): readonly string[] {
+  const value = valueOf(section, DIAMETER_ATTRIBUTE)
+  return value === null ? [] : [value]
 }
 
 /** A pipeline passes when one of its sections satisfies all the criteria. */

@@ -362,6 +362,50 @@ describe("Studio panels", () => {
     ).toHaveAttribute("aria-pressed", "true")
   })
 
+  it("shows every filter group, and says so when one has nothing to offer", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("button", { name: /^Filters/ }))
+    const groups = screen
+      .getAllByRole("region")
+      .map((r) => r.getAttribute("aria-labelledby"))
+      .map((id) => document.getElementById(id!)?.textContent)
+    expect(groups).toEqual([
+      "Status",
+      "Pipeline",
+      "First seen",
+      "State",
+      "Company",
+      "Diameter",
+      "Build date",
+      "Added to Lineage",
+      "Unknown in",
+    ])
+    // The invented sample is not in any US state.
+    expect(
+      screen.getByText("No section runs through a US state.")
+    ).toBeVisible()
+  })
+
+  it("narrows to the sections proposed for a pipeline, with a chip", async () => {
+    const user = userEvent.setup()
+    act(() => useStudio.getState().setList("sections"))
+    await renderPanels()
+    await user.click(screen.getByRole("button", { name: /^Filters/ }))
+    const pipeline = screen.getByRole("group", { name: "Pipeline" })
+    const proposed = within(pipeline)
+      .getByText("Proposed for one")
+      .closest("label")!
+    expect(proposed).toHaveTextContent("Proposed for one1")
+    await user.click(within(proposed).getByRole("checkbox"))
+    expect(screen.getByRole("button", { name: "Show 1 section" })).toBeVisible()
+    await user.click(screen.getByRole("button", { name: "Back to the list" }))
+    expect(
+      screen.getByRole("group", { name: "Filters in force" })
+    ).toHaveTextContent("Proposed for one")
+    expect(useStudio.getState().memberships).toEqual(["proposed"])
+  })
+
   it("counts the sections by status, and one click narrows the list", async () => {
     const user = userEvent.setup()
     act(() => useSettings.getState().toggleRequired("Build date"))
