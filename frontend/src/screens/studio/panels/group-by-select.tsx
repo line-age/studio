@@ -1,6 +1,7 @@
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -43,11 +44,14 @@ export function GroupBySelect() {
         alignItemWithTrigger={false}
         className="w-(--anchor-width)"
       >
-        {ITEMS.map((item) => (
-          <SelectItem key={item.value} value={item.value}>
-            {item.label}
-          </SelectItem>
-        ))}
+        {/* The group gives the menu its inner padding, as shadcn's does. */}
+        <SelectGroup>
+          {ITEMS.map((item) => (
+            <SelectItem key={item.value} value={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectGroup>
       </SelectContent>
     </Select>
   )
