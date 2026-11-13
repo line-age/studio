@@ -133,6 +133,7 @@ export function TopBar({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-48">
                 <DropdownMenuItem onClick={help.tour}>
+                  <Icon name="tour" />
                   Take the tour
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={help.ask}>
@@ -140,6 +141,7 @@ export function TopBar({
                   Ask the Agent
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={help.topics}>
+                  <Icon name="help" />
                   Help topics
                 </DropdownMenuItem>
               </DropdownMenuContent>
