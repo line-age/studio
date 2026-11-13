@@ -122,3 +122,31 @@ def test_the_launcher_reads_the_switch_from_the_env_file(tmp_path, monkeypatch):
     env = serve.environment()
     assert {env[name] for name in TRACING_VARIABLES} == {"false"}
     assert env["LANGGRAPH_CLI_NO_ANALYTICS"] == "1"
+
+
+def test_the_agents_address_wins_over_a_project_left_in_the_shell(tmp_path, monkeypatch):
+    import serve
+
+    (tmp_path / ".env").write_text(
+        "LANGSMITH_AGENT_ID=example-agent\nLANGSMITH_AGENT_ENVIRONMENT=local\n"
+    )
+    monkeypatch.setattr(serve, "ROOT", tmp_path)
+    monkeypatch.setenv("LANGSMITH_PROJECT", "something-else")
+    monkeypatch.setenv("LANGCHAIN_PROJECT", "something-older")
+    env = serve.environment()
+    assert "LANGSMITH_PROJECT" not in env and "LANGCHAIN_PROJECT" not in env
+    assert env["LANGSMITH_AGENT_ID"] == "example-agent"
+
+
+def test_the_example_env_addresses_traces_to_the_agent_and_leaves_tracing_off():
+    from dotenv import dotenv_values
+
+    from settings import ROOT
+
+    example = dotenv_values(ROOT / ".env.example")
+    assert example["AGENT_TRACING"] == "false"
+    assert example["LANGSMITH_ENDPOINT"] == "https://api.smith.langchain.com"
+    assert example["LANGSMITH_AGENT_ID"] == "lineage-studio-agent"
+    assert example["LANGSMITH_AGENT_ENVIRONMENT"] == "local"
+    assert "LANGSMITH_PROJECT" not in example
+    assert not example["LANGSMITH_API_KEY"] and not example["ANTHROPIC_API_KEY"]

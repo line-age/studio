@@ -72,6 +72,12 @@ finds a LangSmith key, and a `LANGCHAIN_TRACING_V2=true` left in a shell beats
 graph refuses to load. On a store with real data, leave the switch off unless the project
 owner has said otherwise.
 
+Traces are addressed to an agent, not a project: `LANGSMITH_AGENT_ID` and
+`LANGSMITH_AGENT_ENVIRONMENT` (`lineage-studio-agent`, `local`). Do not also set
+`LANGSMITH_PROJECT`: with both, LangSmith traces nothing. Being a LangGraph service, it
+needs no tracing code of its own; the variables are enough. Read traces with the
+`langsmith` command (`langsmith traces list --limit 10`).
+
 ## Who can reach it
 
 The service has no sign-in, and a browser can reach `127.0.0.1`. So:

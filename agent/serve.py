@@ -17,6 +17,11 @@ def environment() -> dict[str, str]:
     from_file = {k: v for k, v in dotenv_values(ROOT / ".env").items() if v is not None}
     env = {**os.environ, **from_file}
     env.update(tracing_environment(env))
+    if env.get("LANGSMITH_AGENT_ID"):
+        # Traces are addressed to the agent. A project left in a shell beside it would
+        # make LangSmith trace nothing, so the agent's address wins.
+        for name in ("LANGSMITH_PROJECT", "LANGCHAIN_PROJECT"):
+            env.pop(name, None)
     env.setdefault("LANGGRAPH_CLI_NO_ANALYTICS", "1")
     return env
 
