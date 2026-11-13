@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { testNetwork } from "@/test/network"
 
+import { pickStatus, statusCount } from "@/test/status-filter"
+
 import { useSettings } from "./settings"
 import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
@@ -37,11 +39,6 @@ const rows = () =>
   within(list())
     .getAllByRole("option")
     .map((row) => row.textContent ?? "")
-const count = (name: RegExp) =>
-  within(screen.getByRole("group", { name: "Sections by status" })).getByRole(
-    "button",
-    { name }
-  )
 const rowOf = (section: string, attribute: string) =>
   within(claimsOf(section))
     .getAllByRole("treeitem")
@@ -65,10 +62,10 @@ beforeEach(() => {
 describe("reviewing", () => {
   it("finds what is not started and sees which section it is", async () => {
     const user = await open()
-    expect(count(/^All/)).toHaveTextContent("All4")
-    expect(count(/^Not started/)).toHaveTextContent("Not started2")
+    expect(await statusCount("All")).toBe(4)
+    expect(await statusCount("Not started")).toBe(2)
 
-    await user.click(count(/^Not started/))
+    await pickStatus("Not started")
     // South line is done, so it goes; the other two rows hold one each.
     expect(rows()).toEqual([
       expect.stringContaining("North line"),
@@ -143,7 +140,7 @@ describe("reviewing", () => {
     expect(
       screen.getByRole("group", { name: "Filters in force" })
     ).toHaveTextContent("Unknown diameter")
-    expect(count(/^All/)).toHaveTextContent("All2")
+    expect(await statusCount("All")).toBe(2)
     expect(rows()).toEqual([
       expect.stringContaining("North line"),
       expect.stringContaining("P-003"),
@@ -192,8 +189,8 @@ describe("reviewing", () => {
   it("finds the proposal that waits for a decision", async () => {
     const user = await open()
     // A diameter proposed on one section, a pipeline on another.
-    expect(count(/^Needs your decision/)).toHaveTextContent("2")
-    await user.click(count(/^Needs your decision/))
+    expect(await statusCount("Needs your decision")).toBe(2)
+    await pickStatus("Needs your decision")
     expect(rows()).toEqual([
       expect.stringContaining("North line"),
       expect.stringContaining("P-003"),
@@ -271,7 +268,7 @@ describe("reviewing", () => {
     )
     await user.click(await screen.findByRole("option", { name: /1931/ }))
     // 1931 shows one section of each line, and nothing outside a pipeline.
-    expect(count(/^All/)).toHaveTextContent("All2")
+    expect(await statusCount("All")).toBe(2)
     expect(rows()).toEqual([
       expect.stringContaining("North line"),
       expect.stringContaining("South line"),
@@ -307,7 +304,7 @@ describe("reviewing", () => {
 
   it("loosens the rule and sees the work counted again", async () => {
     const user = await open()
-    expect(count(/^Done/)).toHaveTextContent("Done2")
+    expect(await statusCount("Done")).toBe(2)
     await user.click(screen.getByRole("button", { name: "Settings" }))
     const dialog = screen.getByRole("dialog", { name: "Settings" })
     // Owner is the pipeline's: the rule cannot ask a section for it.
@@ -316,8 +313,8 @@ describe("reviewing", () => {
       await user.click(within(dialog).getByRole("checkbox", { name }))
     }
     // Nothing required: every section in a pipeline is done.
-    const done = screen.getByRole("button", { name: /^Done/, hidden: true })
-    expect(done).toHaveTextContent("Done3")
+    await user.keyboard("{Escape}")
+    expect(await statusCount("Done")).toBe(3)
   })
 
   it("finds nothing in the top bar that does nothing when pressed", async () => {

@@ -38,6 +38,7 @@ import {
   type PipelineSummary,
   type SearchHit,
 } from "@/data/derive"
+import { STATUS_LABEL } from "@/data/status"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
@@ -61,7 +62,6 @@ import {
 import { EditionSelect } from "./edition-select"
 import { FiltersPanel } from "./filters-panel"
 import { listColumns } from "./list-columns"
-import { StatusCounts } from "./status-counts"
 
 export const SEARCH_INPUT_ID = "pipeline-search"
 
@@ -83,6 +83,10 @@ export function PipelinesPanel() {
   const builtFrom = useStudio((s) => s.builtFrom)
   const builtTo = useStudio((s) => s.builtTo)
   const added = useStudio((s) => formatDateRange(s.addedFrom, s.addedTo))
+  const status = useStudio((s) => s.status)
+  const setStatus = useStudio((s) => s.setStatus)
+  const needsDecisionOnly = useStudio((s) => s.needsDecisionOnly)
+  const setNeedsDecisionOnly = useStudio((s) => s.setNeedsDecisionOnly)
   const toggleUnknownIn = useStudio((s) => s.toggleUnknownIn)
   const setCompanies = useStudio((s) => s.setCompanies)
   const setBuilt = useStudio((s) => s.setBuilt)
@@ -102,7 +106,7 @@ export function PipelinesPanel() {
     return () => setTableOpen(false)
   }, [wide, setTableOpen])
 
-  // Sections, like the status counts: in the map view, of the whole edition.
+  // Sections the filters leave: in the map view, of the whole edition.
   const shown = useMemo(() => {
     const pick = (counts: ReturnType<typeof filterCounts>) =>
       criteria.status === "all" ? counts.all : counts.status[criteria.status]
@@ -125,6 +129,20 @@ export function PipelinesPanel() {
       remove: () => setWhole(false),
     })
   } else {
+    if (status !== "all") {
+      chips.push({
+        label: STATUS_LABEL[status],
+        hint: `Only sections that are ${STATUS_LABEL[status].toLocaleLowerCase()}.`,
+        remove: () => setStatus("all"),
+      })
+    }
+    if (needsDecisionOnly) {
+      chips.push({
+        label: "Needs your decision",
+        hint: "Only sections with a proposal waiting for a person.",
+        remove: () => setNeedsDecisionOnly(false),
+      })
+    }
     if (unknownIn.length > 0) {
       chips.push({
         label: `Unknown ${unknownIn.join(", ").toLocaleLowerCase()}`,
@@ -255,7 +273,20 @@ export function PipelinesPanel() {
                 onKeyDown={onSearchKeyDown}
                 className="pr-8 pl-8.5 [&::-webkit-search-cancel-button]:hidden"
               />
-              {!searching && (
+              {searching ? (
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label="Clear the search"
+                  className="absolute top-1 right-1 text-muted-foreground"
+                  onClick={() => {
+                    setQuery("")
+                    document.getElementById(SEARCH_INPUT_ID)?.focus()
+                  }}
+                >
+                  <Icon name="close" />
+                </Button>
+              ) : (
                 <Kbd className="absolute top-1.5 right-1.5">/</Kbd>
               )}
             </div>
@@ -270,7 +301,6 @@ export function PipelinesPanel() {
             </Button>
           </div>
         </div>
-        <StatusCounts />
         {chips.length > 0 && (
           <div
             role="group"
@@ -306,6 +336,16 @@ export function PipelinesPanel() {
                 {chip.label}
               </FilterChip>
             ))}
+            {chips.length > 1 && (
+              <Button
+                variant="ghost"
+                size="xs"
+                className="text-muted-foreground"
+                onClick={() => chips.forEach((chip) => chip.remove())}
+              >
+                Clear all
+              </Button>
+            )}
           </div>
         )}
       </div>

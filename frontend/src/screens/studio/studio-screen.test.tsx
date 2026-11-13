@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { testNetwork } from "@/test/network"
 
+import { statusCount } from "@/test/status-filter"
+
 import { readSettings, useSettings } from "./settings"
 import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
@@ -107,12 +109,9 @@ describe("a shared link", () => {
     expect(s.editionId).toBe("ed-1937")
     expect(s.onlyInView).toBe(false)
     expect([...s.selection]).toEqual(["s-2"])
-    expect(
-      screen.getByRole("button", { name: /^Not started/ })
-    ).toHaveAttribute("aria-pressed", "true")
-    expect(
-      screen.getByRole("group", { name: "Filters in force" })
-    ).toHaveTextContent("Unknown diameter")
+    const inForce = screen.getByRole("group", { name: "Filters in force" })
+    expect(inForce).toHaveTextContent("Not started")
+    expect(inForce).toHaveTextContent("Unknown diameter")
     // The address stays as it was: nothing was lost on the way in.
     expect(window.location.search).toBe(
       "?e=ed-1937&s=not-started&u=Diameter&v=0&sel=s-2"
@@ -141,11 +140,8 @@ describe("Settings", () => {
   it("recounts every status at once when the rule changes, and keeps it", async () => {
     const user = userEvent.setup()
     await renderScreen()
-    // The dialog hides the page behind it from assistive technology.
-    const done = () =>
-      screen.getByRole("button", { name: /^Done/, hidden: true })
     // Diameter and Build date are asked for: two sections in pipelines have both.
-    expect(done()).toHaveTextContent("Done2")
+    expect(await statusCount("Done")).toBe(2)
 
     await user.click(screen.getByRole("button", { name: "Settings" }))
     const dialog = screen.getByRole("dialog", { name: "Settings" })
@@ -159,8 +155,8 @@ describe("Settings", () => {
       await user.click(within(rule).getByRole("checkbox", { name }))
     }
 
-    // No reload: the counts behind the dialog have already changed.
-    expect(done()).toHaveTextContent("Done3")
+    // No reload: the statuses behind the dialog have already changed.
+    expect(useSettings.getState().requiredAttributes).toEqual([])
     expect(readSettings().requiredAttributes).toEqual([])
 
     // The map's lines are a setting too.
@@ -170,6 +166,9 @@ describe("Settings", () => {
       ).getByRole("radio", { name: "Solid" })
     )
     expect(readSettings().lineStyle["in-progress"]).toBe("solid")
+
+    await user.keyboard("{Escape}")
+    expect(await statusCount("Done")).toBe(3)
   })
 
   it("sits immediately to the left of Help", async () => {

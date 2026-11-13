@@ -2,6 +2,7 @@ import { useId, useMemo } from "react"
 
 import { DateRangePicker } from "@/components/date-range-picker"
 import { GroupLabel } from "@/components/group-label"
+import { Hint } from "@/components/hint"
 import { Icon } from "@/components/icons/icon"
 import { PanelFooter } from "@/components/panel-footer"
 import { PanelHeader } from "@/components/panel-header"
@@ -29,6 +30,8 @@ import {
   unknownCounts,
   plural,
 } from "@/data/derive"
+import { STATUSES, STATUS_LABEL } from "@/data/status"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { cn } from "@/lib/utils"
 
 import { HidePanels } from "../panel-toggle"
@@ -108,16 +111,20 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
   const addedFrom = useStudio((s) => s.addedFrom)
   const addedTo = useStudio((s) => s.addedTo)
   const setAdded = useStudio((s) => s.setAdded)
+  const status = useStudio((s) => s.status)
+  const setStatus = useStudio((s) => s.setStatus)
+  const needsDecisionOnly = useStudio((s) => s.needsDecisionOnly)
+  const setNeedsDecisionOnly = useStudio((s) => s.setNeedsDecisionOnly)
   const filtered = useStudio(filtersApplied)
 
-  // The sections of the edition the filters leave, as the status counts
-  // count them: the map view does not change it.
-  const matching = useMemo(() => {
-    const counts = filterCounts(summaries, criteria)
-    return criteria.status === "all"
-      ? counts.all
-      : counts.status[criteria.status]
-  }, [summaries, criteria])
+  // Sections of the whole edition, after the other filters. They never
+  // follow the map: moving it or opening the table does not change them.
+  const counts = useMemo(
+    () => filterCounts(summaries, criteria),
+    [summaries, criteria]
+  )
+  const matching =
+    criteria.status === "all" ? counts.all : counts.status[criteria.status]
   // Per attribute: how many sections have it Unknown.
   const attributes = useMemo(
     () =>
@@ -161,22 +168,77 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
       </PanelHeader>
 
       <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
-        {allCompanies.length > 0 && (
-          <Group
-            title="Company"
-            action={
-              companies.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  onClick={() => setCompanies([])}
-                >
-                  Clear
-                </Button>
-              )
-            }
+        <Group
+          title="Status"
+          action={
+            (status !== "all" || needsDecisionOnly) && (
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={() => {
+                  setStatus("all")
+                  setNeedsDecisionOnly(false)
+                }}
+              >
+                Clear
+              </Button>
+            )
+          }
+        >
+          {/* One status at a time, and "Needs your decision" on top of any. */}
+          <div
+            role="group"
+            aria-label="Sections by status"
+            className="flex flex-col gap-0.5"
           >
-            {/* Type to find a company; the chosen ones stay as chips. */}
+            <RadioGroup
+              aria-label="Status"
+              value={status}
+              onValueChange={(value) => setStatus(value as typeof status)}
+              className="gap-0.5"
+            >
+              {(["all", ...STATUSES] as const).map((s) => (
+                <OptionRow
+                  key={s}
+                  control={<RadioGroupItem value={s} />}
+                  label={s === "all" ? "All" : STATUS_LABEL[s]}
+                  count={s === "all" ? counts.all : counts.status[s]}
+                  selected={status === s}
+                />
+              ))}
+            </RadioGroup>
+            <OptionRow
+              control={
+                <Checkbox
+                  checked={needsDecisionOnly}
+                  onCheckedChange={(on) => setNeedsDecisionOnly(on === true)}
+                />
+              }
+              label="Needs your decision"
+              count={counts.needsDecision}
+              selected={needsDecisionOnly}
+            />
+          </div>
+        </Group>
+
+        <Group
+          title="Company"
+          action={
+            companies.length > 0 && (
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={() => setCompanies([])}
+              >
+                Clear
+              </Button>
+            )
+          }
+        >
+          {allCompanies.length === 0 ? (
+            <Hint>No pipeline has a cited owner yet.</Hint>
+          ) : (
+            /* Type to find a company; the chosen ones stay as chips. */
             <Combobox
               multiple
               autoHighlight
@@ -218,24 +280,26 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
-          </Group>
-        )}
+          )}
+        </Group>
 
-        {span && (
-          <Group
-            title="Build date"
-            action={
-              (builtFrom !== null || builtTo !== null) && (
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  onClick={() => setBuilt(null, null)}
-                >
-                  Clear
-                </Button>
-              )
-            }
-          >
+        <Group
+          title="Build date"
+          action={
+            (builtFrom !== null || builtTo !== null) && (
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={() => setBuilt(null, null)}
+              >
+                Clear
+              </Button>
+            )
+          }
+        >
+          {!span ? (
+            <Hint>No section has a cited build date yet.</Hint>
+          ) : (
             <div className="flex items-center gap-2">
               <YearPicker
                 label="Built from year"
@@ -257,8 +321,8 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
                 placeholder="To"
               />
             </div>
-          </Group>
-        )}
+          )}
+        </Group>
 
         {added && (
           <Group

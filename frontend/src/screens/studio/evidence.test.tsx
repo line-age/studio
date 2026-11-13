@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { evidenceNetwork } from "@/test/network"
 
+import { statusCount } from "@/test/status-filter"
+
 import { useSettings } from "./settings"
 import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
@@ -86,10 +88,6 @@ describe("evidence in the right panel", () => {
 
   it("marks a section with a proposed end as waiting for a decision", async () => {
     await openClaim("Last seen")
-    expect(
-      within(
-        screen.getByRole("group", { name: "Sections by status" })
-      ).getByRole("button", { name: /Needs your decision/ })
-    ).toHaveTextContent("3")
+    expect(await statusCount("Needs your decision")).toBe(3)
   })
 })

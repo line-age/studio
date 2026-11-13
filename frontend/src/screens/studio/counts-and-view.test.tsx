@@ -1,5 +1,4 @@
 import { act, render, screen, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
 import { Suspense, type ReactNode } from "react"
 import { beforeEach, describe, expect, it } from "vitest"
 
@@ -9,6 +8,8 @@ import { LeftPanelContext } from "./left-panel-context"
 import { FollowMapToggle } from "./map/follow-map-toggle"
 import { PanelWidthContext } from "./panel-width-context"
 import { PipelinesPanel } from "./panels/pipelines-panel"
+import { pickStatus, statusCount } from "@/test/status-filter"
+
 import { useSettings } from "./settings"
 import { StudioDataProvider } from "./studio-data"
 import { useStudio } from "./studio-store"
@@ -74,11 +75,7 @@ async function renderList({ wide = false } = {}) {
     act(() => rerender(<Screen data={data} wide={next} />))
 }
 
-const allCount = () =>
-  within(screen.getByRole("group", { name: "Sections by status" })).getByRole(
-    "button",
-    { name: /^All/ }
-  ).textContent
+const allCount = () => statusCount("All")
 
 const rows = () =>
   within(screen.getByRole("listbox", { name: "Pipelines" })).getAllByRole(
@@ -94,12 +91,12 @@ beforeEach(() => {
 describe("Counts and the map view", () => {
   it("keeps the status counts whole when the map moves; only the list follows", async () => {
     await renderList()
-    const whole = allCount()
+    const whole = await allCount()
     expect(rows()).toHaveLength(3)
 
     act(() => useStudio.getState().setView(NORTH_ONLY))
 
-    expect(allCount()).toBe(whole)
+    expect(await allCount()).toBe(whole)
     expect(rows()).toHaveLength(1)
     expect(rows()[0]).toHaveTextContent("North line")
   })
@@ -112,7 +109,7 @@ describe("Counts and the map view", () => {
 
     // The Sections list counts sections, of the whole edition.
     act(() => useStudio.getState().setList("sections"))
-    const total = Number(allCount()?.replace(/\D/g, ""))
+    const total = await allCount()
     expect(screen.getByText(`2 of ${total} in view`)).toBeInTheDocument()
   })
 
@@ -126,7 +123,7 @@ describe("Counts and the map view", () => {
     expect(screen.getByText("3 pipelines")).toBeInTheDocument()
     expect(rows()).toHaveLength(3)
     act(() => useStudio.getState().setList("sections"))
-    const total = Number(allCount()?.replace(/\D/g, ""))
+    const total = await allCount()
     expect(screen.getByText(`${total} sections`)).toBeInTheDocument()
   })
 
@@ -157,10 +154,9 @@ describe("Counts and the map view", () => {
   })
 
   it("does not change the status counts when the person filters by a status", async () => {
-    const user = userEvent.setup()
     await renderList()
-    const whole = allCount()
-    await user.click(screen.getByRole("button", { name: /^Not started/ }))
-    expect(allCount()).toBe(whole)
+    const whole = await allCount()
+    await pickStatus("Not started")
+    expect(await allCount()).toBe(whole)
   })
 })

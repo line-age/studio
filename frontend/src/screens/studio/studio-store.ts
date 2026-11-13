@@ -216,10 +216,13 @@ const defaultLayers: Record<LayerId, boolean> = {
 let nonce = 0
 
 /**
- * True when one of the filters behind the filter button is on. The status
- * counts and "list follows the map" have their own controls and do not count.
+ * True when one of the filters behind the filter button is on, a status or
+ * "Needs your decision" among them. "List follows the map" has its own
+ * control and does not count.
  */
 export const filtersApplied = (s: StudioState) =>
+  s.status !== "all" ||
+  s.needsDecisionOnly ||
   s.unknownIn.length > 0 ||
   s.companies.length > 0 ||
   s.builtFrom !== null ||
@@ -295,6 +298,8 @@ export const useStudio = create<StudioState>((set) => ({
   // Only the filters behind the filter button; the status stays as chosen.
   clearFilters: () =>
     set({
+      status: "all",
+      needsDecisionOnly: false,
       unknownIn: [],
       companies: [],
       builtFrom: null,

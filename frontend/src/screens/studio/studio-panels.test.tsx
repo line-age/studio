@@ -8,6 +8,8 @@ import { testNetwork } from "@/test/network"
 import { LeftPanelContext } from "./left-panel-context"
 import { PipelinesPanel } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
+import { pickStatus, statusCount } from "@/test/status-filter"
+
 import { useSettings } from "./settings"
 import { StudioDataProvider } from "./studio-data"
 import { useStudio } from "./studio-store"
@@ -364,16 +366,18 @@ describe("Studio panels", () => {
     const user = userEvent.setup()
     act(() => useSettings.getState().toggleRequired("Build date"))
     await renderPanels()
-    const counts = screen.getByRole("group", { name: "Sections by status" })
-    const count = (name: RegExp) => within(counts).getByRole("button", { name })
-    expect(count(/^All/)).toHaveTextContent("All4")
-    expect(count(/^Done/)).toHaveTextContent("Done2")
-    expect(count(/^Not started/)).toHaveTextContent("Not started2")
+    expect(await statusCount("All")).toBe(4)
+    expect(await statusCount("Done")).toBe(2)
+    expect(await statusCount("Not started")).toBe(2)
     // A diameter proposed on one section, a pipeline proposed for another.
-    expect(count(/^Needs your decision/)).toHaveTextContent("2")
+    expect(await statusCount("Needs your decision")).toBe(2)
+    // No status badge in the list while no status is chosen.
+    expect(screen.queryByRole("group", { name: "Filters in force" })).toBeNull()
 
-    await user.click(count(/^Not started/))
-    expect(count(/^Not started/)).toHaveAttribute("aria-pressed", "true")
+    await pickStatus("Not started")
+    expect(
+      screen.getByRole("group", { name: "Filters in force" })
+    ).toHaveTextContent("Not started")
     const list = screen.getByRole("listbox", { name: "Pipelines" })
     // North line stays: one of its two sections is not started.
     expect(
@@ -395,8 +399,10 @@ describe("Studio panels", () => {
       expect.stringContaining("Alder to Birch"),
     ])
 
-    // The same count again takes the filter off.
-    await user.click(count(/^Not started/))
+    // Its badge takes the filter off.
+    await user.click(
+      screen.getByRole("button", { name: "Remove the filter: Not started" })
+    )
     expect(useStudio.getState().status).toBe("all")
   })
 
@@ -417,7 +423,7 @@ describe("Studio panels", () => {
       screen.getByRole("button", { name: "Filters, some are on" })
     ).toHaveAttribute("aria-pressed", "true")
 
-    // The filter shows as a chip under the counts, and comes off there.
+    // The filter shows as a chip under the search, and comes off there.
     const chips = screen.getByRole("group", { name: "Filters in force" })
     expect(chips).toHaveTextContent("Unknown diameter")
     await user.click(
@@ -426,7 +432,7 @@ describe("Studio panels", () => {
     expect(useStudio.getState().unknownIn).toEqual([])
   })
 
-  it("clears the filters and leaves the status as chosen", async () => {
+  it("clears every filter, the status among them", async () => {
     const user = userEvent.setup()
     await renderPanels()
     act(() => {
@@ -438,7 +444,7 @@ describe("Studio panels", () => {
     )
     await user.click(screen.getByRole("button", { name: "Clear all" }))
     expect(useStudio.getState().unknownIn).toEqual([])
-    expect(useStudio.getState().status).toBe("not-started")
+    expect(useStudio.getState().status).toBe("all")
     await user.click(screen.getByRole("button", { name: "Back to the list" }))
     expect(screen.getByRole("listbox", { name: "Pipelines" })).toBeVisible()
   })
