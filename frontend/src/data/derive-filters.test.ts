@@ -87,7 +87,7 @@ describe("the new filters", () => {
   })
 
   it("counts each option with the other filters on, not its own", () => {
-    const sections = summarise(network, "ed-1937", NO_CRITERIA.rule, "sections")
+    const sections = summarise(network, NO_CRITERIA.rule, "sections")
     const counts = optionCounts(
       sections,
       { ...NO_CRITERIA, editionYears, memberships: ["in"], changedOnly: true },

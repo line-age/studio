@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 /**
- * One thing drawn on the map: its key, name, a count, and an eye to hide it.
+ * One thing drawn on the map: its key, name, what it means and, where it
+ * can be hidden, an eye.
  */
 export function LayerRow({
   name,
   meta,
+  label,
   lineKey,
   visible,
   onVisibleChange,
@@ -18,9 +20,12 @@ export function LayerRow({
 }: {
   name: string
   meta: ReactNode
+  /** What the eye shows, when the name alone does not say: "proposed paths". */
+  label?: string
   /** A LineKey, or nothing when the layer has no key symbol yet. */
   lineKey?: ReactNode
-  visible: boolean
+  /** Left out for a line that is always drawn: the row then has no eye. */
+  visible?: boolean
   onVisibleChange?: (visible: boolean) => void
   disabled?: boolean
   className?: string
@@ -37,7 +42,7 @@ export function LayerRow({
         <span
           className={cn(
             "truncate type-ui-sm",
-            !visible && "text-muted-foreground"
+            visible === false && "text-muted-foreground"
           )}
         >
           {name}
@@ -46,17 +51,19 @@ export function LayerRow({
           {meta}
         </span>
       </span>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-pressed={visible}
-        aria-label={`Show ${name} on the map`}
-        disabled={disabled}
-        className="text-muted-foreground"
-        onClick={() => onVisibleChange?.(!visible)}
-      >
-        <Icon name={visible ? "eye" : "eye-off"} className="size-3.5" />
-      </Button>
+      {visible !== undefined && (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-pressed={visible}
+          aria-label={`Show ${label ?? name} on the map`}
+          disabled={disabled}
+          className="text-muted-foreground"
+          onClick={() => onVisibleChange?.(!visible)}
+        >
+          <Icon name={visible ? "eye" : "eye-off"} className="size-3.5" />
+        </Button>
+      )}
     </li>
   )
 }

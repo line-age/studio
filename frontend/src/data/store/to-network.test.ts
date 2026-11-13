@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { summarise } from "@/data/derive"
+import { NO_PIPELINE_ID, summarise } from "@/data/derive"
 import {
   ID_A,
   ID_B,
@@ -150,10 +150,8 @@ describe("toNetwork", () => {
   it("never lists or counts a line traced as gone", () => {
     expect(network.sections.map((s) => s.id)).not.toContain(ID_X)
     expect(
-      summarise(network, network.editions[1].id, undefined, "sections").flatMap(
-        (g) => g.sections
-      )
-    ).toHaveLength(2)
+      summarise(network, undefined, "sections").flatMap((g) => g.sections)
+    ).toHaveLength(3)
   })
 
   it("names who proposed a link only when it is a tool", () => {
@@ -311,16 +309,16 @@ describe("toNetwork", () => {
     })
 
     it("lists pipelines, then the proposed one, and every section apart", () => {
-      const latest = piped.editions[1].id
-      expect(summarise(piped, latest).map((g) => [g.id, g.kind])).toEqual([
+      expect(summarise(piped).map((g) => [g.id, g.kind])).toEqual([
         [LINE_1, "pipeline"],
         [LINE_2, "proposed"],
+        [NO_PIPELINE_ID, "group"],
       ])
       expect(
-        summarise(piped, latest, undefined, "sections").flatMap((g) =>
+        summarise(piped, undefined, "sections").flatMap((g) =>
           g.sections.map((s) => s.id)
         )
-      ).toEqual([ID_A, ID_B])
+      ).toEqual([ID_A, ID_C, ID_B])
     })
   })
 
@@ -338,14 +336,16 @@ describe("toNetwork", () => {
   })
 
   it("lists the sections under the edition that first shows them", () => {
-    const latest = network.editions[1].id
-    const groups = summarise(network, latest, undefined, "sections")
+    const groups = summarise(network, undefined, "sections")
+    // C ended before 1937: it is still listed, under the edition it is on.
     expect(groups.map((g) => [g.name, g.sections.map((s) => s.id)])).toEqual([
-      ["First seen in the 1931 edition", [ID_A]],
+      ["First seen in the 1931 edition", [ID_A, ID_C]],
       ["First seen in the 1937 edition", [ID_B]],
     ])
-    // No pipelines in store: the Pipelines list is empty.
-    expect(summarise(network, latest)).toEqual([])
+    // No pipelines in store: by pipeline, every section is in the one row.
+    expect(summarise(network).map((g) => [g.name, g.sections.length])).toEqual([
+      ["No pipeline", 3],
+    ])
     expect(groups.every((g) => g.unassigned)).toBe(true)
   })
 })

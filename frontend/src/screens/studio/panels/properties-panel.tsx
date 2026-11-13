@@ -84,15 +84,13 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const attachments = useSelectionAttachments()
   const criteria = useCriteria()
   const rule = useSettings((s) => s.requiredAttributes)
-  const { network, edition } = useStudioData()
+  const { network } = useStudioData()
   const setList = useStudio((s) => s.setList)
   const selectPipeline = useStudio((s) => s.selectPipeline)
   const pipelineById = new Map(network.pipelines.map((p) => [p.id, p]))
-  // "On the pipeline" leads there: the Pipelines list, that pipeline whole.
+  // "On the pipeline" leads there: the list by pipeline, that one whole.
   const openPipeline = (pipelineId: string) => {
-    const members = network.sections.filter(
-      (s) => s.pipelineId === pipelineId && s.editionIds.includes(edition.id)
-    )
+    const members = network.sections.filter((s) => s.pipelineId === pipelineId)
     setList("pipelines")
     selectPipeline(
       pipelineId,

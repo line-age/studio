@@ -8,8 +8,9 @@ import { testNetwork } from "@/test/network"
 
 import { StudioDataProvider, useVisiblePipelines } from "../studio-data"
 import { useStudio } from "../studio-store"
+import { useSettingsOpen } from "../settings"
 import { FollowMapToggle } from "./follow-map-toggle"
-import { LayersControl } from "./layers-control"
+import { MapKey } from "./map-key"
 
 function Shown() {
   return <output>{useVisiblePipelines().length}</output>
@@ -22,7 +23,7 @@ async function renderControls() {
       <Suspense fallback="Loading">
         <TooltipProvider>
           <StudioDataProvider network={network}>
-            <LayersControl />
+            <MapKey />
             <FollowMapToggle />
             <Shown />
           </StudioDataProvider>
@@ -33,20 +34,55 @@ async function renderControls() {
 }
 
 beforeEach(() => {
+  localStorage.clear()
+  useSettingsOpen.setState({ open: false })
   useStudio.setState(useStudio.getInitialState(), true)
 })
 
 describe("map controls", () => {
-  it("switches a layer off from the layers button", async () => {
+  it("says how each line is drawn, with an eye on the two that can hide", async () => {
     const user = userEvent.setup()
     await renderControls()
-    await user.click(screen.getByRole("button", { name: "Map layers" }))
-    expect(screen.getByText("Show on the map")).toBeVisible()
-    await user.click(
-      screen.getByRole("button", { name: "Show Proposed paths on the map" })
-    )
+    await user.click(screen.getByRole("button", { name: "Map key" }))
+    for (const words of [
+      "Sufficient or done",
+      "Not started or in progress",
+      "Proposed by a tool · 0 waiting",
+      "Hidden by the filters",
+      "Selected",
+    ]) {
+      expect(screen.getByText(words)).toBeVisible()
+    }
+    // Only the proposed paths and the faint lines have an eye.
+    expect(
+      screen.getAllByRole("button", { name: /^Show .* on the map$/ })
+    ).toHaveLength(2)
+
+    const proposed = screen.getByRole("button", {
+      name: "Show proposed paths on the map",
+    })
+    expect(proposed).toHaveAttribute("aria-pressed", "true")
+    await user.click(proposed)
     expect(useStudio.getState().layers.proposed).toBe(false)
-    expect(useStudio.getState().layers.pipelines).toBe(true)
+
+    // What the filters hide is not drawn until asked for.
+    const faint = screen.getByRole("button", {
+      name: "Show sections hidden by the filters on the map",
+    })
+    expect(faint).toHaveAttribute("aria-pressed", "false")
+    await user.click(faint)
+    expect(useStudio.getState().layers.faint).toBe(true)
+  })
+
+  it("opens Settings from the key, where the lines are chosen", async () => {
+    const user = userEvent.setup()
+    await renderControls()
+    await user.click(screen.getByRole("button", { name: "Map key" }))
+    await user.click(
+      screen.getByRole("button", { name: "Change how lines are drawn" })
+    )
+    expect(useSettingsOpen.getState().open).toBe(true)
+    expect(screen.queryByText("Map key")).not.toBeInTheDocument()
   })
 
   it("turns the list following the map off and on again", async () => {

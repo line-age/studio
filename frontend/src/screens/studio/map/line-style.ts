@@ -20,11 +20,18 @@ const STYLE_LABEL: Record<LineStyle, string> = {
   dotted: "Dotted",
 }
 
-/** "Solid: Sufficient, Done". Names the statuses, whatever is chosen. */
+/** "Solid": the style as the map key names it. */
+export function styleName(style: LineStyle): string {
+  return STYLE_LABEL[style]
+}
+
+/** "Sufficient or done": the statuses drawn in a style, whatever is chosen. */
 export function legendText(
   lineStyle: Record<SectionStatus, LineStyle>,
   style: LineStyle
 ): string {
   const names = statusesDrawn(lineStyle, style).map((s) => STATUS_LABEL[s])
-  return `${STYLE_LABEL[style]}: ${names.length > 0 ? names.join(", ") : "no status"}`
+  if (names.length === 0) return "No status"
+  const words = names.join(" or ").toLocaleLowerCase()
+  return words.charAt(0).toLocaleUpperCase() + words.slice(1)
 }

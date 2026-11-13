@@ -28,7 +28,7 @@ async function openClaim(attribute: string) {
   })
   const user = userEvent.setup()
   await user.type(
-    screen.getByRole("combobox", { name: "Search pipelines" }),
+    screen.getByRole("combobox", { name: "Search name or code" }),
     "fir to{Enter}"
   )
   const claims = screen.getByRole("group", { name: "Claims of Fir to Gale" })

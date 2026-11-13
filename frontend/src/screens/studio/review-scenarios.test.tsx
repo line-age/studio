@@ -34,7 +34,8 @@ async function open() {
   return userEvent.setup()
 }
 
-const list = () => screen.getByRole("listbox", { name: "Pipelines" })
+const list = () =>
+  screen.getByRole("listbox", { name: /^(Pipelines|Editions)$/ })
 const rows = () =>
   within(list())
     .getAllByRole("option")
@@ -43,11 +44,6 @@ const rowOf = (section: string, attribute: string) =>
   within(claimsOf(section))
     .getAllByRole("treeitem")
     .find((row) => row.textContent?.startsWith(attribute))!
-const rail = (name: string) =>
-  within(screen.getByRole("navigation", { name: "Panels" })).getByRole(
-    "button",
-    { name: new RegExp(name) }
-  )
 const claimsOf = (section: string) =>
   screen.getByRole("group", { name: `Claims of ${section}` })
 
@@ -62,13 +58,14 @@ beforeEach(() => {
 describe("reviewing", () => {
   it("finds what is not started and sees which section it is", async () => {
     const user = await open()
-    expect(await statusCount("All")).toBe(4)
-    expect(await statusCount("Not started")).toBe(2)
+    expect(await statusCount("All")).toBe(5)
+    expect(await statusCount("Not started")).toBe(3)
 
     await pickStatus("Not started")
-    // South line is done, so it goes; the other two rows hold one each.
+    // Each row holds one: South line's is its old route.
     expect(rows()).toEqual([
       expect.stringContaining("North line"),
+      expect.stringContaining("South line"),
       expect.stringContaining("P-003"),
     ])
 
@@ -85,7 +82,7 @@ describe("reviewing", () => {
   it("looks one section up by name and reads its claims", async () => {
     const user = await open()
     await user.type(
-      screen.getByRole("combobox", { name: "Search pipelines" }),
+      screen.getByRole("combobox", { name: "Search name or code" }),
       "alder to{Enter}"
     )
     const claims = within(claimsOf("Alder to Birch")).getAllByRole("treeitem")
@@ -100,7 +97,7 @@ describe("reviewing", () => {
   it("reads the source behind a value: which one, where, and puts it away", async () => {
     const user = await open()
     await user.type(
-      screen.getByRole("combobox", { name: "Search pipelines" }),
+      screen.getByRole("combobox", { name: "Search name or code" }),
       "alder to{Enter}"
     )
     await user.click(rowOf("Alder to Birch", "Diameter"))
@@ -135,14 +132,15 @@ describe("reviewing", () => {
         { name: /Diameter/ }
       )
     )
-    await user.click(screen.getByRole("button", { name: "Show 2 sections" }))
+    await user.click(screen.getByRole("button", { name: "Show 3 sections" }))
 
     expect(
       screen.getByRole("group", { name: "Filters in force" })
     ).toHaveTextContent("Unknown diameter")
-    expect(await statusCount("All")).toBe(2)
+    expect(await statusCount("All")).toBe(3)
     expect(rows()).toEqual([
       expect.stringContaining("North line"),
+      expect.stringContaining("South line"),
       expect.stringContaining("P-003"),
     ])
 
@@ -176,7 +174,7 @@ describe("reviewing", () => {
   it("finds a pipeline by its owner", async () => {
     const user = await open()
     await user.type(
-      screen.getByRole("combobox", { name: "Search pipelines" }),
+      screen.getByRole("combobox", { name: "Search name or code" }),
       "yew fuel"
     )
     expect(
@@ -223,11 +221,12 @@ describe("reviewing", () => {
 
   it("works through the sections in no pipeline, one by one", async () => {
     const user = await open()
-    // They are in the Sections list only.
-    await user.click(rail("Sections"))
-    const sections = screen.getByRole("listbox", { name: "Sections" })
+    // Grouped by edition, every section is under the one that first shows it.
+    await user.click(screen.getByRole("combobox", { name: "Group by" }))
+    await user.click(await screen.findByRole("option", { name: "Edition" }))
+    const sections = screen.getByRole("listbox", { name: "Editions" })
     expect(
-      screen.getByRole("combobox", { name: "Search sections" })
+      screen.getByRole("combobox", { name: "Search name or code" })
     ).toBeVisible()
     // A group's sections are listed on the right, where they are read.
     await user.click(
@@ -259,21 +258,24 @@ describe("reviewing", () => {
     expect(window.location.search).toContain("l=sections")
   })
 
-  it("looks at the network as an earlier edition shows it", async () => {
+  it("groups the same sections another way, and keeps what was selected", async () => {
     const user = await open()
-    await user.click(
-      screen.getByRole("combobox", {
-        name: "Edition the network is shown as of",
-      })
-    )
-    await user.click(await screen.findByRole("option", { name: /1931/ }))
-    // 1931 shows one section of each line, and nothing outside a pipeline.
-    expect(await statusCount("All")).toBe(2)
+    expect(screen.getByRole("heading", { name: "Pipelines" })).toBeVisible()
+    await user.click(screen.getByRole("option", { name: /North line/ }))
+    const selected = [...useStudio.getState().selection]
+
+    await user.click(screen.getByRole("combobox", { name: "Group by" }))
+    await user.click(await screen.findByRole("option", { name: "Edition" }))
+    // The title, the column and the rows follow; nothing else changes.
+    expect(screen.getByRole("heading", { name: "Editions" })).toBeVisible()
     expect(rows()).toEqual([
-      expect.stringContaining("North line"),
-      expect.stringContaining("South line"),
+      expect.stringContaining("1931 edition"),
+      expect.stringContaining("1937 edition"),
     ])
-    expect(window.location.search).toContain("e=ed-1931")
+    expect([...useStudio.getState().selection]).toEqual(selected)
+    expect(window.location.search).toContain("l=sections")
+    // There is no edition to choose: the whole network is always shown.
+    expect(screen.queryByRole("combobox", { name: /Edition/ })).toBeNull()
   })
 
   it("hands two pipelines to the Agent and is ready to type", async () => {
@@ -302,6 +304,28 @@ describe("reviewing", () => {
     ).toHaveFocus()
   })
 
+  it("hands an edition to the Agent as its sections, which outlast a regrouping", async () => {
+    const user = await open()
+    await user.click(screen.getByRole("combobox", { name: "Group by" }))
+    await user.click(await screen.findByRole("option", { name: "Edition" }))
+    await user.pointer({
+      keys: "[MouseRight]",
+      target: screen.getByRole("option", { name: /1931 edition/ }),
+    })
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Add to the Agent chat" })
+    )
+    // A group is only a way of listing: never "all" of it.
+    expect(useStudio.getState().agentAttachments).toEqual([
+      { pipelineId: "unassigned:ed-1931", sectionIds: ["s-1", "s-5"] },
+    ])
+    const agent = screen.getByRole("complementary", { name: "agent" })
+    expect(within(agent).getByText("2 sections")).toBeVisible()
+    // Grouped by pipeline the same two sections are still attached.
+    act(() => useStudio.getState().setList("pipelines"))
+    expect(within(agent).getByText("2 sections")).toBeVisible()
+  })
+
   it("loosens the rule and sees the work counted again", async () => {
     const user = await open()
     expect(await statusCount("Done")).toBe(2)
@@ -314,7 +338,7 @@ describe("reviewing", () => {
     }
     // Nothing required: every section in a pipeline is done.
     await user.keyboard("{Escape}")
-    expect(await statusCount("Done")).toBe(3)
+    expect(await statusCount("Done")).toBe(4)
   })
 
   it("finds nothing in the top bar that does nothing when pressed", async () => {

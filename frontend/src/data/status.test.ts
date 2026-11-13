@@ -120,13 +120,14 @@ describe("groupStatus", () => {
 
 describe("summarise", () => {
   it("gives every pipeline its status, done count and Unknown counts", () => {
-    const [north, south] = summarise(network, "ed-1937", two)
+    const [north, south] = summarise(network, two)
     expect(north).toMatchObject({
       status: "in-progress",
       done: 1,
       needsDecision: true,
       unknownByAttribute: { Diameter: 1, "Build date": 1 },
     })
-    expect(south).toMatchObject({ status: "done", done: 1 })
+    // Its old route, on the 1931 map only, has not been started.
+    expect(south).toMatchObject({ status: "in-progress", done: 1 })
   })
 })

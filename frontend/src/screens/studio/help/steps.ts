@@ -13,7 +13,7 @@ export interface HelpStep {
    * step is about the whole screen and its card sits in the middle.
    */
   targets: readonly string[]
-  /** What the tour brings on screen first: the Sections list, a selection, or the Agent panel. */
+  /** What the tour brings on screen first: the list, a selection, or the Agent panel. */
   needs?: "list" | "selection" | "agent"
 }
 
@@ -26,15 +26,15 @@ export const HELP_STEPS: readonly HelpStep[] = [
   },
   {
     id: "sections",
-    title: "Pipelines and Sections",
-    body: "Two lists, each with its own place in the rail. Pipelines lists the pipelines, then the ones only proposed. Sections lists every section that was traced, in a pipeline or not, by the edition that first shows it. The line under the search says how many sections of the whole edition are at each status; moving the map does not change it.",
+    title: "The network",
+    body: "One list of every section that was traced, grouped the way you choose with Group by. By edition: one row for each map edition, with the sections it is the first to show. By pipeline: the pipelines, then the ones only proposed, then the sections in no pipeline. Select a row and its sections are listed on the right.",
     targets: ["sections"],
     needs: "list",
   },
   {
     id: "search",
-    title: "Edition, search and filters",
-    body: "Map edition, at the top, is not a filter: Studio shows the network as that year's map draws it. Type to narrow the list. The button beside the search opens the filters: status, pipeline, first seen, state, company, diameter, build date and more. The ones that are on show as chips under the search. Press / to jump to the search from anywhere.",
+    title: "Group by, search and filters",
+    body: "Group by changes the rows, not what is shown. Type a name or a code to narrow the list. The button beside the search opens the filters: status, pipeline, first seen, state, company, diameter, build date and more. The ones that are on show as chips under the search. Press / to jump to the search from anywhere.",
     targets: ["list-tools"],
     needs: "list",
   },
@@ -46,8 +46,8 @@ export const HELP_STEPS: readonly HelpStep[] = [
   },
   {
     id: "layers",
-    title: "Map layers",
-    body: 'The layers button says how each status is drawn and chooses what is on the map. "List follows the map", below it, keeps the list to the sections in view; while the list is a table it waits.',
+    title: "The map key",
+    body: 'The map key says how each line is drawn. Its two eyes show or hide the paths a tool proposed and, faint, the sections the filters leave out. "List follows the map", below it, keeps the list to the sections in view; while the list is a table it waits.',
     targets: ["layers", "map"],
   },
   {
@@ -114,7 +114,8 @@ export const HELP_WORDS: readonly HelpWord[] = [
   },
   {
     term: "Edition",
-    meaning: "A year. Studio shows the network as of the edition chosen.",
+    meaning:
+      "One year's printing of the source map. A section is first seen on the earliest edition that shows it.",
   },
   {
     term: "Proposal",

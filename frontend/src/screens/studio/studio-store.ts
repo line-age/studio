@@ -9,10 +9,14 @@ import type { SectionStatus } from "@/data/status"
  * (src/data); this is only selection and filters.
  */
 
-/** "pipelines" is the list: pipelines, then the sections in no pipeline. */
+/** "pipelines" is the list, however it is grouped. */
 export type LeftPanel = "pipelines" | "agent"
 
-export type LayerId = "pipelines" | "proposed" | "ghost"
+/**
+ * What the map key can switch: the paths a tool proposed, and the sections
+ * the filters leave out, drawn faint.
+ */
+export type LayerId = "proposed" | "faint"
 
 export interface FitRequest {
   bounds: Bounds
@@ -38,7 +42,6 @@ export interface AgentAttachment {
 export type MapTool = "select" | "lasso"
 
 interface StudioState {
-  editionId: string | null
   /** Keep what has a section with this status. */
   status: SectionStatus | "all"
   /** Keep what has a section with a proposal waiting. */
@@ -73,15 +76,15 @@ interface StudioState {
   states: readonly string[]
   layers: Record<LayerId, boolean>
   query: string
-  /** Search past the filters, through every pipeline of the edition. */
+  /** Search past the filters, through the whole network. */
   searchWholeEdition: boolean
   /**
-   * Which list the left panel shows: the pipelines, or every section. null
-   * until the person chooses: the data then decides (`defaultList`).
+   * How the list is grouped: by pipeline, or by edition. null until the
+   * person chooses: the data then decides (`defaultList`).
    */
   list: ListKind | null
   /**
-   * The pipeline picked as a whole in the Pipelines list; null once the
+   * The pipeline picked as a whole in the list; null once the
    * selection is changed any other way. Kept so a link can name it.
    */
   selectedPipelineId: string | null
@@ -108,7 +111,6 @@ interface StudioState {
   /** Questions sent in this visit, each with what was attached to it. */
   sentQuestions: SentQuestion[]
 
-  setEdition: (editionId: string) => void
   /** Choose a status; the one already chosen goes back to all. */
   setStatus: (status: SectionStatus | "all") => void
   setNeedsDecisionOnly: (on: boolean) => void
@@ -224,9 +226,34 @@ const selected = (ids: Iterable<string>) => {
 }
 
 const defaultLayers: Record<LayerId, boolean> = {
-  pipelines: true,
   proposed: true,
-  ghost: true,
+  faint: false,
+}
+
+export const LAYERS_KEY = "studio.map-key"
+
+/** The two switches as this browser last left them. */
+function readLayers(): Record<LayerId, boolean> {
+  try {
+    const held = JSON.parse(localStorage.getItem(LAYERS_KEY) ?? "{}")
+    return {
+      proposed:
+        typeof held.proposed === "boolean"
+          ? held.proposed
+          : defaultLayers.proposed,
+      faint: typeof held.faint === "boolean" ? held.faint : defaultLayers.faint,
+    }
+  } catch {
+    return defaultLayers
+  }
+}
+
+function writeLayers(layers: Record<LayerId, boolean>) {
+  try {
+    localStorage.setItem(LAYERS_KEY, JSON.stringify(layers))
+  } catch {
+    // Storage blocked or full: the switch holds for this visit only.
+  }
 }
 
 let nonce = 0
@@ -259,7 +286,6 @@ export const filtersApplied = (s: StudioState) =>
 export const listFollowsMap = (s: StudioState) => s.onlyInView && !s.tableOpen
 
 export const useStudio = create<StudioState>((set) => ({
-  editionId: null,
   status: "all",
   needsDecisionOnly: false,
   onlyInView: true,
@@ -276,7 +302,7 @@ export const useStudio = create<StudioState>((set) => ({
   changedOnly: false,
   diameters: [],
   states: [],
-  layers: defaultLayers,
+  layers: readLayers(),
   query: "",
   searchWholeEdition: false,
   list: null,
@@ -294,13 +320,6 @@ export const useStudio = create<StudioState>((set) => ({
   agentAsked: 0,
   sentQuestions: [],
 
-  setEdition: (editionId) =>
-    set({
-      editionId,
-      ...selected([]),
-      selectedAttribute: null,
-      expandedSectionIds: new Set(),
-    }),
   setStatus: (status) =>
     set((s) => ({ status: s.status === status ? "all" : status })),
   setNeedsDecisionOnly: (needsDecisionOnly) => set({ needsDecisionOnly }),
@@ -313,7 +332,11 @@ export const useStudio = create<StudioState>((set) => ({
         : [...s.unknownIn, attribute],
     })),
   toggleLayer: (layer) =>
-    set((s) => ({ layers: { ...s.layers, [layer]: !s.layers[layer] } })),
+    set((s) => {
+      const layers = { ...s.layers, [layer]: !s.layers[layer] }
+      writeLayers(layers)
+      return { layers }
+    }),
   toggleCompany: (company) =>
     set((s) => ({
       companies: s.companies.includes(company)

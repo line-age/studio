@@ -14,8 +14,8 @@ import { MapControl } from "@/components/map-control"
 import { ToolPalette } from "@/components/tool-palette"
 import { Button } from "@/components/ui/button"
 import {
-  matchesCriteria,
-  sectionsOutsideEdition,
+  hasCriteria,
+  sectionMatches,
   sectionLabel,
   selectionSize,
   unionBounds,
@@ -40,8 +40,8 @@ import { useCamera, useStudio } from "../studio-store"
 import { linesInLoop, type Point } from "./lasso"
 import { readMapColors } from "./map-colors"
 import { FollowMapToggle } from "./follow-map-toggle"
-import { LayersControl } from "./layers-control"
 import { statusesDrawn } from "./line-style"
+import { MapKey } from "./map-key"
 import { SelectionBar } from "./selection-bar"
 
 const MAP_STYLE = "mapbox://styles/mapbox/light-v11"
@@ -78,7 +78,7 @@ function toBounds(map: MapRef): Bounds | null {
 }
 
 export function StudioMap({ token }: { token: string }) {
-  const { network, edition, everySection: summaries } = useStudioData()
+  const { network, everySection: summaries } = useStudioData()
   const { openPanel } = useLeftPanel()
   const mapRef = useRef<MapRef>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -166,38 +166,35 @@ export function StudioMap({ token }: { token: string }) {
     return () => observer.disconnect()
   }, [])
 
-  // The sections of this edition whose pipeline passes the filters.
-  const current = useMemo(
-    () =>
-      collection(
-        summaries
-          .filter((summary) => matchesCriteria(summary, criteria))
-          .flatMap((summary) =>
-            summary.sections.map((section) => ({
-              type: "Feature" as const,
-              geometry: section.geometry,
-              properties: {
-                id: section.id,
-                pipelineId: summary.id,
-                status: sectionStatus(section, criteria.rule),
-              },
-            }))
-          )
-      ),
-    [summaries, criteria]
-  )
-
-  const ghosts = useMemo(
-    () =>
-      collection(
-        sectionsOutsideEdition(network, edition.id).map((section) => ({
-          type: "Feature" as const,
-          geometry: section.geometry,
-          properties: { id: section.id },
-        }))
-      ),
-    [network, edition.id]
-  )
+  // Every section, sorted by the filters: the ones that pass are drawn by
+  // their status; the rest only faint, and only when the map key says so.
+  const [current, faint] = useMemo(() => {
+    const filtering = hasCriteria(criteria)
+    const passing: Feature[] = []
+    const rest: Feature[] = []
+    for (const summary of summaries) {
+      for (const section of summary.sections) {
+        if (!filtering || sectionMatches(section, criteria)) {
+          passing.push({
+            type: "Feature",
+            geometry: section.geometry,
+            properties: {
+              id: section.id,
+              pipelineId: summary.id,
+              status: sectionStatus(section, criteria.rule),
+            },
+          })
+        } else {
+          rest.push({
+            type: "Feature",
+            geometry: section.geometry,
+            properties: { id: section.id },
+          })
+        }
+      }
+    }
+    return [collection(passing), collection(rest)]
+  }, [summaries, criteria])
 
   // The lines traced as gone behind the proposal being read: an end on Last
   // seen, a cut on Geometry. Drawn only while that claim is open.
@@ -211,20 +208,18 @@ export function StudioMap({ token }: { token: string }) {
   const proposed = useMemo(
     () =>
       collection([
-        ...network.proposedPaths
-          .filter((p) => p.editionIds.includes(edition.id))
-          .map((p) => ({
-            type: "Feature" as const,
-            geometry: p.geometry,
-            properties: { id: p.id },
-          })),
+        ...network.proposedPaths.map((p) => ({
+          type: "Feature" as const,
+          geometry: p.geometry,
+          properties: { id: p.id },
+        })),
         ...readingEnds.map((end) => ({
           type: "Feature" as const,
           geometry: end.geometry,
           properties: { id: end.id },
         })),
       ]),
-    [network, edition.id, readingEnds]
+    [network, readingEnds]
   )
 
   const initialBounds = useMemo(
@@ -297,7 +292,7 @@ export function StudioMap({ token }: { token: string }) {
     skipClick.current = true
     setTimeout(() => (skipClick.current = false), 0)
     const map = mapRef.current
-    if (!map || !layers.pipelines) return
+    if (!map) return
     const lines = current.features.map((feature) => ({
       id: feature.properties.id,
       paths: (feature.geometry.type === "LineString"
@@ -459,11 +454,12 @@ export function StudioMap({ token }: { token: string }) {
             >
               <AttributionControl compact position="bottom-right" />
 
-              <Source id="ghosts" type="geojson" data={ghosts}>
+              {/* What the filters leave out. Not clickable: it is not in the list. */}
+              <Source id="faint" type="geojson" data={faint}>
                 <Layer
-                  id="ghost-lines"
+                  id="faint-lines"
                   type="line"
-                  layout={{ visibility: visibility(layers.ghost) }}
+                  layout={{ visibility: visibility(layers.faint) }}
                   paint={{ "line-color": colors.ghost, "line-width": 1 }}
                 />
               </Source>
@@ -474,7 +470,6 @@ export function StudioMap({ token }: { token: string }) {
                   type="line"
                   filter={selectedFilter}
                   layout={{
-                    visibility: visibility(layers.pipelines),
                     "line-cap": "round",
                     "line-join": "round",
                   }}
@@ -489,7 +484,6 @@ export function StudioMap({ token }: { token: string }) {
                   type="line"
                   filter={["==", ["get", "id"], hoveredId ?? ""]}
                   layout={{
-                    visibility: visibility(layers.pipelines),
                     "line-cap": "round",
                   }}
                   paint={{
@@ -503,7 +497,6 @@ export function StudioMap({ token }: { token: string }) {
                   type="line"
                   filter={["in", ["get", "status"], ["literal", solid]]}
                   layout={{
-                    visibility: visibility(layers.pipelines),
                     "line-join": "round",
                   }}
                   paint={{
@@ -521,7 +514,6 @@ export function StudioMap({ token }: { token: string }) {
                   type="line"
                   filter={["in", ["get", "status"], ["literal", dotted]]}
                   layout={{
-                    visibility: visibility(layers.pipelines),
                     "line-cap": "round",
                     "line-join": "round",
                   }}
@@ -542,7 +534,6 @@ export function StudioMap({ token }: { token: string }) {
                   type="line"
                   filter={["==", ["get", "id"], readingId ?? ""]}
                   layout={{
-                    visibility: visibility(layers.pipelines),
                     "line-cap": "round",
                     "line-join": "round",
                   }}
@@ -554,7 +545,6 @@ export function StudioMap({ token }: { token: string }) {
                 <Layer
                   id={HIT_LAYER}
                   type="line"
-                  layout={{ visibility: visibility(layers.pipelines) }}
                   paint={{
                     "line-color": colors.line,
                     "line-width": 14,
@@ -640,7 +630,7 @@ export function StudioMap({ token }: { token: string }) {
         </MapControl>
         {/* One area of the Help tour. */}
         <div data-tour="layers" className="flex flex-col gap-2">
-          <LayersControl />
+          <MapKey />
           <FollowMapToggle />
         </div>
         <MapControl label="Zoom">

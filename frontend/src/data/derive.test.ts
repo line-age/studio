@@ -31,15 +31,15 @@ import {
   intersects,
   search,
   sectionStats,
-  sectionsOutsideEdition,
   filterCounts,
+  NO_PIPELINE_ID,
   summarise,
   visiblePipelines,
 } from "./derive"
 
 const network = testNetwork()
-const summaries = summarise(network, "ed-1937")
-const sectionGroups = summarise(network, "ed-1937", undefined, "sections")
+const summaries = summarise(network)
+const sectionGroups = summarise(network, undefined, "sections")
 const owners = ownersBySection(network)
 
 describe("sectionStats", () => {
@@ -60,7 +60,7 @@ describe("sectionStats", () => {
 })
 
 describe("summarise", () => {
-  it("lists pipelines in file order, then the proposed ones; no loose section", () => {
+  it("lists pipelines in file order, then the proposed ones; nothing is left over here", () => {
     expect(summaries.map((s) => [s.id, s.kind])).toEqual([
       ["p-1", "pipeline"],
       ["p-2", "pipeline"],
@@ -69,18 +69,21 @@ describe("summarise", () => {
     // A proposed pipeline holds the sections proposed for it, with the score.
     expect(summaries[2].sections.map((s) => s.id)).toEqual(["s-4"])
     expect(summaries[2].scores).toEqual([0.7, 0.7])
-    expect(summaryProgress(summaries[2])).toBe("Score 0.70")
+    // The row has its "Proposed" badge: the bare score, in words in full.
+    expect(summaryProgress(summaries[2])).toBe("0.70")
+    expect(summaryProgress(summaries[2], "long")).toBe("Score 0.70")
     // No source names it: it goes by its code.
     expect(summaries[2].name).toBe("P-003")
     expect(summaries[2].pipeline?.name).toBeNull()
   })
 
-  it("lists every section in the Sections list, in a pipeline or not", () => {
+  it("lists every section by edition, in a pipeline or not", () => {
     expect(
-      sectionGroups.map((g) => [g.name, g.sections.map((s) => s.id)])
+      sectionGroups.map((g) => [g.label, g.sections.map((s) => s.id)])
     ).toEqual([
-      ["First seen in the 1931 edition", ["s-1"]],
-      ["First seen in the 1937 edition", ["s-2", "s-3", "s-4"]],
+      // s-5 is only on the 1931 map: there is no edition in force to hide it.
+      ["1931 edition", ["s-1", "s-5"]],
+      ["1937 edition", ["s-2", "s-3", "s-4"]],
     ])
     expect(sectionGroups[1]).toMatchObject({
       id: firstSeenGroupId("ed-1937"),
@@ -113,12 +116,8 @@ describe("summarise", () => {
     ])
   })
 
-  it("keeps only the sections the edition shows", () => {
-    expect(summaries[1].sections.map((s) => s.id)).toEqual(["s-3"])
-    const earlier = summarise(network, "ed-1931")
-    expect(earlier.map((s) => s.id)).toEqual(["p-1", "p-2"])
-    // The section proposed for the third pipeline is not in this edition.
-    expect(earlier[0].sections.map((s) => s.id)).toEqual(["s-1"])
+  it("holds every section of a pipeline, whichever editions show it", () => {
+    expect(summaries[1].sections.map((s) => s.id)).toEqual(["s-3", "s-5"])
   })
 
   it("adds up the claims of a pipeline", () => {
@@ -130,12 +129,6 @@ describe("summarise", () => {
     })
     expect(summaries[0].bounds).toEqual([0, 10, 2, 11])
   })
-
-  it("finds the sections another edition shows and this one does not", () => {
-    expect(sectionsOutsideEdition(network, "ed-1937").map((s) => s.id)).toEqual(
-      ["s-5"]
-    )
-  })
 })
 
 describe("filters", () => {
@@ -144,8 +137,8 @@ describe("filters", () => {
   it("counts sections by status, and the counts add up to All", () => {
     const counts = filterCounts(summaries, two)
     expect(counts).toEqual({
-      all: 4,
-      status: { "not-started": 2, "in-progress": 0, sufficient: 0, done: 2 },
+      all: 5,
+      status: { "not-started": 3, "in-progress": 0, sufficient: 0, done: 2 },
       // A diameter proposed on one, a pipeline proposed for another.
       needsDecision: 2,
     })
@@ -159,7 +152,7 @@ describe("filters", () => {
   it("keeps each count true to what choosing it would show", () => {
     // A status chosen does not change the status counts, only the mark's.
     const done = filterCounts(summaries, { ...two, status: "done" })
-    expect(done.status["not-started"]).toBe(2)
+    expect(done.status["not-started"]).toBe(3)
     expect(done.needsDecision).toBe(0)
     // The mark narrows the status counts to sections with a proposal.
     const waiting = filterCounts(summaries, { ...two, needsDecision: true })
@@ -170,10 +163,12 @@ describe("filters", () => {
   it("keeps a pipeline when any of its sections has the status", () => {
     const ids = (filters: Parameters<typeof visiblePipelines>[1]) =>
       visiblePipelines(summaries, filters).map((s) => s.id)
-    // North line has one done section and one not started: it stays for both.
+    // North and South line each have one done section and one not started:
+    // they stay for both.
     expect(ids({ ...two, status: "done", view: null })).toEqual(["p-1", "p-2"])
     expect(ids({ ...two, status: "not-started", view: null })).toEqual([
       "p-1",
+      "p-2",
       "p-3",
     ])
     expect(ids({ ...two, needsDecision: true, view: null })).toEqual([
@@ -222,8 +217,9 @@ describe("filters", () => {
   })
 
   it("counts the sections with an attribute Unknown, not the rows", () => {
-    // Diameter is Unknown on one section of North line and on the loose one.
-    expect(unknownCounts(summaries).get("Diameter")).toBe(2)
+    // Diameter is Unknown on one section of North line, on the loose one and
+    // on South line's old route.
+    expect(unknownCounts(summaries).get("Diameter")).toBe(3)
     // Owner is never a section's: it is not among their attributes.
     expect(attributeNames(summaries)).not.toContain("Owner")
     for (const [name, count] of unknownCounts(summaries)) {
@@ -399,35 +395,27 @@ describe("sections in no pipeline", () => {
     expect(firstEdition(network, network.sections[1])?.id).toBe("ed-1937")
   })
 
-  const looseGroups = (edition: string) =>
-    summarise(loose, edition, undefined, "sections")
+  const looseGroups = () => summarise(loose, undefined, "sections")
 
-  it("has an empty Pipelines list; it does not borrow sections", () => {
-    expect(summarise(loose, "ed-1937")).toEqual([])
+  it("puts them in one row when the list is by pipeline", () => {
+    expect(
+      summarise(loose).map((g) => [g.id, g.kind, g.name, g.sections.length])
+    ).toEqual([[NO_PIPELINE_ID, "group", "No pipeline", 5]])
+    expect(summarise(loose)[0].unassigned).toBe(true)
   })
 
   it("lists each edition with the sections it is the first to show", () => {
-    const groups = looseGroups("ed-1937")
+    const groups = looseGroups()
     expect(groups.map((g) => [g.name, g.sections.map((s) => s.id)])).toEqual([
-      ["First seen in the 1931 edition", ["s-1"]],
+      ["First seen in the 1931 edition", ["s-1", "s-5"]],
       ["First seen in the 1937 edition", ["s-2", "s-3", "s-4"]],
     ])
     expect(groups.every((g) => g.unassigned)).toBe(true)
     expect(groups.map((g) => g.firstSeen?.year)).toEqual([1931, 1937])
   })
 
-  it("shows only what an earlier edition shows when that one is in force", () => {
-    const groups = looseGroups("ed-1931")
-    expect(groups.map((g) => g.sections.map((s) => s.id))).toEqual([
-      ["s-1", "s-5"],
-    ])
-  })
-
   it("words a selection without pipelines when it has none", () => {
-    const groups = groupSelection(
-      looseGroups("ed-1937"),
-      new Set(["s-1", "s-2"])
-    )
+    const groups = groupSelection(looseGroups(), new Set(["s-1", "s-2"]))
     expect(selectionSize(groups)).toBe("2 sections")
     expect(groupsLabel(groups.map((g) => g.summary))).toBe("2 groups")
   })
@@ -435,7 +423,7 @@ describe("sections in no pipeline", () => {
   it("calls an unnamed section by its code, and finds it by it", () => {
     const unnamed = loose.sections.find((s) => s.id === "s-4")!
     expect(sectionLabel(unnamed)).toBe("S-0004")
-    const hits = search(looseGroups("ed-1937"), "s-0004")
+    const hits = search(looseGroups(), "s-0004")
     expect(hits[0].sections).toEqual([
       { sectionId: "s-4", name: "S-0004", code: null, reason: null },
     ])

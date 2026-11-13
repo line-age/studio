@@ -14,7 +14,7 @@ import {
   type SectionCriteria,
   type SelectionGroup,
 } from "@/data/derive"
-import type { Edition, Network, Section } from "@/data/schema"
+import type { Network, Section } from "@/data/schema"
 import { statesBySection, type StatesLookup } from "@/data/us-states"
 
 import { useSettings } from "./settings"
@@ -22,21 +22,20 @@ import { listFollowsMap, useStudio } from "./studio-store"
 
 /*
  * The loaded network plus what the Studio screen derives from it once: the
- * edition in force and one summary per pipeline. Panels and the map read it
+ * rows of the list for the grouping chosen. Panels and the map read it
  * through useStudioData, never from a fixture.
  */
 
 interface StudioData {
   network: Network
-  edition: Edition
-  /** The list showing: the pipelines, or every section. */
+  /** How the list is grouped: by pipeline, or by edition. */
   list: ListKind
-  /** Every row of that list for the edition, whatever the filters say. */
+  /** Every row of the list, whatever the filters say. */
   summaries: PipelineSummary[]
   /**
-   * Every section of the edition, grouped by the edition that first shows
-   * it: the rows of the Sections list. Counts, filters and the map speak for
-   * the whole edition through this, whichever list is showing.
+   * Every section once, grouped by the edition that first shows it. Counts,
+   * filters and the map speak for the whole network through this, however
+   * the list is grouped.
    */
   everySection: PipelineSummary[]
   /** The owners of each section's pipeline; a section has none of its own. */
@@ -51,10 +50,6 @@ interface StudioData {
 
 const StudioDataContext = createContext<StudioData | null>(null)
 
-function latestEdition(network: Network): Edition {
-  return network.editions.reduce((a, b) => (b.year > a.year ? b : a))
-}
-
 export function StudioDataProvider({
   network,
   children,
@@ -64,7 +59,6 @@ export function StudioDataProvider({
   children: ReactNode
 }) {
   const loaded = use(network)
-  const editionId = useStudio((s) => s.editionId)
   const rule = useSettings((s) => s.requiredAttributes)
   const chosen = useStudio((s) => s.list)
 
@@ -76,17 +70,12 @@ export function StudioDataProvider({
   const statesOf = useMemo(() => statesBySection(loaded.sections), [loaded])
 
   const value = useMemo<StudioData>(() => {
-    const edition =
-      loaded.editions.find((e) => e.id === editionId) ?? latestEdition(loaded)
     const list = chosen ?? defaultList(loaded)
-    const everySection = summarise(loaded, edition.id, rule, "sections")
+    const everySection = summarise(loaded, rule, "sections")
     const summaries =
-      list === "sections"
-        ? everySection
-        : summarise(loaded, edition.id, rule, list)
+      list === "sections" ? everySection : summarise(loaded, rule, list)
     return {
       network: loaded,
-      edition,
       list,
       summaries,
       everySection,
@@ -96,7 +85,7 @@ export function StudioDataProvider({
       summaryById: new Map(summaries.map((s) => [s.id, s])),
       sectionById: new Map(loaded.sections.map((s) => [s.id, s])),
     }
-  }, [loaded, editionId, rule, chosen, editionYears, statesOf])
+  }, [loaded, rule, chosen, editionYears, statesOf])
 
   return <StudioDataContext value={value}>{children}</StudioDataContext>
 }
@@ -135,8 +124,8 @@ export function useSelectionGroups(): SelectionGroup[] {
   return useMemo(() => {
     const groups = groupSelection(summaries, selection)
     if (list === "sections") return groups
-    // A section in no pipeline, picked on the map while the Pipelines list
-    // is showing, is in none of its rows: it goes under its first-seen group.
+    // Grouped by pipeline, a section whose pipeline the data does not list
+    // is in no row: it goes under its first-seen group.
     const held = new Set(groups.flatMap((g) => g.sections.map((s) => s.id)))
     const rest = new Set([...selection].filter((id) => !held.has(id)))
     return rest.size === 0
@@ -208,7 +197,7 @@ export function useCriteria(): SectionCriteria {
 }
 
 /**
- * Search hits inside the filters in force, or through the whole edition when
+ * Search hits inside the filters in force, or through the whole network when
  * the person asked for that. `outside` is how many more pipelines match
  * beyond the filters. Hits in the map view are listed first.
  */

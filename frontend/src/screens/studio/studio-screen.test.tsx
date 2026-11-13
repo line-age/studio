@@ -86,7 +86,7 @@ describe("the search shortcut", () => {
   it("puts the cursor in the search with /, unless one is typing", async () => {
     const user = userEvent.setup()
     await renderScreen()
-    const search = screen.getByRole("combobox", { name: "Search pipelines" })
+    const search = screen.getByRole("combobox", { name: "Search name or code" })
     expect(search).not.toHaveFocus()
     await user.keyboard("/")
     await act(frame)
@@ -98,15 +98,15 @@ describe("the search shortcut", () => {
 })
 
 describe("a shared link", () => {
-  it("opens on the same edition, status, filters and section", async () => {
+  it("opens on the same grouping, status, filters and section", async () => {
     window.history.replaceState(
       null,
       "",
-      "/?e=ed-1937&s=not-started&u=Diameter&v=0&sel=s-2"
+      "/?l=sections&s=not-started&u=Diameter&v=0&sel=s-2"
     )
     await renderScreen()
     const s = useStudio.getState()
-    expect(s.editionId).toBe("ed-1937")
+    expect(screen.getByRole("listbox", { name: "Editions" })).toBeVisible()
     expect(s.onlyInView).toBe(false)
     expect([...s.selection]).toEqual(["s-2"])
     const inForce = screen.getByRole("group", { name: "Filters in force" })
@@ -114,8 +114,20 @@ describe("a shared link", () => {
     expect(inForce).toHaveTextContent("Unknown diameter")
     // The address stays as it was: nothing was lost on the way in.
     expect(window.location.search).toBe(
-      "?e=ed-1937&s=not-started&u=Diameter&v=0&sel=s-2"
+      "?l=sections&s=not-started&u=Diameter&v=0&sel=s-2"
     )
+  })
+
+  it("opens an old link that names an edition as first seen up to it", async () => {
+    window.history.replaceState(null, "", "/?e=ed-1931")
+    await renderScreen()
+    expect(useStudio.getState().firstSeenTo).toBe(1931)
+    expect(
+      screen.getByRole("group", { name: "Filters in force" })
+    ).toHaveTextContent("First seen 1931 or earlier")
+    // The next change writes the address without the edition.
+    act(() => useStudio.getState().setOnlyInView(false))
+    expect(window.location.search).toBe("?f=-1931&v=0")
   })
 
   it("ignores what the data does not have, and a broken link", async () => {
@@ -126,7 +138,6 @@ describe("a shared link", () => {
     )
     await renderScreen()
     const s = useStudio.getState()
-    expect(s.editionId).toBeNull()
     expect(s.status).toBe("all")
     expect(s.companies).toEqual([])
     expect(s.unknownIn).toEqual([])
@@ -168,7 +179,7 @@ describe("Settings", () => {
     expect(readSettings().lineStyle["in-progress"]).toBe("solid")
 
     await user.keyboard("{Escape}")
-    expect(await statusCount("Done")).toBe(3)
+    expect(await statusCount("Done")).toBe(4)
   })
 
   it("sits immediately to the left of Help", async () => {

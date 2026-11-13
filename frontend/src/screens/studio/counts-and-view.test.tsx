@@ -112,26 +112,24 @@ describe("Counts and the map view", () => {
   it("says in the list header how many of the whole are in view", async () => {
     await renderList()
     act(() => useStudio.getState().setView(NORTH_ONLY))
-    // The Pipelines list counts pipelines.
-    expect(screen.getByText("1 of 3 in view")).toBeInTheDocument()
-
-    // The Sections list counts sections, of the whole edition.
-    act(() => useStudio.getState().setList("sections"))
+    // Sections of the whole network, however the list is grouped.
     const total = await allCount()
+    expect(screen.getByText(`2 of ${total} in view`)).toBeInTheDocument()
+    act(() => useStudio.getState().setList("sections"))
     expect(screen.getByText(`2 of ${total} in view`)).toBeInTheDocument()
   })
 
-  it("counts the whole edition in the header when the list does not follow", async () => {
+  it("counts the whole network in the header when the list does not follow", async () => {
     await renderList()
     act(() => {
       useStudio.getState().setView(NORTH_ONLY)
       useStudio.getState().setOnlyInView(false)
     })
 
-    expect(screen.getByText("3 pipelines")).toBeInTheDocument()
+    const total = await allCount()
+    expect(screen.getByText(`${total} sections`)).toBeInTheDocument()
     expect(rows()).toHaveLength(3)
     act(() => useStudio.getState().setList("sections"))
-    const total = await allCount()
     expect(screen.getByText(`${total} sections`)).toBeInTheDocument()
   })
 
@@ -168,11 +166,10 @@ describe("Counts and the map view", () => {
     expect(await allCount()).toBe(whole)
   })
 
-  it("says the status of the edition in one line, to read, not to click", async () => {
+  it("keeps status counts out of the list header: they are in Filters", async () => {
     await renderList()
-    const line = screen.getByText(/not started/).closest("p")!
-    expect(line).toHaveTextContent(/^\d+ not started/)
-    expect(within(line).queryByRole("button")).toBeNull()
+    expect(screen.queryByText(/\d+ not started/)).toBeNull()
+    expect(screen.queryByText(/to decide/)).toBeNull()
   })
 
   it("folds the table to open the filters and unfolds it on the way back", async () => {

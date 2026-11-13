@@ -37,7 +37,7 @@ const ICON: Record<AgentRef["kind"], "line" | "source" | "ask"> = {
 
 /** Opens the thing a reference names: its section and claim, or its pipeline. */
 function useOpenRef(): (ref: AgentRef) => void {
-  const { network, edition } = useStudioData()
+  const { network } = useStudioData()
   const selectAttribute = useStudio((s) => s.selectAttribute)
   const selectPipeline = useStudio((s) => s.selectPipeline)
   const setList = useStudio((s) => s.setList)
@@ -45,7 +45,7 @@ function useOpenRef(): (ref: AgentRef) => void {
   return (ref) => {
     if (ref.kind === "claim" && ref.owner === "pipeline") {
       const members = network.sections.filter(
-        (s) => s.pipelineId === ref.ownerId && s.editionIds.includes(edition.id)
+        (s) => s.pipelineId === ref.ownerId
       )
       setList("pipelines")
       selectPipeline(
@@ -230,8 +230,27 @@ function AttachmentChips({
   const chips = items.map((item) => {
     const summary =
       summaryById.get(item.pipelineId) ?? groupById.get(item.pipelineId)
-    if (!summary) return null
     const remove = onRemove ? () => onRemove(item.pipelineId) : undefined
+    // A group of another grouping (attached, then the list was regrouped):
+    // its sections are still what was attached.
+    if (!summary) {
+      if (item.sectionIds === "all") return null
+      const one =
+        item.sectionIds.length === 1
+          ? sectionById.get(item.sectionIds[0])
+          : undefined
+      return (
+        <Attachment
+          key={item.pipelineId}
+          icon={one ? undefined : "line"}
+          title={
+            one ? sectionLabel(one) : plural(item.sectionIds.length, "section")
+          }
+          meta={one && one.name !== null ? one.code : ""}
+          onRemove={remove}
+        />
+      )
+    }
     const total = summary.sections.length
     const count = item.sectionIds === "all" ? total : item.sectionIds.length
     // One section reads best by its own name.
@@ -294,7 +313,7 @@ function AttachmentChips({
 let askHandled = 0
 
 export function AgentPanel() {
-  const { network, edition } = useStudioData()
+  const { network } = useStudioData()
   const asked = useStudio((s) => s.agentAsked)
   const draft = useStudio((s) => s.agentDraft)
   const sent = useStudio((s) => s.sentQuestions)
@@ -344,7 +363,6 @@ export function AgentPanel() {
                 sections: attachments,
                 refs,
                 network,
-                edition,
               }),
               attachments,
               refs,

@@ -53,10 +53,25 @@ export function pipelineLabel(pipeline: Pipeline): string {
   return pipeline.name ?? pipeline.code
 }
 
-/** Which of the two lists: the pipelines, or every section. */
-export type ListKind = "pipelines" | "sections"
+/**
+ * How the one list is grouped: what its rows are. "sections" is every
+ * section by the edition that first shows it (the name is from when this was
+ * a list of its own); "pipelines" is every section by its pipeline. The
+ * sections of a row are listed in the right panel.
+ */
+export const LIST_KINDS = ["sections", "pipelines"] as const
+export type ListKind = (typeof LIST_KINDS)[number]
 
-/** The list a network opens on: its pipelines, or its sections if it has none. */
+/** Each grouping in words: in the Group by select, as a column, as a title. */
+export const GROUPING: Record<ListKind, { by: string; title: string }> = {
+  sections: { by: "Edition", title: "Editions" },
+  pipelines: { by: "Pipeline", title: "Pipelines" },
+}
+
+/** The row of sections in no pipeline and proposed for none. */
+export const NO_PIPELINE_ID = "unassigned:none"
+
+/** The grouping a network opens on: its pipelines, or editions if it has none. */
 export function defaultList(network: Network): ListKind {
   return network.pipelines.length > 0 ? "pipelines" : "sections"
 }
@@ -112,22 +127,25 @@ export function ownersBySection(
 }
 
 /**
- * One row of a list. In the Pipelines list: a pipeline with the sections
- * confirmed part of it, or a proposed pipeline (no section is confirmed yet)
- * with the sections proposed for it. In the Sections list: the sections first
- * seen in one edition, in a pipeline or not.
+ * One row of the list. Grouped by pipeline: a pipeline with the sections
+ * confirmed part of it, a proposed pipeline (no section is confirmed yet)
+ * with the sections proposed for it, or the one group of sections in no
+ * pipeline. Grouped by edition: the sections first seen in one edition, in a
+ * pipeline or not.
  */
 export interface PipelineSummary {
   id: string
   /** null for a group of sections by first seen. */
   code: string | null
   name: string
-  kind: "pipeline" | "proposed" | "first-seen"
+  /** What the row goes by in the list: shorter than `name` for an edition. */
+  label: string
+  kind: "pipeline" | "proposed" | "first-seen" | "group"
   /** The pipeline behind the row; null for a group by first seen. */
   pipeline: Pipeline | null
   /** For a proposed pipeline: the lowest and highest score of its sections. */
   scores: [number, number] | null
-  /** The row is a group of sections by first seen, not a pipeline. */
+  /** The row is a group of sections (an edition, no pipeline), not a pipeline. */
   unassigned: boolean
   /** For sections in no pipeline: the edition that first shows them. */
   firstSeen: Edition | null
@@ -225,7 +243,9 @@ export function summaryProgress(
   // them in full.
   if (summary.kind === "proposed" && summary.scores) {
     const [low, high] = summary.scores
-    return form === "short" || low === high
+    // A row has the "Proposed" badge beside it: the bare number is enough.
+    if (form === "short") return high.toFixed(2)
+    return low === high
       ? `Score ${high.toFixed(2)}`
       : `Scores ${low.toFixed(2)} to ${high.toFixed(2)}`
   }
@@ -306,21 +326,6 @@ export function intersects(a: Bounds, b: Bounds): boolean {
   return a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1]
 }
 
-export function sectionsInEdition(
-  network: Network,
-  editionId: string
-): Section[] {
-  return network.sections.filter((s) => s.editionIds.includes(editionId))
-}
-
-/** Sections that other editions show and this one does not. Drawn as ghosts. */
-export function sectionsOutsideEdition(
-  network: Network,
-  editionId: string
-): Section[] {
-  return network.sections.filter((s) => !s.editionIds.includes(editionId))
-}
-
 /** The earliest edition that shows the section: where it is first seen. */
 export function firstEdition(
   network: Network,
@@ -340,19 +345,19 @@ export function firstSeenGroupId(editionId: string): string {
 }
 
 /**
- * The rows of one list for the edition in force.
+ * The rows of the list for one grouping. Each holds every section of the
+ * network; there is no edition in force.
  *
- * Pipelines: one row per pipeline that has a confirmed section in the
- * edition, in file order, then the proposed pipelines: those with no
- * confirmed section at all, each with the sections proposed for it. A section
- * in no pipeline is not in this list.
+ * Pipelines: one row per pipeline that has a confirmed section, in file
+ * order, then the proposed pipelines: those with no confirmed section at
+ * all, each with the sections proposed for it. Last, one row for the sections
+ * in no pipeline and proposed for none.
  *
- * Sections: every section of the edition, in a pipeline or not, one group per
- * edition that first shows them, oldest first.
+ * Sections: one group per edition, with the sections it is the first to
+ * show, oldest first.
  */
 export function summarise(
   network: Network,
-  editionId: string,
   rule: StatusRule = DEFAULT_REQUIRED,
   list: ListKind = "pipelines"
 ): PipelineSummary[] {
@@ -363,17 +368,25 @@ export function summarise(
     sections: Section[],
     firstSeen: Edition | null = null,
     pipeline: Pipeline | null = null,
-    scores: [number, number] | null = null
+    scores: [number, number] | null = null,
+    group = false
   ): PipelineSummary => {
     const counts = statusCounts(sections, rule)
     return {
       id,
       code,
       name,
-      kind: firstSeen ? "first-seen" : scores ? "proposed" : "pipeline",
+      label: firstSeen ? firstSeen.label : name,
+      kind: firstSeen
+        ? "first-seen"
+        : group
+          ? "group"
+          : scores
+            ? "proposed"
+            : "pipeline",
       pipeline,
       scores,
-      unassigned: firstSeen !== null,
+      unassigned: firstSeen !== null || group,
       firstSeen,
       sections,
       stats: sumStats(sections),
@@ -396,7 +409,7 @@ export function summarise(
   }
   const byProposal = new Map<string, Section[]>()
   const scoresOf = new Map<string, number[]>()
-  for (const section of sectionsInEdition(network, editionId)) {
+  for (const section of network.sections) {
     if (section.pipelineId !== null) {
       push(byPipeline, section.pipelineId, section)
     }
@@ -462,6 +475,17 @@ export function summarise(
         pipeline,
         [Math.min(...scores), Math.max(...scores)]
       )
+    )
+  }
+  // The rest, so this grouping holds every section too: in no pipeline and
+  // proposed for none.
+  const none = network.sections.filter(
+    (section) =>
+      section.pipelineId === null && section.proposedMemberships.length === 0
+  )
+  if (none.length > 0) {
+    out.push(
+      build(NO_PIPELINE_ID, null, "No pipeline", none, null, null, null, true)
     )
   }
   return out
