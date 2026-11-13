@@ -42,7 +42,7 @@ class Handles:
         return self._of[claim_id]
 
     def resolve(self, ref_id: str) -> str:
-        return self.ids.get(ref_id.strip(), ref_id)
+        return self.ids.get(ref_id.strip().upper(), ref_id)
 
 
 def _claim_view(claim: dict[str, Any], handles: Handles) -> dict[str, Any]:
@@ -108,7 +108,6 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
             return note, {}
         try:
             feature = store.feature(feature_id)
-            merged = [store.feature(fid) for fid in _merged_into(feature)]
         except StoreError as error:
             if error.kind in ("not_found", "bad_request"):
                 return (
@@ -116,8 +115,32 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
                     {"not_found": feature_id},
                 )
             raise
+        # Traces merged into it, and traces merged into those, as store counts them.
+        merged: list[dict[str, Any]] = []
+        missing: list[str] = []
+        visited = {feature["id"]}
+        queue = _merged_into(feature)
+        while queue:
+            fid = queue.pop(0)
+            if fid in visited:
+                continue
+            visited.add(fid)
+            try:
+                found = store.feature(fid)
+            except StoreError as error:
+                if error.kind not in ("not_found", "bad_request"):
+                    raise
+                missing.append(fid)
+                continue
+            merged.append(found)
+            queue += _merged_into(found)
         seen.add(feature_id)
         view = _feature_view(feature, merged, handles)
+        if missing:
+            view["could_not_read"] = (
+                f"{len(missing)} trace(s) merged into this section could not be read, so "
+                "what store holds for it may be more than shown here."
+            )
         return json.dumps(view, ensure_ascii=False), {"features": [feature, *merged]}
 
     return [read_feature]

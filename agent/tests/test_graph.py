@@ -53,7 +53,7 @@ def test_store_does_not_say_end_to_end(world):
     answer = Answer.model_validate(out["answer"])
     assert answer.checked and out["answers"] == "q1"
     assert [(s.kind, s.text, s.attribute) for s in answer.statements] == [
-        ("unknown", "Store does not say who owns this section.", "owner")
+        ("unknown", "Store does not say who owns it.", "owner")
     ]
     assert out["tools"] == ["read_feature"]
     assert store.requests == [f"/features/{s01}"]
@@ -301,11 +301,11 @@ def test_a_word_that_only_opens_a_sentence_is_not_a_name():
             ]
         }
     )
-    assert own_words_problems(draft, "") == []
+    assert own_words_problems(draft) == []
     draft = Draft.model_validate(
         {"statements": [{"kind": "fact", "text": "It went to Remembered Co.", "refs": []}]}
     )
-    assert own_words_problems(draft, "")
+    assert own_words_problems(draft)
 
 
 def test_a_clarify_added_to_an_answer_is_sent_back(world):
@@ -326,30 +326,49 @@ def test_a_feature_read_twice_in_one_question_is_fetched_once(world):
     assert store.requests == [f"/features/{s01}"]
 
 
-def test_the_model_cites_a_claim_by_its_handle_and_code_turns_it_into_the_id(world):
+def test_the_model_cites_a_claim_by_its_handle_and_code_turns_it_into_the_id(world, monkeypatch):
+    import agent
+    import tools
+
+    made = []
+
+    class Recording(tools.Handles):
+        def __init__(self):
+            super().__init__()
+            made.append(self)
+
+    monkeypatch.setattr(agent, "Handles", Recording)
     s02 = world["codes"]["s02"]
     owner = next(c for c in world["features"][s02]["claims"] if c["attribute_key"] == "owner")
-    store = FakeStore(world)
-    from tools import Handles, make_tools
 
-    shown = make_tools(store.client(), Handles())[0].invoke(
-        {"type": "tool_call", "name": "read_feature", "args": {"feature_id": s02}, "id": "x"}
-    )
-    handle = next(
-        c["id"] for c in json.loads(shown.content)["claims"] if c["attribute_key"] == "owner"
-    )
-    assert handle.startswith("C") and owner["id"] not in shown.content
-    draft = {
-        "statements": [
-            {
-                "kind": "fact",
-                "text": "The owner is {c1.value}.",
-                "refs": [{"key": "c1", "type": "claim", "id": handle}],
-                "attribute": None,
-            }
-        ]
-    }
-    out, _ = ask(
-        world, scripted([("read_feature", {"feature_id": s02})], draft), "Who owns it?", [s02]
-    )
-    assert out["answer"]["statements"][0]["refs"][0]["id"] == owner["id"]
+    def draft():
+        return {
+            "statements": [
+                {
+                    "kind": "fact",
+                    "text": "The owner is {c1.value}.",
+                    "refs": [{"key": "c1", "type": "claim", "id": made[0]._of[owner["id"]]}],
+                    "attribute": None,
+                }
+            ]
+        }
+
+    from tests.support import ScriptedModel
+
+    class Late(ScriptedModel):
+        def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+            if made and owner["id"] in made[0]._of and not getattr(self, "_drafted", False):
+                object.__setattr__(self, "_drafted", True)
+                from langchain_core.messages import AIMessage
+                from langchain_core.outputs import ChatGeneration, ChatResult
+
+                return ChatResult(
+                    generations=[ChatGeneration(message=AIMessage(content=json.dumps(draft())))]
+                )
+            return super()._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
+
+    model = Late(messages=iter(scripted([("read_feature", {"feature_id": s02})]).messages))
+    out, _ = ask(world, model, "Who owns it?", [s02])
+    ref = out["answer"]["statements"][0]["refs"][0]
+    assert made[0]._of[owner["id"]].startswith("C")
+    assert ref["id"] == owner["id"]

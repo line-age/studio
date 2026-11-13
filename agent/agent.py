@@ -9,6 +9,7 @@ failure ends with the fixed "could not answer" line. The graph holds no serving 
 no checkpointer; the server supplies both.
 """
 
+import uuid
 from typing import Any
 
 from langchain.agents import create_agent
@@ -59,11 +60,22 @@ def ingress(state: AgentState) -> dict:
     }
 
 
+def _canonical(feature_id: str | None) -> str | None:
+    try:
+        return str(uuid.UUID(str(feature_id))) if feature_id else feature_id
+    except ValueError:
+        return feature_id
+
+
 def _question(message: HumanMessage) -> Question:
+    """The question Studio sent. Raises ValueError if it is not one."""
     raw = message.additional_kwargs.get("question")
-    if raw:
-        return Question.model_validate(raw)
-    return Question(words=str(message.content))
+    question = Question.model_validate(raw) if raw else Question(words=str(message.content))
+    for item in question.about:
+        item.id = _canonical(item.id)
+        if item.on and item.on.sectionId:
+            item.on.sectionId = _canonical(item.on.sectionId)
+    return question
 
 
 def _prompt(question: Question) -> str:
@@ -94,7 +106,9 @@ def _point_unknowns_at_the_attached_thing(draft: Draft, question: Question, read
         return
     for statement in draft.statements:
         if statement.kind == "unknown" and not any(r.type == "feature" for r in statement.refs):
-            statement.refs.append(DraftRef(key="f0", type="feature", id=attached[0]))
+            taken = {r.key for r in statement.refs}
+            key = next(k for k in ("attached", "attached_1", "attached_2") if k not in taken)
+            statement.refs.append(DraftRef(key=key, type="feature", id=attached[0]))
 
 
 def _finish(
@@ -139,9 +153,16 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         message = next(
             (m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None
         )
-        if message is None or len(str(message.content)) > MAX_QUESTION_CHARS:
+        if message is None:
             return _finish(failure("check_failed"), message, [], seen)
-        question = _question(message)
+        try:
+            question = _question(message)
+        except ValueError as error:
+            blocked = [[f"the question is not one Studio sends: {str(error)[:300]}"]]
+            return _finish(failure("check_failed"), message, [], seen, blocked)
+        if len(question.words) > MAX_QUESTION_CHARS:
+            blocked = [[f"the question is longer than {MAX_QUESTION_CHARS} characters"]]
+            return _finish(failure("check_failed"), message, [], seen, blocked)
 
         messages: list[Any] = [HumanMessage(_prompt(question))]
         tools: list[str] = []
@@ -188,9 +209,11 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
             else:
                 try:
                     rendered = render(draft, read)
-                    problems = problems_of(draft, rendered, read, question.words)
+                    problems = problems_of(draft, rendered, read)
                 except Unfillable as error:
                     problems = [str(error)]
+                except Exception as error:  # noqa: BLE001 - a bug here must not show an answer
+                    problems = [f"the answer could not be checked: {type(error).__name__}"]
             if not problems:
                 return _finish(rendered, message, tools, seen, blocked)
             blocked.append(

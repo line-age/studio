@@ -61,7 +61,12 @@ def claim(se=None, sl=None, ee=None, el=None, **more):
         (claim(valid_edtf="../1932"), "by 1932"),
         (claim(valid_edtf="1931/1940"), "from 1931 to 1940"),
         (claim(valid_edtf="1937/.."), "from 1937"),
-        (claim(valid_edtf="1930~"), "with no date in store"),
+        (claim(valid_edtf="1930~"), "in about 1930"),
+        # Store's own helper for a map: "by 1932", nothing more.
+        (claim(sl="1932-12-31", ee="1932-01-01"), "by 1932"),
+        # Equal bounds are that day.
+        (claim(se="1931-05-01", sl="1931-05-01"), "from 1 May 1931"),
+        (claim(se="1931-01-01", sl="1931-01-01"), "from 1 January 1931"),
     ],
 )
 def test_a_period_reads_as_the_source_gave_it(bounds, words):
@@ -181,6 +186,7 @@ def test_an_unknown_names_what_was_looked_for(s02):
     )
     statement = answer.statements[0]
     assert statement.attribute == "operator"
+    assert statement.text == "Store does not say who operates it."
     assert statement.refs[0].type == "feature" and statement.refs[0].id == feature_id
 
 
@@ -190,3 +196,45 @@ def test_a_value_that_ends_in_a_full_stop_takes_no_second_one(s02):
         draft("The owner is {c1.value}.", [{"key": "c1", "type": "claim", "id": owner["id"]}]), s02
     )
     assert answer.statements[0].text == "The owner is Example Pipe Line Co."
+
+
+@pytest.mark.parametrize(
+    "edtf", ["1938-21", "1938-13", "1938-00", "193X", "[1938..1940]", "1938-02-30"]
+)
+def test_a_date_that_cannot_be_put_into_words_truly_is_unfillable_never_no_date(edtf):
+    with pytest.raises(Unfillable):
+        period_words(claim(valid_edtf=edtf))
+
+
+@pytest.mark.parametrize(
+    ("number", "words"),
+    [(1100000.0, "1100000 V"), (12.34567, "12.34567 V"), (20.0, "20 V"), (0.5, "0.5 V")],
+)
+def test_a_number_is_never_rounded_or_written_in_scientific_notation(number, words):
+    assert value_words({"value_num": number, "value_unit": "V"}) == words
+
+
+def test_the_source_slot_names_the_citation_that_states_it():
+    from render import _slot
+
+    claim = {
+        "citations": [
+            {"role": "confirms", "source_title": "A confirming source"},
+            {"role": "states", "source_title": "The stating source"},
+        ]
+    }
+    assert _slot(claim, "source") == "The stating source"
+
+
+def test_an_unknowns_sentence_is_code_s_whatever_the_model_wrote(s02):
+    feature_id = next(iter(s02.features))
+    answer = render(
+        draft(
+            "Store does not say who owns it, but it was abandoned in the war.",
+            [{"key": "f1", "type": "feature", "id": feature_id}],
+            kind="unknown",
+            attribute="operator",
+        ),
+        s02,
+    )
+    assert answer.statements[0].text == "Store does not say who operates it."

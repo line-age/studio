@@ -37,6 +37,8 @@ the claim you name in refs:
 
   {c1.value}    the value: "Example Pipe Line Co.", "20 in"
   {c1.period}   when it holds, already worded: "by 1932", "from 1933", "from 1932 to 1940"
+  {c1.status}   its status in words: "accepted", "proposed by a tool and not decided yet", \
+"rejected"
   {c1.source}   the source's title
   {c1.locator}  where in the source: "p. 41"
   {c1.quote}    the quoted passage, with its quotation marks
@@ -49,11 +51,12 @@ Kinds:
 - fact: one claim store holds, with its status said in words. Accepted: say it plainly. \
 Candidate: say it is proposed, by a tool or by a person, and not decided. Rejected: say it \
 was rejected. Its refs must include that claim.
-- unknown: store has no accepted claim for an attribute that was asked about. The text \
-starts with "Store does not say" and names the attribute in plain words. Set `attribute` \
-to the attribute key (owner, operator, diameter, name, status...). Its refs hold the \
-feature you read, as type "feature" with its id. Put it first. Then add a fact for any \
-candidate or rejected claim for that attribute, and for a value the pipeline holds.
+- unknown: store has no accepted claim for an attribute that was asked about. Set \
+`attribute` to the attribute key (owner, operator, diameter, name, status...) and put the \
+feature you read in refs, as type "feature" with its id. Leave text empty: code writes \
+"Store does not say ...". Put it first. Then add a fact for every candidate or rejected \
+claim for that attribute, and for a value the pipeline holds: code checks that none is \
+left out.
 - clarify, refusal, greeting: leave text empty; code writes these.
 
 # Writing
@@ -63,7 +66,6 @@ candidate or rejected claim for that attribute, and for a value the pipeline hol
 - Good: "A tool proposed {c1.value} as the owner, {c1.period}. Nobody has decided on it yet."
 - Good: "One value for the owner, {c1.value}, was rejected. It was given {c1.period} in \
 {c1.source}, {c1.locator}."
-- Good: "Store does not say who owns this section."
 - Good: "Its pipeline has an owner: {c2.value}, {c2.period}." (refs: the pipeline's claim)
 - Bad: "The owner claim is accepted, with value {c1.value} and period {c1.period}."
 - {c1.period} is already worded ("by 1932", "in 1938", "from 1932 to 1940"). Put it after \

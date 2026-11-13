@@ -65,7 +65,8 @@ def test_rows_are_derived_as_store_derives_them(small):
     assert small["features"][code["s09"]]["dates"]["time_end"] == "1951-12-31"
     # A source that dates the start after a map already shows the line: a conflict.
     assert rows[code["s11"]]["date_conflict"] is True
-    assert rows[code["s11"]]["time_start"] == "1932-12-31"
+    # In a conflict store widens the start to the earliest any claim allows.
+    assert rows[code["s11"]]["time_start"] == "1932-01-01"
     assert rows[code["s12"]]["existed_from"] is None
     assert rows[code["s07"]]["diameter"] == "16 in"
     assert rows[code["s06"]]["line_id"] == code["l01"]

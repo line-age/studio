@@ -186,7 +186,8 @@ class World:
 
     def by_map(self, year: int) -> dict[str, Any]:
         """A map proves "by its date": the year goes in start_latest, never start_earliest."""
-        return {"edtf": f"../{year}", "bounds": (None, f"{year}-12-31", None, None)}
+        # As store's own helper (lineage_model.edtf.by) writes it.
+        return {"edtf": f"../{year}", "bounds": (None, f"{year}-12-31", f"{year}-01-01", None)}
 
     def trace(self, code: str) -> str:
         return f"example_add_{code}_{TRACER}"

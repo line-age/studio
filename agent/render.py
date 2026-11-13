@@ -8,6 +8,7 @@ writes the fixed lines. A slot it cannot fill is a problem, never a guess.
 import calendar
 import datetime as dt
 import re
+from decimal import Decimal
 from typing import Any
 
 from schemas import FIXED_KINDS, Answer, Draft, DraftStatement, Ref, Statement
@@ -36,7 +37,23 @@ FIXED_LINES = {
 UNKNOWN_OPENING = "Store does not say"
 
 SLOT = re.compile(r"\{([A-Za-z]\w*)\.([a-z]+)\}")
-SLOT_FIELDS = ("value", "period", "source", "quote", "locator")
+SLOT_FIELDS = ("value", "period", "status", "source", "quote", "locator")
+
+# How "Store does not say" goes on, by attribute. The whole sentence is code's.
+UNKNOWN_WORDS = {
+    "owner": "who owns it",
+    "operator": "who operates it",
+    "name": "what it is called",
+    "diameter": "what its diameter is",
+    "status": "what its status is",
+}
+
+
+def unknown_line(attribute: str | None) -> str:
+    if not attribute:
+        return f"{UNKNOWN_OPENING}."
+    rest = UNKNOWN_WORDS.get(attribute, f"what its {attribute.replace('_', ' ')} is")
+    return f"{UNKNOWN_OPENING} {rest}."
 
 
 class Unfillable(Exception):
@@ -74,30 +91,43 @@ def _date_words(iso: str, *, closing: bool) -> str:
 
 def _window(earliest: str | None, latest: str | None) -> str | None:
     """One end of a period, from its two bounds. None when store gives neither."""
-    if earliest and latest:
-        lo, hi = _date_words(earliest, closing=False), _date_words(latest, closing=True)
-        return lo if lo == hi else f"between {lo} and {hi}"
-    return None
+    if not (earliest and latest):
+        return None
+    if earliest[:10] == latest[:10]:
+        day = dt.date.fromisoformat(earliest[:10])
+        return f"{day.day} {calendar.month_name[day.month]} {day.year}"
+    lo, hi = _date_words(earliest, closing=False), _date_words(latest, closing=True)
+    return lo if lo == hi else f"between {lo} and {hi}"
 
 
-_EDTF_DAY = re.compile(r"^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$")
+_EDTF_POINT = re.compile(r"^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?([~?%]?)$")
+_QUALIFIER = {"": "", "~": "about ", "?": "perhaps ", "%": "perhaps about "}
 
 
 def _edtf_point(text: str) -> str | None:
-    """`1938`, `1938-03` or `1938-03-14` as words. None for anything else."""
-    match = _EDTF_DAY.match(text)
+    """`1938`, `1938-03`, `1938-03-14`, with `~` or `?`, as words. None for anything
+    else (a season, unspecified digits, a set), which is never put into words."""
+    match = _EDTF_POINT.match(text)
     if not match:
         return None
-    year, month, day = match.groups()
-    if day:
-        return f"{int(day)} {calendar.month_name[int(month)]} {year}"
+    year, month, day, qualifier = match.groups()
+    words = year
     if month:
-        return f"{calendar.month_name[int(month)]} {year}"
-    return year
+        if not 1 <= int(month) <= 12:
+            return None
+        words = f"{calendar.month_name[int(month)]} {year}"
+        if day:
+            try:
+                dt.date(int(year), int(month), int(day))
+            except ValueError:
+                return None
+            words = f"{int(day)} {words}"
+    return _QUALIFIER[qualifier] + words
 
 
 def edtf_words(text: str | None) -> str | None:
-    """A claim's period as the source wrote it (EDTF), when store has no bounds for it."""
+    """A claim's period as the source wrote it (EDTF), when store has no bounds for it.
+    None when it is a form this does not put into words."""
     if not text:
         return None
     if "/" in text:
@@ -117,14 +147,18 @@ def period_words(claim: dict[str, Any]) -> str:
     """When a claim holds, as the source gives it. A map only proves "by" its date.
 
     Worked from the claim's bounds; where store has none, from the period as the source
-    wrote it; only when store has neither, "with no date in store".
+    wrote it. "With no date in store" only when store has neither. A date this cannot
+    word truly is Unfillable, never left out.
     """
-    if not any(
-        claim.get(k) for k in ("start_earliest", "start_latest", "end_earliest", "end_latest")
-    ):
-        return edtf_words(claim.get("valid_edtf")) or "with no date in store"
     se, sl = claim.get("start_earliest"), claim.get("start_latest")
     ee, el = claim.get("end_earliest"), claim.get("end_latest")
+    if not any((se, sl, ee, el)):
+        if not claim.get("valid_edtf"):
+            return "with no date in store"
+        words = edtf_words(claim["valid_edtf"])
+        if words is None:
+            raise Unfillable(f"the period {claim['valid_edtf']!r} cannot be put into words")
+        return words
     start = _window(se, sl)
     if start:
         start = f"from {start}"
@@ -137,7 +171,8 @@ def period_words(claim: dict[str, Any]) -> str:
         end = f"to {end}"
     elif el:
         end = f"until {_date_words(el, closing=True)} at the latest"
-    elif ee:
+    elif ee and not (sl and ee[:4] <= sl[:4]):
+        # A map's "by 1937" also says it was there in 1937; that adds nothing to say.
         end = f"until at least {_date_words(ee, closing=False)}"
     words = " ".join(part for part in (start, end) if part)
     return words or "with no date in store"
@@ -146,13 +181,40 @@ def period_words(claim: dict[str, Any]) -> str:
 # Values ------------------------------------------------------------------------------------
 
 
+def _number(value: float) -> str:
+    """As store holds it: never rounded, never in scientific notation."""
+    text = format(Decimal(repr(value)).normalize(), "f")
+    return text.rstrip("0").rstrip(".") if "." in text else text
+
+
 def value_words(claim: dict[str, Any]) -> str:
     if claim.get("value_num") is not None:
-        number = f"{claim['value_num']:g}"
+        number = _number(claim["value_num"])
         return f"{number} {claim['value_unit']}" if claim.get("value_unit") else number
     if claim.get("value_text"):
         return str(claim["value_text"])
     raise Unfillable(f"the {claim.get('attribute_key')} claim has no value that is words")
+
+
+STATUS_WORDS = {
+    ("accepted", None): "accepted",
+    ("candidate", "pipeline"): "proposed by a tool and not decided yet",
+    ("candidate", "person"): "proposed by a person and not decided yet",
+    ("candidate", None): "proposed and not decided yet",
+    ("rejected", None): "rejected",
+}
+
+
+def status_words(claim: dict[str, Any]) -> str:
+    status, kind = claim["status"], claim.get("asserted_by_kind")
+    return STATUS_WORDS.get((status, kind)) or STATUS_WORDS[(status, None)]
+
+
+def _citation(claim: dict[str, Any]) -> dict[str, Any] | None:
+    """The citation that says it: a text that states it, or a map that shows it."""
+    citations = claim.get("citations") or []
+    ranked = sorted(citations, key=lambda c: c.get("role") not in ("states", "map_shows"))
+    return ranked[0] if ranked else None
 
 
 def _slot(claim: dict[str, Any], field: str) -> str:
@@ -160,7 +222,9 @@ def _slot(claim: dict[str, Any], field: str) -> str:
         return value_words(claim)
     if field == "period":
         return period_words(claim)
-    citation = (claim.get("citations") or [None])[0]
+    if field == "status":
+        return status_words(claim)
+    citation = _citation(claim)
     if citation is None:
         raise Unfillable("the claim has no citation")
     if field == "source":
@@ -258,6 +322,12 @@ def render_statement(draft: DraftStatement, read: Read) -> Statement:
         if claim is None:
             raise Unfillable(f"claim {ref.id} was not read from store in this run")
         return _slot(claim, field)
+
+    if draft.kind == "unknown":
+        # The model says which attribute; the sentence is code's, so nothing rides on it.
+        text = unknown_line(draft.attribute)
+        refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]
+        return Statement(kind="unknown", text=text, refs=refs, attribute=draft.attribute)
 
     text = SLOT.sub(fill, draft.text).strip()
     # A value that ends a sentence with its own full stop ("Co.") takes no second one.

@@ -103,7 +103,7 @@
       }
      ],
      "created_at": "2026-01-01T00:37:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1926-01-01",
      "end_latest": null,
      "id": "afadd687-d4e5-58b6-8e62-dd67e5bc0505",
      "request_id": null,
@@ -125,7 +125,7 @@
     "existed_from": "../1926",
     "existed_to": null,
     "time_end": null,
-    "time_start": "1926-12-31"
+    "time_start": "1926-01-01"
    },
    "external_keys": [
     {
@@ -235,7 +235,7 @@
       }
      ],
      "created_at": "2026-01-01T00:03:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1932-01-01",
      "end_latest": null,
      "id": "99ec7a55-8f46-55c0-acec-0d99c712209d",
      "request_id": null,
@@ -257,7 +257,7 @@
     "existed_from": "../1932",
     "existed_to": null,
     "time_end": null,
-    "time_start": "1932-12-31"
+    "time_start": "1932-01-01"
    },
    "external_keys": [
     {
@@ -486,7 +486,7 @@
       }
      ],
      "created_at": "2026-01-01T00:11:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1932-01-01",
      "end_latest": null,
      "id": "f8729e38-6c46-5b8f-b654-741157ed5363",
      "request_id": null,
@@ -508,7 +508,7 @@
     "existed_from": "../1932",
     "existed_to": null,
     "time_end": null,
-    "time_start": "1932-12-31"
+    "time_start": "1932-01-01"
    },
    "external_keys": [
     {
@@ -605,7 +605,7 @@
       }
      ],
      "created_at": "2026-01-01T00:44:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1926-01-01",
      "end_latest": null,
      "id": "b7b1c6aa-ccdf-59d1-8ff2-1025616593e9",
      "request_id": null,
@@ -627,7 +627,7 @@
     "existed_from": "../1926",
     "existed_to": "../1951",
     "time_end": "1951-12-31",
-    "time_start": "1926-12-31"
+    "time_start": "1926-01-01"
    },
    "external_keys": [
     {
@@ -737,7 +737,7 @@
       }
      ],
      "created_at": "2026-01-01T00:28:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1932-01-01",
      "end_latest": null,
      "id": "acb6a931-329a-53c0-ac60-106e5061f5ae",
      "request_id": null,
@@ -759,7 +759,7 @@
     "existed_from": "../1932",
     "existed_to": null,
     "time_end": null,
-    "time_start": "1932-12-31"
+    "time_start": "1932-01-01"
    },
    "external_keys": [
     {
@@ -812,7 +812,7 @@
       }
      ],
      "created_at": "2026-01-01T00:32:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1938-01-01",
      "end_latest": null,
      "id": "b7e82c75-6208-5f5b-a6ec-e612bcb648f7",
      "request_id": null,
@@ -908,7 +908,7 @@
       }
      ],
      "created_at": "2026-01-01T00:31:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1932-01-01",
      "end_latest": null,
      "id": "9be30d59-c006-5737-8a62-8279b1964fb8",
      "request_id": null,
@@ -930,7 +930,7 @@
     "existed_from": "../1932",
     "existed_to": null,
     "time_end": null,
-    "time_start": "1932-12-31"
+    "time_start": "1932-01-01"
    },
    "external_keys": [
     {
@@ -1079,7 +1079,7 @@
       }
      ],
      "created_at": "2026-01-01T00:51:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1938-01-01",
      "end_latest": null,
      "id": "26666e45-3349-5745-b7ef-8486ad58cfbb",
      "request_id": null,
@@ -1101,7 +1101,7 @@
     "existed_from": "../1938",
     "existed_to": null,
     "time_end": null,
-    "time_start": "1938-12-31"
+    "time_start": "1938-01-01"
    },
    "external_keys": [
     {
@@ -1276,7 +1276,7 @@
       }
      ],
      "created_at": "2026-01-01T00:20:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1938-01-01",
      "end_latest": null,
      "id": "aeb390e9-bdc7-5b54-a315-b6457604fc18",
      "request_id": null,
@@ -1298,7 +1298,7 @@
     "existed_from": "../1938",
     "existed_to": null,
     "time_end": null,
-    "time_start": "1938-12-31"
+    "time_start": "1938-01-01"
    },
    "external_keys": [
     {
@@ -1463,7 +1463,7 @@
       }
      ],
      "created_at": "2026-01-01T01:08:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1938-01-01",
      "end_latest": null,
      "id": "f8244118-0079-5b4f-adcc-c358f183c9c1",
      "request_id": null,
@@ -1485,7 +1485,7 @@
     "existed_from": "../1938",
     "existed_to": null,
     "time_end": null,
-    "time_start": "1938-12-31"
+    "time_start": "1938-01-01"
    },
    "external_keys": [
     {
@@ -1715,7 +1715,7 @@
       }
      ],
      "created_at": "2026-01-01T01:05:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1938-01-01",
      "end_latest": null,
      "id": "0ee51793-b16c-5ea7-87f9-2b5df02da921",
      "request_id": null,
@@ -1737,7 +1737,7 @@
     "existed_from": "../1938",
     "existed_to": null,
     "time_end": null,
-    "time_start": "1938-12-31"
+    "time_start": "1938-01-01"
    },
    "external_keys": [
     {
@@ -1925,7 +1925,7 @@
       }
      ],
      "created_at": "2026-01-01T00:55:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1932-01-01",
      "end_latest": null,
      "id": "3ffe0f2b-d73e-5667-a936-54e64c45f7f9",
      "request_id": null,
@@ -1986,7 +1986,7 @@
     "existed_from": "1933",
     "existed_to": null,
     "time_end": null,
-    "time_start": "1932-12-31"
+    "time_start": "1932-01-01"
    },
    "external_keys": [
     {
@@ -2083,7 +2083,7 @@
       }
      ],
      "created_at": "2026-01-01T00:40:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1946-01-01",
      "end_latest": null,
      "id": "0c37d591-4e0a-5e8e-ad61-96ed6e039297",
      "request_id": null,
@@ -2293,7 +2293,7 @@
       }
      ],
      "created_at": "2026-01-01T00:06:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1932-01-01",
      "end_latest": null,
      "id": "9cba28d2-0bb8-51d7-9591-9f4a8b7716db",
      "request_id": null,
@@ -2315,7 +2315,7 @@
     "existed_from": "../1932",
     "existed_to": null,
     "time_end": null,
-    "time_start": "1932-12-31"
+    "time_start": "1932-01-01"
    },
    "external_keys": [
     {
@@ -2463,7 +2463,7 @@
       }
      ],
      "created_at": "2026-01-01T00:15:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1938-01-01",
      "end_latest": null,
      "id": "2ad603a0-e8e5-57d9-8d8a-01e55a09ed9d",
      "request_id": null,
@@ -2485,7 +2485,7 @@
     "existed_from": "../1938",
     "existed_to": null,
     "time_end": null,
-    "time_start": "1938-12-31"
+    "time_start": "1938-01-01"
    },
    "external_keys": [
     {
@@ -2582,7 +2582,7 @@
       }
      ],
      "created_at": "2026-01-01T00:47:00+00:00",
-     "end_earliest": null,
+     "end_earliest": "1951-01-01",
      "end_latest": null,
      "id": "39f265f6-c94d-52c5-a315-5e16abc801aa",
      "request_id": null,
@@ -2737,7 +2737,7 @@
     "row_id": "011193e6-0980-56dd-8370-a52000be2fb0",
     "section_id": "011193e6-0980-56dd-8370-a52000be2fb0",
     "time_end": "1946-12-31",
-    "time_start": "1926-12-31"
+    "time_start": "1926-01-01"
    },
    "type": "Feature"
   },
@@ -2775,7 +2775,7 @@
     "row_id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
     "section_id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
     "time_end": null,
-    "time_start": "1932-12-31"
+    "time_start": "1932-01-01"
    },
    "type": "Feature"
   },
@@ -2851,7 +2851,7 @@
     "row_id": "1eb0fe9b-7df5-55c7-b835-ca4bbf3ee063",
     "section_id": "1eb0fe9b-7df5-55c7-b835-ca4bbf3ee063",
     "time_end": null,
-    "time_start": "1932-12-31"
+    "time_start": "1932-01-01"
    },
    "type": "Feature"
   },
@@ -2889,7 +2889,7 @@
     "row_id": "1ef0a424-243b-5daa-9da8-3f75ec74638a",
     "section_id": "1ef0a424-243b-5daa-9da8-3f75ec74638a",
     "time_end": "1951-12-31",
-    "time_start": "1926-12-31"
+    "time_start": "1926-01-01"
    },
    "type": "Feature"
   },
@@ -2927,7 +2927,7 @@
     "row_id": "2f6569d5-600a-5d47-8972-531f356f2520",
     "section_id": "2f6569d5-600a-5d47-8972-531f356f2520",
     "time_end": null,
-    "time_start": "1932-12-31"
+    "time_start": "1932-01-01"
    },
    "type": "Feature"
   },
@@ -2965,7 +2965,7 @@
     "row_id": "34cddc9b-26a6-52cb-a5a0-e93cca6a8fb9",
     "section_id": "34cddc9b-26a6-52cb-a5a0-e93cca6a8fb9",
     "time_end": null,
-    "time_start": "1932-12-31"
+    "time_start": "1932-01-01"
    },
    "type": "Feature"
   },
@@ -3003,7 +3003,7 @@
     "row_id": "5d3b575e-1abf-5e05-9c2b-688a3e129645",
     "section_id": "5d3b575e-1abf-5e05-9c2b-688a3e129645",
     "time_end": null,
-    "time_start": "1938-12-31"
+    "time_start": "1938-01-01"
    },
    "type": "Feature"
   },
@@ -3041,7 +3041,7 @@
     "row_id": "63179b43-75f6-5527-b96c-9fcdf25a0657",
     "section_id": "63179b43-75f6-5527-b96c-9fcdf25a0657",
     "time_end": null,
-    "time_start": "1938-12-31"
+    "time_start": "1938-01-01"
    },
    "type": "Feature"
   },
@@ -3079,7 +3079,7 @@
     "row_id": "c1e08407-9bb2-5c33-92fe-0104a36f2e50",
     "section_id": "c1e08407-9bb2-5c33-92fe-0104a36f2e50",
     "time_end": null,
-    "time_start": "1938-12-31"
+    "time_start": "1938-01-01"
    },
    "type": "Feature"
   },
@@ -3117,7 +3117,7 @@
     "row_id": "c4333628-89b3-5602-8ab8-8cbe1870e690",
     "section_id": "c4333628-89b3-5602-8ab8-8cbe1870e690",
     "time_end": null,
-    "time_start": "1932-12-31"
+    "time_start": "1932-01-01"
    },
    "type": "Feature"
   },
@@ -3155,7 +3155,7 @@
     "row_id": "ca5d65a4-bfa9-5734-8d8a-f08fe72a8bb2",
     "section_id": "ca5d65a4-bfa9-5734-8d8a-f08fe72a8bb2",
     "time_end": null,
-    "time_start": "1932-12-31"
+    "time_start": "1932-01-01"
    },
    "type": "Feature"
   },
@@ -3193,7 +3193,7 @@
     "row_id": "e2a1d0c5-a91c-5611-bd44-b28989c00fa5",
     "section_id": "e2a1d0c5-a91c-5611-bd44-b28989c00fa5",
     "time_end": null,
-    "time_start": "1938-12-31"
+    "time_start": "1938-01-01"
    },
    "type": "Feature"
   }

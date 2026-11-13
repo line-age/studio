@@ -78,7 +78,8 @@ AttributeKey = Literal[
 
 
 class DraftStatement(_Strict):
-    kind: Literal["fact", "unknown", "reading", "help", "clarify", "refusal", "greeting"]
+    # help and reading come with their behaviours (B10, B12) and their checks.
+    kind: Literal["fact", "unknown", "clarify", "refusal", "greeting"]
     attribute: AttributeKey | None = Field(
         None, description="For kind unknown: the store attribute key that was checked."
     )
