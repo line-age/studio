@@ -27,7 +27,7 @@ export const HELP_STEPS: readonly HelpStep[] = [
   {
     id: "sections",
     title: "Sections",
-    body: "Every section that was traced is listed here: pipelines first, then the sections in no pipeline yet. The counts at the top say how many sections are at each status.",
+    body: "Every section that was traced is listed here: pipelines first, then the sections in no pipeline yet. The counts at the top say how many sections of the whole edition are at each status; moving the map does not change them.",
     targets: ["sections"],
     needs: "list",
   },
@@ -47,7 +47,7 @@ export const HELP_STEPS: readonly HelpStep[] = [
   {
     id: "layers",
     title: "Map layers",
-    body: 'The layers button says how each status is drawn and chooses what is on the map. "List follows the map", below it, keeps the list to the sections in view.',
+    body: 'The layers button says how each status is drawn and chooses what is on the map. "List follows the map", below it, keeps the list to the sections in view; while the list is a table it waits.',
     targets: ["layers", "map"],
   },
   {

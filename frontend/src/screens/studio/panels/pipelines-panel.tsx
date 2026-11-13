@@ -1,6 +1,7 @@
 import {
   Fragment,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent,
@@ -28,6 +29,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import {
+  filterCounts,
   formatCount,
   geometryBounds,
   plural,
@@ -43,13 +45,19 @@ import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { HidePanels } from "../panel-toggle"
 import { useSettings } from "../settings"
 import {
+  useCriteria,
   useSearchHits,
   useSelectionGroups,
   useStudioData,
   useVisiblePipelines,
 } from "../studio-data"
 import { usePanelWidth } from "../panel-width-context"
-import { filtersApplied, useCamera, useStudio } from "../studio-store"
+import {
+  filtersApplied,
+  listFollowsMap,
+  useCamera,
+  useStudio,
+} from "../studio-store"
 import { EditionSelect } from "./edition-select"
 import { FiltersPanel } from "./filters-panel"
 import { listColumns } from "./list-columns"
@@ -65,7 +73,10 @@ export function PipelinesPanel() {
   const setWhole = useStudio((s) => s.setSearchWholeEdition)
   const query = useStudio((s) => s.query)
   const setQuery = useStudio((s) => s.setQuery)
-  const onlyInView = useStudio((s) => s.onlyInView)
+  const onlyInView = useStudio(listFollowsMap)
+  const setTableOpen = useStudio((s) => s.setTableOpen)
+  const view = useStudio((s) => s.view)
+  const criteria = useCriteria()
   const unknownIn = useStudio((s) => s.unknownIn)
   const companies = useStudio((s) => s.companies)
   const builtFrom = useStudio((s) => s.builtFrom)
@@ -81,6 +92,24 @@ export function PipelinesPanel() {
   /** The filters open in place of the list, in this same panel. */
   const [mode, setMode] = useState<"list" | "filters">("list")
   const filtered = useStudio(filtersApplied)
+
+  // A list widened into a table holds everything: the map beside it is
+  // narrower, and following it would take rows away.
+  const wide = panelWidth?.wide ?? false
+  useEffect(() => {
+    setTableOpen(wide)
+    return () => setTableOpen(false)
+  }, [wide, setTableOpen])
+
+  // Sections, like the status counts: in the map view, of the whole edition.
+  const shown = useMemo(() => {
+    const pick = (counts: ReturnType<typeof filterCounts>) =>
+      criteria.status === "all" ? counts.all : counts.status[criteria.status]
+    return {
+      inView: pick(filterCounts(summaries, criteria, view)),
+      all: pick(filterCounts(summaries, criteria)),
+    }
+  }, [summaries, criteria, view])
 
   const searching = query.trim().length > 0
   const activeIndex = Math.min(active, Math.max(hits.length - 1, 0))
@@ -167,7 +196,9 @@ export function PipelinesPanel() {
         meta={
           searching
             ? `${formatCount(hits.length)} match`
-            : `${formatCount(visible.length)} ${onlyInView ? "in view" : "shown"}`
+            : onlyInView
+              ? `${formatCount(shown.inView)} of ${formatCount(shown.all)} in view`
+              : plural(shown.all, "section", "sections")
         }
       >
         {panelWidth && (
@@ -361,7 +392,7 @@ function PipelineList({
   const addToSelection = useStudio((s) => s.addToSelection)
   const toggleSelected = useStudio((s) => s.toggleSelected)
   const requestFit = useStudio((s) => s.requestFit)
-  const onlyInView = useStudio((s) => s.onlyInView)
+  const onlyInView = useStudio(listFollowsMap)
   const [descending, setDescending] = useState(false)
   /** The first-seen groups whose sections are listed. They start closed. */
   const [opened, setOpened] = useState<ReadonlySet<string>>(new Set())

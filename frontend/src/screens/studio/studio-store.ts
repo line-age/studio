@@ -42,7 +42,13 @@ interface StudioState {
   status: SectionStatus | "all"
   /** Keep what has a section with a proposal waiting. */
   needsDecisionOnly: boolean
+  /** The person's choice: the list follows the map. See `listFollowsMap`. */
   onlyInView: boolean
+  /**
+   * The list is widened into a table. A wider list narrows the map, so while
+   * it is a table the list holds everything and following waits.
+   */
+  tableOpen: boolean
   /** Keep pipelines with an Unknown value for one of these attributes. */
   unknownIn: readonly string[]
   /** Keep pipelines with a section of one of these companies. */
@@ -79,6 +85,7 @@ interface StudioState {
   setStatus: (status: SectionStatus | "all") => void
   setNeedsDecisionOnly: (on: boolean) => void
   setOnlyInView: (on: boolean) => void
+  setTableOpen: (open: boolean) => void
   toggleUnknownIn: (attribute: string) => void
   toggleCompany: (company: string) => void
   setCompanies: (companies: readonly string[]) => void
@@ -174,11 +181,18 @@ export const filtersApplied = (s: StudioState) =>
   s.addedFrom !== null ||
   s.addedTo !== null
 
+/**
+ * The list holds only what is in the map view right now: the person wants it,
+ * and the list is not open as a table. The status counts never follow the map.
+ */
+export const listFollowsMap = (s: StudioState) => s.onlyInView && !s.tableOpen
+
 export const useStudio = create<StudioState>((set) => ({
   editionId: null,
   status: "all",
   needsDecisionOnly: false,
   onlyInView: true,
+  tableOpen: false,
   unknownIn: [],
   companies: [],
   builtFrom: null,
@@ -209,6 +223,7 @@ export const useStudio = create<StudioState>((set) => ({
     set((s) => ({ status: s.status === status ? "all" : status })),
   setNeedsDecisionOnly: (needsDecisionOnly) => set({ needsDecisionOnly }),
   setOnlyInView: (onlyInView) => set({ onlyInView }),
+  setTableOpen: (tableOpen) => set({ tableOpen }),
   toggleUnknownIn: (attribute) =>
     set((s) => ({
       unknownIn: s.unknownIn.includes(attribute)

@@ -97,8 +97,6 @@ const THIS_YEAR = new Date().getFullYear()
 export function FiltersPanel({ onBack }: { onBack: () => void }) {
   const { summaries } = useStudioData()
   const criteria = useCriteria()
-  const onlyInView = useStudio((s) => s.onlyInView)
-  const view = useStudio((s) => s.view)
   const clearFilters = useStudio((s) => s.clearFilters)
   const unknownIn = useStudio((s) => s.unknownIn)
   const toggleUnknownIn = useStudio((s) => s.toggleUnknownIn)
@@ -112,13 +110,14 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
   const setAdded = useStudio((s) => s.setAdded)
   const filtered = useStudio(filtersApplied)
 
-  // The sections the list would show with the filters as they stand.
+  // The sections of the edition the filters leave, as the status counts
+  // count them: the map view does not change it.
   const matching = useMemo(() => {
-    const counts = filterCounts(summaries, criteria, onlyInView ? view : null)
+    const counts = filterCounts(summaries, criteria)
     return criteria.status === "all"
       ? counts.all
       : counts.status[criteria.status]
-  }, [summaries, criteria, onlyInView, view])
+  }, [summaries, criteria])
   // Per attribute: how many sections have it Unknown.
   const attributes = useMemo(
     () =>

@@ -49,7 +49,9 @@ function CountToggle({
 /**
  * The sections of the edition counted by status, above the list. Each count
  * is a filter: one status at a time, and "Needs your decision" on top of any.
- * The counts are sections, after the other filters.
+ * The counts are sections of the whole edition, after the other filters. They
+ * never follow the map: moving it, resizing a panel or opening the table does
+ * not change them. Only the list follows the map.
  */
 export function StatusCounts() {
   const { summaries } = useStudioData()
@@ -58,12 +60,10 @@ export function StatusCounts() {
   const setStatus = useStudio((s) => s.setStatus)
   const needsDecisionOnly = useStudio((s) => s.needsDecisionOnly)
   const setNeedsDecisionOnly = useStudio((s) => s.setNeedsDecisionOnly)
-  const onlyInView = useStudio((s) => s.onlyInView)
-  const view = useStudio((s) => s.view)
 
   const counts = useMemo(
-    () => filterCounts(summaries, criteria, onlyInView ? view : null),
-    [summaries, criteria, onlyInView, view]
+    () => filterCounts(summaries, criteria),
+    [summaries, criteria]
   )
 
   return (

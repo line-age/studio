@@ -14,7 +14,7 @@ import {
 import type { Edition, Network, Section } from "@/data/schema"
 
 import { useSettings } from "./settings"
-import { useStudio } from "./studio-store"
+import { listFollowsMap, useStudio } from "./studio-store"
 
 /*
  * The loaded network plus what the Studio screen derives from it once: the
@@ -73,10 +73,13 @@ export function useStudioData(): StudioData {
   return value
 }
 
-/** What the filters leave: the status, the criteria and, if on, the map view. */
+/**
+ * What the list holds: what the status and the criteria leave and, while the
+ * list follows the map, only what is in the view.
+ */
 export function useVisiblePipelines(): PipelineSummary[] {
   const { summaries } = useStudioData()
-  const onlyInView = useStudio((s) => s.onlyInView)
+  const onlyInView = useStudio(listFollowsMap)
   const view = useStudio((s) => s.view)
   const criteria = useCriteria()
   return useMemo(
