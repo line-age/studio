@@ -9,13 +9,15 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { Button } from "@/components/ui/button"
 
 import { HELP_BUTTON_ID } from "./help/help-store"
 
 /*
- * The dark bar across the top. Settings and Help open; the other actions have
- * nothing behind them yet: they are shown as designed and do nothing when pressed.
+ * The dark bar across the top: the app name, where the person is, Settings
+ * and Help. The menu, Undo, Redo, Export and "Review changes" are in the
+ * design but hidden until there is something behind them (the owner,
+ * 2026-11-13; this replaces showing them as designed). Each comes back with
+ * its feature.
  */
 export interface Crumb {
   label: string
@@ -52,9 +54,6 @@ export function TopBar({
         Lineage Studio{networkName ? `: ${networkName}` : ""}
       </h1>
       <div className="flex min-w-0 items-center gap-3">
-        <TopbarButton kind="icon" aria-label="Menu">
-          <Icon name="menu" />
-        </TopbarButton>
         <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
           <Icon name="section" />
         </span>
@@ -112,14 +111,6 @@ export function TopBar({
             Help
           </TopbarButton>
         </div>
-        <TopbarButton kind="icon" aria-label="Undo">
-          <Icon name="undo" />
-        </TopbarButton>
-        <TopbarButton kind="icon" aria-label="Redo">
-          <Icon name="redo" />
-        </TopbarButton>
-        <TopbarButton>Export</TopbarButton>
-        <Button className="ml-2.5">Review changes</Button>
       </div>
     </header>
   )

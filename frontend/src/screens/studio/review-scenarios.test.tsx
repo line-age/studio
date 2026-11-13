@@ -257,4 +257,21 @@ describe("reviewing", () => {
     const done = screen.getByRole("button", { name: /^Done/, hidden: true })
     expect(done).toHaveTextContent("Done2")
   })
+
+  it("finds nothing in the top bar that does nothing when pressed", async () => {
+    await open()
+    const bar = screen
+      .getByRole("heading", { level: 1 })
+      .closest("header") as HTMLElement
+    expect(
+      within(bar)
+        .getAllByRole("button")
+        .map((b) => b.textContent)
+    ).toEqual(["Settings", "Help"])
+    for (const name of ["Menu", "Undo", "Redo", "Export", "Review changes"]) {
+      expect(
+        within(bar).queryByRole("button", { name })
+      ).not.toBeInTheDocument()
+    }
+  })
 })

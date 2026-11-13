@@ -196,10 +196,23 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   its area; a step covers only what works. `help.test.tsx` fails when a step's area
   is gone, so run it after moving things. Tests run with the tour seen
   (`src/test/setup.ts`); README screenshots are taken with `studio.tour-seen` set.
-- Top bar actions other than Settings and Help are shown as designed and do nothing yet (the owner's choice,
-  2026-11-12). Do not wire them to invented behaviour. The table button, the
-  "Scanned map" eye and the draw tools other than Select and Lasso are hidden until
-  they work (same day).
+- Hide what does not work (the owner, 2026-11-13). The top bar holds the app name,
+  the breadcrumb, Settings and Help; the menu, Undo, Redo, Export and "Review changes"
+  are in Figma but hidden until the feature behind each exists. Do not wire them to
+  invented behaviour. The "Scanned map" eye and the draw tools other than Select and
+  Lasso are hidden the same way. The right-click menu does not open when it has
+  nothing to offer.
+- The status counts are the whole edition after filters; they never follow the map.
+  Only the list follows it (`listFollowsMap`), and its header says "n of m in view".
+  While the list is a table (`tableOpen`) it holds everything and the follow button
+  shows as paused.
+- Reading is not selecting. A click on a section in the right panel opens it (or
+  closes the one being read) and the map draws it heavier (`sections-reading`); only
+  the boxes, the list and the map change the selection.
+- Progress is said one way, with its noun, from `derive.ts`: a pipeline "4/6 done", a
+  section "2/3 cited" (required claims, by the rule in Settings), a group in no
+  pipeline "2 sections". No Unknown count on a section row; Unknown is a word on a
+  claim.
 
 **Code**
 

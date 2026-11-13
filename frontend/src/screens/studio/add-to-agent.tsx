@@ -36,7 +36,9 @@ export function useAskAgent(): (items: AgentAttachment[]) => void {
 /**
  * Right click on `children` offers to attach `items` to the next question
  * for the Agent, and opens the Agent panel. The menu is stock shadcn: it is
- * not in Figma yet (the owner asked for it on 2026-11-12).
+ * not in Figma yet (the owner asked for it on 2026-11-12). With nothing to
+ * offer it does not open at all: a menu whose one item is off says nothing.
+ * It stays mounted, switched off, so what it wraps (the map) is not rebuilt.
  */
 export function AddToAgentMenu({
   items,
@@ -47,13 +49,10 @@ export function AddToAgentMenu({
 }) {
   const askAgent = useAskAgent()
   return (
-    <ContextMenu>
+    <ContextMenu disabled={items.length === 0}>
       <ContextMenuTrigger render={children} />
       <ContextMenuContent>
-        <ContextMenuItem
-          disabled={items.length === 0}
-          onClick={() => askAgent(items)}
-        >
+        <ContextMenuItem onClick={() => askAgent(items)}>
           <Icon name="ask" />
           Add to the Agent chat
         </ContextMenuItem>
