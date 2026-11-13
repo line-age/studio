@@ -6,10 +6,11 @@ it does, takes in and gives out is in the controlplane's
 this file says how it is built and the rules for working on it. It wins over any file
 above it for anything inside `agent/`.
 
-State: the contract, the store client and the eval harness are built; no behaviour yet.
-The graph answers every question with the fixed "could not answer" line, and every
-case fails, as the saved baseline shows. Behaviours are added one at a time, each with
-its eval first.
+State: B1 (Store does not say) and B2 (what store says about an attached thing) are
+built and pass their 17 cases on three repeats, with the grounding check that blocks an
+answer store does not back. The cases are drafts until a person reviews them. Built on
+LangChain's agent loop; Deep Agents (planning, files) comes in with whole-network
+questions (B8). Behaviours are added one at a time, each with its eval first.
 
 ## Rules
 
@@ -37,7 +38,9 @@ its eval first.
 | Path | What |
 | --- | --- |
 | `graph.py` | Exposes the graph to the server. Nothing else |
-| `agent.py` | The graph. No serving code, no checkpointer |
+| `agent.py` | The graph: take the question in, let the model read and draft, render, check, retry once. No serving code, no checkpointer |
+| `tools.py` | The model's tools. `read_feature` reads a feature and the traces merged into it; claims are shown by handle (C1) |
+| `grounding.py` | The check every answer passes before it is shown, and what it cannot see |
 | `schemas.py` | The contract: the question, the draft the model writes, the answer Studio renders |
 | `render.py` | The fixed lines, and the one place values become words: fills the model's slots from what was read |
 | `contract/` | The question and answer as JSON Schema, with examples; checked against the code |
