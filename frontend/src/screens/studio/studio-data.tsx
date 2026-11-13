@@ -15,6 +15,7 @@ import {
 } from "@/data/derive"
 import type { Edition, Network, Section } from "@/data/schema"
 
+import { useSettings } from "./settings"
 import { useStudio } from "./studio-store"
 
 /*
@@ -50,11 +51,12 @@ export function StudioDataProvider({
 }) {
   const loaded = use(network)
   const editionId = useStudio((s) => s.editionId)
+  const rule = useSettings((s) => s.requiredAttributes)
 
   const value = useMemo<StudioData>(() => {
     const edition =
       loaded.editions.find((e) => e.id === editionId) ?? latestEdition(loaded)
-    const summaries = summarise(loaded, edition.id)
+    const summaries = summarise(loaded, edition.id, rule)
     return {
       network: loaded,
       edition,
@@ -63,7 +65,7 @@ export function StudioDataProvider({
       summaryById: new Map(summaries.map((s) => [s.id, s])),
       sectionById: new Map(loaded.sections.map((s) => [s.id, s])),
     }
-  }, [loaded, editionId])
+  }, [loaded, editionId, rule])
 
   return <StudioDataContext value={value}>{children}</StudioDataContext>
 }

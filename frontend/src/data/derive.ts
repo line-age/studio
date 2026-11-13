@@ -1,4 +1,14 @@
 import type { Edition, Geometry, Network, Position, Section } from "./schema"
+import {
+  DEFAULT_REQUIRED,
+  groupStatus,
+  needsDecision,
+  statusCounts,
+  unknownByAttribute,
+  type SectionStatus,
+  type StatusCounts,
+  type StatusRule,
+} from "./status"
 
 /*
  * Everything the screen shows that is not stored: counts, status, what is in
@@ -62,6 +72,16 @@ export interface PipelineSummary {
   unassigned: boolean
   sections: Section[]
   stats: Stats
+  /** One word for the group; "done" only when every section is done. */
+  status: SectionStatus
+  /** How many sections have each status. */
+  statusCounts: StatusCounts
+  /** How many sections are done. */
+  done: number
+  /** A proposal is waiting on one of the sections. */
+  needsDecision: boolean
+  /** For each required attribute, how many sections have it Unknown. */
+  unknownByAttribute: Record<string, number>
   changed: boolean
   bounds: Bounds | null
 }
@@ -231,7 +251,8 @@ export function editionProgress(network: Network): EditionProgress[] {
  */
 export function summarise(
   network: Network,
-  editionId: string
+  editionId: string,
+  rule: StatusRule = DEFAULT_REQUIRED
 ): PipelineSummary[] {
   const build = (
     id: string,
@@ -239,17 +260,25 @@ export function summarise(
     name: string,
     sections: Section[],
     unassigned = false
-  ): PipelineSummary => ({
-    id,
-    kind: network.groupBy,
-    code,
-    name,
-    unassigned,
-    sections,
-    stats: sumStats(sections),
-    changed: sections.some((s) => s.changedSinceReview),
-    bounds: unionBounds(sections.map((s) => geometryBounds(s.geometry))),
-  })
+  ): PipelineSummary => {
+    const counts = statusCounts(sections, rule)
+    return {
+      id,
+      kind: network.groupBy,
+      code,
+      name,
+      unassigned,
+      sections,
+      stats: sumStats(sections),
+      status: groupStatus(counts),
+      statusCounts: counts,
+      done: counts.done,
+      needsDecision: sections.some(needsDecision),
+      unknownByAttribute: unknownByAttribute(sections, rule),
+      changed: sections.some((s) => s.changedSinceReview),
+      bounds: unionBounds(sections.map((s) => geometryBounds(s.geometry))),
+    }
+  }
 
   if (network.groupBy === "edition") {
     const byEdition = new Map<string, Section[]>()
