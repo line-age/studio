@@ -27,6 +27,9 @@ import { fixtureUrl, loadNetwork } from "@/data/load-network"
 import { FixtureError } from "@/data/schema"
 import { StoreError } from "@/data/store/client"
 
+import { HelpDialog } from "./help/help-dialog"
+import { useHelp } from "./help/help-store"
+import { Tour } from "./help/tour"
 import { LeftPanelContext, useLeftPanel } from "./left-panel-context"
 import { MapArea } from "./map/map-area"
 import { ShowPanels } from "./panel-toggle"
@@ -174,6 +177,7 @@ function Frame({
   const { panel, open, togglePanel } = useLeftPanel()
   const hasSelection = useStudio((s) => s.selection.size > 0)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const setHelpOpen = useHelp((s) => s.setDialogOpen)
   // Hiding the side panels hides both; the rail stays.
   const rightOpen = open && hasSelection
   return (
@@ -183,13 +187,18 @@ function Frame({
         trail={trail}
         onRoot={onHome}
         onSettings={attributes ? () => setSettingsOpen(true) : undefined}
+        onHelp={attributes ? () => setHelpOpen(true) : undefined}
       />
       {attributes && (
-        <SettingsDialog
-          open={settingsOpen}
-          onOpenChange={setSettingsOpen}
-          attributes={attributes}
-        />
+        <>
+          <SettingsDialog
+            open={settingsOpen}
+            onOpenChange={setSettingsOpen}
+            attributes={attributes}
+          />
+          <HelpDialog />
+          <Tour />
+        </>
       )}
       <div className="flex min-h-0 flex-1" aria-busy={busy}>
         <nav
@@ -209,6 +218,7 @@ function Frame({
               agentWaiting ? { label: "waiting for you", tone: "ai" } : null
             }
             active={open && panel === "agent"}
+            data-tour="agent"
             onClick={() => togglePanel("agent")}
           />
         </nav>
@@ -236,6 +246,7 @@ function Frame({
           id="map"
           tabIndex={-1}
           aria-label="Map"
+          data-tour="map"
           className="relative min-w-0 flex-1 bg-map-basemap outline-none"
         >
           {children}
@@ -250,7 +261,9 @@ function Frame({
           widthToken="--layout-panel-right"
           className="bg-background"
         >
-          {right}
+          <div data-tour="claims" className="flex min-h-0 flex-1 flex-col">
+            {right}
+          </div>
         </SidePanel>
       </div>
     </>
@@ -314,7 +327,10 @@ function Loaded({ linked }: { linked: UrlView }) {
       attributes={attributes}
       left={
         <ViewTransition key={panel}>
-          <div className="flex min-h-0 flex-1 flex-col">
+          <div
+            data-tour={panel === "pipelines" ? "sections" : "agent-panel"}
+            className="flex min-h-0 flex-1 flex-col"
+          >
             {panel === "pipelines" && <PipelinesPanel />}
             {panel === "agent" && <AgentPanel />}
           </div>

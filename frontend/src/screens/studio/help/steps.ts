@@ -1,0 +1,138 @@
+/*
+ * The words of Help. One list feeds both the tour card and the Help dialog,
+ * so an area reads the same in each. A step covers only what works today:
+ * add one here when a feature lands, and give its area a `data-tour` name.
+ */
+
+export interface HelpStep {
+  id: string
+  title: string
+  body: string
+  /**
+   * The `data-tour` names of the area, first one found wins. None means the
+   * step is about the whole screen and its card sits in the middle.
+   */
+  targets: readonly string[]
+  /** What the tour brings on screen first: the Sections list, a selection, or the Agent panel. */
+  needs?: "list" | "selection" | "agent"
+}
+
+export const HELP_STEPS: readonly HelpStep[] = [
+  {
+    id: "intro",
+    title: "What Studio is",
+    body: "Studio is where you check traced pipeline sections. Everything said about a section is a claim. A claim is cited, with the source that says so, or it is Unknown. Nothing is filled in by guessing.",
+    targets: [],
+  },
+  {
+    id: "sections",
+    title: "Sections",
+    body: "Every section that was traced is listed here: pipelines first, then the sections in no pipeline yet. The counts at the top say how many sections are at each status.",
+    targets: ["sections"],
+    needs: "list",
+  },
+  {
+    id: "search",
+    title: "Search and filters",
+    body: "Type to narrow the list. The button beside the search opens the filters. Press / to jump to the search from anywhere.",
+    targets: ["search"],
+    needs: "list",
+  },
+  {
+    id: "edition",
+    title: "Edition",
+    body: "An edition is a year. Studio shows the network as of the edition chosen here: the sections that maps had shown by then.",
+    targets: ["edition"],
+    needs: "list",
+  },
+  {
+    id: "map",
+    title: "The map",
+    body: 'Each line is a section. How a line is drawn tells its status; the key says which is which. The layers button chooses what is drawn, and "List follows the map" keeps the list to what is in view.',
+    targets: ["map"],
+  },
+  {
+    id: "select",
+    title: "Selecting",
+    body: "Click a line to select it; click it again to take it off. Tick rows in the list, or draw a loop with the Lasso, to select several. A selection can span pipelines.",
+    targets: ["tools", "map"],
+  },
+  {
+    id: "claims",
+    title: "Claims",
+    body: "What is selected shows here, claim by claim. A cited value comes with its source. Unknown, the orange word with a dotted underline, means no source has been found yet. A proposal is a value the AI suggests and nobody has decided on.",
+    targets: ["claims"],
+    needs: "selection",
+  },
+  {
+    id: "agent",
+    title: "The Agent",
+    body: 'The Agent is opened from here. "Ask the Agent" on the map hands it your selection as references. The Agent does not answer yet.',
+    targets: ["agent"],
+  },
+  {
+    id: "agent-panel",
+    title: "Asking the Agent",
+    body: "The sections you handed over sit with your message as attachments; type # to add another. You can write the message, but nothing is sent yet.",
+    targets: ["agent-panel"],
+    needs: "agent",
+  },
+  {
+    id: "settings",
+    title: "Settings and Help",
+    body: "Settings decides which attributes a section needs cited to have sufficient data, and how each status is drawn on the map. Help opens these pages and this tour again.",
+    targets: ["settings"],
+  },
+]
+
+export interface HelpWord {
+  term: string
+  meaning: string
+}
+
+/** The words a new reviewer meets on the screen. */
+export const HELP_WORDS: readonly HelpWord[] = [
+  {
+    term: "Section",
+    meaning:
+      "A continuous stretch of line built and put in use at one time. Claims are made about sections.",
+  },
+  { term: "Pipeline", meaning: "Several sections that belong together." },
+  {
+    term: "Claim",
+    meaning:
+      "One statement about one attribute of one section, such as its owner or its diameter.",
+  },
+  {
+    term: "Citation",
+    meaning:
+      "The pointer to the source that supports a claim: the publication, issue and page, or the map.",
+  },
+  {
+    term: "Edition",
+    meaning: "A year. Studio shows the network as of the edition chosen.",
+  },
+  {
+    term: "Proposal",
+    meaning:
+      "A value the AI suggests for a claim. It counts for nothing until a person decides.",
+  },
+  {
+    term: "Unknown",
+    meaning:
+      "No source has been found for this yet. It is never filled in by guessing.",
+  },
+  {
+    term: "Not started",
+    meaning: "None of the attributes required in Settings is cited.",
+  },
+  {
+    term: "In progress",
+    meaning: "Some of the required attributes are cited.",
+  },
+  {
+    term: "Sufficient",
+    meaning: "Every required attribute is cited.",
+  },
+  { term: "Done", meaning: "Sufficient, and the section is in a pipeline." },
+]

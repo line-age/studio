@@ -186,8 +186,10 @@ export function PipelinesPanel() {
       </PanelHeader>
 
       <div className="flex shrink-0 flex-col gap-2 border-b px-3 pb-2.5">
-        <EditionSelect />
-        <div className="flex items-center gap-1.5">
+        <div data-tour="edition">
+          <EditionSelect />
+        </div>
+        <div data-tour="search" className="flex items-center gap-1.5">
           <div className="relative min-w-0 flex-1">
             <Icon
               name="search"

@@ -541,13 +541,15 @@ export function StudioMap({ token }: { token: string }) {
       )}
 
       <div className="pointer-events-none absolute inset-x-3 bottom-3 flex justify-center *:pointer-events-auto">
-        <ToolPalette
-          value={tool}
-          only={TOOLS}
-          onValueChange={(next) => {
-            if (next === "select" || next === "lasso") setTool(next)
-          }}
-        />
+        <div data-tour="tools">
+          <ToolPalette
+            value={tool}
+            only={TOOLS}
+            onValueChange={(next) => {
+              if (next === "select" || next === "lasso") setTool(next)
+            }}
+          />
+        </div>
       </div>
 
       <div className="absolute top-3 right-3 flex flex-col gap-2">

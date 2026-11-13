@@ -103,6 +103,7 @@ Lineage parts, with no shadcn equivalent. Build them from the controls above and
 | ProposalLink | `81:408` | MapLabel | `81:545` |
 | MapHandle | `81:553` | ProposalCard | `81:621` |
 | Citation | `81:625` | SelectionBar | `172:553` |
+| TourCard | `201:601` | TourHighlight | `201:602` |
 
 Naming in code: the React component keeps the Figma name (`PipelineRow`); the file is
 kebab-case (`pipeline-row.tsx`). Figma variant properties become props of the same name
@@ -141,6 +142,13 @@ As of 2026-11-12 the Studio screen (`24:3`) and its three state panels are built
 `src/components/`, icons in `src/components/icons/icon.tsx` (path data copied from the
 Icons page). Not built, because nothing on the screen uses them: MapHandle, ProposalCard,
 Citation.
+
+Help is drawn in section "9. Help" (`202:6267`) of the Studio page: the tour on the
+Sections list (`202:6268`) and on the map (`202:6377`), and the Help dialog on one area
+(`202:6474`) and on Words (`202:6608`). The tour is a `TourHighlight` ring round the
+area, the `overlay` colour over the rest, and a `TourCard` beside it (variants first,
+middle, last). In code: `src/screens/studio/help/`. The Words frame shows seven words;
+the app adds the four statuses.
 
 Selecting several things is drawn in section "8. Selecting several things" of the Studio
 page (2026-11-13): several sections of one pipeline `173:5367`, several pipelines

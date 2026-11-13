@@ -1,7 +1,7 @@
 {
   "source": {
     "figmaFileKey": "hbofXZlZNRK4L1MbG7wQsf",
-    "readAt": "2026-11-12",
+    "readAt": "2026-11-13",
     "collections": [
       "Color",
       "Scale"
@@ -760,6 +760,14 @@
       "value": "#aebfcc",
       "alias": "Primitives:gray/light-hover",
       "css": "--selected-hover"
+    },
+    {
+      "collection": "Color",
+      "name": "overlay",
+      "type": "COLOR",
+      "value": "#0e212766",
+      "alias": null,
+      "css": "--overlay"
     },
     {
       "collection": "Scale",

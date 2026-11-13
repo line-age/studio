@@ -55,6 +55,8 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
   their sources.
 - **Agent panel.** Takes a selection as attachments to a message. Nothing is sent.
 - **Panel button.** Hides both side panels; the same button on the map brings them back.
+- **Help.** A ten-step tour of the screen starts on a first visit; Help in the top bar
+  has the same pages, a list of the words, and runs the tour again.
 
 <img src="docs/screenshots/table.jpg" alt="The list widened into a table, three pipelines ticked, their sections listed by pipeline on the right" width="100%">
 

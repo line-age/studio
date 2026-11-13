@@ -11,9 +11,11 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 
+import { HELP_BUTTON_ID } from "./help/help-store"
+
 /*
- * The dark bar across the top. Settings opens; the other actions have nothing
- * behind them yet: they are shown as designed and do nothing when pressed.
+ * The dark bar across the top. Settings and Help open; the other actions have
+ * nothing behind them yet: they are shown as designed and do nothing when pressed.
  */
 export interface Crumb {
   label: string
@@ -26,6 +28,7 @@ export function TopBar({
   trail = [],
   onRoot,
   onSettings,
+  onHelp,
 }: {
   networkName?: string
   /** The selected pipeline, then the selected section. */
@@ -34,6 +37,8 @@ export function TopBar({
   onRoot?: () => void
   /** Opens Settings. Without it the button is shown and does nothing. */
   onSettings?: () => void
+  /** Opens Help. Without it the button is shown and does nothing. */
+  onHelp?: () => void
 }) {
   return (
     <header className="flex h-topbar shrink-0 items-center justify-between bg-topbar px-3 text-topbar-foreground">
@@ -100,8 +105,13 @@ export function TopBar({
         </Breadcrumb>
       </div>
       <div className="flex shrink-0 items-center gap-0.5">
-        <TopbarButton onClick={onSettings}>Settings</TopbarButton>
-        <TopbarButton>Help</TopbarButton>
+        {/* One area of the Help tour. */}
+        <div data-tour="settings" className="flex items-center gap-0.5">
+          <TopbarButton onClick={onSettings}>Settings</TopbarButton>
+          <TopbarButton id={HELP_BUTTON_ID} onClick={onHelp}>
+            Help
+          </TopbarButton>
+        </div>
         <TopbarButton kind="icon" aria-label="Undo">
           <Icon name="undo" />
         </TopbarButton>

@@ -12,7 +12,8 @@ table; selects sections across pipelines by row boxes, clicks on the map or a La
 shows the selection's claims grouped in the right panel, and one claim in full with
 its sources and any proposal; hands a selection to the Agent
 chat as references; shows the network as of the edition chosen; keeps the view in the
-URL. Nothing can be edited and the Agent does not answer yet. The repo `README.md` one level
+URL; walks a first-time visitor through the screen with a Help tour, and explains each
+area and the words in a Help dialog. Nothing can be edited and the Agent does not answer yet. The repo `README.md` one level
 up shows it with screenshots; keep those current when the screen changes visibly.
 
 The workspace `AGENTS.md` two levels up holds the project-wide rules and the full Figma
@@ -188,7 +189,14 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - The selection is a set of sections (`selection` in the Studio store) and may span
   pipelines. Derive pipelines from it with `groupSelection`; do not store a selected
   pipeline. Use `aria-label` on icon-only buttons.
-- Top bar actions are shown as designed and do nothing yet (the owner's choice,
+- Help (`src/screens/studio/help/`): a tour that starts by itself on a first visit
+  (remembered in the browser as `studio.tour-seen`) and a Help dialog. Both read their
+  words from `help/steps.ts`; never write the same text twice. An area is found by its
+  `data-tour` name; a step that needs a panel open says so with `needs`. A feature that lands gets a step there and a `data-tour` name on
+  its area; a step covers only what works. `help.test.tsx` fails when a step's area
+  is gone, so run it after moving things. Tests run with the tour seen
+  (`src/test/setup.ts`); README screenshots are taken with `studio.tour-seen` set.
+- Top bar actions other than Settings and Help are shown as designed and do nothing yet (the owner's choice,
   2026-11-12). Do not wire them to invented behaviour. The table button, the
   "Scanned map" eye and the draw tools other than Select and Lasso are hidden until
   they work (same day).
