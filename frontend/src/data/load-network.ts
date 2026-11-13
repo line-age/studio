@@ -5,7 +5,8 @@ import { toNetwork } from "./store/to-network"
 /*
  * The one place the app gets its data. By default it reads a fixture file.
  * With VITE_DATA_SOURCE=store it reads the Lineage store through this app's
- * own /store path (see src/data/store/client.ts). Nothing else fetches data,
+ * own /store path (see src/data/store/client.ts), whole or, with
+ * VITE_STORE_BBOX, one area of it. Nothing else fetches data,
  * and one source never stands in for the other when it fails.
  */
 
@@ -30,14 +31,30 @@ export function storeNetwork(): string {
   return typeof fromEnv === "string" && fromEnv.length > 0 ? fromEnv : "gas"
 }
 
+/**
+ * One area of the network in place of all of it: "minx,miny,maxx,maxy" in
+ * WGS 84, from VITE_STORE_BBOX. For a demo, or a network too large to open
+ * whole. Every section that crosses the area is loaded, so what is shown is
+ * a real part of the network and not an arbitrary cut of the list.
+ */
+export function storeArea(): string | null {
+  const fromEnv: unknown = import.meta.env.VITE_STORE_BBOX
+  if (typeof fromEnv !== "string") return null
+  const parts = fromEnv.split(",").map(Number)
+  return parts.length === 4 && parts.every(Number.isFinite)
+    ? parts.join(",")
+    : null
+}
+
 export function loadNetwork(): Promise<Network> {
   return dataSource() === "store" ? loadFromStore() : loadFixture()
 }
 
 export async function loadFromStore(
-  network = storeNetwork()
+  network = storeNetwork(),
+  area = storeArea()
 ): Promise<Network> {
-  const rows = await fetchSectionRows(network)
+  const rows = await fetchSectionRows(network, area)
   const ids = [...new Set(rows.map((row) => row.section_id))]
   const [features, sameAs, overlaps, partOf] = await Promise.all([
     fetchFeatures(ids),
@@ -82,7 +99,9 @@ export async function loadFromStore(
     fetchFeatures(lineIds),
   ])
   const name = network.charAt(0).toLocaleUpperCase() + network.slice(1)
-  return toNetwork(`${name} network`, rows, features, {
+  // The name says so when this is one area and not the whole network.
+  const title = area === null ? `${name} network` : `${name} network, one area`
+  return toNetwork(title, rows, features, {
     links: [...links, ...memberships],
     removals,
     lines,
