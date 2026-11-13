@@ -257,6 +257,16 @@ The claim detail area is designed as a first draft and not built: Studio page fr
 `112:566` (Unknown claim, proposal waiting) and `112:786` (cited claim). It docks at the
 bottom of the right panel when a claim row is selected.
 
+Section "11. Reading store" (`223:9257`, drawn 2026-11-13, not reviewed by the owner,
+not built) replaces parts of section 10 for the read-only plan; build from it. Two
+lists with a rail item each: Pipelines `223:9298` and Sections `223:9612` (rails
+`223:9258`, `223:9572`), in place of the mixed list `209:7134`. The pipeline view with
+name, owner and operator as dated claims on the pipeline `223:9866`, in place of
+`209:7358`. A section's rows with a Pipeline row in three states and Owner reading "On
+the pipeline": `223:10098`, `223:10416`, `223:10717`. Proposals whose link reads "Ask
+the Agent about this": `223:11018`, `223:11259`. The Agent answering from store, each
+statement followed by a reference drawn with Attachment: `223:11488`.
+
 The ends and cuts store proposes are built (see the differences above). Pipelines made
 from sections and proposed pipelines are designed and not built: Studio page section "10. Pipelines: making one, and deciding
 on proposed ones" (`209:7133`), drawn 2026-11-13, not yet reviewed by the owner. The list
