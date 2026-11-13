@@ -1,14 +1,27 @@
+<div align="center">
+
 # Lineage Studio
 
-The review app of [Lineage](https://github.com/line-age/controlplane): a web app that
-shows traced pipeline sections on a map, with the claims recorded about each section and
-the sources behind them.
+**The review app of [Lineage](https://github.com/line-age/controlplane).**<br>
+Traced pipeline sections on a map, with the claims recorded about each one and the sources behind them.
 
-One screen so far, read-only. It runs on an invented sample network, or on a local
-[store](https://github.com/line-age/store). Nothing can be edited, and the Agent panel
-does not answer.
+<img alt="React 19" src="https://img.shields.io/badge/React-19-20232a?style=flat-square&logo=react&logoColor=white">
+<img alt="TypeScript 6" src="https://img.shields.io/badge/TypeScript-6-3178c6?style=flat-square&logo=typescript&logoColor=white">
+<img alt="Vite 8" src="https://img.shields.io/badge/Vite-8-646cff?style=flat-square&logo=vite&logoColor=white">
+<img alt="Tailwind CSS 4" src="https://img.shields.io/badge/Tailwind_CSS-4-0f172a?style=flat-square&logo=tailwindcss&logoColor=white">
+<img alt="shadcn/ui base-nova" src="https://img.shields.io/badge/shadcn%2Fui-base--nova-000000?style=flat-square&logo=shadcnui&logoColor=white">
+<img alt="Mapbox GL JS 3" src="https://img.shields.io/badge/Mapbox_GL_JS-3-000000?style=flat-square&logo=mapbox&logoColor=white">
+
+[Quick start](#quick-start) · [Docker](#run-in-docker) · [Real data](#real-data-from-store) · [Keys](#keys) · [Develop](#develop) · [Not there yet](#not-there-yet)
 
 <img src="docs/screenshots/studio.jpg" alt="The pipeline list, the map with one pipeline selected, and its sections and claims on the right" width="100%">
+
+</div>
+
+> [!NOTE]
+> **Status: early, read-only.** One screen so far. It runs on an invented sample network,
+> or on a local [store](https://github.com/line-age/store). Nothing can be edited, and the
+> Agent panel does not answer.
 
 ## In this repo
 
