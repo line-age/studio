@@ -53,6 +53,29 @@ notes. This file wins for anything inside this directory.
 | `pnpm fixtures:sample`              | Rebuild the invented sample `public/fixtures/sample.json`          |
 | `pnpm tokens:build`                 | Regenerate `src/styles/tokens.css` from `tokens/figma-tokens.json` |
 
+### When a running Studio shows the latest changes
+
+Before telling someone to look, check which server they have open and whether it has
+the change. Find it with `lsof -iTCP -sTCP:LISTEN -P | grep node` and `docker ps`.
+
+| What changed                                                    | Dev server (`pnpm dev`)                                    |
+| --------------------------------------------------------------- | ---------------------------------------------------------- |
+| A file under `src/`, a style, a fixture in `public/`            | Nothing to do: it reloads the page itself                  |
+| `.env.local` or `vite.config.ts`                                | It restarts itself; refresh the page                       |
+| A variable given on the command line (`VITE_DATA_SOURCE=store`) | Stop it and start it again with the new value              |
+| Dependencies (`pnpm install`), a change of branch with new ones | Stop it and start it again                                 |
+| It was started from another checkout or worktree                | It serves that one, not yours: start one where the code is |
+
+A value on the command line wins over the same name in `.env.local`, so a server
+started with a variable keeps it until it is restarted.
+
+The container (`compose.yaml`, port 8080) is a built image. It never picks anything up:
+after any change, rebuild it (`docker compose ... up --build`, or `tools/gas-stack.sh up`
+in the workspace). Its `VITE_` values are fixed at build time.
+
+After a restart, confirm before saying it is ready: the page answers, and for a setting,
+`curl -s localhost:<port>/src/data/load-network.ts | grep VITE_` shows the value.
+
 ## Layout
 
 | Path                       | What                                                 |
