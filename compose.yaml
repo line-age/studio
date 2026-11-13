@@ -14,7 +14,9 @@ services:
         VITE_FIXTURE_URL: ${VITE_FIXTURE_URL:-}
     image: lineage-studio-frontend
     ports:
-      - "${STUDIO_PORT:-8080}:8080"
+      # This machine only. Studio's proxy hands requests to store with a token, so do
+      # not open it to a network; set STUDIO_BIND=0.0.0.0 only on one you trust.
+      - "${STUDIO_BIND:-127.0.0.1}:${STUDIO_PORT:-8080}:8080"
     # To read your own fixture (see frontend/docs/fixtures.md), uncomment this
     # and set VITE_FIXTURE_URL=/fixtures/local/<file>.json in the env file.
     # volumes:

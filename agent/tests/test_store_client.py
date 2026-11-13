@@ -20,7 +20,7 @@ def ids(listing):
 
 def answering(response: httpx.Response) -> StoreClient:
     return StoreClient(
-        "http://store.invalid", TOKEN, transport=httpx.MockTransport(lambda request: response)
+        "http://store", TOKEN, transport=httpx.MockTransport(lambda request: response)
     )
 
 
@@ -96,6 +96,9 @@ def test_no_person_is_named_in_anything_the_client_returns(small):
     assert "Alex Example" not in seen
     assert TRACER not in seen  # not in an external key, not in a "traced in ..." locator
     assert "external_keys" not in seen
+    assert "The passage is about another line." in raw  # a reviewer's own words
+    assert '"note"' not in seen and "about another line" not in seen
+    assert '"verdict": "reject"' in seen
     assert '"locator": "traced"' in seen
 
 
@@ -234,7 +237,7 @@ def test_stores_reason_for_refusing_a_request_is_kept():
 
 def test_the_fake_refuses_what_store_refuses(small):
     http = httpx.Client(
-        base_url="http://store.invalid",
+        base_url="http://store",
         transport=FakeStore(small),
         headers={"Authorization": f"Bearer {TOKEN}"},
     )
@@ -258,7 +261,7 @@ def test_nothing_but_a_get_can_leave_the_client(small):
 def test_the_token_is_not_in_a_repr_or_an_error(small):
     from settings import Settings
 
-    settings = Settings(model="m", store_url="http://store.invalid", store_token=TOKEN)
+    settings = Settings(model="m", store_url="http://store", store_token=TOKEN)
     assert TOKEN not in repr(settings)
     client = FakeStore(small, fail="unreachable").client()
     with pytest.raises(StoreError) as failure:
@@ -268,3 +271,24 @@ def test_the_token_is_not_in_a_repr_or_an_error(small):
 
 def test_attribute_keys_are_stores_registry():
     assert "status" in ATTRIBUTE_KEYS and "build_date" not in ATTRIBUTE_KEYS
+
+
+@pytest.mark.parametrize(
+    "url", ["http://store.example.org", "http://10.0.0.5:47110", "ftp://localhost", "store"]
+)
+def test_the_token_is_not_sent_in_the_clear_to_another_machine(url):
+    with pytest.raises(StoreError, match="STORE_URL"):
+        StoreClient(url, TOKEN)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://localhost:47110",
+        "http://127.0.0.1:47110",
+        "http://api:8000",
+        "https://store.example.org",
+    ],
+)
+def test_a_local_or_encrypted_store_address_is_accepted(url):
+    StoreClient(url, TOKEN).close()

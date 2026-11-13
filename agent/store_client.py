@@ -80,7 +80,9 @@ _CITATION = (
     "as_of_edtf",
     "identifier",
 )
-_REVIEW = ("id", "claim_id", "link_id", "verdict", "replaced_by_claim_id", "note", "created_at")
+# A review's `note` is a person's free text and can name people, so it is not kept: the
+# verdict says a value was accepted, corrected or rejected, not why.
+_REVIEW = ("id", "claim_id", "link_id", "verdict", "replaced_by_claim_id", "created_at")
 _LINK = (
     "id",
     "from_feature_id",
@@ -168,6 +170,17 @@ def _section(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def check_store_url(url: str) -> str:
+    """The token travels in a header, so it goes in the clear only to this machine or to
+    a service on the same Compose network (a host name with no dot)."""
+    parsed = httpx.URL(url)
+    host = parsed.host or ""
+    local = host in ("localhost", "127.0.0.1", "::1") or (host and "." not in host)
+    if parsed.scheme == "https" or (parsed.scheme == "http" and local):
+        return url
+    raise StoreError("bad_request", "STORE_URL must be https, or http to this machine")
+
+
 def _only_get(request: httpx.Request) -> None:
     if request.method != "GET":
         raise RuntimeError(f"the Agent only reads store: refused {request.method}")
@@ -183,7 +196,7 @@ class StoreClient:
         timeout: float = 30.0,
     ):
         self._http = httpx.Client(
-            base_url=base_url,
+            base_url=check_store_url(base_url),
             headers={"Authorization": f"Bearer {token}"},
             transport=transport,
             timeout=timeout,

@@ -60,7 +60,7 @@ class FakeStore(httpx.BaseTransport):
         self.requests: list[str] = []
 
     def client(self) -> StoreClient:
-        return StoreClient("http://store.invalid", TOKEN, transport=self)
+        return StoreClient("http://store", TOKEN, transport=self)
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         assert request.method == "GET", "the Agent only reads"

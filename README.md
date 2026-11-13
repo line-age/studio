@@ -99,7 +99,8 @@ docker compose --env-file frontend/.env.local up --build
 Then open <http://localhost:8080>. This builds the app and serves it with nginx; no Node
 or pnpm needed. The Mapbox token is read from the env file while the image builds and
 ends up in the bundle, as it does in any build. Leave `--env-file` off and the app still
-runs without the map. Set `STUDIO_PORT` to use another port.
+runs without the map. Set `STUDIO_PORT` to use another port. It is
+reachable from this machine only; `STUDIO_BIND=0.0.0.0` opens it to the network.
 
 ## Real data from store
 
