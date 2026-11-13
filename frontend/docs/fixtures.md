@@ -119,15 +119,14 @@ committed.
 - Ids are unique within their list. `pipelineId`, `editionIds` and `sectionId`
   must point at something that exists.
 - Coordinates are WGS 84 degrees, longitude first, as in GeoJSON.
-- Counts (sections per pipeline, facts cited, Unknown) are never stored. The
+- Counts (sections per pipeline, claims cited, Unknown) are never stored. The
   app derives them, so they cannot disagree with the data.
 
 ## Words
 
-The types use the project glossary: **section**, **claim**, **citation**. The
-interface says "fact" where the type says claim, because the design does.
-"Pipeline" (a named group of sections), "edition" and "proposal" are the
-design's words and are not in the glossary yet.
+The types and the interface use the project glossary: **section**, **claim**,
+**citation**. "Pipeline" (a named group of sections), "edition", "proposal" and
+"Unknown" are Studio's words and are not in the glossary yet.
 
 ## Attributes the filters read
 
@@ -148,7 +147,7 @@ A section may carry `"addedAt": "2026-11-12"`: the day its record was added to L
 (traced or imported), as an ISO day with no time. It is optional. The "Added to Lineage"
 filter is a from-to range of days over it; a section without `addedAt` is left out
 while that filter is set. This is not the build date and not the edition a line first
-appears in; those are facts with sources.
+appears in; those are claims with sources.
 
 ## No pipelines yet
 

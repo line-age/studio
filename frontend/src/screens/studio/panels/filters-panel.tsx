@@ -43,7 +43,7 @@ import { filtersApplied, useStudio } from "../studio-store"
 
 const showOptions: { value: ShowFilter; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "unknown", label: "With Unknown facts" },
+  { value: "unknown", label: "With Unknown claims" },
   { value: "proposals", label: "With proposals waiting" },
   { value: "changed", label: "Changed since last review" },
 ]
@@ -390,9 +390,9 @@ export function FiltersPanel() {
 
         <Group title="How sections are drawn">
           <ul className="flex flex-col gap-2">
-            <LegendItem kind="solid">Solid: every fact is cited</LegendItem>
+            <LegendItem kind="solid">Solid: every claim is cited</LegendItem>
             <LegendItem kind="dotted">
-              Dotted: at least one fact is Unknown
+              Dotted: at least one claim is Unknown
             </LegendItem>
           </ul>
         </Group>

@@ -3,12 +3,12 @@
 # Lineage Studio
 
 **A map desk for reviewing traced pipelines.**
-See every section, which of its facts are cited and which are still Unknown,
+See every section, which of its claims are cited and which are still Unknown,
 and hand what you select to the Agent.
 
 React 19 · TypeScript · Vite · Tailwind v4 · shadcn/ui · Mapbox GL JS
 
-<img src="docs/screenshots/studio.jpg" alt="Lineage Studio: the pipeline list, the map with one pipeline selected, and its sections and facts on the right" width="100%">
+<img src="docs/screenshots/studio.jpg" alt="Lineage Studio: the pipeline list, the map with one pipeline selected, and its sections and claims on the right" width="100%">
 
 </div>
 
@@ -21,15 +21,15 @@ React 19 · TypeScript · Vite · Tailwind v4 · shadcn/ui · Mapbox GL JS
 
 ### Cited or Unknown, never a guess
 
-Every fact about a section (owner, diameter, build date, first and last seen, geometry)
+Every claim about a section (owner, diameter, build date, first and last seen, geometry)
 either carries a source or is marked **Unknown** in words. On the map a solid line means
-every fact is cited; a dotted line means something is still Unknown.
+every claim is cited; a dotted line means something is still Unknown.
 
 ### Select by list, by click or by lasso
 
 Tick pipelines in the list, click lines on the map, or draw a loop around an area. A
 selection can span several pipelines; the right panel lists it grouped by pipeline, with
-each section opening to its facts.
+each section opening to its claims.
 
 <img src="docs/screenshots/multi-select.jpg" alt="Twenty-nine sections in seven pipelines selected with the lasso, listed by pipeline on the right" width="100%">
 
@@ -44,7 +44,7 @@ selection attached as references, one per pipeline, and the cursor in the messag
 
 Search by pipeline, section, code or value; type `unknown owner` to find sections whose
 owner is Unknown. Narrow the list and the map by company, build date, the day a section
-was added, or by which facts are Unknown.
+was added, or by which claims are Unknown.
 
 <img src="docs/screenshots/filters.jpg" alt="The Filters panel: layers, Show choices, company, build date, added date and Unknown in" width="100%">
 
@@ -105,7 +105,7 @@ which; it never falls back to the sample.
 Store has no pipelines yet, only sections. So the list is titled **Sections** and groups
 them by the map edition that first shows each one, and the **Editions** panel lists every
 edition with how many of its sections are placed in a pipeline. Choose an edition there
-to see the network as that map shows it. A fact store has no accepted claim for is
+to see the network as that map shows it. An attribute store has no accepted claim for is
 Unknown. Real data stays on your machine: never in this repository, its tests or its
 screenshots.
 
@@ -153,7 +153,7 @@ more detail on running and tokens is in [`frontend/README.md`](frontend/README.m
 - Placing sections in pipelines.
 - Editing, and accepting or rejecting what the Agent proposes.
 - An Agent that answers.
-- Notes on the map, a table view, the fact detail area.
+- Notes on the map, a table view, the claim detail area.
 
 ## Licence
 

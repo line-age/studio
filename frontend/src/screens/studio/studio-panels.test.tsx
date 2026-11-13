@@ -58,7 +58,7 @@ describe("Studio panels", () => {
       expect.stringContaining("Not in a pipeline"),
     ])
     expect(rows[0]).toHaveTextContent("2 Unknown")
-    expect(rows[0]).toHaveTextContent("2 of 4 facts")
+    expect(rows[0]).toHaveTextContent("2 of 4 claims")
     expect(rows[1]).toHaveTextContent("All cited")
   })
 
@@ -78,7 +78,7 @@ describe("Studio panels", () => {
     expect(useStudio.getState().fit?.bounds).toEqual([0, 10, 2, 11])
   })
 
-  it("opens a section to its facts and marks Unknown in words", async () => {
+  it("opens a section to its claims and marks Unknown in words", async () => {
     const user = userEvent.setup()
     await renderPanels()
     await user.click(screen.getByRole("option", { name: /North line/ }))
@@ -88,8 +88,10 @@ describe("Studio panels", () => {
     expect(section).toHaveAttribute("aria-expanded", "true")
     expect(section).toHaveAttribute("aria-selected", "true")
 
-    const facts = screen.getByRole("group", { name: "Facts of Birch to Cedar" })
-    const rows = within(facts).getAllByRole("treeitem")
+    const claims = screen.getByRole("group", {
+      name: "Claims of Birch to Cedar",
+    })
+    const rows = within(claims).getAllByRole("treeitem")
     expect(rows).toHaveLength(2)
     expect(rows[0]).toHaveTextContent("Owner")
     expect(rows[0]).toHaveTextContent("Unknown")

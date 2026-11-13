@@ -3,7 +3,7 @@ import type { ReactNode } from "react"
 import { Icon, type IconName } from "@/components/icons/icon"
 import { cn } from "@/lib/utils"
 
-/** The section and fact a question is about, attached to the message. */
+/** The section and claim a question is about, attached to the message. */
 export function Attachment({
   title,
   meta,

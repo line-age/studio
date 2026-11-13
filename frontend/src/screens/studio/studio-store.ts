@@ -92,7 +92,7 @@ interface StudioState {
   selectSection: (sectionId: string) => void
   /** Open one of several selected sections without changing the selection. */
   focusSection: (sectionId: string) => void
-  /** Choose a fact. `keep` leaves a selection of several sections as it is. */
+  /** Choose a claim. `keep` leaves a selection of several sections as it is. */
   selectAttribute: (
     sectionId: string,
     attribute: string,

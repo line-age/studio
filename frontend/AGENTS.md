@@ -1,14 +1,14 @@
 # AGENTS.md: Lineage Studio frontend
 
 The web app for reviewing traced pipelines: a map desk where a person checks sections,
-attaches cited facts and decides on what the AI proposes. This directory is the React
+attaches cited claims and decides on what the AI proposes. This directory is the React
 app. State as of 2026-11-13: the theme exported from Figma and one screen, **Studio**,
 working read-only on fixture data or, with `VITE_DATA_SOURCE=store`, on a local Lineage
 store. More screens will follow; each gets its own directory under `src/screens/`.
 
 What Studio does today: lists pipelines with search and filters; selects sections
 across pipelines by row boxes, clicks on the map or a Lasso; shows the selection's
-facts grouped in the right panel; hands a selection to the Agent chat as references;
+claims grouped in the right panel; hands a selection to the Agent chat as references;
 lists the map editions with how many of their sections are placed in a pipeline, and
 shows the network as of the edition chosen. Nothing can be edited and the Agent does not answer yet. The repo `README.md` one level
 up shows it with screenshots; keep those current when the screen changes visibly.
@@ -136,7 +136,7 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   at its own `/store` path; the dev server and nginx add the token. No token, and no
   name starting with `VITE_` that holds one, ever goes in the code or the bundle.
 - `src/data/store/to-network.ts` is the only place that knows store's shapes. It shows
-  accepted claims as facts, candidate claims as proposals and everything else as
+  accepted claims as cited values, candidate claims as proposals and everything else as
   Unknown; it ignores ends store only proposes; it drops who asserted or reviewed a
   claim. Keep it pure and test it with invented answers (`src/test/store-payloads.ts`).
 - Store has no pipelines yet. Such data sets `groupBy: "edition"`: the list is titled
@@ -177,9 +177,10 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - Named exports. One component per file. Files in kebab-case.
 - Words come from `controlplane/glossary.md` in the workspace. Section, segment, edge
   and pipeline are not interchangeable. Check before a term reaches the UI or a type.
-  Types use the glossary word (`Claim`, `Citation`, `Section`); the interface says "fact"
-  where the type says claim, because Figma does. "Pipeline" as a group of sections,
-  "edition" and "proposal" are Figma's words and not in the glossary yet.
+  Types and the interface both use the glossary word (`Claim`, `Citation`, `Section`):
+  the interface says "claim", never "fact" (the owner, 2026-11-13). "Pipeline" as a
+  group of sections, "edition", "proposal" and "Unknown" are Studio's words and
+  are not in the glossary yet.
 
 **Data and privacy**
 

@@ -15,7 +15,7 @@ import {
  *  - The sheet a section's route is cited to is where it is first seen. The
  *    section is in that edition and every later one. That year is when a map
  *    first shows the line, not when it was built: Build date stays Unknown.
- *  - Only accepted claims are facts. A candidate claim is a proposal. No
+ *  - Only accepted claims are shown as values. A candidate claim is a proposal. No
  *    accepted claim means Unknown; nothing is filled in.
  *  - A section ends only when its end is confirmed. Ends that store merely
  *    proposes (from unconfirmed removals) are ignored, so the geometry is the
@@ -38,8 +38,8 @@ interface Claim {
   proposals: { value: string; citation: Citation }[]
 }
 
-/** The facts Studio lists for a section, in order, and store's key for each. */
-const FACTS: { attribute: string; key: string | null }[] = [
+/** The attributes Studio lists for a section, in order, and store's key for each. */
+const ATTRIBUTES: { attribute: string; key: string | null }[] = [
   { attribute: "Owner", key: "owner" },
   { attribute: "Diameter", key: "diameter" },
   { attribute: "Status", key: "status" },
@@ -165,7 +165,7 @@ export function toNetwork(
       )
       .map((e) => e.id)
 
-    const claims: Claim[] = FACTS.map(({ attribute, key }) => {
+    const claims: Claim[] = ATTRIBUTES.map(({ attribute, key }) => {
       if (attribute === "First seen" && first) {
         return {
           attribute,
@@ -179,7 +179,7 @@ export function toNetwork(
       if (key === null) {
         return { attribute, value: null, citations: [], proposals: [] }
       }
-      const facts = accepted(key).filter(
+      const stated = accepted(key).filter(
         (c) => valueOf(c) !== null && c.citations.length > 0
       )
       const proposals = feature.claims
@@ -190,13 +190,13 @@ export function toNetwork(
             ? [{ value, citation: toCitation(c.citations[0]) }]
             : []
         })
-      const values = [...new Set(facts.map((c) => valueOf(c)!))]
+      const values = [...new Set(stated.map((c) => valueOf(c)!))]
       return {
         attribute,
         value: values.length > 0 ? values.join("; ") : null,
         citations:
           values.length > 0
-            ? facts.flatMap((c) => c.citations.map(toCitation))
+            ? stated.flatMap((c) => c.citations.map(toCitation))
             : [],
         proposals,
       }

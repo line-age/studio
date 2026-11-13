@@ -68,7 +68,7 @@ describe("summarise", () => {
     expect(earlier[0].sections.map((s) => s.id)).toEqual(["s-1"])
   })
 
-  it("adds up the facts of a pipeline", () => {
+  it("adds up the claims of a pipeline", () => {
     expect(summaries[0].stats).toEqual({
       total: 4,
       cited: 2,
@@ -228,7 +228,7 @@ describe("search", () => {
     ])
   })
 
-  it("lists every section that matched, with the fact when it was a value", () => {
+  it("lists every section that matched, with the claim when it was a value", () => {
     const [hit] = search(summaries, "birch")
     expect(hit.sections.map((s) => s.reason)).toEqual([null, null])
     const byValue = search(summaries, "alder gas")[1]
@@ -236,7 +236,7 @@ describe("search", () => {
     expect(byValue.sections[0].reason).toBe("Owner: Alder Gas Co.")
   })
 
-  it("finds sections with Unknown facts for the word unknown", () => {
+  it("finds sections with Unknown claims for the word unknown", () => {
     const hits = search(summaries, "unknown")
     expect(hits.length).toBeGreaterThan(0)
     for (const hit of hits) {

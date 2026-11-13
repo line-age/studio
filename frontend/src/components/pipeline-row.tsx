@@ -5,13 +5,13 @@ import { cn } from "@/lib/utils"
 
 /**
  * One pipeline in the left list. A flush row with a divider. The right side
- * leads with the status in words, then how many facts are cited.
+ * leads with the status in words, then how many claims are cited.
  */
 export function PipelineRow({
   name,
   meta,
   status,
-  facts,
+  claims,
   selected = false,
   checked = selected ? "checked" : "unchecked",
   onCheck,
@@ -24,8 +24,8 @@ export function PipelineRow({
   meta: ReactNode
   /** A StatusLabel. */
   status: ReactNode
-  /** "38 of 42 facts". */
-  facts: ReactNode
+  /** "38 of 42 claims". */
+  claims: ReactNode
   selected?: boolean
   /** How much of the pipeline is selected. Defaults to follow `selected`. */
   checked?: "unchecked" | "checked" | "indeterminate"
@@ -56,7 +56,7 @@ export function PipelineRow({
       <span className="flex shrink-0 flex-col items-start gap-0.5">
         {status}
         <span className="type-ui-xs text-muted-foreground tabular-nums">
-          {facts}
+          {claims}
         </span>
       </span>
     </div>

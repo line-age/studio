@@ -36,7 +36,7 @@ export function PropertiesPanel() {
         <PanelHeader title="Nothing selected" divider />
         <Hint className="p-3">
           Select {nouns.one === "edition" ? "an" : "a"} {nouns.one} in the list,
-          or a section on the map, to see its sections and which of their facts
+          or a section on the map, to see its sections and which of their claims
           are cited.
         </Hint>
       </>
@@ -213,7 +213,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                   {open && (
                     <div
                       role="group"
-                      aria-label={`Facts of ${sectionLabel(section)}`}
+                      aria-label={`Claims of ${sectionLabel(section)}`}
                     >
                       {section.claims.map((claim) => {
                         const chosen =

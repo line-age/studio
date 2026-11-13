@@ -548,7 +548,7 @@ const titleOf = (section: Section) => ({
 /**
  * Search the given pipelines: by pipeline name or code, section name or code,
  * and cited value. A query with the word "unknown" finds sections with an
- * Unknown fact instead; more words narrow it to an attribute ("unknown owner").
+ * Unknown claim instead; more words narrow it to an attribute ("unknown owner").
  */
 export function search(
   summaries: PipelineSummary[],

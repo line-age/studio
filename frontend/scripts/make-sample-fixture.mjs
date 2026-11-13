@@ -159,7 +159,7 @@ function add(pipelineId, name, from, to, options = {}) {
   return section
 }
 
-// P-012 Calder Valley: six sections, four Unknown facts, one proposal, one note.
+// P-012 Calder Valley: six sections, four Unknown claims, one proposal, one note.
 add("p-012", "Marsh Fork to Calder Jct", "Marsh Fork", "Calder Jct", {
   editionIds: BOTH,
   grid: "D-5",
@@ -199,7 +199,7 @@ add("p-012", "Adair spur", "Adair", [-96.52, 36.18], {
   diameter: "8 in",
 })
 
-// P-013 Tolland: four sections, five Unknown facts.
+// P-013 Tolland: four sections, five Unknown claims.
 const tolland = { owner: "Tolland Fuel Co.", diameter: "10 in", built: "1929" }
 add("p-013", "Tolland to Pell", "Tolland", "Pell", {
   ...tolland,
@@ -224,7 +224,7 @@ add("p-013", "Tolland spur", "Tolland", "Garrick", {
   unknown: ["Build date"],
 })
 
-// P-014 Adair trunk: nine sections, every fact cited.
+// P-014 Adair trunk: nine sections, every claim cited.
 const trunk = {
   owner: "Harlow Gas Co.",
   diameter: "16 in",
@@ -276,7 +276,7 @@ add("p-014", "Merrow spur", "Merrow", [-95.7, 36.12], {
   diameter: "8 in",
 })
 
-// P-015 Wexley lateral: two sections, eight Unknown facts.
+// P-015 Wexley lateral: two sections, eight Unknown claims.
 const allButSeen = ["Owner", "Diameter", "Build date", "Geometry"]
 add("p-015", "Wexley to Castell", "Wexley", "Castell", {
   grid: "H-6",
@@ -288,7 +288,7 @@ add("p-015", "Wexley to Venn", "Wexley", "Venn", {
   bend: -0.06,
 })
 
-// P-016 Marsh Fork gathering: five sections, four Unknown facts.
+// P-016 Marsh Fork gathering: five sections, four Unknown claims.
 const gathering = {
   owner: "Marsh Fork Gathering Co.",
   diameter: "6 in",
@@ -321,7 +321,7 @@ add("p-016", "Garrick to Lowry", "Garrick", "Lowry", {
   bend: 0.08,
 })
 
-// P-017 Brecken loop: three sections, every fact cited.
+// P-017 Brecken loop: three sections, every claim cited.
 const loop = {
   owner: "Brecken Light and Fuel Co.",
   diameter: "8 in",

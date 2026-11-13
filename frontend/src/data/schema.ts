@@ -5,9 +5,8 @@ import { z } from "zod"
  *
  * Terms follow controlplane/glossary.md: a section is a continuous stretch of
  * line; a claim is one statement about one attribute of one section; a
- * citation points at the source that supports a claim. The interface calls a
- * claim a "fact" because the Figma design does; the types keep the glossary
- * word.
+ * citation points at the source that supports a claim. The interface uses the
+ * same words.
  */
 
 const position = z.tuple([

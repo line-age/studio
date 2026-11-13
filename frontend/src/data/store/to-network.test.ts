@@ -63,7 +63,7 @@ describe("toNetwork", () => {
     expect(claim(ID_A, "Last seen").value).toBeNull()
   })
 
-  it("shows accepted claims as cited facts and the rest as Unknown", () => {
+  it("shows accepted claims as cited values and the rest as Unknown", () => {
     expect(claim(ID_B, "Diameter").value).toBe("12 in")
     expect(claim(ID_B, "Diameter").citations[0].quote).toBe('"12 IN."')
     expect(claim(ID_B, "Status").value).toBe("operational")
@@ -72,7 +72,7 @@ describe("toNetwork", () => {
     expect(claim(ID_A, "Owner").value).toBeNull()
   })
 
-  it("shows a candidate claim as a proposal, never as a fact", () => {
+  it("shows a candidate claim as a proposal, never as a cited value", () => {
     const owner = claim(ID_B, "Owner")
     expect(owner.value).toBeNull()
     expect(owner.proposals.map((p) => p.value)).toEqual(["Alder Gas Co."])

@@ -5,8 +5,8 @@ import { Icon } from "@/components/icons/icon"
 import { cn } from "@/lib/utils"
 
 /**
- * One section in the tree on the right. Open it to list its facts as
- * AttributeRows. The right side shows how many facts are cited, or the
+ * One section in the tree on the right. Open it to list its claims as
+ * AttributeRows. The right side shows how many claims are cited, or the
  * Unknown count in words.
  */
 export function TreeItem({

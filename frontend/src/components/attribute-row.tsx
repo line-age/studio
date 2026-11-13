@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 /**
- * One fact of a section: label, then the cited value or Unknown. Trailing:
+ * One claim of a section: label, then the cited value or Unknown. Trailing:
  * how many sources cite it, and a purple badge when a proposal is waiting.
  */
 export function AttributeRow({

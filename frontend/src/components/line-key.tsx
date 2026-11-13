@@ -3,8 +3,8 @@ import { cn } from "@/lib/utils"
 export type LineKind = "solid" | "dotted" | "dashed" | "ghost" | "selected"
 
 /**
- * A line drawn the way the map draws it. solid: every fact cited. dotted: at
- * least one fact Unknown. dashed: proposed path. ghost: another edition.
+ * A line drawn the way the map draws it. solid: every claim cited. dotted: at
+ * least one claim Unknown. dashed: proposed path. ghost: another edition.
  */
 export function LineKey({
   kind,

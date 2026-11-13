@@ -48,7 +48,7 @@ export const SEARCH_INPUT_ID = "pipeline-search"
 
 const showLabels: Record<ShowFilter, string> = {
   all: "All",
-  unknown: "With Unknown facts",
+  unknown: "With Unknown claims",
   proposals: "With proposals waiting",
   changed: "Changed since last review",
 }
@@ -57,7 +57,7 @@ const showLabels: Record<ShowFilter, string> = {
 const showHint = (show: ShowFilter, many: string): string =>
   ({
     all: `All the ${many}.`,
-    unknown: `Only ${many} with at least one Unknown fact.`,
+    unknown: `Only ${many} with at least one Unknown claim.`,
     proposals: `Only ${many} with a proposal from the Agent waiting for you.`,
     changed: `Only ${many} changed since the last review.`,
   })[show]
@@ -109,7 +109,7 @@ export function PipelinesPanel() {
     if (unknownIn.length > 0) {
       chips.push({
         label: `Unknown ${unknownIn.join(", ").toLocaleLowerCase()}`,
-        hint: `Only ${nouns.many} with a section where one of these facts is Unknown.`,
+        hint: `Only ${nouns.many} with a section where one of these claims is Unknown.`,
         remove: () => unknownIn.forEach(toggleUnknownIn),
       })
     }
@@ -413,7 +413,7 @@ function PipelineList({
         sorted={descending ? "descending" : "ascending"}
         sortLabel={`${capitalise(nouns.one)} order: ${descending ? "last first" : "first first"}. Reverse it`}
         onSort={() => setDescending((d) => !d)}
-        trailing="Facts"
+        trailing="Claims"
         selection={
           groups.length === 0
             ? "unchecked"
@@ -481,7 +481,7 @@ function PipelineList({
                       <StatusLabel status="cited" />
                     )
                   }
-                  facts={`${formatCount(summary.stats.cited)} of ${formatCount(summary.stats.total)} facts`}
+                  claims={`${formatCount(summary.stats.cited)} of ${formatCount(summary.stats.total)} claims`}
                   onClick={(event) => open(event.shiftKey)}
                   onKeyDown={(event) => {
                     if (event.target !== event.currentTarget) return
