@@ -23,10 +23,19 @@ export function LineKey({
       strokeLinecap={kind === "dotted" ? "round" : "butt"}
     >
       <path
-        d="M0 8H28"
-        strokeWidth={kind === "ghost" ? 1 : kind === "selected" ? 4 : 2}
+        // A round dot at the very edge would be cut in half.
+        d={kind === "dotted" ? "M2 8H28" : "M0 8H28"}
+        strokeWidth={
+          kind === "ghost"
+            ? 1
+            : kind === "selected"
+              ? 4
+              : kind === "dotted"
+                ? 2.5
+                : 2
+        }
         strokeDasharray={
-          kind === "dotted" ? "0.1 4" : kind === "dashed" ? "5 3" : undefined
+          kind === "dotted" ? "0.1 5.5" : kind === "dashed" ? "5 3" : undefined
         }
         className={cn(
           kind === "ghost" && "stroke-map-ghost",

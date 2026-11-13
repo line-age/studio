@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 
 import { Icon } from "@/components/icons/icon"
 import { LayerRow } from "@/components/layer-row"
@@ -31,6 +31,7 @@ export function MapKey() {
   const lineStyle = useSettings((s) => s.lineStyle)
   const openSettings = useSettingsOpen((s) => s.setOpen)
   const [open, setOpen] = useState(false)
+  const popup = useRef<HTMLDivElement>(null)
   const waiting = network.proposedPaths.length
 
   return (
@@ -43,7 +44,16 @@ export function MapKey() {
             </Button>
           }
         />
-        <PopoverContent side="left" align="start" className="w-72 gap-2 p-2">
+        {/* Opening it is to read it: the cursor goes to the key as a whole,
+            not to the first eye, which would light up as if it were chosen. */}
+        <PopoverContent
+          ref={popup}
+          tabIndex={-1}
+          initialFocus={popup}
+          side="left"
+          align="start"
+          className="w-72 gap-2 p-2"
+        >
           <PopoverTitle className="px-2 pt-1 type-ui-xs-medium text-muted-foreground">
             Map key
           </PopoverTitle>

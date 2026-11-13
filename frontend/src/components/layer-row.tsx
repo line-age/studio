@@ -33,7 +33,8 @@ export function LayerRow({
   return (
     <li
       className={cn(
-        "flex h-12 items-center gap-2.5 rounded-lg py-2 pr-2 pl-2.5 transition-colors duration-100 hover:bg-muted",
+        // Not a button: only its eye is, so the row does not light up.
+        "flex h-12 items-center gap-2.5 rounded-lg py-2 pr-2 pl-2.5",
         className
       )}
     >
