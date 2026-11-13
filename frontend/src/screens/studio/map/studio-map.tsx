@@ -178,6 +178,25 @@ export function StudioMap({ token }: { token: string }) {
     [summaries]
   )
 
+  // Where the map opens: the place a link gave, else a section a link
+  // points at, else the whole network. Read once; the map keeps its own place.
+  const [initialView] = useState(() => {
+    const { zoom, center } = useCamera.getState()
+    if (zoom !== null && center !== null) {
+      return { longitude: center[0], latitude: center[1], zoom }
+    }
+    const open = useStudio.getState().fit?.bounds ?? initialBounds
+    return open
+      ? {
+          bounds: [
+            [open[0], open[1]],
+            [open[2], open[3]],
+          ] as [[number, number], [number, number]],
+          fitBoundsOptions: { padding: 64, maxZoom: 11 },
+        }
+      : { longitude: 0, latitude: 0, zoom: 1 }
+  })
+
   // A selection made in a list asks the map to show it.
   useEffect(() => {
     if (!fit) return
@@ -335,17 +354,7 @@ export function StudioMap({ token }: { token: string }) {
             ref={mapRef}
             mapboxAccessToken={token}
             mapStyle={MAP_STYLE}
-            initialViewState={
-              initialBounds
-                ? {
-                    bounds: [
-                      [initialBounds[0], initialBounds[1]],
-                      [initialBounds[2], initialBounds[3]],
-                    ],
-                    fitBoundsOptions: { padding: 64 },
-                  }
-                : { longitude: 0, latitude: 0, zoom: 1 }
-            }
+            initialViewState={initialView}
             interactiveLayerIds={[HIT_LAYER]}
             cursor={
               tool === "lasso" ? "crosshair" : hoveredId ? "pointer" : "grab"

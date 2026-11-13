@@ -4,6 +4,7 @@ import {
   startTransition,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react"
@@ -14,7 +15,13 @@ import { LoadBar } from "@/components/load-bar"
 import { PanelHeader } from "@/components/panel-header"
 import { RailItem } from "@/components/rail-item"
 import { Button } from "@/components/ui/button"
-import { groupsLabel, sectionLabel, unionBounds } from "@/data/derive"
+import {
+  companyOf,
+  geometryBounds,
+  groupsLabel,
+  sectionLabel,
+  unionBounds,
+} from "@/data/derive"
 import { fixtureUrl, loadNetwork } from "@/data/load-network"
 import { FixtureError } from "@/data/schema"
 import { StoreError } from "@/data/store/client"
@@ -33,6 +40,7 @@ import {
 } from "./studio-data"
 import { useStudio, type LeftPanel } from "./studio-store"
 import { TopBar, type Crumb } from "./top-bar"
+import { applyUrl, followView, type UrlView } from "./url-state"
 
 /*
  * Studio: the map desk. Top bar, rail, one left panel (Sections or
@@ -41,6 +49,8 @@ import { TopBar, type Crumb } from "./top-bar"
  * shows the network and what the AI proposes; nothing can be changed here yet.
  */
 export function StudioScreen() {
+  // The view in the URL is applied once, before anything draws.
+  const [linked] = useState(() => applyUrl(window.location.search))
   const [network] = useState(() => loadNetwork())
   const [loading, setLoading] = useState(true)
   const [panel, setPanel] = useState<LeftPanel>("pipelines")
@@ -109,7 +119,7 @@ export function StudioScreen() {
         >
           <Suspense fallback={<Frame busy />}>
             <StudioDataProvider network={network}>
-              <Loaded />
+              <Loaded linked={linked} />
             </StudioDataProvider>
           </Suspense>
         </ErrorBoundary>
@@ -244,8 +254,9 @@ function useTrail(): { trail: Crumb[]; home: () => void } {
   return { trail, home }
 }
 
-function Loaded() {
+function Loaded({ linked }: { linked: UrlView }) {
   const { network, summaries } = useStudioData()
+  useLinkedView(linked)
   const { panel } = useLeftPanel()
   const agentWaiting = summaries.some((s) => s.needsDecision)
   const { trail, home } = useTrail()
@@ -268,6 +279,41 @@ function Loaded() {
       <MapArea />
     </Frame>
   )
+}
+
+/**
+ * Once the data is here: drop what the link names and the data does not
+ * have, open the section it points at, and from then on keep the address
+ * bar in step with the view.
+ */
+function useLinkedView(linked: UrlView) {
+  const { network, edition, sectionById } = useStudioData()
+  const checked = useRef(false)
+  useEffect(() => {
+    if (!checked.current) {
+      checked.current = true
+      const s = useStudio.getState()
+      const sections = network.sections
+      const companies = new Set(sections.flatMap((x) => companyOf(x) ?? []))
+      const attributes = new Set(
+        sections.flatMap((x) => x.claims.map((claim) => claim.attribute))
+      )
+      useStudio.setState({
+        editionId: s.editionId === edition.id ? s.editionId : null,
+        companies: s.companies.filter((name) => companies.has(name)),
+        unknownIn: s.unknownIn.filter((name) => attributes.has(name)),
+      })
+      const section = linked.section ? sectionById.get(linked.section) : null
+      if (section?.editionIds.includes(edition.id)) {
+        s.selectSection(section.id)
+        // A link with the map's place shows that place; else the section.
+        if (!linked.camera) s.requestFit(geometryBounds(section.geometry))
+      }
+    }
+    return followView()
+    // Once: the link is read when the data first arrives.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 }
 
 function LoadError({ error }: { error: Error }) {

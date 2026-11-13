@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { testNetwork } from "@/test/network"
 
 import { StudioScreen } from "./studio-screen"
-import { useStudio } from "./studio-store"
+import { useCamera, useStudio } from "./studio-store"
 
 vi.mock("@/data/load-network", async (original) => ({
   ...(await original<typeof import("@/data/load-network")>()),
@@ -27,7 +27,9 @@ const sidePanels = () =>
   }))
 
 beforeEach(() => {
+  window.history.replaceState(null, "", "/")
   useStudio.setState(useStudio.getInitialState(), true)
+  useCamera.setState(useCamera.getInitialState(), true)
 })
 
 describe("Studio side panels", () => {
@@ -70,5 +72,47 @@ describe("Studio side panels", () => {
       { name: "agent", open: true },
       { name: "Properties", open: true },
     ])
+  })
+})
+
+describe("a shared link", () => {
+  it("opens on the same edition, status, filters and section", async () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/?e=ed-1937&s=not-started&u=Owner&v=0&sel=s-2"
+    )
+    await renderScreen()
+    const s = useStudio.getState()
+    expect(s.editionId).toBe("ed-1937")
+    expect(s.onlyInView).toBe(false)
+    expect([...s.selection]).toEqual(["s-2"])
+    expect(
+      screen.getByRole("button", { name: /^Not started/ })
+    ).toHaveAttribute("aria-pressed", "true")
+    expect(
+      screen.getByRole("group", { name: "Filters in force" })
+    ).toHaveTextContent("Unknown owner")
+    // The address stays as it was: nothing was lost on the way in.
+    expect(window.location.search).toBe(
+      "?e=ed-1937&s=not-started&u=Owner&v=0&sel=s-2"
+    )
+  })
+
+  it("ignores what the data does not have, and a broken link", async () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/?e=ed-1800&s=finished&co=Nobody+Ltd&u=Colour&sel=s-999&m=x"
+    )
+    await renderScreen()
+    const s = useStudio.getState()
+    expect(s.editionId).toBeNull()
+    expect(s.status).toBe("all")
+    expect(s.companies).toEqual([])
+    expect(s.unknownIn).toEqual([])
+    expect(s.selection.size).toBe(0)
+    expect(screen.queryByRole("group", { name: "Filters in force" })).toBeNull()
+    expect(screen.getByRole("listbox", { name: "Sections" })).toBeVisible()
   })
 })
