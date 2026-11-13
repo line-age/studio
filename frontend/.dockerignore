@@ -1,0 +1,20 @@
+node_modules
+dist
+dist-ssr
+.git
+.DS_Store
+*.log
+
+# Env files never go into the image. Values are passed as build arguments.
+.env
+.env.*
+*.local
+
+# Local fixture files may hold real names. Mount them at run time instead.
+public/fixtures/local
+
+# Not needed to build.
+.agents
+docs
+Dockerfile
+.dockerignore

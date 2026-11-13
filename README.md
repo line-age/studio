@@ -63,6 +63,17 @@ git ignores). Map use is under Mapbox's terms and is billed to the account the t
 belongs to. Without a token the app still runs: the lists and panels work and the map
 area says what is missing.
 
+## Run in Docker
+
+```sh
+docker compose --env-file frontend/.env.local up --build
+```
+
+Then open <http://localhost:8080>. This builds the app and serves it with nginx; no Node
+or pnpm needed. The Mapbox token is read from the env file while the image builds and
+ends up in the bundle, as it does in any build. Leave `--env-file` off and the app still
+runs without the map. Set `STUDIO_PORT` to use another port.
+
 ## Data
 
 The app reads `frontend/public/fixtures/sample.json`, a small invented network. Nothing
