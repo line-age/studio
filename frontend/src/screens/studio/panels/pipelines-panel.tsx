@@ -39,7 +39,7 @@ import { missingRequired, sectionStatus } from "@/data/status"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
-import { AddToAgentMenu } from "../add-to-agent"
+import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { HidePanels } from "../panel-toggle"
 import { useSettings } from "../settings"
 import {
@@ -360,6 +360,7 @@ function PipelineList({
   const [descending, setDescending] = useState(false)
   /** The first-seen groups whose sections are listed. They start closed. */
   const [opened, setOpened] = useState<ReadonlySet<string>>(new Set())
+  const attachments = useSelectionAttachments()
   const listRef = useRef<HTMLDivElement>(null)
   /** The row last clicked or ticked: where a Shift-click run starts. */
   const anchor = useRef<string | null>(null)
@@ -445,7 +446,14 @@ function PipelineList({
     const expanded = opened.has(summary.id)
     return (
       <Fragment key={summary.id}>
-        <AddToAgentMenu items={[{ pipelineId: summary.id, sectionIds: "all" }]}>
+        {/* On a row of the selection the menu offers all of the selection. */}
+        <AddToAgentMenu
+          items={
+            checked !== "unchecked"
+              ? attachments
+              : [{ pipelineId: summary.id, sectionIds: "all" }]
+          }
+        >
           <PipelineRow
             id={hit ? `search-hit-${summary.id}` : undefined}
             role="option"
@@ -546,7 +554,11 @@ function PipelineList({
             return (
               <AddToAgentMenu
                 key={section.id}
-                items={[{ pipelineId: summary.id, sectionIds: [section.id] }]}
+                items={
+                  selection.has(section.id)
+                    ? attachments
+                    : [{ pipelineId: summary.id, sectionIds: [section.id] }]
+                }
               >
                 <PipelineRow
                   indent
