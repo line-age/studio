@@ -14,7 +14,7 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
 
 [Quick start](#quick-start) · [Docker](#run-in-docker) · [Real data](#real-data-from-store) · [Keys](#keys) · [Develop](#develop) · [Not there yet](#not-there-yet)
 
-<img src="docs/screenshots/studio.jpg" alt="The pipeline list, the map with one pipeline selected, and its sections and claims on the right" width="100%">
+<img src="docs/screenshots/studio.jpg" alt="The list with status counts, the map with one pipeline selected, and its sections and claims on the right" width="100%">
 
 </div>
 
@@ -34,20 +34,29 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
 
 ## What the screen has
 
-- **List.** Pipelines, each with its section count, how many claims are cited and how many are
-  Unknown. Search by pipeline, section, code or value. Filters: company, build date, date
-  added, which claims are Unknown.
-- **Map.** One line per section. Solid: every claim has a source. Dotted: at least one
-  claim is Unknown.
+- **Status.** Every section is Not started, In progress, Sufficient or Done, worked out
+  from its claims: sufficient when the required attributes (Owner, Diameter and Build
+  date unless Settings says otherwise) are cited, done when it is also in a pipeline.
+- **List.** Pipelines, then the sections in no pipeline, grouped by the map edition that
+  first shows them. Counts by status above the list are one-click filters. A filter
+  button beside the search opens company, build date, date added and which claims are
+  Unknown. Search by pipeline, section, code or value.
+- **Table.** Drag the list wider, or press the table button, and it adds the code, the
+  section count, the split by status and a column per required attribute.
+- **Edition.** One select at the top of the list: the year the network is shown as of.
+- **Map.** One line per section, solid or dotted by its status. A layers button holds
+  what the map draws and the line key; another makes the list follow the map or not.
+- **Link.** The edition, status, filters, search, map position and the one section in
+  focus are in the address bar, so a copied link opens the same view.
+- **Settings.** Which attributes must be cited, and which statuses are drawn solid. Kept
+  in the browser.
 - **Selection.** Tick rows, click lines or draw a lasso loop. It can span pipelines. The
   right panel lists the selected sections by pipeline, and each section's claims with
   their sources.
 - **Agent panel.** Takes a selection as attachments to a message. Nothing is sent.
-- **Editions panel.** The map editions, how many sections each one first shows, and how
-  many of those are in a pipeline. Choosing one shows the network as of that edition.
 - **Panel button.** Hides both side panels; the same button on the map brings them back.
 
-<img src="docs/screenshots/multi-select.jpg" alt="Eleven sections in four pipelines selected with the lasso, listed by pipeline on the right" width="100%">
+<img src="docs/screenshots/table.jpg" alt="The list widened into a table, three pipelines ticked, their sections listed by pipeline on the right" width="100%">
 
 ## Quick start
 
@@ -103,11 +112,9 @@ server or nginx passes the request on with the token added. If store cannot be r
 refuses the token or answers in a form the app does not understand, the screen says
 which; it never falls back to the sample.
 
-Store has no pipelines yet, only sections. So the list is titled **Sections** and groups
-them by the map edition that first shows each one, and the **Editions** panel lists every
-edition with how many of its sections are placed in a pipeline. Choose an edition there
-to see the network as that map shows it. An attribute store has no accepted claim for is
-Unknown. Real data stays on your machine: never in this repository, its tests or its
+Store has no pipelines yet, only sections. So the list is one group, "Not in a pipeline",
+with the sections under the map edition that first shows each one, and every section
+starts as Not started. An attribute store has no accepted claim for is Unknown. Real data stays on your machine: never in this repository, its tests or its
 screenshots.
 
 ## Data
@@ -154,7 +161,8 @@ more detail on running and tokens is in [`frontend/README.md`](frontend/README.m
 - Placing sections in pipelines.
 - Editing, and accepting or rejecting what the Agent proposes.
 - An Agent that answers.
-- Notes on the map, a table view, the claim detail area.
+- Notes on the map, the claim detail area.
+- Settings shared by a project: they are kept in each browser.
 
 ## Licence
 

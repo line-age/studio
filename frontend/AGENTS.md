@@ -6,11 +6,12 @@ app. State as of 2026-11-13: the theme exported from Figma and one screen, **Stu
 working read-only on fixture data or, with `VITE_DATA_SOURCE=store`, on a local Lineage
 store. More screens will follow; each gets its own directory under `src/screens/`.
 
-What Studio does today: lists pipelines with search and filters; selects sections
-across pipelines by row boxes, clicks on the map or a Lasso; shows the selection's
-claims grouped in the right panel; hands a selection to the Agent chat as references;
-lists the map editions with how many of their sections are placed in a pipeline, and
-shows the network as of the edition chosen. Nothing can be edited and the Agent does not answer yet. The repo `README.md` one level
+What Studio does today: gives every section a status; lists pipelines and the sections
+in no pipeline, with counts by status, search and filters; widens that list into a
+table; selects sections across pipelines by row boxes, clicks on the map or a Lasso;
+shows the selection's claims grouped in the right panel; hands a selection to the Agent
+chat as references; shows the network as of the edition chosen; keeps the view in the
+URL. Nothing can be edited and the Agent does not answer yet. The repo `README.md` one level
 up shows it with screenshots; keep those current when the screen changes visibly.
 
 The workspace `AGENTS.md` two levels up holds the project-wide rules and the full Figma
@@ -139,21 +140,34 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   accepted claims as cited values, candidate claims as proposals and everything else as
   Unknown; it ignores ends store only proposes; it drops who asserted or reviewed a
   claim. Keep it pure and test it with invented answers (`src/test/store-payloads.ts`).
-- Store has no pipelines yet. Such data sets `groupBy: "edition"`: the list is titled
-  "Sections" and its groups are the editions that first show each section. Take the
-  word for a group from `useStudioData().nouns`; do not write "pipeline" into a string.
+- The list is always "Sections": pipelines, then the sections in no pipeline, one group
+  per edition that first shows them (`summarise`). Store has no pipelines yet, so its
+  data is only those groups. There is no `groupBy`. A row may be a pipeline or such a
+  group (`summary.unassigned`): do not write "pipeline" into a string that covers both.
   A section with no name goes by its code (`sectionLabel`); never invent a name.
+- Status (Not started, In progress, Sufficient, Done) is computed in
+  `src/data/status.ts` from the claims and the rule in Settings, never stored. A proposal
+  waiting is a mark ("Needs your decision"), not a status. An attribute looked for and
+  not found stays Unknown (the owner, 2026-11-13).
+- Settings (`settings.ts`) are kept in the browser: the required attributes and solid or
+  dotted per status. The map and its key read the line style from `map/line-style.ts`.
+- The view is in the URL (`url-state.ts`): edition, status, filters, search, list
+  follows map, map position, one section. Not layout, layers or Settings. Add a field
+  there when adding a filter. No test or screenshot uses a real name in a URL.
+- Filters open in place of the list (button beside the search). Map layers and "List
+  follows the map" are map controls, not filters. There is no Filters or Editions panel.
 - The year of an edition is when a map first shows a line ("First seen"). It is never a
   build date.
-- The Editions panel is the way to change the edition in force (`setEdition`). "Done"
-  for a section there means placed in a pipeline (the owner, 2026-11-13).
+- An edition is only the year the network is shown as of. The select at the top of the
+  list changes it (`setEdition`). Done means sufficient data and in a pipeline.
 - Removals and proposed links from store are not shown yet (the owner, 2026-11-13).
 - The map cannot read CSS variables: colours go through `map/map-colors.ts`, which reads
   the tokens. No raw colour in map code either.
-- Not designed means not built: no tooltip, popover, tab or table until Figma has
-  it. The one menu is the right-click "Add to the Agent chat" (stock shadcn Context
-  Menu, the owner's request). Tooltips are only on the filter icon and the filter chips
-  above the pipeline list (stock shadcn Tooltip, same).
+- Not designed means not built: nothing new until Figma has it. Section 7 of the Studio
+  page has the status counts, in-place filters, layers button, Settings and the table.
+  The one menu is the right-click "Add to the Agent chat" (stock shadcn Context Menu,
+  the owner's request). Tooltips are on the filter icon, the filter chips and the
+  "List follows the map" button (stock shadcn Tooltip).
 - On the map a click adds a section to the selection and a click on a selected one takes
   it off; a click on empty map steps the selection back. Every selection made on the map
   shows the `SelectionBar` ("Ask the Agent") at the top centre of the map.

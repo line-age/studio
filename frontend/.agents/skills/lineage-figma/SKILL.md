@@ -177,7 +177,7 @@ Where code knowingly differs from the Figma frame:
   icon, `sidebar-accent` on hover and when open, label below in medium; no blue tint.
   Filters shows a dot when filters are applied; Agent shows a purple dot when
   proposals are waiting. The numbered note badge is gone.
-- All three left panels share one width. Both side panels can be dragged wider
+- The list and the Agent each keep their own width. Both side panels can be dragged wider
   (`ResizeHandle`); the width is kept in the browser.
 - Right click on a pipeline row, a section row or the map offers "Add to the Agent
   chat": the item appears as an Attachment in the chat input. The menu is stock shadcn
@@ -187,14 +187,12 @@ Where code knowingly differs from the Figma frame:
 - The right panel is shown only while something is selected (no "Nothing selected"
   state on screen). A click on empty map steps the selection back, then clears it. Both
   side panels slide over 200 ms.
-- The Filters panel has criteria Figma lacks: "Company" (shadcn Combobox, multiple: type to
+- The filters have criteria Figma lacks: "Company" (shadcn Combobox, multiple: type to
   find, chosen ones are chips; values from the Owner attribute), "Build date" (from and to, each a `YearPicker`: shadcn Popover with a grid of twelve years) "Added to Lineage" (From and
   To fields, drawn like Build date, that open one shadcn Calendar in range mode, over the section's `addedAt`) and "Unknown in", a
   checkbox per attribute with counts (shadcn Checkbox). A pipeline passes
   when one of its sections satisfies all of them. It narrows the list and the map, shows as a badge in the
   list, and is cleared by "Clear all".
-- The Edition select is removed from the Filters panel (owner, 2026-11-12). The app
-  shows the latest edition; `setEdition` stays in the store but no control calls it.
 - The breadcrumb is the app name, then the selected pipeline, then the selected section;
   earlier crumbs step back. The network name is not shown (owner, 2026-11-12); Figma
   shows app and network.
@@ -222,11 +220,16 @@ Where code knowingly differs from the Figma frame:
   follows only when the person moves the map, opens a search hit or goes home.
 - Build date pickers run up to the current year.
 - These were asked for by the owner on 2026-11-12 ahead of Figma. Figma needs updating.
-- The Editions panel and its rail item (the owner, 2026-11-13): one row per map edition
-  with the sections it is the first to show and a bar for how many are placed in a
-  pipeline; choosing a row puts that edition in force. Built from existing tokens.
-- In data with no pipelines the list is titled "Sections" and its groups are editions;
-  an unnamed section goes by its code. No design for either yet.
+- Section status and navigation are designed: Studio page, section 7 (`153:4044`). List
+  with status counts `153:3446`, the same with no pipelines `153:3712`, filters on
+  `156:4511`, filters open in place `156:4607`, compact rows `168:5347`, Settings dialog
+  `154:3780`; screens `154:3907`, `154:4044`, `156:4723` (filter button and layers
+  menu) and `168:5659` (the list widened into a table). The Editions and Filters panels
+  are gone from the app; the Edition select is at the top of the list.
+- Built without a drawing, to be added to Figma: the table button in the list header,
+  the "List follows the map" button on the map, the `layers`, `in-view` and
+  `arrow-left` icons, the Sufficient badge (outline), the bar that splits a row by
+  status, and section rows under a first-seen group.
 - No minimum page width: the map takes the space the panels leave, so the right panel is
   always at the window edge. The frame is drawn at 1728 wide only.
 - The Mapbox logo sits top left and its attribution bottom right, as its terms require.

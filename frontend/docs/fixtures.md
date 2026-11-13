@@ -26,8 +26,6 @@ committed.
 {
   "version": 1,
   "name": "Calder Valley network", // shown in the top bar
-  "groupBy": "pipeline", // or "edition": see "No pipelines yet"; optional
-
   "editions": [
     // the map editions, any order
     { "id": "ed-1937", "year": 1937, "label": "1937 edition" },
@@ -130,7 +128,7 @@ The types and the interface use the project glossary: **section**, **claim**,
 
 ## Attributes the filters read
 
-Attribute names are free text, but two of them drive filters in the Filters panel:
+Attribute names are free text, but two of them drive filters:
 
 - `Owner`: the company. Its values are the choices under "Company", and search finds
   sections by it.
@@ -151,8 +149,8 @@ appears in; those are claims with sources.
 
 ## No pipelines yet
 
-Data that has only sections sets `"groupBy": "edition"` and leaves `pipelines` empty. The
-list is then titled "Sections" and has one group per edition, holding the sections that
-edition is the first to show. The Editions panel counts, per edition, how many of its
-sections have a `pipelineId`. This is how data read from the Lineage store looks today;
-see "Real data from store" in the repo `README.md`.
+Data that has only sections leaves `pipelines` empty and every `pipelineId` null. The
+list is then one group, "Not in a pipeline", with the sections under the edition that is
+the first to show them. Nothing in the file says so: a section with a `pipelineId` goes
+under its pipeline, any other under its first edition. This is how data read from the
+Lineage store looks today; see "Real data from store" in the repo `README.md`.
