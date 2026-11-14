@@ -606,6 +606,7 @@ def build_graph(
             read,
             _people_words(state["messages"]),
             cite_state.get("findings") or {},
+            cite_state.get("runs") or [],
         )
         refs = [ref for _, r in pairs for ref in r.refs if ref.type == "feature"][:1]
         subject = refs[0].label if refs and refs[0].label else "the section"
@@ -724,7 +725,7 @@ def build_graph(
         except StoreError as error:
             return stop(FIXED_LINES[STORE_FAILURES.get(error.kind, "store_unreachable")])
         if not section["places"] and not section["name"]:
-            return stop(cite_flow.CITE_LINES["ask_places"])
+            return stop(cite_flow.CITE_LINES["nothing_to_search_by"])
         try:
             run = cite.start(section)
         except CiteBusy:
@@ -739,12 +740,30 @@ def build_graph(
                 "attributes": ask.attributes,
                 "places": ask.places,
                 "years": [window["from"], window["to"]] if window else None,
+                "ruled_out": [list(r) for r in ask.ruled_out],
                 "outcome": "running",
             },
         ]
-        steps = [{**item, "done": True} for item in state.get("steps") or []]
-        steps.append({"text": "Searching the journals", "done": False, "by": "cite"})
-        return {"cite_job": {**job, "run": run.id}, "cite": cite_state, "steps": steps}
+        # The line says the years cite will really read, now that they are known.
+        asked = cite_input.CiteAsk(
+            ask.section_id,
+            ask.attributes,
+            ask.places,
+            (window["from"], window["to"]) if window else None,
+            ask.ruled_out,
+        )
+        statements = [
+            st.model_copy(update={"text": cite_flow.looking_line(asked, job["subject"])})
+            if st.kind == "citation_request" and st.request is not None
+            else st
+            for st in Answer.model_validate(state["answer"]).statements
+        ]
+        out = _reply(state, statements, cite_job={**job, "run": run.id}, cite=cite_state)
+        out["steps"] = [
+            *out["steps"],
+            {"text": "Searching the journals", "done": False, "by": "cite"},
+        ]
+        return out
 
     def cite_wait(state: AgentState) -> dict:
         """One pass: wait a little for news from the search, then show it. The graph

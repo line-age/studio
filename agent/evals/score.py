@@ -11,6 +11,7 @@ import json
 import re
 from typing import Any
 
+from cite_flow import CITE_LINES, FOUND, IN_DOUBT
 from evals.make_world import scope
 from render import FIXED_LINES, feature_name
 
@@ -192,13 +193,89 @@ def _worked_out_problems(
     return problems, allowed
 
 
-def ungrounded(answer: dict[str, Any], world: dict[str, Any], question: str = "") -> list[str]:
-    """Every way the answer says something the world does not back. Empty means grounded."""
+# cite's fixed lines, with their slots as "anything": they are code's, not the model's.
+_CITE_LINES = [
+    re.compile("^" + re.sub(r"\\\{\w+\\\}", ".+", re.escape(line)) + "$", re.DOTALL)
+    for line in CITE_LINES.values()
+]
+CITE_KINDS = ("finding", "searched", "ask_places", "proposed")
+
+
+def _cite_line(text: str) -> bool:
+    return any(p.match(text) for p in _CITE_LINES)
+
+
+def _cite_problems(
+    where: str,
+    statement: dict[str, Any],
+    cite_results: list[dict[str, Any]],
+    words: str,
+    world: dict[str, Any],
+) -> list[str]:
+    """A statement about a search, re-checked against what the fake cite gave: a finding
+    is a claim cite verified with its own page's words, and every number or name said
+    about a search is in cite's results or the person's words."""
+    problems = []
+    kind, text = statement["kind"], statement["text"]
+    names = [
+        feature_name(world["features"][r["id"]])
+        for r in statement.get("refs", [])
+        if r["type"] == "feature" and r["id"] in world["features"]
+    ]
+    source = " ".join([json.dumps(cite_results, ensure_ascii=False), words, *names])
+    if kind == "finding":
+        f = statement.get("finding") or {}
+        pages = [c for r in cite_results for c in r.get("citations", [])]
+        page = next((c for c in pages if c["page_text"] == f.get("quote")), None)
+        values = {
+            c["value"]
+            for r in cite_results
+            for c in r.get("claims", [])
+            if page and page["id"] in c["citation_ids"]
+        }
+        if page is None:
+            problems.append(f"{where}: the passage is on no page cite read")
+        elif f.get("value") not in values:
+            problems.append(f"{where}: cite did not find {f.get('value')!r} on that page")
+        if not text.startswith((FOUND + ":", IN_DOUBT + ":")):
+            problems.append(f"{where}: a finding does not say it is not in store")
+        if bool(f.get("flags")) != text.startswith(IN_DOUBT):
+            problems.append(f"{where}: a finding in doubt must say so, and only then")
+        return problems
+    if kind == "ask_places":
+        return [] if text == CITE_LINES["ask_places"] else [f"{where}: not code's line"]
+    plain = _QUOTED.sub("", text)
+    for number in re.findall(r"\d+(?:\.\d+)?", plain):
+        if number not in source:
+            problems.append(f"{where}: the number {number} is in no search result")
+    for word in re.findall(r"(?<![.!?:] )(?<!^)\b[A-Z][A-Za-z]+", plain):
+        if word not in VOCABULARY and word not in source and word not in ("Found",):
+            problems.append(f"{where}: the name {word!r} is in no search result")
+    return problems
+
+
+def ungrounded(
+    answer: dict[str, Any],
+    world: dict[str, Any],
+    question: str = "",
+    cite_results: list[dict[str, Any]] | None = None,
+) -> list[str]:
+    """Every way the answer says something the world does not back. Empty means grounded.
+    A statement about a search is checked against what cite gave in the run instead."""
     problems: list[str] = []
     claims, links = _claims(world), {link["id"]: link for link in world["links"]}
     for n, statement in enumerate(answer.get("statements", [])):
         kind, text, refs = statement["kind"], statement["text"], statement.get("refs", [])
         where = f"statement {n + 1} ({kind})"
+        about_search = kind in CITE_KINDS or (
+            kind == "worked_out" and text.startswith("The sources disagree")
+        )
+        if about_search:
+            problems += _cite_problems(where, statement, cite_results or [], question, world)
+            if kind != "proposed":
+                continue
+        if kind in ("refusal", "failure", "citation_request") and _cite_line(text):
+            continue
         if kind in ("refusal", "failure", "greeting", "clarify"):
             if text not in FIXED_LINES.values():
                 problems.append(f"{where}: not a fixed line")
@@ -267,7 +344,16 @@ def ungrounded(answer: dict[str, Any], world: dict[str, Any], question: str = ""
             problems += wrong
         if kind == "lead":
             problems += _lead_problems(where, text, refs, world)
-        source = " ".join([json.dumps(backing, ensure_ascii=False), question, *names, *worked])
+        # A search's years come from the person, or lie between printings store knows of.
+        known = _printings(world)
+        printings = (
+            [str(y) for y in range(known[0], known[-1] + 1)]
+            if kind == "citation_request" and known
+            else []
+        )
+        source = " ".join(
+            [json.dumps(backing, ensure_ascii=False), question, *names, *worked, *printings]
+        )
         for number in re.findall(r"\d+(?:\.\d+)?", text):
             if number not in re.findall(r"\d+(?:\.\d+)?", source):
                 problems.append(f"{where}: the number {number} is in no cited claim")

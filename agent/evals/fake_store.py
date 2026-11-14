@@ -2,7 +2,9 @@
 
 It is an httpx transport, so the real `StoreClient` runs against it unchanged. It answers
 the four reads the Agent uses, in the shapes store returns, refuses what store refuses,
-and can be told to fail. Not modelled: a section cut into pieces by a proposed `overlaps`
+and can be told to fail. It also takes the one write the Agent makes, a bundle from the
+proposal client with cite's token, and keeps it in the world as a candidate claim, so a
+case can check what store holds afterwards. Not modelled: a section cut into pieces by a proposed `overlaps`
 link (no world has one yet).
 """
 
@@ -18,9 +20,11 @@ import httpx
 
 from evals.make_world import BUILDERS, render, scope
 from store_client import StoreClient
+from store_writer import ProposalClient
 
 WORLDS = Path(__file__).parent / "worlds"
 TOKEN = "lgt_invented_token_for_tests"
+CITE_TOKEN = "lgt_invented_cite_token_for_tests"
 
 
 @cache
@@ -62,12 +66,21 @@ class FakeStore(httpx.BaseTransport):
         # A path that answers 500 while every other one works, such as "/sections".
         self.fail_path = fail_path
         self.requests: list[str] = []
+        # Bundles taken, in order.
+        self.bundles: list[dict[str, Any]] = []
 
     def client(self) -> StoreClient:
         return StoreClient("http://store", TOKEN, transport=self)
 
+    def writer(self) -> ProposalClient:
+        return ProposalClient("http://store", CITE_TOKEN, transport=self)
+
     def handle_request(self, request: httpx.Request) -> httpx.Response:
-        assert request.method == "GET", "the Agent only reads"
+        if request.method == "POST" and request.url.path == "/bundles":
+            if request.headers.get("authorization") != f"Bearer {CITE_TOKEN}":
+                return httpx.Response(401, json={"detail": "unknown token"})
+            return self._bundle(json.loads(request.content))
+        assert request.method == "GET", "the Agent only reads, and proposes through /bundles"
         self.requests.append(str(request.url.raw_path, "ascii"))
         if self.fail == "unreachable":
             raise httpx.ConnectError("no store", request=request)
@@ -88,6 +101,70 @@ class FakeStore(httpx.BaseTransport):
         except _Refused as refused:
             return _unprocessable(str(refused))
         return httpx.Response(404, json={"detail": "Not Found"})
+
+    def _bundle(self, bundle: dict[str, Any]) -> httpx.Response:
+        """Store's bundle, enough of it: sources, citations, claims, by ref; a claim from
+        a pipeline token is a candidate; an external key already seen reuses its row."""
+        self.bundles.append(copy.deepcopy(bundle))
+        ids: dict[str, str] = {}
+        created: dict[str, bool] = {}
+
+        def row_id(row: dict[str, Any]) -> str:
+            key = row.get("external_key") or {}
+            return str(uuid.uuid5(uuid.NAMESPACE_URL, f"{key.get('system')}/{key.get('key')}"))
+
+        sources = {s["ref"]: s for s in bundle.get("sources", [])}
+        citations = {}
+        for s in bundle.get("sources", []):
+            ids[s["ref"]] = row_id(s)
+        for c in bundle.get("citations", []):
+            ids[c["ref"]] = row_id(c)
+            citations[c["ref"]] = c
+        for claim in bundle.get("claims", []):
+            feature = self.world["features"].get(claim["feature"])
+            if feature is None:
+                return _unprocessable("no such feature")
+            cid = row_id(claim)
+            ids[claim.get("ref") or cid] = cid
+            known = any(c["id"] == cid for c in feature["claims"])
+            created[claim.get("ref") or cid] = not known
+            if known:
+                continue
+            cited = []
+            for link in claim["citations"]:
+                c = citations[link["citation"]]
+                source = sources[c["source"]]
+                cited.append(
+                    {
+                        "id": ids[c["ref"]],
+                        "role": link["role"],
+                        "locator": c.get("locator"),
+                        "quote": c.get("quote"),
+                        "url": c.get("url"),
+                        "source_kind": source.get("kind"),
+                        "source_title": source.get("title"),
+                        "published_edtf": source.get("published_edtf"),
+                    }
+                )
+            feature["claims"].append(
+                {
+                    "id": cid,
+                    "attribute_key": claim["attribute"],
+                    "value_text": claim.get("value_text"),
+                    "value_num": claim.get("value_num"),
+                    "value_unit": claim.get("value_unit"),
+                    "valid_edtf": claim.get("valid_edtf"),
+                    "start_earliest": claim.get("start_earliest"),
+                    "start_latest": claim.get("start_latest"),
+                    "end_earliest": None,
+                    "end_latest": None,
+                    "status": "candidate",
+                    "asserted_by_kind": "pipeline",
+                    "citations": cited,
+                    "reviews": [],
+                }
+            )
+        return httpx.Response(200, json={"ids": ids, "created": created})
 
     def _limit(self, q: httpx.QueryParams) -> int:
         try:

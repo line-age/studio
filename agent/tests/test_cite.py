@@ -282,3 +282,11 @@ def test_a_search_nobody_follows_any_more_is_cancelled():
     assert not run.idle(15)
     run._touched -= 16
     assert run.idle(15)
+
+
+def test_an_operator_question_is_never_searched_as_the_owner(world):
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01, attribute="owner", places=["Sampleton"]))
+    out = chat.ask("Who operated this section? Look in the journals, through Sampleton.", [s01])
+    assert out["answer"]["statements"][0]["text"].startswith("I cannot look for the operator")
+    assert chat.cite.inputs == []

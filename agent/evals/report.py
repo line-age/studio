@@ -59,6 +59,8 @@ def compare(now: dict[str, Any], before: dict[str, Any] | None) -> dict[str, lis
 
 
 def _bucket(case: dict[str, Any]) -> str | None:
+    if case.get("cite"):
+        return "cite"  # a search, over several turns: its own bucket
     attached = case.get("attached") or 0
     return "one" if attached == 1 else "ten" if attached >= 10 else None
 
@@ -113,6 +115,8 @@ def gates(now: dict[str, Any], before: dict[str, Any] | None) -> list[str]:
         broken.append(f"one section: {p50['one']:.1f} s median, over {GATES['one_p50_seconds']} s")
     if p50.get("ten", 0) > GATES["ten_p50_seconds"]:
         broken.append(f"10 sections: {p50['ten']:.1f} s median, over {GATES['ten_p50_seconds']} s")
+    if p50.get("cite", 0) > GATES["cite_p50_seconds"]:
+        broken.append(f"searches: {p50['cite']:.1f} s median, over {GATES['cite_p50_seconds']} s")
     if GATES["no_regression"]:
         for case_id in compare(now, before)["regressed"]:
             broken.append(f"{case_id}: passed before, fails now")
@@ -146,7 +150,8 @@ def text(now: dict[str, Any], before: dict[str, Any] | None = None) -> str:
         lines.append(
             "Median seconds: "
             + ", ".join(
-                f"{'one thing' if k == 'one' else '10 or more'} {v:.1f}" for k, v in p50.items()
+                f"{ {'one': 'one thing', 'ten': '10 or more', 'cite': 'a search'}[k] } {v:.1f}"
+                for k, v in p50.items()
             )
         )
     broken = gates(now, before)

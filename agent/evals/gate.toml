@@ -13,3 +13,6 @@ no_regression = true
 # and about ten or more. Runs that did not time their repeats are not gated.
 one_p50_seconds = 5
 ten_p50_seconds = 12
+# A search with the fake cite (owner, 2026-11-14): its last question to its answer. cite
+# itself is faked, so this times the Agent's own work around a search.
+cite_p50_seconds = 15

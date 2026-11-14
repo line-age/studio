@@ -1,0 +1,7104 @@
+{
+ "meta": {
+  "name": "B21-B27-cite",
+  "at": "2026-11-14T22:27:31+00:00",
+  "model": "anthropic:claude-sonnet-5-5",
+  "commit": "4577f47",
+  "prompt": "260e113bbb63",
+  "repeat": 3
+ },
+ "cases": {
+  "B01-001": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.66
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.54
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.44
+    }
+   ]
+  },
+  "B01-002": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.55
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.49
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.82
+    }
+   ]
+  },
+  "B01-003": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.97
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.96
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.98
+    }
+   ]
+  },
+  "B01-004": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nsection fbfca50c is first traced on the 1938 printing and is not traced on the earlier 1932 one, so sources from 1932 to 1938 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.8
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nSample Gas Co. was ruled out as the owner of section fbfca50c. Do not propose it again.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.18
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nsection fbfca50c is first traced on the 1938 printing and is not traced on the earlier 1932 one, so sources from 1932 to 1938 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.13
+    }
+   ]
+  },
+  "B01-005": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store no longer has that. Attach it again from the list or the map.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 0.01
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store no longer has that. Attach it again from the list or the map.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 0.01
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store no longer has that. Attach it again from the list or the map.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 0.01
+    }
+   ]
+  },
+  "B01-006": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 2cf68921.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.\nThe pipeline section 2cf68921 is part of, Example trunk line, has the owner Example Pipe Line Co., in 1932. Worth checking whether that holds for section 2cf68921 itself.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.29
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 2cf68921.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.\nThe pipeline section 2cf68921 is part of, Example trunk line, has the owner Example Pipe Line Co., in 1932. Worth checking whether that holds for section 2cf68921 itself.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.45
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 2cf68921.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.\nThe pipeline section 2cf68921 is part of, Example trunk line, has the owner Example Pipe Line Co., in 1932. Worth checking whether that holds for section 2cf68921 itself.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.62
+    }
+   ]
+  },
+  "B01-007": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Placeholder Fuel and Light Co., in 1938.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.18
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Placeholder Fuel and Light Co., in 1938.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.58
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Placeholder Fuel and Light Co., in 1938.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 2.91
+    }
+   ]
+  },
+  "B02-001": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.\nThe diameter is 20 in, by March 1932.\nThe status is operational, by 1932.\nSampletown lateral is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nStore does not say when Sampletown lateral ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nNo section in store is drawn touching Sampletown lateral.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.32
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.\nThe diameter is 20 in, by March 1932.\nThe status is operational, by 1932.\nSampletown lateral is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nStore does not say when Sampletown lateral ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nNo section in store is drawn touching Sampletown lateral.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.47
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.\nThe diameter is 20 in, by March 1932.\nThe status is operational, by 1932.\nSampletown lateral is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nStore does not say when Sampletown lateral ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nNo section in store is drawn touching Sampletown lateral.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.24
+    }
+   ]
+  },
+  "B02-002": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Two accepted operator values disagree for overlapping periods. Example Pipe Line Co. is given from 1932 to 1940 in Example Gazette, vol. 32 no. 3, p. 44. Sample Gas Co. is given from 1938 in Example Gazette, vol. 38 no. 11, p. 120.\nsection aa16d282 has two accepted operator values for the same years, Example Pipe Line Co. and Sample Gas Co. To resolve, not to pick.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [
+      [
+       "statement 1: a number in your own words; use a slot",
+       "draft: {\"statements\":[{\"kind\":\"fact\",\"attribute\":null,\"text\":\"Two accepted operator values overlap in 1938 to 1940. {c1.value} is given {c1.period} in {c1.source}, {c1.locator}. {c2.value} is given {c2.period} in {c2.source}, {c2.locator}. They disagree.\",\"refs\":[{\"key\":\"c1\",\"type\":\"claim\",\"id\":\"803e043a-d1db-55aa-b631-e0b65b4f1107\"},{\"key\":\"c2\",\"type\":\"claim\",\"id\":\"dde79f09-ee2e-5d70-ba72-52116ffa0ebc\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false},{\"kind\":\"lead\",\"attribute\":null,\"text\":\"\",\"refs\":[{\"key\":\"l2\",\"type\":\"lead\",\"id\":\"L2\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false}]}"
+      ]
+     ],
+     "seconds": 5.98
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Two accepted operator values disagree for overlapping years. Example Pipe Line Co. is accepted, held from 1932 to 1940, according to Example Gazette, vol. 32 no. 3, p. 44. Sample Gas Co. is also accepted, held from 1938, according to Example Gazette, vol. 38 no. 11, p. 120.\nsection aa16d282 has two accepted operator values for the same years, Example Pipe Line Co. and Sample Gas Co. To resolve, not to pick.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [
+      [
+       "statement 1: a number in your own words; use a slot",
+       "draft: {\"statements\":[{\"kind\":\"fact\",\"attribute\":null,\"text\":\"Two accepted operator values overlap in 1938 to 1940 and disagree. {c1.value} is accepted, held {c1.period}, according to {c1.source}, {c1.locator}. {c2.value} is also accepted, held {c2.period}, according to {c2.source}, {c2.locator}.\",\"refs\":[{\"key\":\"c1\",\"type\":\"claim\",\"id\":\"803e043a-d1db-55aa-b631-e0b65b4f1107\"},{\"key\":\"c2\",\"type\":\"claim\",\"id\":\"dde79f09-ee2e-5d70-ba72-52116ffa0ebc\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false},{\"kind\":\"lead\",\"attribute\":null,\"text\":\"\",\"refs\":[{\"key\":\"l2\",\"type\":\"lead\",\"id\":\"L2\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false}]}"
+      ]
+     ],
+     "seconds": 6.49
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Two accepted operator values overlap and disagree. Example Pipe Line Co. is given from 1932 to 1940, according to Example Gazette, vol. 32 no. 3, p. 44. Sample Gas Co. is given from 1938, according to Example Gazette, vol. 38 no. 11, p. 120.\nsection aa16d282 has two accepted operator values for the same years, Example Pipe Line Co. and Sample Gas Co. To resolve, not to pick.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [
+      [
+       "statement 1: a number in your own words; use a slot",
+       "draft: {\"statements\":[{\"kind\":\"fact\",\"attribute\":null,\"text\":\"Two accepted operator values overlap in 1938 to 1940. {c1.value} is given {c1.period}, according to {c1.source}, {c1.locator}. {c2.value} is given {c2.period}, according to {c2.source}, {c2.locator}.\",\"refs\":[{\"key\":\"c1\",\"type\":\"claim\",\"id\":\"803e043a-d1db-55aa-b631-e0b65b4f1107\"},{\"key\":\"c2\",\"type\":\"claim\",\"id\":\"dde79f09-ee2e-5d70-ba72-52116ffa0ebc\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false},{\"kind\":\"lead\",\"attribute\":null,\"text\":\"\",\"refs\":[{\"key\":\"l2\",\"type\":\"lead\",\"id\":\"L2\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false}]}"
+      ]
+     ],
+     "seconds": 5.91
+    }
+   ]
+  },
+  "B02-003": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.0
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.8
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.74
+    }
+   ]
+  },
+  "B02-004": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nSample Gas Co. was ruled out as the owner of section fbfca50c. Do not propose it again.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.78
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nSample Gas Co. was ruled out as the owner of section fbfca50c. Do not propose it again.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.74
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nSample Gas Co. was ruled out as the owner of section fbfca50c. Do not propose it again.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.1
+    }
+   ]
+  },
+  "B02-005": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The diameter is 16 in, by 1938.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.23
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The diameter is 16 in, by 1938.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 2.77
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The diameter is 16 in, by 1938.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 2.9
+    }
+   ]
+  },
+  "B02-006": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "For the pipeline Example trunk line, the name is Example trunk line, in 1932.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 1.51
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "For the pipeline Example trunk line, the name is Example trunk line, in 1932.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 1.48
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "For the pipeline Example trunk line, the name is Example trunk line, in 1932.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 1.41
+    }
+   ]
+  },
+  "B02-007": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner, Example Pipe Line Co., is accepted, by March 1932. It rests on Example Gazette, vol. 32 no. 3, p. 41, which says “The Example Pipe Line Co. has completed its line to Sampletown.”",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.6
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner, Example Pipe Line Co., is accepted, and it rests on Example Gazette, vol. 32 no. 3, p. 41. The source says: “The Example Pipe Line Co. has completed its line to Sampletown.”",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.02
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner, Example Pipe Line Co., by March 1932, rests on Example Gazette, vol. 32 no. 3, p. 41, which says “The Example Pipe Line Co. has completed its line to Sampletown.”.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.21
+    }
+   ]
+  },
+  "B02-009": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 10,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "For section 06a875ca, the status is operational, by 1932.\nFor Sampletown lateral, the diameter is 20 in, by March 1932.\nFor Sampletown lateral, the owner is Example Pipe Line Co., by March 1932.\nFor Sampletown lateral, the status is operational, by 1932.\nA tool proposed Sample Gas Co. as the owner of section 7228cfbd, in 1938. Nobody has decided on it yet.\nFor section 7228cfbd, the status is operational, by 1932.\nOne value for section fbfca50c, Sample Gas Co., was rejected as the owner. It was given in 1938.\nFor section fbfca50c, the status is operational, by 1938.\nTwo accepted operator claims overlap and disagree. One gives Example Pipe Line Co., from 1932 to 1940. The other gives Sample Gas Co., from 1938.\nFor section aa16d282, the status is operational, by 1938.\nFor section 2cf68921, the status is operational, by 1932.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.\nFor section 9349612f, the diameter is 16 in, by 1938.\nFor section 9349612f, the status is operational, by 1932.\nFor section 013441e4, the owner is Invented Natural Gas Corp., in 1938.\nFor section 013441e4, the status is operational, by 1938.\nFor Mockville loop, the name is Mockville loop, in 1932.\nA tool proposed 12 in as the diameter of Mockville loop, in 1938. Nobody has decided on it yet.\nFor Mockville loop, the status is operational, by 1932.\nFor Mockville loop, the status is operational, from 1933.\nFor section c4e00696, the owner is Placeholder Fuel and Light Co., in 1938.\nFor section c4e00696, the status is operational, by 1938.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 7.6
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "For section 06a875ca, the status is operational, by 1932.\nStore does not say when section 06a875ca ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nFor Sampletown lateral, the diameter is 20 in, by March 1932.\nFor Sampletown lateral, the owner is Example Pipe Line Co., by March 1932.\nFor Sampletown lateral, the status is operational, by 1932.\nStore does not say when Sampletown lateral ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nA tool proposed Sample Gas Co. as the owner of section 7228cfbd, in 1938. Nobody has decided on it yet.\nFor section 7228cfbd, the status is operational, by 1932.\nStore does not say when section 7228cfbd ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nOne value for section fbfca50c, Sample Gas Co., was rejected as the owner. It was given in 1938.\nFor section fbfca50c, the status is operational, by 1938.\nTwo accepted operator claims overlap and disagree: Example Pipe Line Co., from 1932 to 1940, and Sample Gas Co., from 1938.\nFor section aa16d282, the status is operational, by 1938.\nFor section 2cf68921, the status is operational, by 1932.\nFor section 9349612f, the diameter is 16 in, by 1938.\nFor section 9349612f, the status is operational, by 1932.\nFor the pipeline Example trunk line, the name is Example trunk line, in 1932.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.\nFor section 013441e4, the owner is Invented Natural Gas Corp., in 1938.\nFor section 013441e4, the status is operational, by 1938.\nA tool proposed 12 in as the diameter of Mockville loop, in 1938. Nobody has decided on it yet.\nFor Mockville loop, the name is Mockville loop, in 1932.\nFor Mockville loop, the status is operational, by 1932.\nFor Mockville loop, the status is operational, from 1933.\nFor section c4e00696, the status is operational, by 1938.\nFor section c4e00696, the owner is Placeholder Fuel and Light Co., in 1938.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 9.89
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "For section 06a875ca, the status is operational, by 1932.\nStore does not say when section 06a875ca ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nFor Sampletown lateral, the owner is Example Pipe Line Co., by March 1932.\nFor Sampletown lateral, the diameter is 20 in, by March 1932.\nFor Sampletown lateral, the status is operational, by 1932.\nA tool proposed Sample Gas Co. as the owner of section 7228cfbd, in 1938. Nobody has decided on it yet.\nFor section 7228cfbd, the status is operational, by 1932.\nOne value for section fbfca50c, Sample Gas Co., was rejected as the owner. It was given in 1938.\nFor section fbfca50c, the status is operational, by 1938.\nFor section aa16d282, two accepted operators overlap and disagree: Example Pipe Line Co., from 1932 to 1940, and Sample Gas Co., from 1938.\nFor section aa16d282, the status is operational, by 1938.\nFor section 2cf68921, the status is operational, by 1932.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.\nFor section 9349612f, the diameter is 16 in, by 1938.\nFor section 9349612f, the status is operational, by 1932.\nFor section 013441e4, the owner is Invented Natural Gas Corp., in 1938.\nFor section 013441e4, the status is operational, by 1938.\nFor Mockville loop, the name is Mockville loop, in 1932.\nA tool proposed 12 in as the diameter of Mockville loop, in 1938. Nobody has decided on it yet.\nFor Mockville loop, the status is operational, by 1932.\nFor Mockville loop, the status is operational, from 1933.\nFor section c4e00696, the status is operational, by 1938.\nFor section c4e00696, the owner is Placeholder Fuel and Light Co., in 1938.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 7.98
+    }
+   ]
+  },
+  "B20-001": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.\nsection fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.74
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.\nsection fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 6.09
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.\nsection fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.75
+    }
+   ]
+  },
+  "B20-002": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nsection fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.1
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nsection fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.71
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nsection fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.07
+    }
+   ]
+  },
+  "B20-003": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 698a2811 is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nsection 698a2811 is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.92
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 698a2811 is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nsection 698a2811 is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.74
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 698a2811 is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nsection 698a2811 is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_context",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 4.16
+    }
+   ]
+  },
+  "B20-004": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 7707ea05.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.\nThe pipeline section 7707ea05 is part of, Example trunk line, has the owner Example Pipe Line Co., in 1932. Worth checking whether that holds for section 7707ea05 itself.\nsection fcf4207a, drawn touching section 7707ea05, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 7707ea05.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 7707ea05. The same page may name section 7707ea05's owner too.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.22
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 7707ea05.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.\nThe pipeline section 7707ea05 is part of, Example trunk line, has the owner Example Pipe Line Co., in 1932. Worth checking whether that holds for section 7707ea05 itself.\nsection fcf4207a, drawn touching section 7707ea05, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 7707ea05.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 7707ea05. The same page may name section 7707ea05's owner too.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.31
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 7707ea05.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.\nThe pipeline section 7707ea05 is part of, Example trunk line, has the owner Example Pipe Line Co., in 1932. Worth checking whether that holds for section 7707ea05 itself.\nsection fcf4207a, drawn touching section 7707ea05, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 7707ea05.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 7707ea05. The same page may name section 7707ea05's owner too.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.21
+    }
+   ]
+  },
+  "B20-005": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nSample Gas Co. was ruled out as the owner of section fbfca50c. Do not propose it again.\nsection fbfca50c is first traced on the 1938 printing and is not traced on the earlier 1932 one, so sources from 1932 to 1938 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.05
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nSample Gas Co. was ruled out as the owner of section fbfca50c. Do not propose it again.\nsection fbfca50c is first traced on the 1938 printing and is not traced on the earlier 1932 one, so sources from 1932 to 1938 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.12
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nSample Gas Co. was ruled out as the owner of section fbfca50c. Do not propose it again.\nsection fbfca50c is first traced on the 1938 printing and is not traced on the earlier 1932 one, so sources from 1932 to 1938 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.91
+    }
+   ]
+  },
+  "B20-006": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Two accepted owner claims disagree. One gives Sample Gas Co., in 1938, according to Example Gazette, vol. 38 no. 11, p. 118. The other gives Invented Natural Gas Corp., in 1938, according to Example Gazette, vol. 38 no. 11, p. 119.\nsection a7302236 has two accepted owner values for the same years, Sample Gas Co. and Invented Natural Gas Corp. To resolve, not to pick.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.92
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Two accepted owner claims disagree for the same year. One gives Sample Gas Co., in 1938, according to Example Gazette, vol. 38 no. 11, p. 118. The other gives Invented Natural Gas Corp., in 1938, according to Example Gazette, vol. 38 no. 11, p. 119.\nsection a7302236 has two accepted owner values for the same years, Sample Gas Co. and Invented Natural Gas Corp. To resolve, not to pick.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.24
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Two accepted owner claims disagree for the same year. One says Sample Gas Co., in 1938, according to Example Gazette, vol. 38 no. 11, p. 118. The other says Invented Natural Gas Corp., in 1938, according to Example Gazette, vol. 38 no. 11, p. 119.\nsection a7302236 has two accepted owner values for the same years, Sample Gas Co. and Invented Natural Gas Corp. To resolve, not to pick.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.54
+    }
+   ]
+  },
+  "B20-007": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nsection fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.3
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nsection fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.41
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nsection fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.31
+    }
+   ]
+  },
+  "B20-008": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nsection 1f0c3ef9 is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.84
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nsection 1f0c3ef9 is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.04
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nsection 1f0c3ef9 is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.06
+    }
+   ]
+  },
+  "B21-001": {
+   "behaviour": "B21",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.61
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.58
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.46
+    }
+   ]
+  },
+  "B21-002": {
+   "behaviour": "B21",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say what its diameter is.\nSearching the journals for the diameter of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.32
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say what its diameter is.\nSearching the journals for the diameter of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.42
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say what its diameter is.\nSearching the journals for the diameter of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.95
+    }
+   ]
+  },
+  "B21-003": {
+   "behaviour": "B21",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The status is operational, by 1932.\nsection 06a875ca is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nSearching the journals for the build date of section 06a875ca, by Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: section 06a875ca, being laid in 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.4
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The status is operational, by 1932.\nsection 06a875ca is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nSearching the journals for the build date of section 06a875ca, by Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: section 06a875ca, being laid in 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.62
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The status is operational, by 1932.\nsection 06a875ca is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nSearching the journals for the build date of section 06a875ca, by Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: section 06a875ca, being laid in 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.77
+    }
+   ]
+  },
+  "B21-004": {
+   "behaviour": "B21",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nSearching the journals for the owner of section fbfca50c, by Sampleton, reading 1937 to 1938. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section fbfca50c, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.5
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nSearching the journals for the owner of section fbfca50c, by Sampleton, reading 1937 to 1938. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section fbfca50c, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.97
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nSearching the journals for the owner of section fbfca50c, by Sampleton, reading 1937 to 1938. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section fbfca50c, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.3
+    }
+   ]
+  },
+  "B22-001": {
+   "behaviour": "B22",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nWhich towns does it run between or through? I search the journals by place names. Say them, or say to search without them.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.94
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nWhich towns does it run between or through? I search the journals by place names. Say them, or say to search without them.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.86
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nWhich towns does it run between or through? I search the journals by place names. Say them, or say to search without them.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.67
+    }
+   ]
+  },
+  "B22-002": {
+   "behaviour": "B22",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 2.7
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 2.4
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.46
+    }
+   ]
+  },
+  "B22-003": {
+   "behaviour": "B22",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of Mockville loop, with no towns, reading 1931 to 1932. This takes a few minutes.\nFound, in doubt: Example Pipe Line Co. as the owner of Mockville loop, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 6.49
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of Mockville loop, with no towns, reading 1931 to 1932. This takes a few minutes.\nFound, in doubt: Example Pipe Line Co. as the owner of Mockville loop, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 6.78
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of Mockville loop, with no towns, reading 1931 to 1932. This takes a few minutes.\nFound, in doubt: Example Pipe Line Co. as the owner of Mockville loop, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 6.18
+    }
+   ]
+  },
+  "B22-004": {
+   "behaviour": "B22",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nStore holds no name for this section, so without towns there is nothing to search by. Which towns does it run between or through?",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.94
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nStore holds no name for this section, so without towns there is nothing to search by. Which towns does it run between or through?",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.23
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nStore holds no name for this section, so without towns there is nothing to search by. Which towns does it run between or through?",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.98
+    }
+   ]
+  },
+  "B23-001": {
+   "behaviour": "B23",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1928 to 1929. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 2.88
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Searching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1928 to 1929. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.16
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1928 to 1929. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 2.78
+    }
+   ]
+  },
+  "B23-002": {
+   "behaviour": "B23",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.15
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.67
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.4
+    }
+   ]
+  },
+  "B23-003": {
+   "behaviour": "B23",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nSearched, not found: the owner of section 06a875ca. 9 searches of The Example Trade Journal, 104 issues from 2 January 1930 to 24 December 1931.\ncite turned down 1 other proposed value: the page did not say it, it was about another line, or it was ruled out.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.28
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nSearched, not found: the owner of section 06a875ca. 9 searches of The Example Trade Journal, 104 issues from 2 January 1930 to 24 December 1931.\ncite turned down 1 other proposed value: the page did not say it, it was about another line, or it was ruled out.",
+     "tools": [
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.6
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nSearched, not found: the owner of section 06a875ca. 9 searches of The Example Trade Journal, 104 issues from 2 January 1930 to 24 December 1931.\ncite turned down 1 other proposed value: the page did not say it, it was about another line, or it was ruled out.",
+     "tools": [
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.43
+    }
+   ]
+  },
+  "B23-004": {
+   "behaviour": "B23",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say what its diameter is.\nSearching the journals for the diameter of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 2.35
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say what its diameter is.\nSearching the journals for the diameter of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 2.58
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say what its diameter is.\nSearching the journals for the diameter of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 2.3
+    }
+   ]
+  },
+  "B23-005": {
+   "behaviour": "B23",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.03
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.2
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.04
+    }
+   ]
+  },
+  "B24-001": {
+   "behaviour": "B24",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nSearched, not found: the owner of section 06a875ca. 9 searches of The Example Trade Journal, 104 issues from 2 January 1930 to 24 December 1931.\ncite turned down 1 other proposed value: the page did not say it, it was about another line, or it was ruled out.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.49
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nSearched, not found: the owner of section 06a875ca. 9 searches of The Example Trade Journal, 104 issues from 2 January 1930 to 24 December 1931.\ncite turned down 1 other proposed value: the page did not say it, it was about another line, or it was ruled out.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.65
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nSearched, not found: the owner of section 06a875ca. 9 searches of The Example Trade Journal, 104 issues from 2 January 1930 to 24 December 1931.\ncite turned down 1 other proposed value: the page did not say it, it was about another line, or it was ruled out.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.37
+    }
+   ]
+  },
+  "B24-002": {
+   "behaviour": "B24",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nThe search could not finish. Nothing was found and nothing was written.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.83
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nThe search could not finish. Nothing was found and nothing was written.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.14
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nThe search could not finish. Nothing was found and nothing was written.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.37
+    }
+   ]
+  },
+  "B25-001": {
+   "behaviour": "B25",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say what its diameter is.\nSearching the journals for the diameter of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.\nFound, in doubt: 12-in. as the diameter of section 06a875ca, as of 7 May 1931. The Example Trade Journal, vol. 12 no. 9, 7 May 1931, p. 18.\nThe sources disagree on the diameter: 10-in. and 12-in.. Both are shown; neither is picked.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.89
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say what its diameter is.\nSearching the journals for the diameter of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.\nFound, in doubt: 12-in. as the diameter of section 06a875ca, as of 7 May 1931. The Example Trade Journal, vol. 12 no. 9, 7 May 1931, p. 18.\nThe sources disagree on the diameter: 10-in. and 12-in.. Both are shown; neither is picked.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 6.66
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say what its diameter is.\nSearching the journals for the diameter of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.\nFound, in doubt: 12-in. as the diameter of section 06a875ca, as of 7 May 1931. The Example Trade Journal, vol. 12 no. 9, 7 May 1931, p. 18.\nThe sources disagree on the diameter: 10-in. and 12-in.. Both are shown; neither is picked.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.02
+    }
+   ]
+  },
+  "B26-001": {
+   "behaviour": "B26",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Proposed Example Pipe Line Co. as the owner of section 06a875ca, cited to The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41. It waits for a person's decision.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Proposed Example Pipe Line Co. as the owner of section 06a875ca, cited to The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41. It waits for a person's decision.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Proposed Example Pipe Line Co. as the owner of section 06a875ca, cited to The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41. It waits for a person's decision.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    }
+   ]
+  },
+  "B26-002": {
+   "behaviour": "B26",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "To propose a finding, press Propose on it. I do not write to store from words.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "To propose a finding, press Propose on it. I do not write to store from words.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "To propose a finding, press Propose on it. I do not write to store from words.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    }
+   ]
+  },
+  "B26-003": {
+   "behaviour": "B26",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "This finding cannot be proposed: the passage says only that the line was there by that year, not when it was built",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "This finding cannot be proposed: the passage says only that the line was there by that year, not when it was built",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "This finding cannot be proposed: the passage says only that the line was there by that year, not when it was built",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    }
+   ]
+  },
+  "B27-001": {
+   "behaviour": "B27",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not say 'I cannot look for the operator yet'"
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": false,
+       "comment": "cite was asked 1 time(s)"
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, search"
+      }
+     },
+     "answer": "Store does not say who operates it.\nSearching the journals for the owner of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.9
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who operates it.\nI cannot look for the operator yet. I can look for the owner, the diameter and when it was built.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.92
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who operates it.\nI cannot look for the operator yet. I can look for the owner, the diameter and when it was built.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 6.8
+    }
+   ]
+  },
+  "B27-002": {
+   "behaviour": "B27",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nI cannot search for this section: no map printing in store shows it, so there is no year to search from.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 6.27
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nI cannot search for this section: no map printing in store shows it, so there is no year to search from.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 10.76
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nI cannot search for this section: no map printing in store shows it, so there is no year to search from.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.01
+    }
+   ]
+  },
+  "B27-003": {
+   "behaviour": "B27",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.55
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.7
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.29
+    }
+   ]
+  },
+  "B27-004": {
+   "behaviour": "B27",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 06a875ca.\nI search for one section at a time. Attach one section and ask again.\nStore does not say who owns section 2cf68921.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 7.45
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 06a875ca.\nI search for one section at a time. Attach one section and ask again.\nStore does not say who owns section 2cf68921.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 9.41
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 06a875ca.\nI search for one section at a time. Attach one section and ask again.\nStore does not say who owns section 2cf68921.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 13.1
+    }
+   ]
+  }
+ }
+}

@@ -20,6 +20,7 @@ from typing import Any
 
 from context import Editions, first_shown
 from render import Unfillable, value_words
+from settings import CITE_WINDOW_YEARS
 
 # Store's attribute, as the person asks for it, to cite's (plan D1). Built is a status
 # claim in store: under construction or operational, with when.
@@ -61,11 +62,15 @@ def _name_hint(features: list[dict[str, Any]]) -> str | None:
 
 
 def default_window(first_year: int, editions: Editions) -> tuple[int, int] | None:
-    """Between the last printing without it and the first with it, when store has both."""
+    """Between the last printing without it and the first with it, when store has both:
+    the latest years of that gap, as many as one search reads. A line is most often
+    reported as it is laid, just before a map first shows it."""
     if not editions.complete:
         return None
     earlier = [y for y in editions.years if y < first_year]
-    return (earlier[-1], first_year) if earlier else None
+    if not earlier:
+        return None
+    return max(earlier[-1], first_year - CITE_WINDOW_YEARS + 1), first_year
 
 
 def _rejected(features: list[dict[str, Any]], attributes: list[str]) -> list[tuple[str, str]]:

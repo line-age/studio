@@ -79,8 +79,12 @@ town from your memory, from a name or from a map. None named: leave it empty, co
   - `ruled_out`: values the person turned down ("not Example Co.").
   - `without_places`: true only when the person said to search without towns.
 Put any "Store does not say" or fact about that attribute before it. Never ask for an \
-attribute store already holds an accepted claim for: say what it holds instead. If no \
-attribute is named, ask for owner. When nothing is attached and the prompt names the \
+attribute store already holds an accepted claim for: say what it holds instead. A status \
+cited only to a map is not when the line was built (a map shows only that it was there \
+by then): asked to find when it was built, write the citation_request with attribute \
+status. Use the attribute the person asked about, even one code cannot search for \
+(operator, name): code says so; never swap it for another. If no attribute is named, ask \
+for owner. When nothing is attached and the prompt names the \
 latest search's section, a steering message is about that section: put it in refs.
 - finding: something cite found earlier in this chat, listed under "Cite so far" by its \
 handle (F1, F2). To show one again, put its handle in refs \

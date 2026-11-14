@@ -46,6 +46,10 @@ CITE_LINES = {
         "finding shows. {what} is none of these."
     ),
     "busy": "A search is already running. Ask again when it has finished.",
+    "nothing_to_search_by": (
+        "Store holds no name for this section, so without towns there is nothing to search "
+        "by. Which towns does it run between or through?"
+    ),
     "failed": "The search could not finish. Nothing was found and nothing was written.",
     "invalid": "cite could not search this section. Nothing was written.",
     "lost": "The search was lost, so nothing came back. Ask again.",
@@ -65,6 +69,17 @@ CITE_LINES = {
     "store_write_failed": "Store did not take the proposal, so nothing was written.",
 }
 _SPACE = re.compile(r"\s+")
+# Asking about what cite cannot look for yet, and the words for what it can.
+_ASKED_ONLY = re.compile(r"\b(operat\w*|called|named)\b", re.IGNORECASE)
+_WORDS_FOR = {
+    "owner": re.compile(r"\bown", re.IGNORECASE),
+    "diameter": re.compile(r"\b(diameter|size|inch|in\.)", re.IGNORECASE),
+    "status": re.compile(r"\b(built|laid|construct|complet|when)", re.IGNORECASE),
+}
+# The person saying, in so many words, to search with no towns.
+_WITHOUT_TOWNS = re.compile(
+    r"\bwithout (?:any |the )?(?:towns?|places?|place names)\b", re.IGNORECASE
+)
 
 
 def _fold(text: str) -> str:
@@ -96,15 +111,24 @@ def check_request(
     read: Read,
     words: list[str],
     findings: dict[str, dict[str, Any]],
+    runs: list[dict[str, Any]] | None = None,
 ) -> CiteAsk | Refused | AskForPlaces:
     """The model's citation_request statements, checked by code. `words` are the
-    person's own messages in this thread, `findings` what cite found earlier."""
+    person's own messages in this thread, `findings` what cite found earlier, `runs` the
+    earlier searches: a steering message keeps the towns and turned-down values of the
+    last search of the same section unless it gives new towns."""
     sections = list(
         dict.fromkeys(r.id for s in resolved for r in s.refs if r.type == "feature" and r.id)
     )
     if len(sections) != 1:
         return Refused(CITE_LINES["one_section"])
     attributes = list(dict.fromkeys(d.attribute for d in drafts if d.attribute))
+    # Asked about what cite cannot look for: never searched as something else instead.
+    asked = _ASKED_ONLY.findall(words[-1]) if words else []
+    if asked and not any(a in TO_CITE and _WORDS_FOR[a].search(words[-1]) for a in attributes):
+        attributes = list(
+            dict.fromkeys(["operator" if "operat" in a.lower() else "name" for a in asked])
+        )
     cannot = [a for a in attributes if a not in TO_CITE]
     if cannot or not attributes:
         what = " or the ".join(a.replace("_", " ") for a in cannot) or "that"
@@ -123,6 +147,9 @@ def check_request(
         for y in years_in(item.get("text", ""))
     }
     places = list(dict.fromkeys(p.strip() for d in drafts for p in d.places if p.strip()))
+    earlier = [r for r in runs or [] if r["section_id"] == sections[0]]
+    if not places and earlier and not any(d.without_places for d in drafts):
+        places = list(earlier[-1].get("places") or [])
     for place in places:
         if _fold(place) not in said:
             return Refused(CITE_LINES["not_given"].format(what=f"The place {place}"))
@@ -137,9 +164,13 @@ def check_request(
             if v not in said and v not in found_values | store_values:
                 return Refused(CITE_LINES["not_given"].format(what=f"The value {value}"))
             ruled.append((d.attribute, value.strip()))
-    if not places and not any(d.without_places for d in drafts):
+    if earlier:
+        kept = [tuple(r) for r in earlier[-1].get("ruled_out") or []]
+        ruled = list(dict.fromkeys([*kept, *ruled]))
+    without = any(d.without_places for d in drafts) or bool(_WITHOUT_TOWNS.search(words[-1]))
+    if not places and not without:
         return AskForPlaces(sections[0], attributes)
-    if any(d.without_places for d in drafts) and "without" not in said:
+    if without and "without" not in said:
         return Refused(CITE_LINES["not_given"].format(what="Searching without towns"))
     window = None
     if years:
@@ -419,6 +450,10 @@ def so_far(cite: dict[str, Any], names: dict[str, str]) -> str:
             f"- searched {subject} (id {run['section_id']}) for {what}, by {places}, "
             f"reading {_years(run.get('years'))}: {run.get('outcome', 'running')}"
         )
+        if run.get("ruled_out"):
+            lines.append(
+                "  ruled out: " + "; ".join(f"{_what(a)} {v}" for a, v in run["ruled_out"])
+            )
     for handle, record in (cite.get("findings") or {}).items():
         f = Finding.model_validate(record["finding"])
         subject = names.get(f.section_id) or "the section"
