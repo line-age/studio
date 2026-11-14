@@ -217,7 +217,7 @@ function Conversation({
         {agent.turns.length === 0 && <Marker>No conversation yet.</Marker>}
         {agent.error && (
           <Marker>
-            The Agent could not be reached. Your question was not lost.
+            The Agent could not answer. Your question is back in the box.
           </Marker>
         )}
       </div>

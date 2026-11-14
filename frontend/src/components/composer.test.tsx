@@ -16,6 +16,15 @@ describe("the message box", () => {
     expect(box).toHaveValue("")
   })
 
+  it("keeps the words when the message was not taken", async () => {
+    const onSend = vi.fn(() => false)
+    render(<Composer placeholder="Ask" onSend={onSend} />)
+    const box = screen.getByLabelText("Message to the Agent")
+    await userEvent.type(box, "who owns it?{Enter}")
+    expect(onSend).toHaveBeenCalledWith("who owns it?")
+    expect(box).toHaveValue("who owns it?")
+  })
+
   it("does not send an empty message on Enter", async () => {
     const onSend = vi.fn()
     render(<Composer placeholder="Ask" onSend={onSend} />)

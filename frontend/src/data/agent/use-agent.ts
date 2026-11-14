@@ -138,20 +138,27 @@ export function useAgent() {
     return turnsFrom([...fromLive, ...fromSaved.filter((m) => m.type === "ai")])
   }, [live, saved])
 
-  const ask = (question: Question) =>
-    stream.submit(
-      {
-        messages: [
-          {
-            type: "human",
-            id: crypto.randomUUID(),
-            content: question.words,
-            additional_kwargs: { question },
-          },
-        ],
-      } as never,
-      { multitaskStrategy: "reject" }
-    )
+  /**
+   * `onFailed` runs when the run fails or the service cannot be reached, so
+   * the person can send the question again.
+   */
+  const ask = (question: Question, onFailed?: () => void) =>
+    stream
+      .submit(
+        {
+          messages: [
+            {
+              type: "human",
+              id: crypto.randomUUID(),
+              content: question.words,
+              additional_kwargs: { question },
+            },
+          ],
+        } as never,
+        { multitaskStrategy: "reject", onError: () => onFailed?.() }
+      )
+      // "reject" throws when a run is already in flight.
+      .catch(() => onFailed?.())
 
   const stop = () => stream.stop({ cancel: true })
 

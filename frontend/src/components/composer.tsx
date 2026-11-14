@@ -19,7 +19,8 @@ export function Composer({
   className,
 }: {
   placeholder: string
-  onSend?: (message: string) => void
+  /** Returns false when the message was not taken; the words stay in the box. */
+  onSend?: (message: string) => boolean | void
   onAttach?: () => void
   /** Attachment chips for the message being written, shown above it. */
   attachments?: ReactNode
@@ -52,7 +53,7 @@ export function Composer({
       onSubmit={(event) => {
         event.preventDefault()
         if (empty || !onSend) return
-        onSend(message)
+        if (onSend(message) === false) return
         setMessage("")
       }}
     >

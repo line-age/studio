@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { Attachment } from "@/components/attachment"
 import { Bubble } from "@/components/bubble"
@@ -325,8 +325,18 @@ export function AgentPanel() {
   // On store's data the Agent service answers; on the sample nothing does.
   const fromStore = dataSource() === "store"
 
+  // A message the Agent could not take stays in the box; this says why, for
+  // as long as the reason holds.
+  const [held, setHeld] = useState<"working" | "down" | null>(null)
+
   const composer = (agent: Agent | null) => (
-    <div className="shrink-0 px-3 pb-3">
+    <div className="flex shrink-0 flex-col gap-2 px-3 pb-3">
+      {held === "working" && agent?.working && (
+        <Marker>The Agent is still answering. Your message waits here.</Marker>
+      )}
+      {held === "down" && fromStore && !agent && (
+        <Marker>The Agent is not running. Your message waits here.</Marker>
+      )}
       <Composer
         placeholder="Ask about a section. Type # to pick one."
         attachments={<PendingAttachments />}
@@ -343,10 +353,24 @@ export function AgentPanel() {
             network,
           })
           if (agent) {
-            if (agent.working) return
-            void agent.ask(question)
+            if (agent.working) {
+              setHeld("working")
+              return false
+            }
+            setHeld(null)
+            // If it never gets an answer, the words and what was attached
+            // come back to the box.
+            void agent.ask(question, () =>
+              useStudio.getState().askAgent(attachments, { refs, words })
+            )
             s.clearAgentDraft()
             return
+          }
+          // On store's data only the service answers: while it is down or
+          // starting nothing would show the question, so it is not taken.
+          if (fromStore) {
+            setHeld("down")
+            return false
           }
           send({ question, attachments, refs })
         }}
