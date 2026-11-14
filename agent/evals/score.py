@@ -127,6 +127,7 @@ def _same_pipe(world: dict[str, Any], fid: str) -> set[str]:
         for link in world["links"]
         if fid in (link["from_feature_id"], link["to_feature_id"])
         and link["relation"] in ("same_as", "split_into", "overlaps")
+        and link["status"] != "rejected"
         for end in (link["from_feature_id"], link["to_feature_id"])
     }
 
@@ -168,7 +169,7 @@ def _worked_out_problems(
             said = re.search(r"first traced on the (\d{4}) printing", text)
             if said and int(said.group(1)) != first:
                 problems.append(f"{where}: first shown in {first}, not {said.group(1)}")
-            said = re.search(r"not on the earlier (\d{4}) printing", text)
+            said = re.search(r"not traced on the earlier (\d{4}) printing", text)
             if said and (not before or int(said.group(1)) != before[-1]):
                 problems.append(f"{where}: the printing before is not {said.group(1)}")
             if first:

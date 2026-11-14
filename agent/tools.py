@@ -10,6 +10,7 @@ from langchain_core.tools import BaseTool, tool
 
 import context
 import leads
+import pack
 from render import feature_name, is_traced_as_gone
 from store_client import StoreClient, StoreError
 
@@ -201,11 +202,16 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
                 ), {}
             context_seen.add(section_id)  # held now, so parallel calls do not both run
         try:
-            return _context_of(section_id)
+            content, artifact = _context_of(section_id)
         except Exception:
             with context_lock:
                 context_seen.discard(section_id)  # a failed try can be tried again
             raise
+        if "context_of" not in artifact:
+            # Not a section, or no such id: nothing was read, so it uses no slot.
+            with context_lock:
+                context_seen.discard(section_id)
+        return content, artifact
 
     def _context_of(section_id: str) -> tuple[str, dict[str, Any]]:
         try:
@@ -242,7 +248,7 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
             "some of them could not be read just now" if len(found) < len(near.found) else None
         )
         worked = (
-            context.edition_facts(feature, ends, editions, handles.worked)
+            context.edition_facts(feature, ends, editions, handles.worked, merged)
             + context.link_facts(feature, ends, handles.worked)
             + context.neighbour_facts(feature, found, unmeasured, handles.worked)
         )
@@ -271,22 +277,24 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
                 for line in lines
             ]
         scope = {feature["id"], *known}
+        # A proposed same_as, whichever end this section is, to a trace (not a line traced
+        # as gone, whose end is the editions' to say).
         twins = [
-            (link, ends[link["from_feature_id"]])
+            (link, ends[other_id])
             for link in feature.get("links") or []
             if link["relation"] == "same_as"
             and link["status"] == "proposed"
-            and link["to_feature_id"] == feature["id"]
-            and link["from_feature_id"] in ends
-            and not is_traced_as_gone(ends[link["from_feature_id"]])
+            and (
+                other_id := link["to_feature_id"]
+                if link["from_feature_id"] == feature["id"]
+                else link["from_feature_id"]
+            )
+            in ends
+            and not is_traced_as_gone(ends[other_id])
         ]
         found_leads = leads.find_leads(
             feature,
-            lambda attribute: any(
-                c["attribute_key"] == attribute and c["status"] == "accepted"
-                for f in (feature, *merged)
-                for c in f.get("claims") or []
-            ),
+            merged,
             [other for other, _ in found if other["id"] not in scope],
             lines,
             twins,
@@ -294,7 +302,10 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
             handles.lead,
         )
         if found_leads:
-            view["leads"] = [{"handle": lead.handle, "text": lead.text} for lead in found_leads]
+            view["leads"] = [
+                {"handle": lead.handle, "rule": lead.rule, "text": lead.text}
+                for lead in found_leads
+            ]
         if found:
             # Each neighbour's own claims, kept under it: they are that section's.
             view["drawn_touching"] = [
@@ -314,6 +325,17 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
             "context_features": [*ends.values(), *(other for other, _ in found)],
             "worked_out": [w.model_dump() for w in worked],
             "leads": [lead.model_dump() for lead in found_leads],
+            # The same, kept whole: cite's brief (contract/section-pack.schema.json).
+            "pack": pack.build_pack(
+                feature,
+                merged,
+                ends,
+                lines,
+                [(touching[sid], meets, gap) for sid, meets, gap in near.found if sid in touching],
+                worked,
+                found_leads,
+                handles.of,
+            ).model_dump(),
         }
         return json.dumps(view, ensure_ascii=False), artifact
 

@@ -193,3 +193,170 @@ def test_a_citation_request_carries_the_sections_leads_as_hints(world):
     rules_ = {h.rule for h in request.hints}
     assert {"neighbour_source", "neighbour_owner", "edition_window"} <= rules_
     assert all(h.text.startswith("Not in store") for h in request.hints)
+
+
+# From the reviews of B6: each on a hand-made shape.
+
+from context import Editions
+from leads import find_leads
+
+
+def _claim(
+    cid, attribute, value, status="accepted", edtf=None, source="Example Gazette", page="p. 1"
+):
+    return {
+        "id": cid,
+        "attribute_key": attribute,
+        "value_text": value,
+        "status": status,
+        "valid_edtf": edtf,
+        "start_earliest": None,
+        "start_latest": None,
+        "end_earliest": None,
+        "end_latest": None,
+        "citations": [
+            {"role": "states", "source_id": source, "source_title": source, "locator": page}
+        ],
+    }
+
+
+def _feature(fid, claims=(), kind="section", links=()):
+    return {"id": fid, "kind": kind, "label": None, "claims": list(claims), "links": list(links)}
+
+
+def _leads(feature, neighbours=(), pipelines=(), twins=(), merged=()):
+    import itertools
+
+    counter = itertools.count(1)
+    return find_leads(
+        feature,
+        list(merged),
+        list(neighbours),
+        list(pipelines),
+        list(twins),
+        Editions([], False),
+        lambda: f"L{next(counter)}",
+    )
+
+
+ME = "m" * 8 + "-0"
+
+
+def test_a_value_ruled_out_is_never_offered_by_another_rule():
+    me = _feature(ME, [_claim("r", "owner", "Acme Gas", status="rejected")])
+    other = _feature("n" * 8 + "-0", [_claim("c", "owner", "Acme Gas")])
+    found = _leads(me, neighbours=[other])
+    # The neighbour's page may still be pointed to; its value is never offered.
+    assert not [lead for lead in found if lead.rule == "neighbour_owner"]
+    assert [lead.rule for lead in found if "Acme Gas" in lead.text] == ["rejected_value"]
+
+
+def test_owners_for_years_that_do_not_overlap_are_no_conflict():
+    me = _feature(
+        ME,
+        [
+            _claim("a", "owner", "A Co.", edtf="1930/1940"),
+            _claim("b", "owner", "B Co.", edtf="1950/1960"),
+        ],
+    )
+    assert not [lead for lead in _leads(me) if lead.rule == "conflict"]
+
+
+def test_owners_with_no_dates_at_all_neither_crash_nor_conflict():
+    me = _feature(ME, [_claim("a", "owner", "A Co."), _claim("b", "owner", "B Co.")])
+    assert not [lead for lead in _leads(me) if lead.rule == "conflict"]
+
+
+def test_a_merged_traces_owner_that_disagrees_is_a_conflict():
+    me = _feature(ME, [_claim("a", "owner", "A Co.", edtf="1938")])
+    twin = _feature("t" * 8 + "-0", [_claim("b", "owner", "B Co.", edtf="1938")])
+    (conflict,) = [lead for lead in _leads(me, merged=[twin]) if lead.rule == "conflict"]
+    assert conflict.text.startswith("Not in store as one answer:")
+
+
+def test_a_claim_with_no_words_gives_no_lead_and_fails_nothing():
+    bad = _claim("c", "owner", None)
+    other = _feature("n" * 8 + "-0", [bad, _claim("d", "operator", "Op Co.")])
+    found = _leads(_feature(ME), neighbours=[other])
+    assert any("Op Co." in lead.text for lead in found)
+
+
+def test_two_neighbours_citing_one_page_are_one_place_to_look_and_one_source():
+    a = _feature("a" * 8 + "-0", [_claim("c1", "owner", "Acme Gas", page="p. 9")])
+    b = _feature("b" * 8 + "-0", [_claim("c2", "owner", "Acme Gas", page="p. 9")])
+    found = _leads(_feature(ME), neighbours=[a, b])
+    assert len([lead for lead in found if lead.rule == "neighbour_source"]) == 1
+    assert {lead.backing for lead in found if lead.rule == "neighbour_owner"} == {1}
+
+
+def test_a_link_is_not_backing():
+    twin = _feature("t" * 8 + "-0", [_claim("c", "owner", "Acme Gas")])
+    link = {"id": "k", "relation": "same_as", "status": "proposed"}
+    (proposed,) = [
+        lead for lead in _leads(_feature(ME), twins=[(link, twin)]) if lead.rule == "proposed_link"
+    ]
+    assert proposed.backing == 1
+
+
+def test_two_independent_sources_for_one_value_rank_first():
+    a = _feature("a" * 8 + "-0", [_claim("c1", "owner", "Acme Gas", source="Journal A")])
+    line = _feature(
+        "l" * 8 + "-0", [_claim("c2", "owner", "Acme Gas", source="Journal B")], kind="line"
+    )
+    b = _feature("b" * 8 + "-0", [_claim("c3", "owner", "Other Co.", source="Journal C")])
+    found = [
+        lead
+        for lead in _leads(_feature(ME), neighbours=[b, a], pipelines=[line])
+        if lead.rule != "neighbour_source"
+    ]
+    assert "Acme Gas" in found[0].text and found[0].backing == 2
+
+
+def test_a_twin_is_found_whichever_end_the_section_is(world):
+    from evals.fake_store import FakeStore
+    from tools import make_tools
+
+    store = FakeStore(world)
+    s14, d19 = world["codes"]["s14"], world["codes"]["d19"]
+    for link in store.world["features"][s14]["links"]:
+        if link["relation"] == "same_as":
+            link["from_feature_id"], link["to_feature_id"] = s14, d19
+    _, read_context = make_tools(store.client())
+    read = reads_from([read_context.func(s14)[1]])
+    assert "proposed_link" in rules(read)
+
+
+def test_asking_context_of_a_pipeline_uses_no_slot(world):
+    from evals.fake_store import FakeStore
+    from tools import make_tools
+
+    _, read_context = make_tools(FakeStore(world).client())
+    for _ in range(3):
+        read_context.func(world["codes"]["l01"])
+    _, artifact = read_context.func(world["codes"]["s14"])
+    assert "context_of" in artifact
+
+
+def test_the_model_may_write_a_fact_about_the_pipelines_own_claims(world):
+    read = context_of(world, "s16")
+    line = world["codes"]["l01"]
+    name, owner = (
+        next(c for c in read.claims.values() if c["feature_id"] == line and c["attribute_key"] == a)
+        for a in ("name", "owner")
+    )
+    draft = Draft.model_validate(
+        {
+            "statements": [
+                {
+                    "kind": "fact",
+                    "text": "Its pipeline is {c1.value}, owned by {c2.value}, {c2.period}.",
+                    "refs": [
+                        {"key": "c1", "type": "claim", "id": name["id"]},
+                        {"key": "c2", "type": "claim", "id": owner["id"]},
+                    ],
+                }
+            ]
+        }
+    )
+    problems = problems_of(draft, render(draft, read), read)
+    assert not [p for p in problems if "around it" in p]

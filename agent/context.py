@@ -109,19 +109,22 @@ def edition_facts(
     others: dict[str, dict[str, Any]],
     editions: Editions,
     handle: Callable[[], str],
+    merged: list[dict[str, Any]] | None = None,
 ) -> list[WorkedOut]:
-    """When the maps first show the section, and what store holds about its end."""
+    """When the maps first show the section (or a trace merged into it), and what store
+    holds about its end."""
     name = feature_name(feature)
     facts: list[WorkedOut] = []
 
-    first = first_shown(feature)
+    shown = [s for f in (feature, *(merged or [])) if (s := first_shown(f))]
+    first = min(shown, key=lambda pair: pair[0]) if shown else None
     if first:
         year, claim = first
         # An earlier printing that store's tracing does not show it on. Not "the one
         # before": printings that only removed lines are not known here.
         before = [y for y in editions.years if y < year] if editions.complete else []
         text = f"Worked out from the maps in store: {name} is first traced on the {year} printing"
-        text += f", and not on the earlier {before[-1]} printing." if before else "."
+        text += f", and is not traced on the earlier {before[-1]} printing." if before else "."
         facts.append(
             WorkedOut(handle=handle(), what="first_edition", text=text, rests_on=[claim["id"]])
         )

@@ -37,7 +37,7 @@ def test_the_printings_are_the_years_sections_are_first_shown(world):
 def test_first_traced_names_the_printing_before_it(world):
     (first,) = by(facts(world, "s14"), "first_edition")
     assert "first traced on the 1932 printing" in first.text
-    assert "not on the earlier 1926 printing" in first.text
+    assert "is not traced on the earlier 1926 printing" in first.text
     assert "built" not in first.text
     status = next(
         c

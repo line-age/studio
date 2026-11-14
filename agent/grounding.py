@@ -147,7 +147,10 @@ def fact_problems(draft: Draft, read: Read) -> list[str]:
         around = [
             key
             for key, claim in claims.items()
-            if claim and holder(claim["feature_id"], read) in read.context_only
+            if claim
+            and holder(claim["feature_id"], read) in read.context_only
+            # A pipeline's own claims are reported as the pipeline's: allowed.
+            and read.features[holder(claim["feature_id"], read)].get("kind") != "line"
         ]
         if around:
             problems.append(
@@ -271,7 +274,8 @@ def worked_out_problems(draft: Draft, answer: Answer, read: Read) -> list[str]:
         handles = [r.id.strip().upper() for r in wrote.refs if r.type == wrote.kind]
         item = pool.get(handles[0]) if len(handles) == 1 else None
         if item is None or shown.text != item["text"]:
-            problems.append(f"statement {n}: a worked-out fact is its handle's sentence, unchanged")
+            what = "a worked-out fact" if wrote.kind == "worked_out" else "a lead"
+            problems.append(f"statement {n}: {what} is its handle's sentence, unchanged")
     return problems
 
 

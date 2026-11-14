@@ -441,7 +441,7 @@ def _sources_left_out(draft: DraftStatement, read: Read) -> list[str]:
     return [source_line(left)] if left else []
 
 
-def _one_full_stop(text: str) -> str:
+def one_full_stop(text: str) -> str:
     """A value that ends a sentence with its own full stop ("Co.") takes no second one."""
     return re.sub(r"(?<=[A-Za-z]\.)\.(?=\s|$)", "", text)
 
@@ -487,7 +487,7 @@ def claim_line(claim: dict[str, Any], read: Read, name_things: bool) -> str:
         )
     else:
         raise Unfillable(f"a claim that is {status} has no sentence of its own")
-    return f"{_one_full_stop(line)} {source_line([claim])}"
+    return f"{one_full_stop(line)} {source_line([claim])}"
 
 
 def render_statement(draft: DraftStatement, read: Read, name_things: bool = False) -> Statement:
@@ -585,7 +585,7 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
         text = claim_line(read.claims[claim_id], read, name_things)
         return Statement(kind="fact", text=text, refs=refs, attribute=draft.attribute)
 
-    text = _one_full_stop(SLOT.sub(fill, draft.text).strip())
+    text = one_full_stop(SLOT.sub(fill, draft.text).strip())
     refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]
     text = " ".join([text, *_sources_left_out(draft, read)])
     return Statement(kind=draft.kind, text=text, refs=refs, attribute=draft.attribute)
