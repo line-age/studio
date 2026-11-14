@@ -74,35 +74,10 @@ flowchart TD
 
 ## Planned: section context
 
-A section's own claims are often only its route and a status. To say more about it, the
-Agent will gather one **section pack**: its claims, what it is drawn touching, the map
-editions that show it, its links and pipeline, and where it lies. From these it may draw
-**leads**, marked "Not in store", which point at what to look for. The same pack, unchanged,
-becomes `cite`'s brief for the section, and the leads its hints, once `cite` is attached.
-
-```mermaid
-flowchart LR
-    subgraph store["store (read only)"]
-        F["GET /features/{id}<br/>own claims, links"]
-        S["GET /sections?bbox<br/>sections around it"]
-        L["linked features<br/>pipeline, merged traces, removals"]
-    end
-    P["public-domain boundaries<br/>states, counties, towns"]
-
-    F --> pack
-    S -->|geometry: drawn touching| pack
-    L --> pack
-    P -->|place, length| pack
-
-    pack["<b>Section pack</b><br/>claims · connections · editions<br/>links · place · leads"]
-
-    pack -->|now| chat["Agent answer<br/>grounding check"]
-    pack -.->|soon| cite["cite<br/>brief + leads as hints"]
-    chat -.->|prepared, not sent| req["citation request<br/>+ leads"]
-    req -.-> cite
-```
-
-How each kind of statement is marked in an answer:
+What it is and why: the controlplane's
+[components.md, The Agent service](https://github.com/line-age/controlplane/blob/main/components.md#the-agent-service).
+In the graph above it is a pack of context the tools gather per section, which the model
+answers from. How each kind of statement is marked in an answer:
 
 | Kind | Comes from | Shown as |
 | --- | --- | --- |
