@@ -480,3 +480,15 @@ def test_context_is_read_for_three_sections_and_no_more(world):
     out, store = ask(world, scripted([extra], unknown_owner(codes[0])), "Tell me", codes)
     assert out["tools"].count("read_context") == 4  # three read, the fourth told no
     assert sum(r.startswith("/features") for r in store.requests) == 4  # no extra read
+
+
+def test_the_reply_keeps_what_the_agent_did_in_plain_words(world):
+    s16 = world["codes"]["s16"]
+    out, _ = ask(world, scripted(unknown_owner(s16)), "Who owns it?", [s16])
+    steps = out["messages"][-1].additional_kwargs["steps"]
+    words = [s["text"] for s in steps]
+    assert words[0].startswith("Read section ")
+    assert any(w.startswith("Read its pipeline, ") for w in words)
+    assert any(w.startswith("Read what surrounds ") for w in words)
+    assert "Writing the answer" in words and "Checking the answer" in words
+    assert all(s["done"] for s in steps)

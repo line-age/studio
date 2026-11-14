@@ -22,7 +22,7 @@ from langgraph.graph import END, START, MessagesState, StateGraph
 
 import prompts
 from grounding import problems_of, reads_from
-from render import FIXED_LINES, Unfillable, as_text, failure, render
+from render import FIXED_LINES, Unfillable, as_text, failure, feature_name, render
 from schemas import Answer, Draft, DraftRef, Question, Statement
 from settings import MAX_QUESTION_CHARS, load
 from store_client import StoreClient, StoreError
@@ -233,12 +233,69 @@ def _point_unknowns_at_the_attached_thing(draft: Draft, question: Question, read
             statement.refs.append(DraftRef(key=key, type="feature", id=attached[0]))
 
 
+class _Steps:
+    """What the Agent does for a question, in plain words. Sent as it happens on the
+    custom stream channel "steps", for Studio's chain of thought, and kept on the reply
+    so a reloaded thread shows them too. Says what was read, never what is true."""
+
+    def __init__(self) -> None:
+        self.items: list[dict[str, Any]] = []
+        try:
+            from langgraph.config import get_stream_writer
+
+            self._write = get_stream_writer()
+        except Exception:  # noqa: BLE001 - outside a run (tests): nobody is listening
+            self._write = None
+
+    def _send(self) -> None:
+        if self._write is not None:
+            self._write({"name": "steps", "payload": list(self.items)})
+
+    def start(self, text: str) -> None:
+        """A step under way; it is done when the next one starts."""
+        self.finish_all()
+        self.items.append({"text": text, "done": False})
+        self._send()
+
+    def add_done(self, text: str) -> None:
+        self.items.append({"text": text, "done": True})
+        self._send()
+
+    def finish_all(self) -> list[dict[str, Any]]:
+        for item in self.items:
+            item["done"] = True
+        return self.items
+
+    def reads(self, artifacts: list[dict[str, Any]], attached: set[str]) -> None:
+        """One step per thing read, or one for all of them when there are many."""
+        features = [
+            a["features"][0] for a in artifacts if a.get("features") and "context_of" not in a
+        ]
+        contexts = [a for a in artifacts if "context_of" in a]
+        if len(features) > 4:
+            sections = sum(1 for f in features if f.get("kind") == "section")
+            others = len(features) - sections
+            words = f"Read {sections} sections" + (f" and {others} pipelines" if others else "")
+            self.add_done(words)
+        else:
+            for f in features:
+                pipeline = f.get("kind") == "line" and f["id"] not in attached
+                self.add_done(
+                    f"Read its pipeline, {feature_name(f)}"
+                    if pipeline
+                    else f"Read {feature_name(f)}"
+                )
+        for a in contexts:
+            self.add_done(f"Read what surrounds {feature_name(a['features'][0])}")
+
+
 def _finish(
     answer: Answer,
     question: HumanMessage | None,
     tools: list[str],
     seen: int,
     blocked: list[list[str]] | None = None,
+    steps: "_Steps | None" = None,
 ) -> dict:
     answer.checked = True
     return {
@@ -253,6 +310,7 @@ def _finish(
                     "answer": answer.model_dump(),
                     "answers": question.id if question is not None else None,
                     "tools": tools,
+                    "steps": steps.finish_all() if steps is not None else [],
                 },
             )
         ],
@@ -328,6 +386,8 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         artifacts: list[dict[str, Any]] = []
         blocked: list[list[str]] = []
         handles = Handles()
+        steps = _Steps()
+        steps.start("Reading store")
         reader = _Prefetched(store, _to_read(question))
         (read_feature, read_context), loop = new_loop(handles, reader)
         try:
@@ -336,17 +396,24 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
             )
         except StoreError as error:
             return _finish(
-                failure(STORE_FAILURES.get(error.kind, "store_unreachable")), message, [], seen
+                failure(STORE_FAILURES.get(error.kind, "store_unreachable")),
+                message,
+                [],
+                seen,
+                steps=steps,
             )
         tools += [c["name"] for m in first_reads[:1] for c in m.tool_calls]
         artifacts += [m.artifact for m in first_reads if isinstance(m, ToolMessage) and m.artifact]
+        steps.items.clear()  # "Reading store" becomes what was read
+        steps.reads(artifacts, {i.id for i in question.about if i.id})
         # Nothing attached is left in store: the answer is fixed, no model needed.
         if _all_gone(question, artifacts):
             answer = Answer(statements=[Statement(kind="failure", text=FIXED_LINES["not_found"])])
-            return _finish(answer, message, tools, seen)
+            return _finish(answer, message, tools, seen, steps=steps)
         messages: list[Any] = [HumanMessage(_prompt(question)), *first_reads]
         retried = False
         for attempt in range(2):
+            steps.start("Writing the answer" if attempt == 0 else "Writing the answer again")
             try:
                 try:
                     result = loop.invoke({"messages": messages}, config)
@@ -364,10 +431,11 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
                     message,
                     tools,
                     seen,
+                    steps=steps,
                 )
             except Exception as error:  # noqa: BLE001 - the model or its output failed: say so
                 blocked.append([f"the run failed: {type(error).__name__}: {str(error)[:300]}"])
-                return _finish(failure("model_failed"), message, tools, seen, blocked)
+                return _finish(failure("model_failed"), message, tools, seen, blocked, steps=steps)
             run = result["messages"][len(messages) :]
             tools += [c["name"] for m in run if isinstance(m, AIMessage) for c in m.tool_calls]
             artifacts += [m.artifact for m in run if isinstance(m, ToolMessage) and m.artifact]
@@ -376,8 +444,9 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
                 answer = Answer(
                     statements=[Statement(kind="failure", text=FIXED_LINES["not_found"])]
                 )
-                return _finish(answer, message, tools, seen)
+                return _finish(answer, message, tools, seen, steps=steps)
 
+            steps.start("Checking the answer")
             draft = result.get("structured_response")
             read = reads_from(artifacts)
             if isinstance(draft, Draft):
@@ -397,7 +466,7 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
                 except Exception as error:  # noqa: BLE001 - a bug here must not show an answer
                     problems = [f"the answer could not be checked: {type(error).__name__}"]
             if not problems:
-                return _finish(rendered, message, tools, seen, blocked)
+                return _finish(rendered, message, tools, seen, blocked, steps=steps)
             blocked.append(
                 [
                     *problems,
@@ -412,7 +481,7 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
                         prompts.RETRY.format(problems="\n".join(f"- {p}" for p in problems))
                     ),
                 ]
-        return _finish(failure("check_failed"), message, tools, seen, blocked)
+        return _finish(failure("check_failed"), message, tools, seen, blocked, steps=steps)
 
     builder = StateGraph(AgentState)
     builder.add_node("ingress", ingress)
