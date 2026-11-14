@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button"
 import { geometryBounds, plural, sectionLabel } from "@/data/derive"
 import {
   ATTRIBUTE_LABEL,
-  STATUS_WORD,
   type AgentAnswerRef,
   type AgentStatement,
 } from "@/data/agent/answer"
+import { refTitle } from "@/data/agent/ref-title"
 import {
   useAgent,
   useSharedThread,
@@ -59,36 +59,13 @@ function useOpenAgentRef(): (ref: AgentAnswerRef) => void {
   }
 }
 
-function refTitle(
-  ref: AgentAnswerRef,
-  name: (id: string) => string
-): { title: string; meta: string } {
-  if (ref.type === "feature")
-    return { title: name(ref.id), meta: "Read in store" }
-  const attribute = ref.attribute
-    ? (ATTRIBUTE_LABEL[ref.attribute] ?? ref.attribute)
-    : "Claim"
-  const status = ref.status ? STATUS_WORD[ref.status] : ""
-  const by =
-    ref.status === "candidate" && ref.asserter
-      ? ` by a ${ref.asserter === "pipeline" ? "tool" : "person"}`
-      : ""
-  return {
-    title: attribute,
-    meta: [`${status}${by}`, ref.feature_id ? name(ref.feature_id) : null]
-      .filter(Boolean)
-      .join(" · "),
-  }
-}
-
 function Statement({ statement }: { statement: AgentStatement }) {
   const { network, sectionById } = useStudioData()
   const open = useOpenAgentRef()
   const name = (id: string) => {
     const section = sectionById.get(id)
     if (section) return sectionLabel(section)
-    const pipeline = network.pipelines.find((p) => p.id === id)
-    return pipeline?.name ?? "Pipeline"
+    return network.pipelines.find((p) => p.id === id)?.name ?? null
   }
   return (
     <div className="flex flex-col gap-1.5" data-kind={statement.kind}>

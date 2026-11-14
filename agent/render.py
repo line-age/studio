@@ -263,6 +263,48 @@ def _slot(claim: dict[str, Any], field: str) -> str:
 # Statements --------------------------------------------------------------------------------
 
 
+LINK_WORDS = {
+    "same_as": "Same pipe",
+    "overlaps": "Overlaps",
+    "split_into": "Split into",
+    "part_of": "Part of a pipeline",
+    "parallel_to": "Parallel pipe",
+}
+# A line traced as gone at the other end: Studio's proposed end and proposed cut.
+LINK_WORDS_GONE = {"same_as": "End, traced as gone", "overlaps": "Cut, traced as gone"}
+
+
+def is_traced_as_gone(feature: dict[str, Any]) -> bool:
+    """Store's removal: a section whose status is decommissioned, cited to a map that omits it."""
+    return any(
+        claim["attribute_key"] == "status"
+        and claim.get("value_text") == "decommissioned"
+        and claim["status"] != "rejected"
+        for claim in feature.get("claims") or []
+    )
+
+
+def ref_label(feature_id: str, read: "Read") -> str:
+    """What a feature is, in Studio's words: a section, a pipeline, a trace merged into a
+    section, or a line traced as gone."""
+    feature = read.features[feature_id]
+    if is_traced_as_gone(feature):
+        return f"line traced as gone {feature_id[:8]}"
+    into = next((s for s, merged in read.scope.items() if feature_id in merged), None)
+    if into is not None:
+        return f"trace {feature_id[:8]}, merged into {feature_name(read.features[into])}"
+    return feature_name(feature)
+
+
+def _link_label(link: dict[str, Any], read: "Read") -> str:
+    relation = link["relation"]
+    ends = (link.get("from_feature_id"), link.get("to_feature_id"))
+    gone = any(e in read.features and is_traced_as_gone(read.features[e]) for e in ends)
+    if gone and relation in LINK_WORDS_GONE:
+        return LINK_WORDS_GONE[relation]
+    return LINK_WORDS.get(relation, relation)
+
+
 def _ref(ref_type: str, ref_id: str, read: "Read") -> Ref:
     if ref_type == "claim":
         claim = read.claims.get(ref_id)
@@ -275,15 +317,16 @@ def _ref(ref_type: str, ref_id: str, read: "Read") -> Ref:
             attribute=claim["attribute_key"],
             status=claim["status"],
             asserter=claim.get("asserted_by_kind"),
+            label=ref_label(claim["feature_id"], read),
         )
     if ref_type == "link":
         link = read.links.get(ref_id)
         if link is None:
             raise Unfillable(f"link {ref_id} was not read from store in this run")
-        return Ref(type="link", id=ref_id, status=link["status"])
+        return Ref(type="link", id=ref_id, status=link["status"], label=_link_label(link, read))
     if ref_id not in read.features:
         raise Unfillable(f"feature {ref_id} was not read from store in this run")
-    return Ref(type="feature", id=ref_id)
+    return Ref(type="feature", id=ref_id, label=ref_label(ref_id, read))
 
 
 class Read:

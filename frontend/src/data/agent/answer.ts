@@ -23,6 +23,8 @@ export const agentAnswerRef = z.object({
     .nullable()
     .optional(),
   asserter: z.enum(["person", "pipeline"]).nullable().optional(),
+  /** What it opens, named by the service from what it read. */
+  label: z.string().nullable().optional(),
 })
 
 export const agentStatement = z.object({

@@ -121,6 +121,10 @@ class Ref(_Strict):
     attribute: str | None = None
     status: Literal["accepted", "candidate", "rejected", "proposed", "confirmed"] | None = None
     asserter: Literal["person", "pipeline"] | None = None
+    # What it opens, named from what was read: a feature by its label or kind and short
+    # id; a claim by the feature it is on; a link by what it says. Studio lists sections
+    # and pipelines only, so it cannot name a merged trace or a line traced as gone.
+    label: str | None = None
 
 
 class CitationRequest(_Strict):
