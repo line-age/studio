@@ -857,11 +857,12 @@ function PipelineList({
               : "indeterminate"
         }
         selectionLabel="Select everything shown"
-        onSelectionChange={() =>
+        onSelectionChange={() => {
           select(
             groups.length === 0 ? rows.flatMap((row) => idsOf(row.summary)) : []
           )
-        }
+          offerAgent()
+        }}
       />
       <div
         ref={listRef}
@@ -884,7 +885,12 @@ function PipelineList({
         )}
         {proposed.map(renderRow)}
         {list === "pipelines" && loose.length > 0 && (
-          <ListGroupHeader count={formatCount(loose.length)}>
+          // Counts sections, as the rows under it do, not the rows.
+          <ListGroupHeader
+            count={formatCount(
+              loose.reduce((n, row) => n + row.summary.sections.length, 0)
+            )}
+          >
             Not in a pipeline
           </ListGroupHeader>
         )}

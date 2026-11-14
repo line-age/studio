@@ -144,6 +144,26 @@ describe("asking the Agent", () => {
     expect(agentBar).toBe(selection)
   })
 
+  it("offers the Agent for a selection made with the boxes", async () => {
+    const user = await open()
+    // A section's box in the properties panel.
+    await user.click(screen.getByRole("option", { name: /North line/ }))
+    await user.click(
+      screen.getByRole("checkbox", { name: "Select Birch to Cedar" })
+    )
+    let { selection, agentBar } = useStudio.getState()
+    expect([...selection]).toEqual(["s-1"])
+    expect(agentBar).toBe(selection)
+    // A row's box in the list.
+    useStudio.getState().dismissAgentBar()
+    await user.click(
+      screen.getByRole("checkbox", { name: "Select South line" })
+    )
+    ;({ selection, agentBar } = useStudio.getState())
+    expect(selection.has("s-3")).toBe(true)
+    expect(agentBar).toBe(selection)
+  })
+
   it("offers questions that only read on a claim, by what the claim is", async () => {
     const user = await open()
     const claims = await openSection(user)
