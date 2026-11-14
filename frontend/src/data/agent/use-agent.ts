@@ -3,7 +3,12 @@ import { Client } from "@langchain/langgraph-sdk"
 import { useStream } from "@langchain/react"
 
 import type { Question } from "../question"
-import { agentAnswer, type AgentAnswer } from "./answer"
+import {
+  agentAnswer,
+  agentStep,
+  type AgentAnswer,
+  type AgentStep,
+} from "./answer"
 
 /*
  * The conversation with the Agent service, through this app's own /agent path.
@@ -23,6 +28,8 @@ export interface AgentTurn {
   answer: AgentAnswer | null
   /** The store reads the Agent made for it. */
   tools: string[]
+  /** What it did, in plain words, kept on the reply. */
+  steps: AgentStep[]
 }
 
 interface RawMessage {
@@ -57,7 +64,13 @@ export function turnsFrom(messages: readonly RawMessage[]): AgentTurn[] {
         about: [],
         network: "",
       }
-      const turn = { id: message.id, question, answer: null, tools: [] }
+      const turn: AgentTurn = {
+        id: message.id,
+        question,
+        answer: null,
+        tools: [],
+        steps: [],
+      }
       turns.push(turn)
       byId.set(message.id, turn)
     } else if (message.type === "ai" && typeof extra.answers === "string") {
@@ -67,6 +80,8 @@ export function turnsFrom(messages: readonly RawMessage[]): AgentTurn[] {
       if (turn && parsed.success && parsed.data.checked) {
         turn.answer = parsed.data
         turn.tools = Array.isArray(extra.tools) ? (extra.tools as string[]) : []
+        const steps = agentStep.array().safeParse(extra.steps)
+        turn.steps = steps.success ? steps.data : []
       }
     }
   }
@@ -181,8 +196,15 @@ export function useAgent() {
     })
   }
 
+  // What the Agent is doing now: the graph keeps it in its state ("steps"),
+  // which arrives on the values stream as each node finishes.
+  const nowDoing = agentStep
+    .array()
+    .safeParse((stream.values as { steps?: unknown } | undefined)?.steps)
+
   return {
     turns,
+    liveSteps: working && nowDoing.success ? nowDoing.data : [],
     ask,
     stop,
     clear,

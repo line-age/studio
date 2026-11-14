@@ -25,7 +25,13 @@ export const agentAnswerRef = z.object({
   asserter: z.enum(["person", "pipeline"]).nullable().optional(),
   /** What it opens, named by the service from what it read. */
   label: z.string().nullable().optional(),
+  /** For a claim: its source and page, shown beside the statement; null when none. */
+  source: z.string().nullable().optional(),
 })
+
+/** One thing the Agent did for an answer, in plain words (its chain of thought). */
+export const agentStep = z.object({ text: z.string(), done: z.boolean() })
+export type AgentStep = z.infer<typeof agentStep>
 
 /** The fixed rules a lead is found by (studio/agent/schemas.py, LeadRule). */
 const leadRule = z.enum([

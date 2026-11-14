@@ -37,6 +37,7 @@ vi.mock("@/data/agent/use-agent", () => ({
   useSharedThread: () => service.thread,
   useAgent: () => ({
     turns: [],
+    liveSteps: [],
     ask: service.ask,
     stop: () => Promise.resolve(),
     clear: () => Promise.resolve(),

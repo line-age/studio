@@ -42,6 +42,11 @@ class AgentState(MessagesState):
     tools: list[str]
     # What the grounding check found in each draft that was sent back. For traces and evals.
     blocked: list[list[str]]
+    # What the Agent does for the question, in plain words, as it goes: set by `read`
+    # (what it read, and what it is doing next) and by `answer` (all of it, done).
+    # Studio shows them while it works; it reads the graph's values, which it always
+    # receives.
+    steps: list[dict[str, Any]]
 
 
 def ingress(state: AgentState) -> dict:
@@ -59,6 +64,7 @@ def ingress(state: AgentState) -> dict:
         "answers": None,
         "tools": [],
         "blocked": [],
+        "steps": [],
     }
 
 
@@ -317,6 +323,7 @@ def _finish(
         "answer": answer.model_dump(),
         "answers": question.id if question is not None else None,
         "tools": tools,
+        "steps": steps.finish_all() if steps is not None else [],
         "seen": seen + 1,
     }
 
@@ -355,6 +362,9 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
             output_config={"effort": "low"},
         )
 
+    # Reads `read` made for a question, handed to `answer` in the same process.
+    prefetched: dict[str, _Prefetched] = {}
+
     def new_loop(handles: Handles, reader: Any = store):
         # Made for each question, so each question starts with tools that have read nothing.
         tools = make_tools(reader, handles)
@@ -387,8 +397,10 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         blocked: list[list[str]] = []
         handles = Handles()
         steps = _Steps()
+        # What `read` fetched for this question, if this process ran it; else fetch now.
+        taken = prefetched.pop(message.id, None) if message.id else None
         steps.start("Reading store")
-        reader = _Prefetched(store, _to_read(question))
+        reader = taken or _Prefetched(store, _to_read(question))
         (read_feature, read_context), loop = new_loop(handles, reader)
         try:
             first_reads = _read_attached(
@@ -484,9 +496,57 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         return _finish(failure("check_failed"), message, tools, seen, blocked, steps=steps)
 
     builder = StateGraph(AgentState)
+
+    def read(state: AgentState) -> dict:
+        """Say what is being read before the model starts: the attached features and
+        their pipelines, read in parallel (fast), then what comes next. Studio shows
+        these while the answer is worked on; `answer` reads again for itself, so
+        nothing here is relied on."""
+        message = next(
+            (m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None
+        )
+        try:
+            question = _question(message) if message is not None else None
+        except ValueError:
+            question = None
+        if question is None or not question.about:
+            return {"steps": [{"text": "Writing the answer", "done": False}]}
+        ids = _to_read(question)
+        reader = _Prefetched(store, ids)
+        if message is not None and message.id:
+            if len(prefetched) > 32:  # runs that died between the nodes; never grows
+                prefetched.clear()
+            prefetched[message.id] = reader  # `answer` takes these reads over
+        steps: list[dict[str, Any]] = []
+        for fid in [*ids, *reader.pipelines]:
+            try:
+                feature = reader.feature(fid)
+            except StoreError:
+                continue
+            words = (
+                f"Read its pipeline, {feature_name(feature)}"
+                if fid in reader.pipelines
+                else f"Read {feature_name(feature)}"
+            )
+            steps.append({"text": words, "done": True})
+        if len(steps) > 4:
+            steps = [{"text": f"Read {len(steps)} things attached", "done": True}]
+        has_section = any(i.kind == "section" for i in question.about)
+        steps.append(
+            {
+                "text": "Reading what surrounds it, then writing the answer"
+                if has_section
+                else "Writing the answer",
+                "done": False,
+            }
+        )
+        return {"steps": steps}
+
     builder.add_node("ingress", ingress)
+    builder.add_node("read", read)
     builder.add_node("answer", answer)
     builder.add_edge(START, "ingress")
-    builder.add_edge("ingress", "answer")
+    builder.add_edge("ingress", "read")
+    builder.add_edge("read", "answer")
     builder.add_edge("answer", END)
     return builder.compile(name="studio-agent")

@@ -5,12 +5,14 @@ import { Bubble } from "@/components/bubble"
 import { Marker } from "@/components/marker"
 import { Button } from "@/components/ui/button"
 import { geometryBounds, plural, sectionLabel } from "@/data/derive"
+import { Icon } from "@/components/icons/icon"
+import { Badge } from "@/components/ui/badge"
 import {
   ATTRIBUTE_LABEL,
   type AgentAnswerRef,
   type AgentStatement,
+  type AgentStep,
 } from "@/data/agent/answer"
-import { refTitle } from "@/data/agent/ref-title"
 import {
   useAgent,
   useSharedThread,
@@ -20,6 +22,9 @@ import type { Question } from "@/data/question"
 
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
+import { AgentSources } from "./agent-sources"
+import { AgentStatementView } from "./agent-statement"
+import { AgentSteps } from "./agent-steps"
 
 /*
  * The conversation with the Agent service, on store's data. Every answer shown
@@ -59,36 +64,112 @@ function useOpenAgentRef(): (ref: AgentAnswerRef) => void {
   }
 }
 
-function Statement({ statement }: { statement: AgentStatement }) {
-  const { network, sectionById } = useStudioData()
-  const open = useOpenAgentRef()
-  const name = (id: string) => {
-    const section = sectionById.get(id)
-    if (section) return sectionLabel(section)
-    return network.pipelines.find((p) => p.id === id)?.name ?? null
+/** The attached section a statement is about, if one: grouping several. */
+function sectionOf(
+  statement: AgentStatement,
+  attached: ReadonlySet<string>
+): string | null {
+  for (const ref of statement.refs) {
+    const id = ref.type === "feature" ? ref.id : ref.feature_id
+    if (id && attached.has(id)) return id
   }
+  return null
+}
+
+/**
+ * The statements of an answer. About several sections, they are grouped under
+ * each section's name, in the order the answer gives them; attached sections
+ * it did not go into are listed after, each opens on its own.
+ */
+function AnswerBody({
+  turn,
+  name,
+  open,
+}: {
+  turn: AgentTurn & { answer: NonNullable<AgentTurn["answer"]> }
+  name: (id: string) => string | null
+  open: (ref: AgentAnswerRef) => void
+}) {
+  const attached = turn.question.about
+    .filter((i) => i.kind === "section" && i.id)
+    .map((i) => i.id as string)
+  const statements = turn.answer.statements
+  // A fixed line (a question back, a refusal, a failure) is the whole answer.
+  const fixed = statements.some((s) =>
+    ["clarify", "refusal", "failure", "greeting"].includes(s.kind)
+  )
+  if (attached.length < 2 || fixed)
+    return (
+      <>
+        {statements.map((statement, i) => (
+          <AgentStatementView
+            key={i}
+            statement={statement}
+            name={name}
+            open={open}
+          />
+        ))}
+      </>
+    )
+  const set = new Set(attached)
+  const groups: { id: string | null; items: AgentStatement[] }[] = []
+  for (const statement of statements) {
+    const id = sectionOf(statement, set) ?? groups.at(-1)?.id ?? null
+    const group = groups.find((g) => g.id === id)
+    if (group) group.items.push(statement)
+    else groups.push({ id, items: [statement] })
+  }
+  const rest = attached.filter((id) => !groups.some((g) => g.id === id))
+  const openSection = (id: string) => open({ type: "feature", id })
   return (
-    <div className="flex flex-col gap-1.5" data-kind={statement.kind}>
-      <p className="type-ui-sm">{statement.text}</p>
-      {statement.refs.map((ref) => {
-        const { title, meta } = refTitle(ref, name)
-        return (
-          <button
-            key={`${ref.type}:${ref.id}`}
-            type="button"
-            aria-label={`Open ${title}, ${meta}`}
-            onClick={() => open(ref)}
-            className="self-start rounded-xl text-left transition-colors duration-100 outline-none focus-visible:shadow-focus-ring hover:[&>div]:bg-muted"
-          >
-            <Attachment
-              icon={ref.type === "feature" ? "line" : "source"}
-              title={title}
-              meta={meta}
+    <>
+      {groups.map((group) => (
+        <section
+          key={group.id ?? "none"}
+          aria-label={group.id ? (name(group.id) ?? undefined) : undefined}
+          className="flex flex-col gap-2.5 border-t border-border-subtle pt-3"
+        >
+          {group.id && (
+            <button
+              type="button"
+              onClick={() => openSection(group.id as string)}
+              className="flex items-center gap-1 self-start rounded-sm type-ui-sm-medium text-primary outline-none hover:underline focus-visible:shadow-focus-ring"
+            >
+              <Icon name="line" className="size-3.5" />
+              {name(group.id) ?? group.id.slice(0, 8)}
+            </button>
+          )}
+          {group.items.map((statement, i) => (
+            <AgentStatementView
+              key={i}
+              statement={statement}
+              name={name}
+              open={open}
             />
-          </button>
-        )
-      })}
-    </div>
+          ))}
+        </section>
+      ))}
+      {rest.length > 0 && (
+        <section className="flex flex-col gap-2 border-t border-border-subtle pt-3">
+          <p className="type-ui-sm">
+            {plural(rest.length, "more section")}. What surrounds a section is
+            worked out three at a time; open one to see it.
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {rest.map((id) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => openSection(id)}
+                className="rounded-full outline-none focus-visible:shadow-focus-ring"
+              >
+                <Badge variant="outline">{name(id) ?? id.slice(0, 8)}</Badge>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+    </>
   )
 }
 
@@ -105,12 +186,22 @@ function Turn({
   turn,
   working,
   last,
+  liveSteps,
 }: {
   turn: AgentTurn
   working: boolean
   last: boolean
+  liveSteps: readonly AgentStep[]
 }) {
+  const { network, sectionById } = useStudioData()
+  const open = useOpenAgentRef()
+  const name = (id: string) => {
+    const section = sectionById.get(id)
+    if (section) return sectionLabel(section)
+    return network.pipelines.find((p) => p.id === id)?.name ?? null
+  }
   const about = asked(turn.question)
+  const now = last && working && !turn.answer
   return (
     <>
       <div className="flex flex-col items-end gap-1.5">
@@ -119,16 +210,20 @@ function Turn({
       </div>
       {turn.answer ? (
         <div
-          className="flex flex-col gap-2.5"
+          className="flex flex-col gap-3"
           role="article"
           aria-label="The Agent's answer"
         >
-          {turn.answer.statements.map((statement, i) => (
-            <Statement key={i} statement={statement} />
-          ))}
+          <AgentSteps steps={turn.steps} working={false} />
+          <AnswerBody
+            turn={{ ...turn, answer: turn.answer }}
+            name={name}
+            open={open}
+          />
+          <AgentSources statements={turn.answer.statements} open={open} />
         </div>
-      ) : last && working ? (
-        <Marker>Reading store…</Marker>
+      ) : now ? (
+        <AgentSteps steps={liveSteps} working />
       ) : (
         <Marker>Not answered.</Marker>
       )}
@@ -152,7 +247,7 @@ function Conversation({
   // Keep the newest turn in view as it is asked and answered.
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight })
-  }, [agent.turns.length, last?.answer, agent.working])
+  }, [agent.turns.length, last?.answer, agent.working, agent.liveSteps.length])
   return (
     <>
       <div className="flex items-center justify-between px-3 pt-2">
@@ -189,6 +284,7 @@ function Conversation({
             turn={turn}
             working={agent.working}
             last={i === agent.turns.length - 1}
+            liveSteps={agent.liveSteps}
           />
         ))}
         {agent.turns.length === 0 && <Marker>No conversation yet.</Marker>}
