@@ -307,3 +307,42 @@ def test_a_claim_on_a_merged_trace_may_name_the_section_it_counts_for(world):
         ]
     }
     assert ungrounded(answer, world) == []
+
+
+def _metres(a, b, lat):
+    """Distance between two lon/lat points, flat-earth: good to well under a metre here."""
+    import math
+
+    kx = 111_320 * math.cos(math.radians(lat))
+    return math.hypot((a[0] - b[0]) * kx, (a[1] - b[1]) * 110_574)
+
+
+def _to_line(p, line):
+    """From a point to the nearest point of a polyline, in metres, sampled finely."""
+    import itertools
+
+    best = float("inf")
+    for a, b in itertools.pairwise(line):
+        for n in range(1001):
+            t = n / 1000
+            q = (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
+            best = min(best, _metres(p, q, p[1]))
+    return best
+
+
+def test_the_context_shapes_are_drawn_as_their_cases_need(world):
+    def line(code):
+        route = next(
+            c
+            for c in world["features"][world["codes"][code]]["claims"]
+            if c["attribute_key"] == "route"
+        )
+        return route["value_geom"]["coordinates"][0]
+
+    s14, s15, s16, s17, s18 = (line(c) for c in ("s14", "s15", "s16", "s17", "s18"))
+    assert _metres(s14[-1], s15[0], 38) < 1  # end to end
+    assert _to_line(s16[0], s15) < 1 and _metres(s16[0], s15[0], 38) > 50  # a T
+    assert 50 < _to_line(s17[-1], s14) < 1000  # a near miss
+    # Crosses s15, but no end of either is near the other: not touching.
+    assert all(_to_line(p, s15) > 50 for p in (s18[0], s18[-1]))
+    assert all(_to_line(p, s18) > 50 for p in (s15[0], s15[-1]))

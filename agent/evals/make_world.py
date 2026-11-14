@@ -622,7 +622,62 @@ def small() -> World:
         quote=f"{COMPANIES[3]} owns the line west of Sampletown.",
     )
     w.link("same_as", twin, s13, "confirmed", by=w.person)
+
+    _context(w, j31, j37)
     return w
+
+
+def _context(w: World, j31: dict[str, Any], j37: dict[str, Any]) -> None:
+    """What surrounds a section (B17-B20), in an area of its own so nothing above touches
+    it. Drawn touching means a line end within 50 m of another section (B0)."""
+    # s14: only its route and its status, the section the context is for. First shown
+    # on the 1932 printing, so absent from the 1926 one.
+    s14 = w.section("s14", [[-106.0, 38.0], [-105.8, 38.05], [-105.6, 38.1]], 1932)
+    # s15: drawn touching s14 end to end, with an owner cited to a page.
+    s15 = w.section("s15", [[-105.6, 38.1], [-105.4, 38.15], [-105.2, 38.2]], 1932)
+    w.claim(
+        s15,
+        "owner",
+        source=j31,
+        text=COMPANIES[2],
+        edtf="1932",
+        by=w.person,
+        locator="p. 52",
+        quote=f"The {COMPANIES[2]} line runs east from the river crossing.",
+    )
+    # s16: its end meets the middle of s15 (a T), and it is in the pipeline l01.
+    s16 = w.section("s16", [[-105.4, 38.15], [-105.35, 38.35], [-105.3, 38.55]], 1938)
+    w.link("part_of", s16, w.codes["l01"], "confirmed", by=w.person)
+    # s17: a near miss, its end some 350 m short of s14. Not drawn touching.
+    w.section("s17", [[-106.4, 37.95], [-106.2, 37.975], [-106.004, 38.0]], 1932)
+    # s18: crosses s15 with no end near it. Drawn crossing is not drawn touching.
+    w.section("s18", [[-105.3, 38.0], [-105.3, 38.2], [-105.3, 38.4]], 1938)
+    # d19: another trace of s14 holding an owner; a tool proposes they are one pipe.
+    d19 = w.section("d19", [[-106.0, 38.0], [-105.8, 38.05], [-105.6, 38.1]], 1938)
+    w.claim(
+        d19,
+        "owner",
+        source=j37,
+        text=COMPANIES[0],
+        edtf="1938",
+        by=w.person,
+        locator="p. 133",
+        quote=f"The {COMPANIES[0]} bought the river line.",
+    )
+    w.link("same_as", d19, s14, "proposed", by=w.cite, score=0.7)
+    # s20: two accepted owners for the same years. A conflict to resolve, not to pick.
+    s20 = w.section("s20", [[-108.0, 39.0], [-107.8, 39.05], [-107.6, 39.1]], 1938)
+    for company, page in ((COMPANIES[1], "p. 118"), (COMPANIES[2], "p. 119")):
+        w.claim(
+            s20,
+            "owner",
+            source=j37,
+            text=company,
+            edtf="1938",
+            by=w.person,
+            locator=page,
+            quote=f"The {company} owns the mountain line.",
+        )
 
 
 def wide(count: int = 400) -> World:

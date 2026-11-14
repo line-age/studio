@@ -1,6 +1,7 @@
 {
  "codes": {
   "d13": "9b603948-e8a7-537c-b9e2-b0e218d780a1",
+  "d19": "611edd31-6648-5da1-8a80-1c3627b5763a",
   "l01": "adbc7198-9a1e-53c5-b66e-5f418fbd143f",
   "l02": "6d679792-148e-5207-b94b-cb4eef32dc46",
   "r01": "c447d22a-4fd3-558b-be05-ef3bb3d56a41",
@@ -17,7 +18,13 @@
   "s10": "5d3b575e-1abf-5e05-9c2b-688a3e129645",
   "s11": "c4333628-89b3-5602-8ab8-8cbe1870e690",
   "s12": "192ca412-4a47-528c-b225-e7bc4eebcde0",
-  "s13": "c1e08407-9bb2-5c33-92fe-0104a36f2e50"
+  "s13": "c1e08407-9bb2-5c33-92fe-0104a36f2e50",
+  "s14": "777952cb-40a0-580a-8be9-2e4b9305bd79",
+  "s15": "b6618689-b54d-5157-9dac-d0e0e401a9d2",
+  "s16": "18dd9183-6303-5ec5-bcc6-5a448f11d365",
+  "s17": "94938557-677e-506e-9076-8574c8a97402",
+  "s18": "9fc4f877-276b-5858-814d-8e4d943d392d",
+  "s20": "c1102433-6ada-5e8d-aab4-6960f27af392"
  },
  "features": {
   "011193e6-0980-56dd-8370-a52000be2fb0": {
@@ -269,6 +276,138 @@
    "kind": "section",
    "label": null,
    "links": [],
+   "network": "gas"
+  },
+  "18dd9183-6303-5ec5-bcc6-5a448f11d365": {
+   "claims": [
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "route",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1938",
+       "claim_id": "579e048e-662b-508d-bc5e-a4cd190ce955",
+       "confidence": 0.8,
+       "id": "26b2c56e-9fc3-5312-b320-9635706415ea",
+       "identifier": null,
+       "locator": "traced in example_add_s16_jordansample",
+       "published_edtf": "1938",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3fdafc0b-dd62-5b31-9959-0519ab68341d",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1938 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:19:00+00:00",
+     "end_earliest": null,
+     "end_latest": null,
+     "id": "579e048e-662b-508d-bc5e-a4cd190ce955",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": null,
+     "status": "accepted",
+     "valid_edtf": null,
+     "value_feature_id": null,
+     "value_geom": {
+      "coordinates": [
+       [
+        [
+         -105.4,
+         38.15
+        ],
+        [
+         -105.35,
+         38.35
+        ],
+        [
+         -105.3,
+         38.55
+        ]
+       ]
+      ],
+      "type": "MultiLineString"
+     },
+     "value_num": null,
+     "value_text": null,
+     "value_unit": null
+    },
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "status",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1938",
+       "claim_id": "af074d46-b545-5a31-a2d1-4c8e1638163f",
+       "confidence": 0.8,
+       "id": "a3be5a2f-f316-5064-b2c7-92d64d5a56c7",
+       "identifier": null,
+       "locator": null,
+       "published_edtf": "1938",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3fdafc0b-dd62-5b31-9959-0519ab68341d",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1938 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:20:00+00:00",
+     "end_earliest": "1938-01-01",
+     "end_latest": null,
+     "id": "af074d46-b545-5a31-a2d1-4c8e1638163f",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": "1938-12-31",
+     "status": "accepted",
+     "valid_edtf": "../1938",
+     "value_feature_id": null,
+     "value_geom": null,
+     "value_num": null,
+     "value_text": "operational",
+     "value_unit": null
+    }
+   ],
+   "created_at": "2026-01-01T01:18:00+00:00",
+   "dates": {
+    "date_conflict": false,
+    "existed_from": "../1938",
+    "existed_to": null,
+    "time_end": null,
+    "time_start": "1938-01-01"
+   },
+   "external_keys": [
+    {
+     "key": "example_add_s16_jordansample/layer/1",
+     "system": "example-import"
+    }
+   ],
+   "id": "18dd9183-6303-5ec5-bcc6-5a448f11d365",
+   "kind": "section",
+   "label": null,
+   "links": [
+    {
+     "asserted_by": "3f453adf-182c-555d-bed4-c78422dc1e9e",
+     "asserted_by_name": "Alex Example",
+     "citation_id": null,
+     "created_at": "2026-01-01T01:21:00+00:00",
+     "from_feature_id": "18dd9183-6303-5ec5-bcc6-5a448f11d365",
+     "id": "ff41b06e-c9ea-5f53-bcd4-482ae4c024e3",
+     "relation": "part_of",
+     "score": null,
+     "status": "confirmed",
+     "to_feature_id": "adbc7198-9a1e-53c5-b66e-5f418fbd143f"
+    }
+   ],
    "network": "gas"
   },
   "192ca412-4a47-528c-b225-e7bc4eebcde0": {
@@ -1115,6 +1254,177 @@
    "links": [],
    "network": "gas"
   },
+  "611edd31-6648-5da1-8a80-1c3627b5763a": {
+   "claims": [
+    {
+     "asserted_by": "3f453adf-182c-555d-bed4-c78422dc1e9e",
+     "asserted_by_kind": "person",
+     "asserted_by_name": "Alex Example",
+     "attribute_key": "owner",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": null,
+       "claim_id": "64991cf6-55e2-5dab-b5ee-1168452b5492",
+       "confidence": null,
+       "id": "33750f22-7e84-593c-878c-53cb96a759cf",
+       "identifier": null,
+       "locator": "p. 133",
+       "published_edtf": "1938",
+       "quote": "The Example Pipe Line Co. bought the river line.",
+       "role": "states",
+       "source_id": "255de424-4c05-5172-8ef1-e9f55fbd45fc",
+       "source_kind": "issue",
+       "source_title": "Example Gazette, vol. 38 no. 11",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:31:00+00:00",
+     "end_earliest": null,
+     "end_latest": null,
+     "id": "64991cf6-55e2-5dab-b5ee-1168452b5492",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": null,
+     "status": "accepted",
+     "valid_edtf": "1938",
+     "value_feature_id": null,
+     "value_geom": null,
+     "value_num": null,
+     "value_text": "Example Pipe Line Co.",
+     "value_unit": null
+    },
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "route",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1938",
+       "claim_id": "76756365-2c9c-5e90-bbe3-6749a5ff8df6",
+       "confidence": 0.8,
+       "id": "f902c4dc-f21a-51c8-9b92-0859ff8f2d06",
+       "identifier": null,
+       "locator": "traced in example_add_d19_jordansample",
+       "published_edtf": "1938",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3fdafc0b-dd62-5b31-9959-0519ab68341d",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1938 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:29:00+00:00",
+     "end_earliest": null,
+     "end_latest": null,
+     "id": "76756365-2c9c-5e90-bbe3-6749a5ff8df6",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": null,
+     "status": "accepted",
+     "valid_edtf": null,
+     "value_feature_id": null,
+     "value_geom": {
+      "coordinates": [
+       [
+        [
+         -106.0,
+         38.0
+        ],
+        [
+         -105.8,
+         38.05
+        ],
+        [
+         -105.6,
+         38.1
+        ]
+       ]
+      ],
+      "type": "MultiLineString"
+     },
+     "value_num": null,
+     "value_text": null,
+     "value_unit": null
+    },
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "status",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1938",
+       "claim_id": "b090080c-8593-5085-9c96-428b296e5456",
+       "confidence": 0.8,
+       "id": "4404cb96-9412-554d-a288-411ab4ff3b64",
+       "identifier": null,
+       "locator": null,
+       "published_edtf": "1938",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3fdafc0b-dd62-5b31-9959-0519ab68341d",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1938 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:30:00+00:00",
+     "end_earliest": "1938-01-01",
+     "end_latest": null,
+     "id": "b090080c-8593-5085-9c96-428b296e5456",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": "1938-12-31",
+     "status": "accepted",
+     "valid_edtf": "../1938",
+     "value_feature_id": null,
+     "value_geom": null,
+     "value_num": null,
+     "value_text": "operational",
+     "value_unit": null
+    }
+   ],
+   "created_at": "2026-01-01T01:28:00+00:00",
+   "dates": {
+    "date_conflict": false,
+    "existed_from": "../1938",
+    "existed_to": null,
+    "time_end": null,
+    "time_start": "1938-01-01"
+   },
+   "external_keys": [
+    {
+     "key": "example_add_d19_jordansample/layer/1",
+     "system": "example-import"
+    }
+   ],
+   "id": "611edd31-6648-5da1-8a80-1c3627b5763a",
+   "kind": "section",
+   "label": null,
+   "links": [
+    {
+     "asserted_by": "86a679ee-cce8-5d38-a46a-685a10910089",
+     "asserted_by_name": "example-cite@0.1",
+     "citation_id": null,
+     "created_at": "2026-01-01T01:32:00+00:00",
+     "from_feature_id": "611edd31-6648-5da1-8a80-1c3627b5763a",
+     "id": "7a312cca-2930-51de-aeef-8ec558ecd767",
+     "relation": "same_as",
+     "score": 0.7,
+     "status": "proposed",
+     "to_feature_id": "777952cb-40a0-580a-8be9-2e4b9305bd79"
+    }
+   ],
+   "network": "gas"
+  },
   "63179b43-75f6-5527-b96c-9fcdf25a0657": {
    "claims": [
     {
@@ -1341,6 +1651,257 @@
    ],
    "network": "gas"
   },
+  "777952cb-40a0-580a-8be9-2e4b9305bd79": {
+   "claims": [
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "route",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1932",
+       "claim_id": "50059bd4-fe18-5186-b204-7ca3e6236903",
+       "confidence": 0.8,
+       "id": "57863b01-1147-5bba-9b23-3cdb99986c76",
+       "identifier": null,
+       "locator": "traced in example_add_s14_jordansample",
+       "published_edtf": "1932",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3689c17f-c09c-514b-bfd2-efcaaa6ace0a",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1932 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:12:00+00:00",
+     "end_earliest": null,
+     "end_latest": null,
+     "id": "50059bd4-fe18-5186-b204-7ca3e6236903",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": null,
+     "status": "accepted",
+     "valid_edtf": null,
+     "value_feature_id": null,
+     "value_geom": {
+      "coordinates": [
+       [
+        [
+         -106.0,
+         38.0
+        ],
+        [
+         -105.8,
+         38.05
+        ],
+        [
+         -105.6,
+         38.1
+        ]
+       ]
+      ],
+      "type": "MultiLineString"
+     },
+     "value_num": null,
+     "value_text": null,
+     "value_unit": null
+    },
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "status",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1932",
+       "claim_id": "48cc5a4d-1800-5993-9684-3d88af06e492",
+       "confidence": 0.8,
+       "id": "a6e6eae8-aea5-520f-896f-f8e4a1a15a63",
+       "identifier": null,
+       "locator": null,
+       "published_edtf": "1932",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3689c17f-c09c-514b-bfd2-efcaaa6ace0a",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1932 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:13:00+00:00",
+     "end_earliest": "1932-01-01",
+     "end_latest": null,
+     "id": "48cc5a4d-1800-5993-9684-3d88af06e492",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": "1932-12-31",
+     "status": "accepted",
+     "valid_edtf": "../1932",
+     "value_feature_id": null,
+     "value_geom": null,
+     "value_num": null,
+     "value_text": "operational",
+     "value_unit": null
+    }
+   ],
+   "created_at": "2026-01-01T01:11:00+00:00",
+   "dates": {
+    "date_conflict": false,
+    "existed_from": "../1932",
+    "existed_to": null,
+    "time_end": null,
+    "time_start": "1932-01-01"
+   },
+   "external_keys": [
+    {
+     "key": "example_add_s14_jordansample/layer/1",
+     "system": "example-import"
+    }
+   ],
+   "id": "777952cb-40a0-580a-8be9-2e4b9305bd79",
+   "kind": "section",
+   "label": null,
+   "links": [
+    {
+     "asserted_by": "86a679ee-cce8-5d38-a46a-685a10910089",
+     "asserted_by_name": "example-cite@0.1",
+     "citation_id": null,
+     "created_at": "2026-01-01T01:32:00+00:00",
+     "from_feature_id": "611edd31-6648-5da1-8a80-1c3627b5763a",
+     "id": "7a312cca-2930-51de-aeef-8ec558ecd767",
+     "relation": "same_as",
+     "score": 0.7,
+     "status": "proposed",
+     "to_feature_id": "777952cb-40a0-580a-8be9-2e4b9305bd79"
+    }
+   ],
+   "network": "gas"
+  },
+  "94938557-677e-506e-9076-8574c8a97402": {
+   "claims": [
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "route",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1932",
+       "claim_id": "1968e530-3b6d-57cc-b0b9-e5c50484526b",
+       "confidence": 0.8,
+       "id": "2df97a40-79b5-5235-8883-fe205c2cb9ee",
+       "identifier": null,
+       "locator": "traced in example_add_s17_jordansample",
+       "published_edtf": "1932",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3689c17f-c09c-514b-bfd2-efcaaa6ace0a",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1932 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:23:00+00:00",
+     "end_earliest": null,
+     "end_latest": null,
+     "id": "1968e530-3b6d-57cc-b0b9-e5c50484526b",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": null,
+     "status": "accepted",
+     "valid_edtf": null,
+     "value_feature_id": null,
+     "value_geom": {
+      "coordinates": [
+       [
+        [
+         -106.4,
+         37.95
+        ],
+        [
+         -106.2,
+         37.975
+        ],
+        [
+         -106.004,
+         38.0
+        ]
+       ]
+      ],
+      "type": "MultiLineString"
+     },
+     "value_num": null,
+     "value_text": null,
+     "value_unit": null
+    },
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "status",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1932",
+       "claim_id": "b4deaab4-0e47-514a-9eaf-68a7598f9c2c",
+       "confidence": 0.8,
+       "id": "fc850648-30aa-55e2-a5e1-03b23bd9fbd0",
+       "identifier": null,
+       "locator": null,
+       "published_edtf": "1932",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3689c17f-c09c-514b-bfd2-efcaaa6ace0a",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1932 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:24:00+00:00",
+     "end_earliest": "1932-01-01",
+     "end_latest": null,
+     "id": "b4deaab4-0e47-514a-9eaf-68a7598f9c2c",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": "1932-12-31",
+     "status": "accepted",
+     "valid_edtf": "../1932",
+     "value_feature_id": null,
+     "value_geom": null,
+     "value_num": null,
+     "value_text": "operational",
+     "value_unit": null
+    }
+   ],
+   "created_at": "2026-01-01T01:22:00+00:00",
+   "dates": {
+    "date_conflict": false,
+    "existed_from": "../1932",
+    "existed_to": null,
+    "time_end": null,
+    "time_start": "1932-01-01"
+   },
+   "external_keys": [
+    {
+     "key": "example_add_s17_jordansample/layer/1",
+     "system": "example-import"
+    }
+   ],
+   "id": "94938557-677e-506e-9076-8574c8a97402",
+   "kind": "section",
+   "label": null,
+   "links": [],
+   "network": "gas"
+  },
   "9b603948-e8a7-537c-b9e2-b0e218d780a1": {
    "claims": [
     {
@@ -1512,6 +2073,125 @@
    ],
    "network": "gas"
   },
+  "9fc4f877-276b-5858-814d-8e4d943d392d": {
+   "claims": [
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "route",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1938",
+       "claim_id": "4c4f045e-aca4-5f72-b8ee-3a35cca845bf",
+       "confidence": 0.8,
+       "id": "f37b1684-66a2-58e7-a0a4-3b012849b2bd",
+       "identifier": null,
+       "locator": "traced in example_add_s18_jordansample",
+       "published_edtf": "1938",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3fdafc0b-dd62-5b31-9959-0519ab68341d",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1938 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:26:00+00:00",
+     "end_earliest": null,
+     "end_latest": null,
+     "id": "4c4f045e-aca4-5f72-b8ee-3a35cca845bf",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": null,
+     "status": "accepted",
+     "valid_edtf": null,
+     "value_feature_id": null,
+     "value_geom": {
+      "coordinates": [
+       [
+        [
+         -105.3,
+         38.0
+        ],
+        [
+         -105.3,
+         38.2
+        ],
+        [
+         -105.3,
+         38.4
+        ]
+       ]
+      ],
+      "type": "MultiLineString"
+     },
+     "value_num": null,
+     "value_text": null,
+     "value_unit": null
+    },
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "status",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1938",
+       "claim_id": "fae8918b-1577-5cc1-80c8-ac01e568370c",
+       "confidence": 0.8,
+       "id": "fb386ac7-85c7-5503-8889-16da3bf02286",
+       "identifier": null,
+       "locator": null,
+       "published_edtf": "1938",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3fdafc0b-dd62-5b31-9959-0519ab68341d",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1938 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:27:00+00:00",
+     "end_earliest": "1938-01-01",
+     "end_latest": null,
+     "id": "fae8918b-1577-5cc1-80c8-ac01e568370c",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": "1938-12-31",
+     "status": "accepted",
+     "valid_edtf": "../1938",
+     "value_feature_id": null,
+     "value_geom": null,
+     "value_num": null,
+     "value_text": "operational",
+     "value_unit": null
+    }
+   ],
+   "created_at": "2026-01-01T01:25:00+00:00",
+   "dates": {
+    "date_conflict": false,
+    "existed_from": "../1938",
+    "existed_to": null,
+    "time_end": null,
+    "time_start": "1938-01-01"
+   },
+   "external_keys": [
+    {
+     "key": "example_add_s18_jordansample/layer/1",
+     "system": "example-import"
+    }
+   ],
+   "id": "9fc4f877-276b-5858-814d-8e4d943d392d",
+   "kind": "section",
+   "label": null,
+   "links": [],
+   "network": "gas"
+  },
   "adbc7198-9a1e-53c5-b66e-5f418fbd143f": {
    "claims": [
     {
@@ -1628,8 +2308,375 @@
      "score": null,
      "status": "confirmed",
      "to_feature_id": "adbc7198-9a1e-53c5-b66e-5f418fbd143f"
+    },
+    {
+     "asserted_by": "3f453adf-182c-555d-bed4-c78422dc1e9e",
+     "asserted_by_name": "Alex Example",
+     "citation_id": null,
+     "created_at": "2026-01-01T01:21:00+00:00",
+     "from_feature_id": "18dd9183-6303-5ec5-bcc6-5a448f11d365",
+     "id": "ff41b06e-c9ea-5f53-bcd4-482ae4c024e3",
+     "relation": "part_of",
+     "score": null,
+     "status": "confirmed",
+     "to_feature_id": "adbc7198-9a1e-53c5-b66e-5f418fbd143f"
     }
    ],
+   "network": "gas"
+  },
+  "b6618689-b54d-5157-9dac-d0e0e401a9d2": {
+   "claims": [
+    {
+     "asserted_by": "3f453adf-182c-555d-bed4-c78422dc1e9e",
+     "asserted_by_kind": "person",
+     "asserted_by_name": "Alex Example",
+     "attribute_key": "owner",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": null,
+       "claim_id": "ceab54df-1151-5951-960a-2caada22b720",
+       "confidence": null,
+       "id": "de6b4816-f712-5f47-a9f3-28c94c6b035f",
+       "identifier": null,
+       "locator": "p. 52",
+       "published_edtf": "1932",
+       "quote": "The Invented Natural Gas Corp. line runs east from the river crossing.",
+       "role": "states",
+       "source_id": "6f705f55-62ee-5ed4-9d07-6b96f790df1f",
+       "source_kind": "issue",
+       "source_title": "Example Gazette, vol. 32 no. 3",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:17:00+00:00",
+     "end_earliest": null,
+     "end_latest": null,
+     "id": "ceab54df-1151-5951-960a-2caada22b720",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": null,
+     "status": "accepted",
+     "valid_edtf": "1932",
+     "value_feature_id": null,
+     "value_geom": null,
+     "value_num": null,
+     "value_text": "Invented Natural Gas Corp.",
+     "value_unit": null
+    },
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "route",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1932",
+       "claim_id": "67f75e3f-8e3f-56d4-8381-da7de544e0b8",
+       "confidence": 0.8,
+       "id": "d90c10ba-9bb9-5b96-94a5-e9baebc2d3a1",
+       "identifier": null,
+       "locator": "traced in example_add_s15_jordansample",
+       "published_edtf": "1932",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3689c17f-c09c-514b-bfd2-efcaaa6ace0a",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1932 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:15:00+00:00",
+     "end_earliest": null,
+     "end_latest": null,
+     "id": "67f75e3f-8e3f-56d4-8381-da7de544e0b8",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": null,
+     "status": "accepted",
+     "valid_edtf": null,
+     "value_feature_id": null,
+     "value_geom": {
+      "coordinates": [
+       [
+        [
+         -105.6,
+         38.1
+        ],
+        [
+         -105.4,
+         38.15
+        ],
+        [
+         -105.2,
+         38.2
+        ]
+       ]
+      ],
+      "type": "MultiLineString"
+     },
+     "value_num": null,
+     "value_text": null,
+     "value_unit": null
+    },
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "status",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1932",
+       "claim_id": "ab4ffb09-d8b8-5c4d-8830-f16a7c56a300",
+       "confidence": 0.8,
+       "id": "b9c13043-6974-5ba7-800f-7f45cd587460",
+       "identifier": null,
+       "locator": null,
+       "published_edtf": "1932",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3689c17f-c09c-514b-bfd2-efcaaa6ace0a",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1932 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:16:00+00:00",
+     "end_earliest": "1932-01-01",
+     "end_latest": null,
+     "id": "ab4ffb09-d8b8-5c4d-8830-f16a7c56a300",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": "1932-12-31",
+     "status": "accepted",
+     "valid_edtf": "../1932",
+     "value_feature_id": null,
+     "value_geom": null,
+     "value_num": null,
+     "value_text": "operational",
+     "value_unit": null
+    }
+   ],
+   "created_at": "2026-01-01T01:14:00+00:00",
+   "dates": {
+    "date_conflict": false,
+    "existed_from": "../1932",
+    "existed_to": null,
+    "time_end": null,
+    "time_start": "1932-01-01"
+   },
+   "external_keys": [
+    {
+     "key": "example_add_s15_jordansample/layer/1",
+     "system": "example-import"
+    }
+   ],
+   "id": "b6618689-b54d-5157-9dac-d0e0e401a9d2",
+   "kind": "section",
+   "label": null,
+   "links": [],
+   "network": "gas"
+  },
+  "c1102433-6ada-5e8d-aab4-6960f27af392": {
+   "claims": [
+    {
+     "asserted_by": "3f453adf-182c-555d-bed4-c78422dc1e9e",
+     "asserted_by_kind": "person",
+     "asserted_by_name": "Alex Example",
+     "attribute_key": "owner",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": null,
+       "claim_id": "0673032c-105a-5446-b555-6cff48f6b342",
+       "confidence": null,
+       "id": "61f0805a-f4f1-57e0-a1c1-1b682c6c8289",
+       "identifier": null,
+       "locator": "p. 118",
+       "published_edtf": "1938",
+       "quote": "The Sample Gas Co. owns the mountain line.",
+       "role": "states",
+       "source_id": "255de424-4c05-5172-8ef1-e9f55fbd45fc",
+       "source_kind": "issue",
+       "source_title": "Example Gazette, vol. 38 no. 11",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:36:00+00:00",
+     "end_earliest": null,
+     "end_latest": null,
+     "id": "0673032c-105a-5446-b555-6cff48f6b342",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": null,
+     "status": "accepted",
+     "valid_edtf": "1938",
+     "value_feature_id": null,
+     "value_geom": null,
+     "value_num": null,
+     "value_text": "Sample Gas Co.",
+     "value_unit": null
+    },
+    {
+     "asserted_by": "3f453adf-182c-555d-bed4-c78422dc1e9e",
+     "asserted_by_kind": "person",
+     "asserted_by_name": "Alex Example",
+     "attribute_key": "owner",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": null,
+       "claim_id": "9d591df6-04d3-59c1-be0a-ec37e5fb74c4",
+       "confidence": null,
+       "id": "e009cc1d-de48-58fe-9482-d2218b5aff3c",
+       "identifier": null,
+       "locator": "p. 119",
+       "published_edtf": "1938",
+       "quote": "The Invented Natural Gas Corp. owns the mountain line.",
+       "role": "states",
+       "source_id": "255de424-4c05-5172-8ef1-e9f55fbd45fc",
+       "source_kind": "issue",
+       "source_title": "Example Gazette, vol. 38 no. 11",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:37:00+00:00",
+     "end_earliest": null,
+     "end_latest": null,
+     "id": "9d591df6-04d3-59c1-be0a-ec37e5fb74c4",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": null,
+     "status": "accepted",
+     "valid_edtf": "1938",
+     "value_feature_id": null,
+     "value_geom": null,
+     "value_num": null,
+     "value_text": "Invented Natural Gas Corp.",
+     "value_unit": null
+    },
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "route",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1938",
+       "claim_id": "972ed6c8-6a1b-5dc8-a0a4-37b5d7fecd7e",
+       "confidence": 0.8,
+       "id": "4fca11eb-c66f-5f02-bcd6-177063b48e25",
+       "identifier": null,
+       "locator": "traced in example_add_s20_jordansample",
+       "published_edtf": "1938",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3fdafc0b-dd62-5b31-9959-0519ab68341d",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1938 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:34:00+00:00",
+     "end_earliest": null,
+     "end_latest": null,
+     "id": "972ed6c8-6a1b-5dc8-a0a4-37b5d7fecd7e",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": null,
+     "status": "accepted",
+     "valid_edtf": null,
+     "value_feature_id": null,
+     "value_geom": {
+      "coordinates": [
+       [
+        [
+         -108.0,
+         39.0
+        ],
+        [
+         -107.8,
+         39.05
+        ],
+        [
+         -107.6,
+         39.1
+        ]
+       ]
+      ],
+      "type": "MultiLineString"
+     },
+     "value_num": null,
+     "value_text": null,
+     "value_unit": null
+    },
+    {
+     "asserted_by": "d7b9e050-1694-58a1-9a54-29fec4a39ca9",
+     "asserted_by_kind": "pipeline",
+     "asserted_by_name": "example-import@0.1",
+     "attribute_key": "status",
+     "citations": [
+      {
+       "archive_url": null,
+       "as_of_edtf": "1938",
+       "claim_id": "97d914e8-f54a-5a13-b0e6-34e1e3d304d3",
+       "confidence": 0.8,
+       "id": "370d962e-ba00-59a4-a9e9-86a1e6c33f40",
+       "identifier": null,
+       "locator": null,
+       "published_edtf": "1938",
+       "quote": null,
+       "role": "map_shows",
+       "source_id": "3fdafc0b-dd62-5b31-9959-0519ab68341d",
+       "source_kind": "map_sheet",
+       "source_title": "Example Gazette pipeline map, 1938 printing",
+       "url": null
+      }
+     ],
+     "created_at": "2026-01-01T01:35:00+00:00",
+     "end_earliest": "1938-01-01",
+     "end_latest": null,
+     "id": "97d914e8-f54a-5a13-b0e6-34e1e3d304d3",
+     "request_id": null,
+     "reviews": [],
+     "start_earliest": null,
+     "start_latest": "1938-12-31",
+     "status": "accepted",
+     "valid_edtf": "../1938",
+     "value_feature_id": null,
+     "value_geom": null,
+     "value_num": null,
+     "value_text": "operational",
+     "value_unit": null
+    }
+   ],
+   "created_at": "2026-01-01T01:33:00+00:00",
+   "dates": {
+    "date_conflict": false,
+    "existed_from": "../1938",
+    "existed_to": null,
+    "time_end": null,
+    "time_start": "1938-01-01"
+   },
+   "external_keys": [
+    {
+     "key": "example_add_s20_jordansample/layer/1",
+     "system": "example-import"
+    }
+   ],
+   "id": "c1102433-6ada-5e8d-aab4-6960f27af392",
+   "kind": "section",
+   "label": null,
+   "links": [],
    "network": "gas"
   },
   "c1e08407-9bb2-5c33-92fe-0104a36f2e50": {
@@ -2699,6 +3746,28 @@
    "score": null,
    "status": "confirmed",
    "to_feature_id": "c1e08407-9bb2-5c33-92fe-0104a36f2e50"
+  },
+  {
+   "asserted_by": "3f453adf-182c-555d-bed4-c78422dc1e9e",
+   "citation_id": null,
+   "created_at": "2026-01-01T01:21:00+00:00",
+   "from_feature_id": "18dd9183-6303-5ec5-bcc6-5a448f11d365",
+   "id": "ff41b06e-c9ea-5f53-bcd4-482ae4c024e3",
+   "relation": "part_of",
+   "score": null,
+   "status": "confirmed",
+   "to_feature_id": "adbc7198-9a1e-53c5-b66e-5f418fbd143f"
+  },
+  {
+   "asserted_by": "86a679ee-cce8-5d38-a46a-685a10910089",
+   "citation_id": null,
+   "created_at": "2026-01-01T01:32:00+00:00",
+   "from_feature_id": "611edd31-6648-5da1-8a80-1c3627b5763a",
+   "id": "7a312cca-2930-51de-aeef-8ec558ecd767",
+   "relation": "same_as",
+   "score": 0.7,
+   "status": "proposed",
+   "to_feature_id": "777952cb-40a0-580a-8be9-2e4b9305bd79"
   }
  ],
  "name": "small",
@@ -2776,6 +3845,44 @@
     "section_id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
     "time_end": null,
     "time_start": "1932-01-01"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       -105.4,
+       38.15
+      ],
+      [
+       -105.35,
+       38.35
+      ],
+      [
+       -105.3,
+       38.55
+      ]
+     ]
+    ],
+    "type": "MultiLineString"
+   },
+   "id": "18dd9183-6303-5ec5-bcc6-5a448f11d365",
+   "properties": {
+    "date_conflict": false,
+    "diameter": null,
+    "end_status": null,
+    "existed_from": "../1938",
+    "existed_to": null,
+    "has_candidates": false,
+    "label": null,
+    "line_id": "adbc7198-9a1e-53c5-b66e-5f418fbd143f",
+    "network": "gas",
+    "row_id": "18dd9183-6303-5ec5-bcc6-5a448f11d365",
+    "section_id": "18dd9183-6303-5ec5-bcc6-5a448f11d365",
+    "time_end": null,
+    "time_start": "1938-01-01"
    },
    "type": "Feature"
   },
@@ -3012,6 +4119,44 @@
     "coordinates": [
      [
       [
+       -106.0,
+       38.0
+      ],
+      [
+       -105.8,
+       38.05
+      ],
+      [
+       -105.6,
+       38.1
+      ]
+     ]
+    ],
+    "type": "MultiLineString"
+   },
+   "id": "611edd31-6648-5da1-8a80-1c3627b5763a",
+   "properties": {
+    "date_conflict": false,
+    "diameter": null,
+    "end_status": null,
+    "existed_from": "../1938",
+    "existed_to": null,
+    "has_candidates": false,
+    "label": null,
+    "line_id": null,
+    "network": "gas",
+    "row_id": "611edd31-6648-5da1-8a80-1c3627b5763a",
+    "section_id": "611edd31-6648-5da1-8a80-1c3627b5763a",
+    "time_end": null,
+    "time_start": "1938-01-01"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
        -93.0,
        35.8
       ],
@@ -3040,6 +4185,196 @@
     "network": "gas",
     "row_id": "63179b43-75f6-5527-b96c-9fcdf25a0657",
     "section_id": "63179b43-75f6-5527-b96c-9fcdf25a0657",
+    "time_end": null,
+    "time_start": "1938-01-01"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       -106.0,
+       38.0
+      ],
+      [
+       -105.8,
+       38.05
+      ],
+      [
+       -105.6,
+       38.1
+      ]
+     ]
+    ],
+    "type": "MultiLineString"
+   },
+   "id": "777952cb-40a0-580a-8be9-2e4b9305bd79",
+   "properties": {
+    "date_conflict": false,
+    "diameter": null,
+    "end_status": null,
+    "existed_from": "../1932",
+    "existed_to": null,
+    "has_candidates": false,
+    "label": null,
+    "line_id": null,
+    "network": "gas",
+    "row_id": "777952cb-40a0-580a-8be9-2e4b9305bd79",
+    "section_id": "777952cb-40a0-580a-8be9-2e4b9305bd79",
+    "time_end": null,
+    "time_start": "1932-01-01"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       -106.4,
+       37.95
+      ],
+      [
+       -106.2,
+       37.975
+      ],
+      [
+       -106.004,
+       38.0
+      ]
+     ]
+    ],
+    "type": "MultiLineString"
+   },
+   "id": "94938557-677e-506e-9076-8574c8a97402",
+   "properties": {
+    "date_conflict": false,
+    "diameter": null,
+    "end_status": null,
+    "existed_from": "../1932",
+    "existed_to": null,
+    "has_candidates": false,
+    "label": null,
+    "line_id": null,
+    "network": "gas",
+    "row_id": "94938557-677e-506e-9076-8574c8a97402",
+    "section_id": "94938557-677e-506e-9076-8574c8a97402",
+    "time_end": null,
+    "time_start": "1932-01-01"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       -105.3,
+       38.0
+      ],
+      [
+       -105.3,
+       38.2
+      ],
+      [
+       -105.3,
+       38.4
+      ]
+     ]
+    ],
+    "type": "MultiLineString"
+   },
+   "id": "9fc4f877-276b-5858-814d-8e4d943d392d",
+   "properties": {
+    "date_conflict": false,
+    "diameter": null,
+    "end_status": null,
+    "existed_from": "../1938",
+    "existed_to": null,
+    "has_candidates": false,
+    "label": null,
+    "line_id": null,
+    "network": "gas",
+    "row_id": "9fc4f877-276b-5858-814d-8e4d943d392d",
+    "section_id": "9fc4f877-276b-5858-814d-8e4d943d392d",
+    "time_end": null,
+    "time_start": "1938-01-01"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       -105.6,
+       38.1
+      ],
+      [
+       -105.4,
+       38.15
+      ],
+      [
+       -105.2,
+       38.2
+      ]
+     ]
+    ],
+    "type": "MultiLineString"
+   },
+   "id": "b6618689-b54d-5157-9dac-d0e0e401a9d2",
+   "properties": {
+    "date_conflict": false,
+    "diameter": null,
+    "end_status": null,
+    "existed_from": "../1932",
+    "existed_to": null,
+    "has_candidates": false,
+    "label": null,
+    "line_id": null,
+    "network": "gas",
+    "row_id": "b6618689-b54d-5157-9dac-d0e0e401a9d2",
+    "section_id": "b6618689-b54d-5157-9dac-d0e0e401a9d2",
+    "time_end": null,
+    "time_start": "1932-01-01"
+   },
+   "type": "Feature"
+  },
+  {
+   "geometry": {
+    "coordinates": [
+     [
+      [
+       -108.0,
+       39.0
+      ],
+      [
+       -107.8,
+       39.05
+      ],
+      [
+       -107.6,
+       39.1
+      ]
+     ]
+    ],
+    "type": "MultiLineString"
+   },
+   "id": "c1102433-6ada-5e8d-aab4-6960f27af392",
+   "properties": {
+    "date_conflict": false,
+    "diameter": null,
+    "end_status": null,
+    "existed_from": "../1938",
+    "existed_to": null,
+    "has_candidates": false,
+    "label": null,
+    "line_id": null,
+    "network": "gas",
+    "row_id": "c1102433-6ada-5e8d-aab4-6960f27af392",
+    "section_id": "c1102433-6ada-5e8d-aab4-6960f27af392",
     "time_end": null,
     "time_start": "1938-01-01"
    },
