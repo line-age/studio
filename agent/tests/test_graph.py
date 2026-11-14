@@ -79,7 +79,10 @@ def test_a_value_is_filled_from_the_claim_that_was_read(world):
         world, scripted([("read_feature", {"feature_id": s02})], draft), "Who owns it?", [s02]
     )
     statement = out["answer"]["statements"][0]
-    assert statement["text"] == "The owner is Example Pipe Line Co., by March 1932."
+    assert statement["text"] == (
+        "The owner is Example Pipe Line Co., by March 1932."
+        " The source is Example Gazette, vol. 32 no. 3, p. 41."
+    )
     assert statement["refs"][0]["status"] == "accepted"
 
 

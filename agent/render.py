@@ -318,6 +318,43 @@ class Read:
             self.links[link["id"]] = link
 
 
+def _where(claim: dict[str, Any]) -> str | None:
+    citation = _citation(claim)
+    title = citation.get("source_title") if citation else None
+    if not title:
+        return None
+    return f"{title}, {citation['locator']}" if citation.get("locator") else str(title)
+
+
+def source_line(claims: list[dict[str, Any]]) -> str:
+    """What the claims of one sentence rest on, in code's words: each one's source, or
+    that store holds none. With several, each source is tied to its value."""
+    if len(claims) == 1:
+        where = _where(claims[0])
+        return f"The source is {where}." if where else "Store holds no source for it."
+    parts = [
+        f"{where} for {value_words(c)}" if (where := _where(c)) else f"none for {value_words(c)}"
+        for c in claims
+    ]
+    return f"The sources are {', '.join(parts[:-1])} and {parts[-1]}."
+
+
+def _sources_left_out(draft: DraftStatement, read: Read) -> list[str]:
+    """A fact always says what it rests on. Where the model's sentence leaves a claim's
+    source out, code adds it, so a value or a proposal is never shown without it."""
+    named = {
+        key
+        for key, field in ((m.group(1), m.group(2)) for m in SLOT.finditer(draft.text))
+        if field == "source"
+    }
+    left = [
+        read.claims[r.id]
+        for r in draft.refs
+        if r.type == "claim" and r.key not in named and r.id in read.claims
+    ]
+    return [source_line(left)] if left else []
+
+
 def render_statement(draft: DraftStatement, read: Read, name_things: bool = False) -> Statement:
     """Fill a draft statement's slots. Raises Unfillable; never invents."""
     if draft.kind in FIXED_KINDS:
@@ -379,6 +416,7 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
     # A value that ends a sentence with its own full stop ("Co.") takes no second one.
     text = re.sub(r"(?<=[A-Za-z]\.)\.(?=\s|$)", "", text)
     refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]
+    text = " ".join([text, *_sources_left_out(draft, read)])
     return Statement(kind=draft.kind, text=text, refs=refs, attribute=draft.attribute)
 
 

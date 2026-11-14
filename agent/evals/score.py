@@ -11,7 +11,7 @@ import re
 from typing import Any
 
 from evals.make_world import scope
-from render import FIXED_LINES
+from render import FIXED_LINES, feature_name
 
 # Words a sentence may capitalise without having read them from store.
 VOCABULARY = {
@@ -91,7 +91,12 @@ def ungrounded(answer: dict[str, Any], world: dict[str, Any], question: str = ""
             problems.append(f"{where}: rests on no claim or link")
 
         # Every number, quotation and name in the sentence must come from what it cites.
-        source = json.dumps(backing, ensure_ascii=False) + " " + question
+        # A thing is named as Studio names it: its name, or "section" and its short id.
+        named = {r["id"] for r in refs if r["type"] == "feature"} | {
+            c["feature_id"] for c in backing
+        }
+        names = [feature_name(world["features"][f]) for f in named if f in world["features"]]
+        source = " ".join([json.dumps(backing, ensure_ascii=False), question, *names])
         for number in re.findall(r"\d+(?:\.\d+)?", text):
             if number not in re.findall(r"\d+(?:\.\d+)?", source):
                 problems.append(f"{where}: the number {number} is in no cited claim")
