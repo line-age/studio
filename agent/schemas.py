@@ -7,7 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-CONTRACT_VERSION = 1
+CONTRACT_VERSION = 2
 
 StatementKind = Literal[
     "fact",
@@ -28,6 +28,15 @@ StatementKind = Literal[
     # Found by code by a fixed rule over the section pack: somewhere to look, never a
     # claim and never written to store. Its text says "Not in store" and its rule.
     "lead",
+    # What cite found in a journal for one section, not in store: code's sentence, and
+    # the passage in `finding`. Written to store only by the person's Propose.
+    "finding",
+    # What cite searched for one attribute and did not find: journal, dates, issues read.
+    "searched",
+    # A search needs place names from the person first; the request is kept until then.
+    "ask_places",
+    # A finding the person proposed is in store now, as a candidate claim.
+    "proposed",
 ]
 # Kinds whose text is written by code, never by the model, and which carry no reference.
 FIXED_KINDS: frozenset[str] = frozenset({"refusal", "greeting", "failure"})
@@ -56,6 +65,14 @@ class QuestionItem(_Strict):
     on: Where | None = None
 
 
+class Action(_Strict):
+    """A button the person pressed, not words: code acts on it, no model reads it."""
+
+    kind: Literal["propose"]
+    # The finding's handle in this thread (F1).
+    finding: str
+
+
 class Question(_Strict):
     """Everything a question carries. The selection, the map view and the filters are
     not sent: "this" means what is attached."""
@@ -63,6 +80,7 @@ class Question(_Strict):
     words: str
     about: list[QuestionItem] = Field(default_factory=list)
     network: str = "gas"
+    action: Action | None = None
 
 
 # The draft: what the model writes ---------------------------------------------------------
@@ -70,11 +88,11 @@ class Question(_Strict):
 
 class DraftRef(_Strict):
     key: str = Field(description="A short local name used in slots: c1, c2, f1.")
-    type: Literal["claim", "feature", "link", "worked_out", "lead"]
+    type: Literal["claim", "feature", "link", "worked_out", "lead", "finding"]
     id: str = Field(
         description=(
-            "As the tool showed it: a claim's handle (C1), a worked-out item's handle (W1) "
-            "or a feature's id."
+            "As the tool showed it: a claim's handle (C1), a worked-out item's handle (W1), "
+            "a finding's handle (F1) or a feature's id."
         )
     )
 
@@ -110,9 +128,15 @@ class DraftStatement(_Strict):
         "citation_request",
         "worked_out",
         "lead",
+        "finding",
     ]
     attribute: AttributeKey | None = Field(
-        None, description="For kind unknown: the store attribute key that was checked."
+        None,
+        description=(
+            "For kind unknown: the store attribute key that was checked. For "
+            "citation_request: the one to search for (owner, diameter, or status for when "
+            "it was built)."
+        ),
     )
     text: str = Field(
         description=(
@@ -121,6 +145,20 @@ class DraftStatement(_Strict):
         )
     )
     refs: list[DraftRef] = Field(default_factory=list)
+    # For citation_request only: what the person gave to steer the search. Code checks
+    # that each one is in the person's words, in store or in an earlier finding.
+    places: list[str] = Field(
+        default_factory=list, description="Towns along the line, as the person wrote them."
+    )
+    years: list[int] = Field(
+        default_factory=list, description="The years to read: [from, to], or empty."
+    )
+    ruled_out: list[str] = Field(
+        default_factory=list, description="Values the person turned down, as written."
+    )
+    without_places: bool = Field(
+        False, description="True only when the person said to search without towns."
+    )
 
 
 class Draft(_Strict):
@@ -180,6 +218,53 @@ class CitationRequest(_Strict):
     hints: list[Hint] = Field(default_factory=list)
 
 
+class FindingFlag(_Strict):
+    """Why a finding is in doubt, in code's words (or the reviewer model's, for unclear)."""
+
+    flag: str
+    reason: str
+
+
+class Box(_Strict):
+    """A highlight rectangle, 0 to 1 of the page image."""
+
+    x0: float
+    y0: float
+    x1: float
+    y1: float
+
+
+class Finding(_Strict):
+    """A passage cite found and checked, for one attribute of one section. Not in store
+    until the person proposes it; then it is a candidate claim, never more."""
+
+    handle: str
+    section_id: str
+    attribute: Literal["owner", "diameter", "built"]
+    value: str
+    # When, as the passage gives it: "laying in 1939", "completed in 1939", "by 1939".
+    date_words: str
+    # The page's own words, as aligned by cite's verifier.
+    quote: str
+    journal: str
+    volume: int | None = None
+    number: int | None = None
+    date: str
+    page: str
+    url: str
+    image_url: str | None = None
+    page_width: int | None = None
+    page_height: int | None = None
+    highlight: list[Box] = Field(default_factory=list)
+    flags: list[FindingFlag] = Field(default_factory=list)
+    places_matched: list[str] = Field(default_factory=list)
+    # Of those, the ones the person typed in.
+    places_given: list[str] = Field(default_factory=list)
+    # Whether Propose may write it, and if not, why (a "by" build date, plan D12).
+    proposable: bool = True
+    not_proposable: str | None = None
+
+
 class Statement(_Strict):
     kind: StatementKind
     text: str
@@ -190,6 +275,8 @@ class Statement(_Strict):
     request: CitationRequest | None = None
     # For kind lead: the rule that found it.
     rule: LeadRule | None = None
+    # For kind finding: the passage, with everything Studio shows and Propose writes.
+    finding: Finding | None = None
 
 
 class Answer(_Strict):

@@ -1,0 +1,515 @@
+{
+  "$defs": {
+    "CiteAttempt": {
+      "properties": {
+        "claim": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CiteClaimIn"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "stage": {
+          "enum": [
+            "source",
+            "verifier",
+            "ruled_out",
+            "judge"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "reason"
+      ],
+      "title": "CiteAttempt",
+      "type": "object"
+    },
+    "CiteBox": {
+      "description": "A highlight rectangle, 0 to 1 of the page image.",
+      "properties": {
+        "x0": {
+          "title": "X0",
+          "type": "number"
+        },
+        "y0": {
+          "title": "Y0",
+          "type": "number"
+        },
+        "x1": {
+          "title": "X1",
+          "type": "number"
+        },
+        "y1": {
+          "title": "Y1",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x0",
+        "y0",
+        "x1",
+        "y1"
+      ],
+      "title": "CiteBox",
+      "type": "object"
+    },
+    "CiteCitation": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "journal": {
+          "title": "Journal",
+          "type": "string"
+        },
+        "issue_id": {
+          "title": "Issue Id",
+          "type": "string"
+        },
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "volume": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Volume"
+        },
+        "number": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Number"
+        },
+        "leaf": {
+          "title": "Leaf",
+          "type": "integer"
+        },
+        "printed_page": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Printed Page"
+        },
+        "printed_page_confidence": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Printed Page Confidence"
+        },
+        "page_text": {
+          "title": "Page Text",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "image_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image Url"
+        },
+        "page_width": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Width"
+        },
+        "page_height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Height"
+        },
+        "highlight": {
+          "items": {
+            "$ref": "#/$defs/CiteBox"
+          },
+          "title": "Highlight",
+          "type": "array"
+        },
+        "places_matched": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Places Matched",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "journal",
+        "issue_id",
+        "date",
+        "leaf",
+        "page_text",
+        "url"
+      ],
+      "title": "CiteCitation",
+      "type": "object"
+    },
+    "CiteClaim": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "attribute": {
+          "enum": [
+            "YearConstructed",
+            "Ownership",
+            "Size",
+            "LineType"
+          ],
+          "title": "Attribute",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "normalized": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": "Normalized",
+          "type": "object"
+        },
+        "date_sense": {
+          "enum": [
+            "by",
+            "laying",
+            "completed",
+            "in_operation"
+          ],
+          "title": "Date Sense",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "verified",
+            "flagged"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "flags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Flags",
+          "type": "array"
+        },
+        "flag_reasons": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Flag Reasons",
+          "type": "object"
+        },
+        "citation_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Citation Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "attribute",
+        "value",
+        "date_sense",
+        "status",
+        "citation_ids"
+      ],
+      "title": "CiteClaim",
+      "type": "object"
+    },
+    "CiteClaimIn": {
+      "properties": {
+        "attribute": {
+          "enum": [
+            "YearConstructed",
+            "Ownership",
+            "Size",
+            "LineType"
+          ],
+          "title": "Attribute",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attribute",
+        "value"
+      ],
+      "title": "CiteClaimIn",
+      "type": "object"
+    },
+    "CiteSearched": {
+      "properties": {
+        "attribute": {
+          "enum": [
+            "YearConstructed",
+            "Ownership",
+            "Size",
+            "LineType"
+          ],
+          "title": "Attribute",
+          "type": "string"
+        },
+        "journal": {
+          "title": "Journal",
+          "type": "string"
+        },
+        "searches": {
+          "title": "Searches",
+          "type": "integer"
+        },
+        "issues_read": {
+          "title": "Issues Read",
+          "type": "integer"
+        },
+        "first_issue": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "First Issue"
+        },
+        "last_issue": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Issue"
+        }
+      },
+      "required": [
+        "attribute",
+        "journal",
+        "searches",
+        "issues_read"
+      ],
+      "title": "CiteSearched",
+      "type": "object"
+    },
+    "CiteSection": {
+      "properties": {
+        "section_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Section Id"
+        },
+        "places": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Places",
+          "type": "array"
+        },
+        "places_given": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Places Given",
+          "type": "array"
+        }
+      },
+      "title": "CiteSection",
+      "type": "object"
+    },
+    "CiteUnknown": {
+      "properties": {
+        "attribute": {
+          "enum": [
+            "YearConstructed",
+            "Ownership",
+            "Size",
+            "LineType"
+          ],
+          "title": "Attribute",
+          "type": "string"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attribute",
+        "note"
+      ],
+      "title": "CiteUnknown",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "const": "0.3",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "invalid",
+        "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "reason": {
+      "default": "",
+      "title": "Reason",
+      "type": "string"
+    },
+    "section": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CiteSection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "citations": {
+      "items": {
+        "$ref": "#/$defs/CiteCitation"
+      },
+      "title": "Citations",
+      "type": "array"
+    },
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/CiteClaim"
+      },
+      "title": "Claims",
+      "type": "array"
+    },
+    "unknowns": {
+      "items": {
+        "$ref": "#/$defs/CiteUnknown"
+      },
+      "title": "Unknowns",
+      "type": "array"
+    },
+    "attempts": {
+      "items": {
+        "$ref": "#/$defs/CiteAttempt"
+      },
+      "title": "Attempts",
+      "type": "array"
+    },
+    "searched": {
+      "items": {
+        "$ref": "#/$defs/CiteSearched"
+      },
+      "title": "Searched",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "status"
+  ],
+  "title": "CiteResult",
+  "type": "object"
+}

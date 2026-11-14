@@ -1,0 +1,9 @@
+{
+  "words": "Propose F1",
+  "about": [],
+  "network": "gas",
+  "action": {
+    "kind": "propose",
+    "finding": "F1"
+  }
+}

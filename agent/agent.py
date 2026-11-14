@@ -1,14 +1,20 @@
 """The Agent's graph: take the question in, let the model read store and draft an answer,
 fill the draft's slots, check it against what was read, and only then attach it.
 
-    ingress -> answer -> END
+    ingress -> read -> answer -> END
+                        answer -> cite_start -> cite_wait (loops) -> cite_report -> END
+    ingress -> propose -> END                          (a Propose button, no model)
 
 `answer` runs the model loop (`create_agent`, tools read store), renders the draft and
 checks it (grounding.py). A draft that fails goes back once with what failed; a second
-failure ends with the fixed "could not answer" line. The graph holds no serving code and
-no checkpointer; the server supplies both.
+failure ends with the fixed "could not answer" line. When the checked answer asks for a
+search and the guard lets it through, cite searches the journals (cite_flow.py): code
+starts it, follows it and writes every sentence of what it found. The graph holds no
+serving code and no checkpointer; the server supplies both.
 """
 
+import re
+import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
@@ -20,13 +26,19 @@ from langchain_core.messages import AIMessage, HumanMessage, RemoveMessage, Tool
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, MessagesState, StateGraph
 
+import cite_flow
+import cite_input
+import context
 import prompts
+import store_writer
+from cite_client import CiteBusy, CiteClient, CiteService
+from cite_result import CiteResult
 from grounding import problems_of, reads_from
 from render import FIXED_LINES, Unfillable, as_text, failure, feature_name, render
-from schemas import Answer, Draft, DraftRef, Question, Statement
+from schemas import Answer, CitationRequest, Draft, DraftRef, Question, Ref, Statement
 from settings import MAX_QUESTION_CHARS, load
 from store_client import StoreClient, StoreError
-from tools import CONTEXT_FOR, Handles, make_tools
+from tools import CONTEXT_FOR, Handles, _with_merged, make_tools
 
 STORE_FAILURES = {"unreachable": "store_unreachable", "refused": "store_refused"}
 
@@ -47,6 +59,12 @@ class AgentState(MessagesState):
     # Studio shows them while it works; it reads the graph's values, which it always
     # receives.
     steps: list[dict[str, Any]]
+    # What cite found in this thread (plan D4), kept until "Clear chat": `runs` (each
+    # search, in order), `findings` (by handle, F1...), `pending` (a search waiting for
+    # towns). Never cleared by a new question.
+    cite: dict[str, Any]
+    # The search the current question started, while it runs. Cleared by each question.
+    cite_job: dict[str, Any] | None
 
 
 def ingress(state: AgentState) -> dict:
@@ -65,6 +83,7 @@ def ingress(state: AgentState) -> dict:
         "tools": [],
         "blocked": [],
         "steps": [],
+        "cite_job": None,
     }
 
 
@@ -86,7 +105,7 @@ def _question(message: HumanMessage) -> Question:
     return question
 
 
-def _prompt(question: Question) -> str:
+def _prompt(question: Question, steering: dict[str, Any] | None = None) -> str:
     lines = [question.words, ""]
     if question.about:
         lines.append("Attached:")
@@ -100,14 +119,23 @@ def _prompt(question: Question) -> str:
                 )
             else:
                 lines.append(f"- a {item.kind}, id {item.id}{where}")
+    elif steering:
+        lines.append(
+            f"Nothing is attached. The latest search in this chat was about "
+            f"{steering['name']} (id {steering['id']}): a message steering the search "
+            "(other years, towns, not that value, another attribute) is about it."
+        )
     else:
         lines.append("Nothing is attached.")
     return "\n".join(lines)
 
 
-def _to_read(question: Question) -> list[str]:
+def _to_read(question: Question, steering: str | None = None) -> list[str]:
     """The features to read for what is attached: a section or pipeline itself, a claim's
-    or citation's section. Each once, in the order attached."""
+    or citation's section. Each once, in the order attached. With nothing attached, the
+    section the latest search was about (plan D9)."""
+    if not question.about and steering:
+        return [steering]
     ids: list[str] = []
     for item in question.about:
         fid = item.id if item.kind in ("section", "pipeline") else None
@@ -180,11 +208,13 @@ def _read_attached(
     read_context: Any,
     config: Any,
     pipelines: list[str] | None = None,
+    steering: str | None = None,
 ) -> list[Any]:
     """Read everything attached before the model starts, as if the model had asked: one
     model turn fewer. Then the pipelines those sections are in, and the first sections'
     context. Raises StoreError."""
-    ids = _to_read(question) + [p for p in pipelines or [] if p not in _to_read(question)]
+    first = _to_read(question, steering)
+    ids = first + [p for p in pipelines or [] if p not in first]
     if not ids:
         return []
     sections = list(
@@ -340,12 +370,51 @@ def _passes(error: Exception) -> bool:
     )
 
 
-def build_graph(store: StoreClient | None = None, model: Any = None):
+_PROPOSE_WORDS = re.compile(
+    r"\b(propose|proposing|save|add)\b.*\b(it|this|that|them|finding)\b", re.IGNORECASE
+)
+_UNSET: Any = object()
+# How long one pass of `cite_wait` waits for news before the graph shows what it has.
+CITE_POLL_SECONDS = 2.0
+# Step lines kept from a search: the latest ones, as a person follows them.
+CITE_STEPS = 40
+
+
+def _people_words(messages: list[Any]) -> list[str]:
+    """What the person wrote in this thread: their questions' words, never a reply's."""
+    words = []
+    for m in messages:
+        if isinstance(m, HumanMessage):
+            try:
+                words.append(_question(m).words)
+            except ValueError:
+                continue
+    return words
+
+
+def build_graph(
+    store: StoreClient | None = None,
+    model: Any = None,
+    *,
+    cite: CiteService | None = _UNSET,
+    writer: Any = _UNSET,
+    cite_poll: float = CITE_POLL_SECONDS,
+):
     """The graph. Evals and tests pass a store client over a fake store, and may pass a
-    scripted model; otherwise both come from the settings."""
+    scripted model, a fake cite and a proposal client; otherwise all come from the
+    settings. Without cite (no CITE_URL) the Agent says what it would ask for and
+    searches nothing."""
     settings = load()
     if store is None:
         store = StoreClient(settings.store_url, settings.store_token)
+    if cite is _UNSET:
+        cite = CiteClient(settings.cite_url) if settings.cite_url else None
+    if writer is _UNSET:
+        writer = (
+            store_writer.ProposalClient(settings.store_url, settings.cite_store_token)
+            if settings.cite_store_token
+            else None
+        )
     if model is None:
         # The client retries a dropped connection, 429, 529 and 5xx with backoff.
         # Low effort: the model picks claims and code writes the words, so deep thinking
@@ -376,6 +445,8 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
 
     def answer(state: AgentState, config: RunnableConfig) -> dict:
         seen = len(state["messages"])
+        cite_state = state.get("cite") or {}
+        steering = cite_flow.latest_section(cite_state) if cite is not None else None
         message = next(
             (m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None
         )
@@ -392,6 +463,12 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         if len(question.words) > MAX_QUESTION_CHARS:
             blocked = [[f"the question is longer than {MAX_QUESTION_CHARS} characters"]]
             return _finish(failure("check_failed"), message, [], seen, blocked)
+        if cite_state.get("findings") and _PROPOSE_WORDS.search(question.words):
+            # A go-ahead is a button, never words (plan D6).
+            line = Statement(kind="refusal", text=cite_flow.CITE_LINES["propose_words"])
+            return _finish(Answer(statements=[line]), message, [], seen)
+        if question.about:
+            steering = None
 
         tools: list[str] = []
         artifacts: list[dict[str, Any]] = []
@@ -399,11 +476,15 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         handles = Handles()
         steps = _Steps()
         steps.start("Reading store")
-        reader = taken or _Prefetched(store, _to_read(question))
+        reader = (
+            taken
+            if taken is not None and not steering
+            else _Prefetched(store, _to_read(question, steering))
+        )
         (read_feature, read_context), loop = new_loop(handles, reader)
         try:
             first_reads = _read_attached(
-                question, read_feature, read_context, config, reader.pipelines
+                question, read_feature, read_context, config, reader.pipelines, steering
             )
         except StoreError as error:
             return _finish(
@@ -421,7 +502,16 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         if _all_gone(question, artifacts):
             answer = Answer(statements=[Statement(kind="failure", text=FIXED_LINES["not_found"])])
             return _finish(answer, message, tools, seen, steps=steps)
-        messages: list[Any] = [HumanMessage(_prompt(question)), *first_reads]
+        names = {
+            a["features"][0]["id"]: feature_name(a["features"][0])
+            for a in artifacts
+            if a.get("features")
+        }
+        shown = {"id": steering, "name": names.get(steering, "a section")} if steering else None
+        prompt = _prompt(question, shown) + (
+            cite_flow.so_far(cite_state, names) if cite is not None else ""
+        )
+        messages: list[Any] = [HumanMessage(prompt), *first_reads]
         retried = False
         for attempt in range(2):
             steps.start("Writing the answer" if attempt == 0 else "Writing the answer again")
@@ -460,6 +550,7 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
             steps.start("Checking the answer")
             draft = result.get("structured_response")
             read = reads_from(artifacts)
+            read.findings = cite_state.get("findings") or {}
             if isinstance(draft, Draft):
                 for statement in draft.statements:
                     for ref in statement.refs:
@@ -477,6 +568,12 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
                 except Exception as error:  # noqa: BLE001 - a bug here must not show an answer
                     problems = [f"the answer could not be checked: {type(error).__name__}"]
             if not problems:
+                if cite is not None and any(
+                    st.kind == "citation_request" for st in rendered.statements
+                ):
+                    return _with_search(
+                        state, draft, rendered, read, message, tools, seen, blocked, steps
+                    )
                 return _finish(rendered, message, tools, seen, blocked, steps=steps)
             blocked.append(
                 [
@@ -493,6 +590,308 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
                     ),
                 ]
         return _finish(failure("check_failed"), message, tools, seen, blocked, steps=steps)
+
+    def _with_search(state, draft, rendered, read, message, tools, seen, blocked, steps):
+        """The checked answer asks for a search: the guard decides (plan D8), and the
+        request's statement becomes code's line for what happens next."""
+        cite_state = dict(state.get("cite") or {})
+        pairs = [
+            (d, r)
+            for d, r in zip(draft.statements, rendered.statements, strict=True)
+            if r.kind == "citation_request"
+        ]
+        verdict = cite_flow.check_request(
+            [d for d, _ in pairs],
+            [r for _, r in pairs],
+            read,
+            _people_words(state["messages"]),
+            cite_state.get("findings") or {},
+        )
+        refs = [ref for _, r in pairs for ref in r.refs if ref.type == "feature"][:1]
+        subject = refs[0].label if refs and refs[0].label else "the section"
+        job = None
+        if isinstance(verdict, cite_flow.Refused):
+            line = Statement(kind="citation_request", text=verdict.line, refs=refs)
+        elif isinstance(verdict, cite_flow.AskForPlaces):
+            line = Statement(kind="ask_places", text=cite_flow.CITE_LINES["ask_places"], refs=refs)
+            cite_state["pending"] = {
+                "section_id": verdict.section_id,
+                "attributes": verdict.attributes,
+            }
+        else:
+            hints = [h for _, r in pairs if r.request for h in r.request.hints]
+            line = Statement(
+                kind="citation_request",
+                text=cite_flow.looking_line(verdict, subject),
+                refs=refs,
+                request=CitationRequest(
+                    feature_id=verdict.section_id,
+                    attribute_keys=verdict.attributes,
+                    hints=hints,
+                ),
+            )
+            cite_state["pending"] = None
+            job = {
+                "section_id": verdict.section_id,
+                "attributes": verdict.attributes,
+                "places": verdict.places,
+                "years": list(verdict.years) if verdict.years else None,
+                "ruled_out": [list(r) for r in verdict.ruled_out],
+                "subject": subject,
+            }
+        first = rendered.statements.index(pairs[0][1])
+        kept = [st for st in rendered.statements if st.kind != "citation_request"]
+        answer_ = Answer(statements=[*kept[:first], line, *kept[first:]])
+        out = _finish(answer_, message, tools, seen, blocked, steps=steps)
+        if job:
+            out["steps"] = [*out["steps"], {"text": "Starting the search", "done": False}]
+        return {**out, "cite": cite_state, "cite_job": job}
+
+    def _reply(state: AgentState, statements: list[Statement], **more) -> dict:
+        """The question's answer, with these statements, replacing the reply it already
+        has (one message per question, by id)."""
+        question = next(
+            (m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None
+        )
+        answer_ = Answer(checked=True, statements=statements)
+        steps = [{**item, "done": True} for item in state.get("steps") or []]
+        return {
+            "messages": [
+                AIMessage(
+                    id=f"answer-{question.id}" if question is not None and question.id else None,
+                    content=as_text(answer_),
+                    additional_kwargs={
+                        "answer": answer_.model_dump(),
+                        "answers": question.id if question is not None else None,
+                        "tools": state.get("tools") or [],
+                        "steps": steps,
+                    },
+                )
+            ],
+            "answer": answer_.model_dump(),
+            "answers": question.id if question is not None else None,
+            "steps": steps,
+            **more,
+        }
+
+    def _replace_request(state: AgentState, line: str) -> list[Statement]:
+        """The answer so far, its "Searching..." line replaced by `line`."""
+        statements = Answer.model_validate(state["answer"]).statements
+        return [
+            Statement(kind="citation_request", text=line, refs=st.refs)
+            if st.kind == "citation_request" and st.request is not None
+            else st
+            for st in statements
+        ]
+
+    def cite_start(state: AgentState) -> dict:
+        job = dict(state["cite_job"] or {})
+        ask = cite_input.CiteAsk(
+            section_id=job["section_id"],
+            attributes=job["attributes"],
+            places=job["places"],
+            years=tuple(job["years"]) if job.get("years") else None,
+            ruled_out=[tuple(r) for r in job.get("ruled_out") or []],
+        )
+
+        def stop(line: str) -> dict:
+            return _reply(state, _replace_request(state, line), cite_job=None)
+
+        try:
+            feature = store.feature(ask.section_id)
+            merged, _ = _with_merged(store, feature)
+            line_id = next(
+                (
+                    link["to_feature_id"]
+                    for link in feature.get("links") or []
+                    if link["relation"] == "part_of"
+                    and link["status"] == "confirmed"
+                    and link["from_feature_id"] == feature["id"]
+                ),
+                None,
+            )
+            try:
+                pipeline = store.feature(line_id) if line_id else None
+            except StoreError:
+                pipeline = None  # a name hint only
+            try:
+                editions = context.edition_years(store, feature.get("network"))
+            except StoreError:
+                editions = context.Editions([], complete=False)
+            section = cite_input.build(ask, feature, merged, pipeline, editions)
+        except cite_input.NoEdition:
+            return stop(cite_flow.CITE_LINES["no_edition"])
+        except StoreError as error:
+            return stop(FIXED_LINES[STORE_FAILURES.get(error.kind, "store_unreachable")])
+        if not section["places"] and not section["name"]:
+            return stop(cite_flow.CITE_LINES["ask_places"])
+        try:
+            run = cite.start(section)
+        except CiteBusy:
+            return stop(cite_flow.CITE_LINES["busy"])
+        window = section.get("search_window")
+        cite_state = dict(state.get("cite") or {})
+        cite_state["runs"] = [
+            *(cite_state.get("runs") or []),
+            {
+                "section_id": ask.section_id,
+                "subject": job["subject"],
+                "attributes": ask.attributes,
+                "places": ask.places,
+                "years": [window["from"], window["to"]] if window else None,
+                "outcome": "running",
+            },
+        ]
+        steps = [{**item, "done": True} for item in state.get("steps") or []]
+        steps.append({"text": "Searching the journals", "done": False, "by": "cite"})
+        return {"cite_job": {**job, "run": run.id}, "cite": cite_state, "steps": steps}
+
+    def cite_wait(state: AgentState) -> dict:
+        """One pass: wait a little for news from the search, then show it. The graph
+        loops here until the search ends; each pass tells cite someone is still there."""
+        run = cite.get(state["cite_job"]["run"])
+        if run is None:
+            return {}
+        run.touch()
+        deadline = time.monotonic() + cite_poll
+        lines = run.take_lines()
+        while not lines and not run.done() and time.monotonic() < deadline:
+            time.sleep(min(0.25, cite_poll))
+            run.touch()
+            lines = run.take_lines()
+        if not lines:
+            return {}
+        steps = [{**item, "done": True} for item in state.get("steps") or []]
+        # The search's own lines, newest last; the last stays open while it runs.
+        cited = [item for item in steps if item.get("by") == "cite"]
+        others = [item for item in steps if item.get("by") != "cite"]
+        cited += [{"text": line, "done": True, "by": "cite"} for line in lines]
+        cited = cited[-CITE_STEPS:]
+        cited[-1] = {**cited[-1], "done": run.done()}
+        return {"steps": [*others, *cited]}
+
+    def _searching(state: AgentState) -> str:
+        run = cite.get(state["cite_job"]["run"])
+        return "cite_report" if run is None or run.done() else "cite_wait"
+
+    def cite_report(state: AgentState) -> dict:
+        job = state["cite_job"]
+        run = cite.get(job["run"])
+        cite_state = dict(state.get("cite") or {})
+        findings = dict(cite_state.get("findings") or {})
+        feature_ref = Ref(type="feature", id=job["section_id"], label=job["subject"])
+        outcome = "nothing came back"
+        if run is None:
+            report = [
+                Statement(kind="searched", text=cite_flow.CITE_LINES["lost"], refs=[feature_ref])
+            ]
+        elif run.result() is None:
+            report = [
+                Statement(kind="searched", text=cite_flow.CITE_LINES["failed"], refs=[feature_ref])
+            ]
+        else:
+            try:
+                result = CiteResult.model_validate(run.result())
+            except ValueError:
+                result = None
+            if result is None:
+                report = [
+                    Statement(
+                        kind="searched", text=cite_flow.CITE_LINES["failed"], refs=[feature_ref]
+                    )
+                ]
+            else:
+                records = cite_flow.findings_of(result, job["section_id"], len(findings) + 1)
+                for record in records:
+                    findings[record["finding"]["handle"]] = record
+                report = cite_flow.report(
+                    result, records, job["attributes"], job["section_id"], job["subject"]
+                )
+                handles = [r["finding"]["handle"] for r in records]
+                outcome = f"found {', '.join(handles)}" if handles else "nothing found"
+                if result.status != "ok":
+                    outcome = "cite could not search it"
+        runs = list(cite_state.get("runs") or [])
+        if runs:
+            runs[-1] = {**runs[-1], "outcome": outcome}
+        cite_state |= {"runs": runs, "findings": findings}
+        statements = Answer.model_validate(state["answer"]).statements
+        return _reply(state, [*statements, *report], cite=cite_state, cite_job=None)
+
+    def propose(state: AgentState) -> dict:
+        """The person pressed Propose on a finding: write it to store as a candidate claim.
+        No model; code finds the finding, reads the section again and sends the bundle."""
+        message = next(
+            (m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None
+        )
+        seen = len(state["messages"])
+        question = _question(message)
+        handle = question.action.finding.strip().upper()
+        record = ((state.get("cite") or {}).get("findings") or {}).get(handle)
+
+        def say(kind: str, text: str, refs: list[Ref] | None = None) -> dict:
+            answer_ = Answer(statements=[Statement(kind=kind, text=text, refs=refs or [])])
+            return _finish(answer_, message, [], seen)
+
+        if record is None:
+            return say("refusal", cite_flow.CITE_LINES["not_found_finding"])
+        f = record["finding"]
+        if not f.get("proposable", True):
+            return say(
+                "refusal", cite_flow.CITE_LINES["not_proposable"].format(why=f["not_proposable"])
+            )
+        if writer is None:
+            return say("failure", cite_flow.CITE_LINES["store_write_failed"])
+        try:
+            feature = store.feature(f["section_id"])
+            merged, _ = _with_merged(store, feature)
+        except StoreError as error:
+            return say("failure", FIXED_LINES[STORE_FAILURES.get(error.kind, "store_unreachable")])
+        subject = feature_name(feature)
+        what = {"built": "build date"}.get(f["attribute"], f["attribute"])
+        held = cite_flow.held_in_store(record, [feature, *merged])
+        if held is not None:
+            text = cite_flow.CITE_LINES["already_in_store"].format(
+                value=f["value"], what=what, subject=subject, status=held["status"]
+            )
+            return say("refusal", text, [Ref(type="feature", id=feature["id"], label=subject)])
+        try:
+            written = writer.propose(store_writer.bundle(record))
+        except StoreError:
+            return say("failure", cite_flow.CITE_LINES["store_write_failed"])
+        claim_id = written["ids"].get("claim")
+        refs = [Ref(type="feature", id=feature["id"], label=subject)]
+        if claim_id:
+            refs.insert(
+                0,
+                Ref(
+                    type="claim",
+                    id=claim_id,
+                    feature_id=feature["id"],
+                    attribute=record["store_key"],
+                    status="candidate",
+                    asserter="pipeline",
+                    label=subject,
+                    source=cite_flow.reference_of(record),
+                ),
+            )
+        text = cite_flow.CITE_LINES["proposed"].format(
+            value=f["value"] if f["attribute"] != "built" else f["date_words"],
+            what=what,
+            subject=subject,
+            reference=cite_flow.reference_of(record),
+        )
+        return say("proposed", text, refs)
+
+    def _route_in(state: AgentState) -> str:
+        message = next(
+            (m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None
+        )
+        try:
+            question = _question(message) if message is not None else None
+        except ValueError:
+            return "read"
+        return "propose" if question is not None and question.action else "read"
 
     builder = StateGraph(AgentState)
 
@@ -557,8 +956,21 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
     builder.add_node("ingress", ingress)
     builder.add_node("read", read)
     builder.add_node("answer", answer)
+    builder.add_node("propose", propose)
+    builder.add_node("cite_start", cite_start)
+    builder.add_node("cite_wait", cite_wait)
+    builder.add_node("cite_report", cite_report)
     builder.add_edge(START, "ingress")
-    builder.add_edge("ingress", "read")
+    builder.add_conditional_edges("ingress", _route_in, ["read", "propose"])
     builder.add_edge("read", "answer")
-    builder.add_edge("answer", END)
-    return builder.compile(name="studio-agent")
+    builder.add_conditional_edges(
+        "answer", lambda s: "cite_start" if s.get("cite_job") else END, ["cite_start", END]
+    )
+    builder.add_conditional_edges(
+        "cite_start", lambda s: "cite_wait" if s.get("cite_job") else END, ["cite_wait", END]
+    )
+    builder.add_conditional_edges("cite_wait", _searching, ["cite_wait", "cite_report"])
+    builder.add_edge("cite_report", END)
+    builder.add_edge("propose", END)
+    # A search is followed one pass at a time, so its run takes many steps.
+    return builder.compile(name="studio-agent").with_config(recursion_limit=1000)

@@ -2,6 +2,7 @@ import json
 
 import pytest
 
+from cite_result import CiteResult
 from evals.fake_store import FakeStore, load_world
 from render import FIXED_LINES, Read, Unfillable, period_words, render, value_words
 from schemas import Answer, Draft, Question, SectionPack
@@ -11,7 +12,12 @@ CONTRACT = ROOT / "contract"
 
 
 def test_the_schema_files_are_what_the_code_says():
-    for name, model in (("answer", Answer), ("question", Question), ("section-pack", SectionPack)):
+    for name, model in (
+        ("answer", Answer),
+        ("question", Question),
+        ("section-pack", SectionPack),
+        ("cite-result", CiteResult),
+    ):
         on_disk = json.loads((CONTRACT / f"{name}.schema.json").read_text())
         assert on_disk == model.model_json_schema(), f"contract/{name}.schema.json is stale"
 
@@ -25,6 +31,8 @@ def test_every_example_is_valid(path):
         if path.stem.startswith("answer")
         else SectionPack
         if path.stem.startswith("section-pack")
+        else CiteResult
+        if path.stem.startswith("cite-result")
         else Question
     )
     model.model_validate_json(path.read_text())

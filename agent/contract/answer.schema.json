@@ -1,5 +1,35 @@
 {
   "$defs": {
+    "Box": {
+      "additionalProperties": false,
+      "description": "A highlight rectangle, 0 to 1 of the page image.",
+      "properties": {
+        "x0": {
+          "title": "X0",
+          "type": "number"
+        },
+        "y0": {
+          "title": "Y0",
+          "type": "number"
+        },
+        "x1": {
+          "title": "X1",
+          "type": "number"
+        },
+        "y1": {
+          "title": "Y1",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x0",
+        "y0",
+        "x1",
+        "y1"
+      ],
+      "title": "Box",
+      "type": "object"
+    },
     "CitationRequest": {
       "additionalProperties": false,
       "description": "What a citation request to store would hold (`POST /citation-requests`).",
@@ -37,6 +67,196 @@
         "attribute_keys"
       ],
       "title": "CitationRequest",
+      "type": "object"
+    },
+    "Finding": {
+      "additionalProperties": false,
+      "description": "A passage cite found and checked, for one attribute of one section. Not in store\nuntil the person proposes it; then it is a candidate claim, never more.",
+      "properties": {
+        "handle": {
+          "title": "Handle",
+          "type": "string"
+        },
+        "section_id": {
+          "title": "Section Id",
+          "type": "string"
+        },
+        "attribute": {
+          "enum": [
+            "owner",
+            "diameter",
+            "built"
+          ],
+          "title": "Attribute",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "date_words": {
+          "title": "Date Words",
+          "type": "string"
+        },
+        "quote": {
+          "title": "Quote",
+          "type": "string"
+        },
+        "journal": {
+          "title": "Journal",
+          "type": "string"
+        },
+        "volume": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Volume"
+        },
+        "number": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Number"
+        },
+        "date": {
+          "title": "Date",
+          "type": "string"
+        },
+        "page": {
+          "title": "Page",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "image_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image Url"
+        },
+        "page_width": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Width"
+        },
+        "page_height": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Height"
+        },
+        "highlight": {
+          "items": {
+            "$ref": "#/$defs/Box"
+          },
+          "title": "Highlight",
+          "type": "array"
+        },
+        "flags": {
+          "items": {
+            "$ref": "#/$defs/FindingFlag"
+          },
+          "title": "Flags",
+          "type": "array"
+        },
+        "places_matched": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Places Matched",
+          "type": "array"
+        },
+        "places_given": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Places Given",
+          "type": "array"
+        },
+        "proposable": {
+          "default": true,
+          "title": "Proposable",
+          "type": "boolean"
+        },
+        "not_proposable": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Not Proposable"
+        }
+      },
+      "required": [
+        "handle",
+        "section_id",
+        "attribute",
+        "value",
+        "date_words",
+        "quote",
+        "journal",
+        "date",
+        "page",
+        "url"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "FindingFlag": {
+      "additionalProperties": false,
+      "description": "Why a finding is in doubt, in code's words (or the reviewer model's, for unclear).",
+      "properties": {
+        "flag": {
+          "title": "Flag",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "flag",
+        "reason"
+      ],
+      "title": "FindingFlag",
       "type": "object"
     },
     "Hint": {
@@ -208,7 +428,11 @@
             "failure",
             "citation_request",
             "worked_out",
-            "lead"
+            "lead",
+            "finding",
+            "searched",
+            "ask_places",
+            "proposed"
           ],
           "title": "Kind",
           "type": "string"
@@ -267,6 +491,17 @@
           ],
           "default": null,
           "title": "Rule"
+        },
+        "finding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Finding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -281,7 +516,7 @@
   "description": "Only an answer that passed the grounding check is `checked`, and Studio shows no\nother.",
   "properties": {
     "version": {
-      "default": 1,
+      "default": 2,
       "title": "Version",
       "type": "integer"
     },
