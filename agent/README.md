@@ -84,7 +84,7 @@ answers from. How each kind of statement is marked in an answer:
 | Claim | store, accepted | the value with its source |
 | Proposal | store, candidate | "proposed by a tool (or a person), not decided yet", with its source |
 | Worked out | code, from geometry or public boundaries | marked worked out, with what it was worked out from |
-| Lead | the Agent, from the above | "Not in store", with what it rests on; never proposed to store |
+| Lead | code, by fixed rules over the above; the model only words it | "Not in store", with its rule and what it rests on; never proposed to store |
 | Unknown | store holds nothing | "Store does not say" |
 
 A section drawn touching another is a clue, not a fact: two traced lines meeting on a map
