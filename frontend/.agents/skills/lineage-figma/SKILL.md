@@ -252,6 +252,14 @@ Where code knowingly differs from the Figma frame:
   always at the window edge. The frame is drawn at 1728 wide only.
 - The Mapbox logo sits top left and its attribution bottom right, as its terms require.
 
+Section "13. What surrounds a section" (`260:10851`, drawn 2026-11-14, built) is the Agent's
+answer: frames one section `260:10852`, several sections `261:10944`, working
+`261:11140`. Built from stock parts only, after the owner turned down new components:
+the chain of thought and "Used n sources" are shadcn Collapsible (added with the CLI);
+source pills are Badge `secondary` with the source icon; sections are links in the text;
+"Worked out" and "Lead, not in store" are a grey prefix. The `history` icon (Icons page
+`14:106`) was added to the code's icon set for the step under way.
+
 ## Not designed yet
 
 The claim detail area is designed as a first draft and not built: Studio page frames
