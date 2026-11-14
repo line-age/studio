@@ -95,6 +95,20 @@ describe("toNetwork", () => {
     expect(states.file).toBeUndefined()
   })
 
+  it("keeps a source's identifier, and a confidence only where one was given", () => {
+    const [shows] = claim(ID_A, "Geometry").citations
+    expect(shows.identifier).toBe("invented-scan-1931.tif")
+    expect(shows.confidence).toBeUndefined()
+    expect(claim(ID_B, "Diameter").citations[0].confidence).toBe(0.8)
+  })
+
+  it("keeps the day a claim was made, and none for what Studio works out", () => {
+    expect(claim(ID_A, "Geometry").madeAt).toBe("2026-11-12")
+    expect(claim(ID_B, "Diameter").madeAt).toBe("2026-11-12")
+    expect(claim(ID_A, "First seen").madeAt).toBeUndefined()
+    expect(claim(ID_A, "Build date").madeAt).toBeUndefined()
+  })
+
   it("keeps a claim's id and the period it holds for", () => {
     expect(claim(ID_A, "Geometry").valid).toBe("../1931-06")
     expect(claim(ID_A, "Geometry").id).toMatch(/^route-1931/)

@@ -4,8 +4,10 @@ import { testNetwork } from "@/test/network"
 
 import {
   citationLine,
+  confidenceWords,
   editionWords,
   formatAsOf,
+  formatMadeAt,
   formatValid,
   proposalCount,
   proposedEndsFor,
@@ -145,5 +147,17 @@ describe("a proposed end or cut", () => {
     expect(proposalCount(withEnds, lastSeen)).toBe(1)
     expect(needsDecision(section)).toBe(false)
     expect(needsDecision(withEnds)).toBe(true)
+  })
+})
+
+describe("when a claim was made, and how sure a citation is", () => {
+  it("words the day a claim was made", () => {
+    expect(formatMadeAt("2026-11-12")).toBe("12 November 2026")
+    expect(formatMadeAt("not a date")).toBe("not a date")
+  })
+
+  it("words a confidence as recorded, out of 1", () => {
+    expect(confidenceWords(0.8)).toBe("0.8 of 1")
+    expect(confidenceWords(1)).toBe("1 of 1")
   })
 })

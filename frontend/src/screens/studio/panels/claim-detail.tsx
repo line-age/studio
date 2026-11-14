@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button"
 import { pipelineLabel, sectionLabel } from "@/data/derive"
 import {
   citationLine,
+  confidenceWords,
+  formatMadeAt,
   editionWords,
   formatValid,
   PIPELINE_ROW,
@@ -106,6 +108,11 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
                 Holds {formatValid(claim.valid)}.
               </p>
             )}
+          {claim.value !== null && claim.madeAt !== undefined && (
+            <p className="type-ui-xs text-muted-foreground">
+              Claim made {formatMadeAt(claim.madeAt)}.
+            </p>
+          )}
         </div>
         {waiting > 0 && (
           <div className="flex flex-col gap-2 px-3 pb-3">
@@ -155,6 +162,12 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
                   edition={editionWords(citation)}
                   locator={citation.locator}
                   quote={citation.quote}
+                  identifier={citation.identifier}
+                  confidence={
+                    citation.confidence === undefined
+                      ? undefined
+                      : confidenceWords(citation.confidence)
+                  }
                   file={citation.file}
                   open={open.has(index)}
                   onToggle={() => toggle(index)}

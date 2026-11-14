@@ -67,6 +67,15 @@ describe("evidence in the right panel", () => {
     expect(sources).not.toHaveTextContent("Where")
   })
 
+  it("says when the claim was made and gives the source's identifier; no confidence where none was given", async () => {
+    const { detail } = await openClaim("Geometry")
+    expect(detail).toHaveTextContent("Claim made 12 November 2026.")
+    const sources = within(detail).getByRole("list", { name: "Sources" })
+    expect(sources).toHaveTextContent("Identifier")
+    expect(sources).toHaveTextContent("invented-scan-1931.tif")
+    expect(sources).not.toHaveTextContent("Confidence")
+  })
+
   it("keeps Last seen Unknown with the proposed end told, and nothing to decide", async () => {
     const { detail, row } = await openClaim("Last seen")
     expect(row).toHaveTextContent("Unknown")

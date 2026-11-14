@@ -19,8 +19,9 @@ function Field({ label, children }: { label: string; children: string }) {
  * One source supporting one claim. Closed: the source's title and what it
  * does for the claim ("Shown on", "Not on", "States"). Open: for a map its
  * edition and date, where in the source, the passage in the source's own
- * words (never paraphrased), and last the trace file a map reading was drawn
- * in. A source with none of these recorded has nothing to open.
+ * words (never paraphrased), the source's own identifier, the confidence of
+ * whoever cited it where one was given, and last the trace file a map reading
+ * was drawn in. A source with none of these recorded has nothing to open.
  */
 export function Citation({
   source,
@@ -28,6 +29,8 @@ export function Citation({
   edition,
   locator,
   quote,
+  identifier,
+  confidence,
   file,
   open,
   onToggle,
@@ -40,6 +43,10 @@ export function Citation({
   edition?: string
   locator?: string
   quote?: string
+  /** The source's own identifier, as recorded. */
+  identifier?: string
+  /** Confidence in words, only where one was given. */
+  confidence?: string
   /** The trace file, for a reading off a map. Not a place in the source. */
   file?: string
   open: boolean
@@ -49,6 +56,8 @@ export function Citation({
     edition !== undefined ||
     locator !== undefined ||
     quote !== undefined ||
+    identifier !== undefined ||
+    confidence !== undefined ||
     file !== undefined
   const title = (
     <>
@@ -91,6 +100,12 @@ export function Citation({
           {edition !== undefined && <Field label="Edition">{edition}</Field>}
           {locator !== undefined && <Field label="Where">{locator}</Field>}
           {quote !== undefined && <Field label="Quote">{quote}</Field>}
+          {identifier !== undefined && (
+            <Field label="Identifier">{identifier}</Field>
+          )}
+          {confidence !== undefined && (
+            <Field label="Confidence">{confidence}</Field>
+          )}
           {file !== undefined && <Field label="File">{file}</Field>}
         </dl>
       )}

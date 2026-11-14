@@ -55,6 +55,10 @@ const citation = z.object({
   file: z.string().min(1).optional(),
   /** The passage in the source's own words (an attestation). */
   quote: z.string().min(1).optional(),
+  /** The source's own identifier, as recorded: for a map sheet, its scan. */
+  identifier: z.string().min(1).optional(),
+  /** How sure whoever cited it was, from 0 to 1. Absent when not given. */
+  confidence: z.number().min(0).max(1).optional(),
 })
 
 const proposal = z.object({
@@ -93,6 +97,8 @@ const claim = z
     value: z.string().min(1).nullable(),
     /** The period the claim holds for, as the source gave it ("../1929-08"). */
     valid: z.string().min(1).optional(),
+    /** When the claim was made in the data, as a date ("2026-11-13"). */
+    madeAt: z.string().min(1).optional(),
     citations: z.array(citation).default([]),
     /** What the AI proposes. Shown, never applied. */
     proposals: z.array(proposal).default([]),

@@ -73,9 +73,10 @@ describe("store client", () => {
     expect(await kindOf(() => fetchSectionRows("gas"))).toBe("unreadable")
   })
 
-  it("loads a network: the rows, each section once, links, lines traced as gone", async () => {
+  /** Store answering with the invented payloads. */
+  function answerWithNetwork() {
     const features = [...storeFeatures(), ...storeRemovals()]
-    const fetchMock = answer((path) => {
+    return answer((path) => {
       if (path.startsWith("/store/sections")) {
         return json({
           features: storeRows().map((properties) => ({ properties })),
@@ -93,7 +94,12 @@ describe("store client", () => {
           .claims.map((c) => ({ ...c, asserted_by_name: "A. Tracer" })),
       })
     })
-    const network = await loadFromStore("gas")
+  }
+
+  it("loads a network: the rows, each section once, links, lines traced as gone", async () => {
+    const fetchMock = answerWithNetwork()
+    // The whole network, whatever area this machine's settings name.
+    const network = await loadFromStore("gas", null)
     expect(network.name).toBe("Gas network")
     // The lines traced as gone are read, and are not sections.
     expect(network.sections).toHaveLength(3)
@@ -102,5 +108,15 @@ describe("store client", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1 + 3 + 3 + 3)
     expect(network.sections.flatMap((x) => x.proposedEnds)).toHaveLength(2)
     expect(JSON.stringify(network)).not.toContain("A. Tracer")
+  })
+
+  it("asks store for one area when given one, and says so in the name", async () => {
+    const fetchMock = answerWithNetwork()
+    const network = await loadFromStore("gas", "1,2,3,4")
+    expect(network.name).toBe("Gas network, one area")
+    const asked = fetchMock.mock.calls
+      .map(([path]) => String(path))
+      .find((path) => path.startsWith("/store/sections"))!
+    expect(new URLSearchParams(asked.split("?")[1]).get("bbox")).toBe("1,2,3,4")
   })
 })

@@ -106,7 +106,15 @@ const toCitation = (c: StoreCitation): Citation => ({
       : { locator: c.locator }
     : {}),
   ...(c.quote ? { quote: c.quote } : {}),
+  ...(c.identifier ? { identifier: c.identifier } : {}),
+  ...(typeof c.confidence === "number" && c.confidence >= 0 && c.confidence <= 1
+    ? { confidence: c.confidence }
+    : {}),
 })
+
+/** The day a claim was made, from store's timestamp. */
+const madeAt = (c: StoreClaim | undefined) =>
+  c?.created_at ? { madeAt: c.created_at.slice(0, 10) } : {}
 
 /**
  * A status as a map can support it. "operational" cited to a map that shows
@@ -355,6 +363,7 @@ export function toNetwork(
             attribute,
             value: valueOf(c),
             ...(c.valid_edtf ? { valid: c.valid_edtf } : {}),
+            ...madeAt(c),
             citations: c.citations.map(toCitation),
             proposals: index === 0 ? proposals : [],
           }))
@@ -459,6 +468,7 @@ export function toNetwork(
         ...(only?.id ? { id: only.id } : {}),
         attribute,
         ...(only?.valid_edtf ? { valid: only.valid_edtf } : {}),
+        ...madeAt(only),
         value: values.length > 0 ? values.join("; ") : null,
         citations:
           values.length > 0

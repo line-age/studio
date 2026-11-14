@@ -63,6 +63,10 @@ const citation = z.object({
   source_kind: z.string(),
   source_title: z.string().min(1),
   as_of_edtf: z.string().nullish(),
+  /** The source's own identifier: for a map sheet, its scan file. */
+  identifier: z.string().nullish(),
+  /** From 0 to 1, when whoever cited it gave one. */
+  confidence: z.number().nullish(),
 })
 
 const claim = z.object({

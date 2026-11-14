@@ -116,6 +116,17 @@ export function editionWords(citation: Citation): string | undefined {
   return `${year} edition, ${formatAsOf(citation.asOf)}`
 }
 
+/** The day a claim was made, in words: "13 November 2026". */
+export function formatMadeAt(madeAt: string): string {
+  const date = parseDate(madeAt)
+  return date ? words(date) : madeAt
+}
+
+/** A citation's confidence as recorded, from 0 to 1: "0.8". */
+export function confidenceWords(confidence: number): string {
+  return `${String(Number(confidence.toFixed(2)))} of 1`
+}
+
 /** A citation as one line: what it does, the source, the place, the passage. */
 export function citationLine(citation: Citation): string {
   const role = roleWords(citation.role)

@@ -164,11 +164,13 @@ export function evidenceNetwork(): Network {
             attribute: "Geometry",
             value: "Traced line",
             valid: "../1931-06",
+            madeAt: "2026-11-12",
             citations: [
               {
                 source: "Invented trunk map, 1931",
                 role: "map_shows",
                 asOf: "1931-06",
+                identifier: "invented-scan-1931.tif",
                 file: "traces/1931/base.gpkg",
               },
             ],

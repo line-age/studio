@@ -18,6 +18,8 @@ const sheet = (year: number) => ({
   source_kind: "map_sheet",
   source_title: `Invented trunk line map, ${year}`,
   as_of_edtf: `${year}-06`,
+  identifier: `invented-scan-${year}.tif`,
+  confidence: null,
 })
 
 const route = (year: number, coordinates: number[][]) => ({
@@ -96,7 +98,14 @@ export function storeFeatures(): StoreFeature[] {
           value_geom: null,
           status: "accepted",
           created_at: "2026-11-12T11:00:00Z",
-          citations: [{ ...sheet(1937), role: "states", quote: '"12 IN."' }],
+          citations: [
+            {
+              ...sheet(1937),
+              role: "states",
+              quote: '"12 IN."',
+              confidence: 0.8,
+            },
+          ],
         },
         {
           attribute_key: "diameter",
