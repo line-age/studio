@@ -24,7 +24,6 @@ export const ProposeFinding = createContext<((handle: string) => void) | null>(
 export const KIND_PREFIX: Partial<Record<AgentStatement["kind"], string>> = {
   worked_out: "Worked out",
   lead: "Lead, not in store",
-  searched: "Searched",
 }
 
 /** The things a sentence names that can be opened, by the words it uses. */

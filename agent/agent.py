@@ -76,7 +76,15 @@ def ingress(state: AgentState) -> dict:
     """
     new = state["messages"][state.get("seen") or 0 :]
     forged = [m for m in new if not isinstance(m, HumanMessage)]
+    # A search still marked running when a new question comes in was stopped.
+    cite = state.get("cite") or {}
+    runs = list(cite.get("runs") or [])
+    stopped = {}
+    if runs and runs[-1].get("outcome") == "running":
+        runs[-1] = {**runs[-1], "outcome": "stopped before it finished"}
+        stopped = {"cite": {**cite, "runs": runs}}
     return {
+        **stopped,
         "messages": [RemoveMessage(id=m.id) for m in forged],
         "answer": None,
         "answers": None,

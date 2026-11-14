@@ -184,7 +184,18 @@ export function useAgent() {
     )
   }
 
-  const stop = () => stream.stop({ cancel: true })
+  // A run stopped mid-graph leaves the thread waiting on its next step, which
+  // the stream reads as still running, even after a reload. Ending the graph
+  // where an answer ends (no search left to follow) makes it idle again.
+  const stop = async () => {
+    await stream.stop({ cancel: true })
+    await new Client({ apiUrl: apiUrl() }).threads
+      .updateState(SHARED_THREAD_ID, {
+        values: { cite_job: null },
+        asNode: "answer",
+      })
+      .catch(() => undefined)
+  }
 
   const clear = async () => {
     if (stream.isLoading) await stop().catch(() => undefined)

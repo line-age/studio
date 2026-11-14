@@ -20,7 +20,7 @@ from typing import Any
 
 from cite_input import FROM_CITE, TO_CITE, WORDS, CiteAsk, years_in
 from cite_result import CiteClaim, CiteResult
-from render import Read, feature_name, value_words
+from render import Read, feature_name, one_full_stop, value_words
 from schemas import Box, DraftStatement, Finding, FindingFlag, Ref, Statement
 from settings import CITE_WINDOW_YEARS
 
@@ -226,7 +226,7 @@ def finding_sentence(f: Finding, subject: str) -> str:
         said = f"{subject}, {f.date_words}"
     else:
         said = f"{f.value} as the {f.attribute} of {subject}, {f.date_words}"
-    return f"{lead}: {said}. {reference(f)}."
+    return one_full_stop(f"{lead}: {said}. {reference(f)}.")
 
 
 def _page(printed: str | None, confidence: float | None, leaf: int) -> str:
@@ -378,12 +378,14 @@ def report(
         values = by_attribute.setdefault(f["attribute"], [])
         if f["value"] not in values:
             values.append(f["value"])
+    # A section has one diameter at a time; it may have several owners at once (store
+    # keeps joint owners), so two owners found are not a disagreement.
     for attribute, values in by_attribute.items():
-        if attribute != "built" and len(values) > 1:
+        if attribute == "diameter" and len(values) > 1:
             out.append(
                 Statement(
                     kind="worked_out",
-                    text=(
+                    text=one_full_stop(
                         f"The sources disagree on the {attribute}: {' and '.join(values)}. "
                         "Both are shown; neither is picked."
                     ),

@@ -73,8 +73,9 @@ attribute). Code checks the request and searches the journals with cite; you nev
 and never write what was found. Write one citation_request per attribute asked about: \
 `attribute` set (owner, diameter, or status for when it was built), the section in refs, \
 text empty. Steering fields, copied from the person's own words and nothing else:
-  - `places`: the towns the person named along the line, exactly as written. Never a \
-town from your memory, from a name or from a map. None named: leave it empty, code asks.
+  - `places`: the towns the person named along the line, exactly as written, one town \
+each, without the state ("Sampleton", not "Sampleton, Kansas" or "Kansas"). Never a town \
+from your memory, from a name or from a map. None named: leave it empty, code asks.
   - `years`: [from, to] when the person gave years to read; else empty.
   - `ruled_out`: values the person turned down ("not Example Co.").
   - `without_places`: true only when the person said to search without towns.

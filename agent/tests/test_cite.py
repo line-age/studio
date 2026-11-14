@@ -290,3 +290,38 @@ def test_an_operator_question_is_never_searched_as_the_owner(world):
     out = chat.ask("Who operated this section? Look in the journals, through Sampleton.", [s01])
     assert out["answer"]["statements"][0]["text"].startswith("I cannot look for the operator")
     assert chat.cite.inputs == []
+
+
+def test_two_owners_found_are_not_a_disagreement_and_no_name_ends_in_two_stops():
+    from cite_result import CiteResult
+    from evals import fake_cite
+
+    section = {"section_id": "s", "places": [], "attributes": ["Ownership"]}
+    page = fake_cite.citation(3, "1931-02-19", "64", "A Co. owns it through B Co.")
+    raw = fake_cite.result(
+        section,
+        [
+            fake_cite.claim("Ownership", "A Co.", {"owner": "a"}, page),
+            fake_cite.claim("Ownership", "B Co.", {"owner": "b"}, page),
+        ],
+        [page],
+    )
+    result = CiteResult.model_validate(raw)
+    records = cite_flow.findings_of(result, "s", 1)
+    statements = cite_flow.report(result, records, ["owner"], "s", "section x")
+    assert [s.kind for s in statements] == ["finding", "finding"]
+    assert all(".." not in s.text for s in statements)
+
+
+def test_a_search_left_running_by_stop_is_recorded_as_stopped():
+    from agent import ingress
+
+    state = {
+        "messages": [],
+        "seen": 0,
+        "cite_job": None,  # Studio's Stop clears it
+        "cite": {"runs": [{"section_id": "s", "outcome": "running"}], "findings": {}},
+    }
+    out = ingress(state)
+    assert out["cite"]["runs"][-1]["outcome"] == "stopped before it finished"
+    assert out["cite_job"] is None

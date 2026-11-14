@@ -176,6 +176,19 @@ function AnswerBody({
   )
 }
 
+/** A search was started and nothing came back from it: it was stopped. */
+function searchLeftUnfinished(statements: readonly AgentStatement[]): boolean {
+  const started = statements.findIndex(
+    (s) => s.kind === "citation_request" && s.request
+  )
+  return (
+    started >= 0 &&
+    !statements
+      .slice(started + 1)
+      .some((s) => ["finding", "searched", "worked_out"].includes(s.kind))
+  )
+}
+
 function asked(question: Question): string | null {
   const count = question.about.length
   if (count === 0) return null
@@ -229,6 +242,11 @@ function Turn({
             open={open}
           />
           <AgentSources statements={turn.answer.statements} open={open} />
+          {!searchingNow && searchLeftUnfinished(turn.answer.statements) && (
+            <Marker>
+              Stopped before the search finished. Nothing was written.
+            </Marker>
+          )}
         </div>
       ) : now ? (
         <AgentSteps steps={liveSteps} working />
