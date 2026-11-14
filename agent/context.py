@@ -123,7 +123,7 @@ def edition_facts(
         # An earlier printing that store's tracing does not show it on. Not "the one
         # before": printings that only removed lines are not known here.
         before = [y for y in editions.years if y < year] if editions.complete else []
-        text = f"Worked out from the maps in store: {name} is first traced on the {year} printing"
+        text = f"{name} is first traced on the {year} printing"
         text += f", and is not traced on the earlier {before[-1]} printing." if before else "."
         facts.append(
             WorkedOut(handle=handle(), what="first_edition", text=text, rests_on=[claim["id"]])
@@ -157,10 +157,7 @@ def edition_facts(
                 if link["relation"] == "same_as"
                 else "that printing no longer shows that part"
             )
-            text = (
-                f"Worked out from a confirmed link: a line traced as gone {on} is {part} "
-                f"{name}, so {shows}."
-            )
+            text = f"A line traced as gone {on} is {part} {name}, by a confirmed link, so {shows}."
         else:
             text = (
                 f"It is proposed, and not yet decided, that a line traced as gone {on} "
@@ -288,7 +285,9 @@ def link_facts(
             continue
         clause, what = _link_clause(link, name, other, mine)
         if link["status"] == "confirmed":
-            text = f"From a confirmed link in store: {clause}."
+            # A name stays as store gives it ("section 1a2b3c4d"), even to open a sentence:
+            # Studio finds names in the text to make them links.
+            text = f"{clause}, by a confirmed link."
             if what == "pipeline":
                 text += " What store holds about the pipeline is the pipeline's, not the section's."
             elif what in ("same_pipe", "split") and not mine:
@@ -386,8 +385,7 @@ def neighbour_facts(
             handle=handle(),
             what="drawn_touching",
             text=(
-                "Worked out from the traced lines: "
-                + _MEETS[meets].format(me=me, other=feature_name(other))
+                _MEETS[meets].format(me=me, other=feature_name(other))
                 + " Lines drawn touching do not prove the pipes joined."
             ),
             rests_on=[feature["id"], other["id"]],
@@ -411,7 +409,7 @@ def neighbour_facts(
             WorkedOut(
                 handle=handle(),
                 what="drawn_touching",
-                text=f"Worked out from the traced lines: no section in store is drawn touching {me}.",
+                text=f"No section in store is drawn touching {me}.",
                 rests_on=[feature["id"]],
             )
         )

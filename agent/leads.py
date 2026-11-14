@@ -1,7 +1,7 @@
 """Leads: where to look next, found by code by fixed rules over a section's context.
 
-A lead is not a claim. It is never written to store and always says so: it opens "Not in
-store". Each names its rule and the source it rests on, and rests on things store holds
+A lead is not a claim. It is never written to store. Its kind says so ("Lead, not in
+store" in Studio and in plain text); each names its rule, rests on and rests on things store holds
 (a claim, a link, a printing), never on the model's own knowledge, a basemap label, a
 name that looks alike, a line's shape or a guessed build date. More independent backing
 ranks a lead higher: the number of distinct sources behind the same value. No scores.
@@ -28,7 +28,7 @@ from collections.abc import Callable
 from typing import Any
 
 from context import Editions, first_shown
-from render import Unfillable, feature_name, one_full_stop, period_words, source_line, value_words
+from render import Unfillable, feature_name, one_full_stop, period_words, value_words
 from schemas import Lead
 
 ASKED_FOR = ("owner", "operator", "name", "diameter")
@@ -153,7 +153,7 @@ def find_leads(
     def each(claims: list[dict[str, Any]]):
         for claim in claims:
             try:
-                yield claim, offered(claim), period_words(claim), source_line([claim])
+                yield claim, offered(claim), period_words(claim)
             except Unfillable:
                 continue  # no words for it: no lead, and the rest go on
 
@@ -163,14 +163,13 @@ def find_leads(
         for attribute in ASKED_FOR:
             if attribute in holds:
                 continue
-            for claim, value, period, source in each(_accepted([other], attribute)):
+            for claim, value, period in each(_accepted([other], attribute)):
                 page = _cited_page(claim)
                 if page:
                     lead(
                         "neighbour_source",
-                        f"Not in store: {them}, drawn touching {me}, has its {attribute} "
-                        f"cited to {page[0]}, {page[1]}. That page may say {me}'s "
-                        f"{attribute} too.",
+                        f"The page that names the {attribute} of {them}, drawn touching "
+                        f"{me}, may name {me}'s {attribute} too.",
                         attribute,
                         [claim["id"]],
                         page=page,
@@ -178,9 +177,8 @@ def find_leads(
                 if attribute in CARRIED and value:
                     lead(
                         "neighbour_owner",
-                        f"Not in store: {them}, drawn touching {me}, has the {attribute} "
-                        f"{value[1]}, {period}. Worth checking whether that holds for {me}. "
-                        f"{source}",
+                        f"{them}, drawn touching {me}, has the {attribute} {value[1]}, "
+                        f"{period}. Worth checking whether that holds for {me}.",
                         attribute,
                         [claim["id"]],
                         value=value,
@@ -194,13 +192,13 @@ def find_leads(
         for attribute in CARRIED:
             if attribute in holds:
                 continue
-            for claim, value, period, source in each(_accepted([line], attribute)):
+            for claim, value, period in each(_accepted([line], attribute)):
                 if value:
                     lead(
                         "pipeline_claims",
-                        f"Not in store as {me}'s own: {pipeline}, which it is part of, has "
-                        f"the {attribute} {value[1]}, {period}. Worth checking whether that "
-                        f"holds for {me}. {source}",
+                        f"{pipeline[0].upper()}{pipeline[1:]}, which {me} is part of, has the "
+                        f"{attribute} {value[1]}, {period}. Worth checking whether that holds "
+                        f"for {me} itself.",
                         attribute,
                         [claim["id"]],
                         value=value,
@@ -213,13 +211,13 @@ def find_leads(
         for attribute in ASKED_FOR:
             if attribute in holds:
                 continue
-            for claim, value, _period, source in each(_accepted([other], attribute)):
+            for claim, value, _period in each(_accepted([other], attribute)):
                 if value:
                     lead(
                         "proposed_link",
-                        f"Not in store yet: it is proposed, not decided, that {them} is "
-                        f"another trace of the same pipe as {me}. If someone confirms it, "
-                        f"{me} takes its {attribute}, {value[1]}. {source}",
+                        f"It is proposed, not decided, that {them} is another trace of the "
+                        f"same pipe as {me}. If someone confirms it, {me} takes its "
+                        f"{attribute}, {value[1]}.",
                         attribute,
                         [link["id"], claim["id"]],
                         value=value,
@@ -235,7 +233,7 @@ def find_leads(
         if earlier:
             lead(
                 "edition_window",
-                f"Not in store: {me} is first traced on the {year} printing and is not "
+                f"{me} is first traced on the {year} printing and is not "
                 f"traced on the earlier {earlier[-1]} one, so sources from {earlier[-1]} to "
                 f"{year} are where to look for when it first appears. A window to search, "
                 "never a build date.",
@@ -252,7 +250,7 @@ def find_leads(
                 continue
             lead(
                 "rejected_value",
-                f"Not in store as a value: {value_words(claim)} was ruled out as the "
+                f"{value_words(claim)} was ruled out as the "
                 f"{claim['attribute_key']} of {me}. Do not propose it again.",
                 claim["attribute_key"],
                 [claim["id"]],
@@ -266,7 +264,7 @@ def find_leads(
                 if value_words(a) != value_words(b) and _same_years(a, b):
                     lead(
                         "conflict",
-                        f"Not in store as one answer: {me} has two accepted {attribute} "
+                        f"{me} has two accepted {attribute} "
                         f"values for the same years, {value_words(a)} and {value_words(b)}. "
                         "To resolve, not to pick.",
                         attribute,

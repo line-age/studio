@@ -95,8 +95,19 @@ def failure(line: str = "check_failed") -> Answer:
     return Answer(checked=True, statements=[Statement(kind="failure", text=FIXED_LINES[line])])
 
 
+# How a statement that is not a claim is marked when the answer is read as plain text.
+# Studio shows the same kinds as a grey prefix.
+KIND_PREFIX = {"worked_out": "Worked out: ", "lead": "Lead, not in store: "}
+
+
 def as_text(answer: Answer) -> str:
-    return "\n\n".join(statement.text for statement in answer.statements)
+    """The answer as plain text, each source after its statement: what a copy holds."""
+    out = []
+    for statement in answer.statements:
+        sources = list(dict.fromkeys(r.source for r in statement.refs if r.source))
+        tail = f" ({'; '.join(sources)})" if sources else ""
+        out.append(KIND_PREFIX.get(statement.kind, "") + statement.text + tail)
+    return "\n\n".join(out)
 
 
 # Dates -------------------------------------------------------------------------------------
@@ -354,6 +365,7 @@ def _ref(ref_type: str, ref_id: str, read: "Read") -> Ref:
             status=claim["status"],
             asserter=claim.get("asserted_by_kind"),
             label=ref_label(claim["feature_id"], read),
+            source=_where(claim),
         )
     if ref_type == "link":
         link = read.links.get(ref_id)
@@ -425,22 +437,6 @@ def source_line(claims: list[dict[str, Any]]) -> str:
     return f"The sources are {', '.join(parts[:-1])} and {parts[-1]}."
 
 
-def _sources_left_out(draft: DraftStatement, read: Read) -> list[str]:
-    """A fact always says what it rests on. Where the model's sentence leaves a claim's
-    source out, code adds it, so a value or a proposal is never shown without it."""
-    named = {
-        key
-        for key, field in ((m.group(1), m.group(2)) for m in SLOT.finditer(draft.text))
-        if field == "source"
-    }
-    left = [
-        read.claims[r.id]
-        for r in draft.refs
-        if r.type == "claim" and r.key not in named and r.id in read.claims
-    ]
-    return [source_line(left)] if left else []
-
-
 def one_full_stop(text: str) -> str:
     """A value that ends a sentence with its own full stop ("Co.") takes no second one."""
     return re.sub(r"(?<=[A-Za-z]\.)\.(?=\s|$)", "", text)
@@ -487,7 +483,9 @@ def claim_line(claim: dict[str, Any], read: Read, name_things: bool) -> str:
         )
     else:
         raise Unfillable(f"a claim that is {status} has no sentence of its own")
-    return f"{one_full_stop(line)} {source_line([claim])}"
+    # The source is not in the sentence: it travels on the claim's reference, and Studio
+    # shows it beside the statement.
+    return one_full_stop(line)
 
 
 def render_statement(draft: DraftStatement, read: Read, name_things: bool = False) -> Statement:
@@ -587,7 +585,6 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
 
     text = one_full_stop(SLOT.sub(fill, draft.text).strip())
     refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]
-    text = " ".join([text, *_sources_left_out(draft, read)])
     return Statement(kind=draft.kind, text=text, refs=refs, attribute=draft.attribute)
 
 

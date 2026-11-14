@@ -145,6 +145,9 @@ class Ref(_Strict):
     # id; a claim by the feature it is on; a link by what it says. Studio lists sections
     # and pipelines only, so it cannot name a merged trace or a line traced as gone.
     label: str | None = None
+    # For a claim: its source as Studio shows it beside the statement ("Example Gazette,
+    # vol. 32 no. 3, p. 41"), or None when store holds no source for it.
+    source: str | None = None
 
 
 LeadRule = Literal[

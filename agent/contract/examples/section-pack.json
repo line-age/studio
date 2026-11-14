@@ -70,7 +70,7 @@
     {
       "handle": "W1",
       "what": "first_edition",
-      "text": "Worked out from the maps in store: section 777952cb is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.",
+      "text": "section 777952cb is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.",
       "rests_on": [
         "48cc5a4d-1800-5993-9684-3d88af06e492"
       ]
@@ -94,7 +94,7 @@
     {
       "handle": "W4",
       "what": "drawn_touching",
-      "text": "Worked out from the traced lines: section b6618689 is drawn touching section 777952cb: their ends meet. Lines drawn touching do not prove the pipes joined.",
+      "text": "section b6618689 is drawn touching section 777952cb: their ends meet. Lines drawn touching do not prove the pipes joined.",
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79",
         "b6618689-b54d-5157-9dac-d0e0e401a9d2"
@@ -105,7 +105,7 @@
     {
       "handle": "L1",
       "rule": "neighbour_source",
-      "text": "Not in store: section b6618689, drawn touching section 777952cb, has its owner cited to Example Gazette, vol. 32 no. 3, p. 52. That page may say section 777952cb's owner too.",
+      "text": "The page that names the owner of section b6618689, drawn touching section 777952cb, may name section 777952cb's owner too.",
       "attribute": "owner",
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79",
@@ -116,7 +116,7 @@
     {
       "handle": "L2",
       "rule": "neighbour_owner",
-      "text": "Not in store: section b6618689, drawn touching section 777952cb, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 777952cb. The source is Example Gazette, vol. 32 no. 3, p. 52.",
+      "text": "section b6618689, drawn touching section 777952cb, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 777952cb.",
       "attribute": "owner",
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79",
@@ -127,7 +127,7 @@
     {
       "handle": "L3",
       "rule": "proposed_link",
-      "text": "Not in store yet: it is proposed, not decided, that section 611edd31 is another trace of the same pipe as section 777952cb. If someone confirms it, section 777952cb takes its owner, Example Pipe Line Co. The source is Example Gazette, vol. 38 no. 11, p. 133.",
+      "text": "It is proposed, not decided, that section 611edd31 is another trace of the same pipe as section 777952cb. If someone confirms it, section 777952cb takes its owner, Example Pipe Line Co.",
       "attribute": "owner",
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79",
@@ -139,7 +139,7 @@
     {
       "handle": "L4",
       "rule": "edition_window",
-      "text": "Not in store: section 777952cb is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+      "text": "section 777952cb is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
       "attribute": null,
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79",

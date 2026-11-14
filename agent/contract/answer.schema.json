@@ -159,6 +159,18 @@
           ],
           "default": null,
           "title": "Label"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
         }
       },
       "required": [

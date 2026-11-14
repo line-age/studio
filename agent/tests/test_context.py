@@ -158,7 +158,7 @@ def links_of(world, code):
 def test_a_confirmed_pipeline_is_said_with_its_claims_kept_apart(world):
     (fact,) = links_of(world, "s16")
     assert fact.what == "pipeline"
-    assert fact.text.startswith("From a confirmed link in store: ")
+    assert fact.text.endswith("not the section's.") and ", by a confirmed link." in fact.text
     assert "the pipeline Example trunk line" in fact.text
     assert "the pipeline's, not the section's" in fact.text
 
@@ -171,7 +171,7 @@ def test_a_proposed_pipeline_leaves_it_in_none(world):
 
 def test_a_merged_trace_is_another_trace_of_the_same_pipe(world):
     (fact,) = links_of(world, "s13")
-    assert fact.what == "same_pipe" and fact.text.startswith("From a confirmed link")
+    assert fact.what == "same_pipe" and ", by a confirmed link." in fact.text
     assert "claims as" in fact.text
 
 

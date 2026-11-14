@@ -201,7 +201,7 @@ def test_a_value_that_ends_in_a_full_stop_takes_no_second_one(s02):
     answer = render(
         draft("The owner is {c1.value}.", [{"key": "c1", "type": "claim", "id": owner["id"]}]), s02
     )
-    assert answer.statements[0].text.startswith("The owner is Example Pipe Line Co. The source")
+    assert answer.statements[0].text == "The owner is Example Pipe Line Co."
 
 
 @pytest.mark.parametrize(

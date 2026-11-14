@@ -157,8 +157,13 @@ def fact_problems(draft: Draft, read: Read) -> list[str]:
                 f"statement {n}: {', '.join(around)} is a claim of a section around it, not "
                 "of this one; leave the text empty so code says whose it is, or use a lead"
             )
-        if not any(field == "value" for _, field in slots):
-            problems.append(f"statement {n}: a fact states a value through {{c1.value}}")
+        # A fact says what a claim holds ({c1.value}) or what it rests on ({c1.source},
+        # {c1.quote}): both are filled from store.
+        if not any(field in ("value", "source", "quote") for _, field in slots):
+            problems.append(
+                f"statement {n}: a fact states a value through {{c1.value}}, or its source "
+                "through {c1.source}"
+            )
         used = {key for key, _ in slots}
         for key in claims:
             if key not in used:

@@ -28,15 +28,33 @@ def lead(read, rule):
     return next(item for item in read.leads.values() if item["rule"] == rule)
 
 
-def test_every_lead_says_it_is_not_in_store(world):
+def test_every_lead_is_marked_not_in_store_in_its_plain_text(world):
+    from render import as_text
+
     for code in ("s14", "s16", "s04", "s20"):
-        for item in context_of(world, code).leads.values():
-            assert item["text"].startswith(("Not in store", "Not settled in store"))
+        read = context_of(world, code)
+        draft = Draft.model_validate(
+            {
+                "statements": [
+                    {"kind": "lead", "text": "", "refs": [{"key": "l", "type": "lead", "id": h}]}
+                    for h in read.leads
+                ]
+            }
+        )
+        for paragraph in as_text(render(draft, read)).split("\n\n"):
+            assert paragraph.startswith("Lead, not in store: ")
 
 
 def test_rule_1_a_neighbours_cited_page(world):
-    item = lead(context_of(world, "s14"), "neighbour_source")
-    assert "p. 52" in item["text"] and item["attribute"] == "owner"
+    read = context_of(world, "s14")
+    item = lead(read, "neighbour_source")
+    assert item["attribute"] == "owner" and "may name" in item["text"]
+    # the page itself is the source of the claim it rests on, shown beside the lead
+    assert any(
+        read.claims[i]["citations"][0]["locator"] == "p. 52"
+        for i in item["rests_on"]
+        if i in read.claims
+    )
 
 
 def test_rule_2_a_neighbours_owner_worth_checking_never_its_diameter(world):
@@ -171,7 +189,7 @@ def test_a_lead_changed_is_blocked(world):
     read = context_of(world, "s14")
     draft = _picked(read, "lead", "L1")
     answer = render(draft, read)
-    answer.statements[0].text = answer.statements[0].text.replace("Not in store", "Store says", 1)
+    answer.statements[0].text = "Store says: " + answer.statements[0].text
     assert problems_of(draft, answer, read)
 
 
@@ -192,7 +210,7 @@ def test_a_citation_request_carries_the_sections_leads_as_hints(world):
     request = render(draft, read).statements[0].request
     rules_ = {h.rule for h in request.hints}
     assert {"neighbour_source", "neighbour_owner", "edition_window"} <= rules_
-    assert all(h.text.startswith("Not in store") for h in request.hints)
+    assert all(h.text for h in request.hints)
 
 
 # From the reviews of B6: each on a hand-made shape.
@@ -271,7 +289,7 @@ def test_a_merged_traces_owner_that_disagrees_is_a_conflict():
     me = _feature(ME, [_claim("a", "owner", "A Co.", edtf="1938")])
     twin = _feature("t" * 8 + "-0", [_claim("b", "owner", "B Co.", edtf="1938")])
     (conflict,) = [lead for lead in _leads(me, merged=[twin]) if lead.rule == "conflict"]
-    assert conflict.text.startswith("Not in store as one answer:")
+    assert "two accepted owner values for the same years" in conflict.text
 
 
 def test_a_claim_with_no_words_gives_no_lead_and_fails_nothing():

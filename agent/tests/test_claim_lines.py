@@ -47,10 +47,8 @@ def test_an_accepted_claim_reads_with_its_period_and_source(world):
     read = _read(world, "s02")
     owner = _claim(world, read, "s02", "owner", "accepted")
     answer = render(_picked(owner["id"]), read)
-    assert answer.statements[0].text == (
-        "The owner is Example Pipe Line Co., by March 1932. "
-        "The source is Example Gazette, vol. 32 no. 3, p. 41."
-    )
+    assert answer.statements[0].text == "The owner is Example Pipe Line Co., by March 1932."
+    assert answer.statements[0].refs[0].source == "Example Gazette, vol. 32 no. 3, p. 41"
     assert problems_of(_picked(owner["id"]), answer, read) == []
 
 
@@ -60,7 +58,7 @@ def test_a_proposal_says_who_proposed_it_and_that_nobody_decided(world):
     text = render(_picked(proposed["id"]), read).statements[0].text
     assert text.startswith(("A tool proposed ", "A person proposed "))
     assert "as the owner" in text and "Nobody has decided on it yet." in text
-    assert "The source is " in text
+    assert render(_picked(proposed["id"]), read).statements[0].refs[0].source
 
 
 def test_about_several_sections_each_sentence_names_its_own(world):

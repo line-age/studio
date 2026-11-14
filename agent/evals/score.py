@@ -135,11 +135,10 @@ def _same_pipe(world: dict[str, Any], fid: str) -> set[str]:
 def _lead_problems(
     where: str, text: str, refs: list[dict[str, Any]], world: dict[str, Any]
 ) -> list[str]:
-    """A lead is marked as not in store, and one about a neighbour rests on a section
-    that really is drawn touching the one asked about."""
+    """A lead about a neighbour rests on a section that really is drawn touching the one
+    asked about, and never says what turns a clue into a claim. (That it is not in store
+    is its kind, set by code.)"""
     problems = []
-    if not text.startswith(("Not in store", "Not settled in store")):
-        problems.append(f"{where}: a lead does not say it is not in store")
     claims = _claims(world)
     me = next((r["id"] for r in refs if r["type"] == "feature"), None)
     if "drawn touching" in text and me:

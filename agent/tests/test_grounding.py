@@ -248,32 +248,29 @@ def test_a_citation_request_for_something_not_read_is_blocked(world):
 
 
 def test_a_proposal_always_says_what_it_rests_on(world):
-    """Seen in Studio: "A tool proposed 12 in as the diameter" with no word of its source."""
+    """Seen in Studio: "A tool proposed 12 in as the diameter" with no word of its source.
+    The source travels on the claim's reference; Studio shows it beside the statement,
+    and the plain text of the answer keeps it."""
+    from render import as_text
+
     read = read_of(world, "s03")
     cid = claim(world, "s03", "owner", "candidate")
     ref = {"key": "c1", "type": "claim", "id": cid}
     draft = Draft.model_validate(
         {"statements": [statement(text="A tool proposed {c1.value} as the owner.", refs=[ref])]}
     )
-    text = render(draft, read).statements[0].text
+    answer = render(draft, read)
     source = read.claims[cid]["citations"][0]["source_title"]
-    assert text.count(source) == 1 and text.startswith("A tool proposed")
-    # Named by the model already: not said twice.
-    named = Draft.model_validate(
-        {
-            "statements": [
-                statement(text="A tool proposed {c1.value}, from {c1.source}.", refs=[ref])
-            ]
-        }
-    )
-    assert render(named, read).statements[0].text.count(source) == 1
-    # A claim with no citation says so rather than nothing.
+    assert answer.statements[0].refs[0].source.startswith(source)
+    assert source not in answer.statements[0].text  # said once, beside it
+    assert source in as_text(answer)
+    # A claim with no citation carries none, and Studio says so.
     bare = copy.deepcopy(read)
     bare.claims[cid]["citations"] = []
-    assert render(draft, bare).statements[0].text.endswith("Store holds no source for it.")
+    assert render(draft, bare).statements[0].refs[0].source is None
 
 
-def test_two_values_in_one_sentence_each_name_their_own_source(world):
+def test_two_values_in_one_sentence_each_carry_their_own_source(world):
     read = read_of(world, "s02")
     refs = [
         {"key": "c1", "type": "claim", "id": claim(world, "s02", "owner")},
@@ -282,12 +279,27 @@ def test_two_values_in_one_sentence_each_name_their_own_source(world):
     draft = Draft.model_validate(
         {"statements": [statement(text="Owner {c1.value}, diameter {c2.value}.", refs=refs)]}
     )
-    text = render(draft, read).statements[0].text
-    assert " The sources are " in text and text.count(" for ") == 2
-    assert text.endswith(f"for {render_value(read, refs[1]['id'])}.")
+    shown = render(draft, read).statements[0]
+    assert [r.source for r in shown.refs] == [
+        "Example Gazette, vol. 32 no. 3, p. 41",
+        "Example Gazette, vol. 32 no. 3, p. 41",
+    ]
 
 
 def render_value(read, claim_id):
     from render import value_words
 
     return value_words(read.claims[claim_id])
+
+
+def test_a_sentence_about_what_a_claim_rests_on_is_a_fact(world):
+    read = read_of(world, "s02")
+    ref = {"key": "c1", "type": "claim", "id": claim(world, "s02", "owner")}
+    draft = Draft.model_validate(
+        {
+            "statements": [
+                statement(text="It rests on {c1.source}, {c1.locator}: {c1.quote}", refs=[ref])
+            ]
+        }
+    )
+    assert problems_of(draft, render(draft, read), read) == []
