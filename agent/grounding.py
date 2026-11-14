@@ -14,7 +14,7 @@ the evals for background and memory (B5) are for.
 import re
 from typing import Any
 
-from render import FIXED_LINES, SLOT, Read
+from render import FIXED_LINES, SLOT, Read, writes_itself
 from schemas import Answer, Draft
 
 _UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.IGNORECASE)
@@ -99,7 +99,7 @@ def own_words_problems(draft: Draft) -> list[str]:
     """What the model wrote outside slots: no digit, quotation, id, name or number word."""
     problems = []
     for n, statement in enumerate(draft.statements, 1):
-        if statement.kind in (*FIXED, "unknown", "citation_request"):
+        if statement.kind in (*FIXED, "unknown", "citation_request") or writes_itself(statement):
             continue  # code writes the whole sentence
         own = SLOT.sub(" ", statement.text)
         if re.search(r"\d", own):
@@ -128,7 +128,7 @@ def fact_problems(draft: Draft, read: Read) -> list[str]:
     used, its status said, and no other attribute named in its words."""
     problems = []
     for n, statement in enumerate(draft.statements, 1):
-        if statement.kind != "fact":
+        if statement.kind != "fact" or writes_itself(statement):
             continue
         slots = _slots(statement.text)
         claims = {r.key: read.claims.get(r.id) for r in statement.refs if r.type == "claim"}

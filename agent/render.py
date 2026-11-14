@@ -398,6 +398,48 @@ def _sources_left_out(draft: DraftStatement, read: Read) -> list[str]:
     return [source_line(left)] if left else []
 
 
+def writes_itself(draft: DraftStatement) -> bool:
+    """A fact about one claim with no text: code writes the whole sentence."""
+    claims = [r for r in draft.refs if r.type == "claim"]
+    return draft.kind == "fact" and not draft.text.strip() and len(claims) == 1
+
+
+def _holder(claim: dict[str, Any], read: Read) -> dict[str, Any]:
+    """Whose claim it is as a reviewer sees it: the section a merged trace counts for."""
+    into = next((s for s, merged in read.scope.items() if claim["feature_id"] in merged), None)
+    return read.features[into or claim["feature_id"]]
+
+
+def claim_line(claim: dict[str, Any], read: Read, name_things: bool) -> str:
+    """One claim in code's words: its value, when it holds, its status and its source."""
+    what = claim["attribute_key"].replace("_", " ")
+    value, period = value_words(claim), period_words(claim)
+    holder = _holder(claim, read)
+    subject = feature_name(holder) if name_things else None
+    if holder.get("kind") == "line":
+        # A pipeline's claim is never read as the section's: it always says whose it is.
+        name = feature_name(holder)
+        subject = name if name.startswith("pipeline ") else f"the pipeline {name}"
+    if claim["status"] == "candidate":
+        who = {"pipeline": "A tool", "person": "A person"}.get(
+            claim.get("asserted_by_kind") or "", "Someone"
+        )
+        of = f" of {subject}" if subject else ""
+        line = f"{who} proposed {value} as the {what}{of}, {period}. Nobody has decided on it yet."
+    elif claim["status"] == "rejected":
+        of = f" for {subject}" if subject else ""
+        line = f"One value{of}, {value}, was rejected as the {what}. It was given {period}."
+    else:
+        line = (
+            f"For {subject}, the {what} is {value}, {period}."
+            if subject
+            else (f"The {what} is {value}, {period}.")
+        )
+    # A value that ends with its own full stop ("Co.") takes no second one.
+    line = re.sub(r"(?<=[A-Za-z]\.)\.(?=\s|$)", "", line)
+    return f"{line} {source_line([claim])}"
+
+
 def render_statement(draft: DraftStatement, read: Read, name_things: bool = False) -> Statement:
     """Fill a draft statement's slots. Raises Unfillable; never invents."""
     if draft.kind in FIXED_KINDS:
@@ -454,6 +496,12 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
         subject = feature_name(read.features[about]) if name_things and about else None
         text = unknown_line(draft.attribute, subject)
         return Statement(kind="unknown", text=text, refs=refs, attribute=draft.attribute)
+
+    if writes_itself(draft):
+        refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]
+        (claim_id,) = [r.id for r in refs if r.type == "claim"]
+        text = claim_line(read.claims[claim_id], read, name_things)
+        return Statement(kind="fact", text=text, refs=refs, attribute=draft.attribute)
 
     text = SLOT.sub(fill, draft.text).strip()
     # A value that ends a sentence with its own full stop ("Co.") takes no second one.

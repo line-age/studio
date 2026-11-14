@@ -282,3 +282,22 @@ def test_the_saved_baseline_shows_every_new_case_failing():
     rows = reports.summary(baseline)
     assert rows and not any(r["passed"] for r in rows)
     assert "Gates hold." in reports.text(baseline)
+
+
+def test_a_claim_on_a_merged_trace_may_name_the_section_it_counts_for(world):
+    from evals.score import ungrounded
+    from render import feature_name
+
+    s13, d13 = world["codes"]["s13"], world["codes"]["d13"]
+    owner = next(c for c in world["features"][d13]["claims"] if c["attribute_key"] == "owner")
+    name = feature_name(world["features"][s13])
+    answer = {
+        "statements": [
+            {
+                "kind": "fact",
+                "text": f"For {name}, the owner is {owner['value_text']}.",
+                "refs": [{"type": "claim", "id": owner["id"], "status": "accepted"}],
+            }
+        ]
+    }
+    assert ungrounded(answer, world) == []

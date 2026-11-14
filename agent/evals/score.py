@@ -95,6 +95,9 @@ def ungrounded(answer: dict[str, Any], world: dict[str, Any], question: str = ""
         named = {r["id"] for r in refs if r["type"] == "feature"} | {
             c["feature_id"] for c in backing
         }
+        # A claim on a trace merged into a section is said of that section.
+        held = {c["feature_id"] for c in backing}
+        named |= {f for f in world["features"] if held & set(scope(world["links"], f)) - {f}}
         names = [feature_name(world["features"][f]) for f in named if f in world["features"]]
         source = " ".join([json.dumps(backing, ensure_ascii=False), question, *names])
         for number in re.findall(r"\d+(?:\.\d+)?", text):

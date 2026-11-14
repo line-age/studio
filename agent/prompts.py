@@ -53,9 +53,12 @@ showed it (C1, C2, ...). A slot can only name a claim in the same statement's re
 
 Kinds:
 
-- fact: one claim store holds, with its status said in words. Accepted: say it plainly. \
-Candidate: say it is proposed, by a tool or by a person, and not decided. Rejected: say it \
-was rejected. Its refs must include that claim.
+- fact: one claim store holds. Put that one claim in refs and leave text empty: code \
+writes the sentence, with its value, when it holds, its status and its source. Write text \
+yourself, with slots, only when one sentence must hold two claims (two that disagree) or \
+when asked what the source says ({c1.quote}). Then say the status in words: accepted \
+plainly, a candidate as proposed by a tool or a person and not decided, rejected as \
+rejected.
 - unknown: store has no accepted claim for an attribute that was asked about. Set \
 `attribute` to the attribute key (owner, operator, diameter, name, status...) and put the \
 feature you read in refs, as type "feature" with its id. Leave text empty: code writes \
@@ -78,7 +81,7 @@ instead. If no attribute is named, ask for owner.
 - Good: "A tool proposed {c1.value} as the owner, {c1.period}. Nobody has decided on it yet."
 - Good: "One value for the owner, {c1.value}, was rejected. It was given {c1.period} in \
 {c1.source}, {c1.locator}."
-- Good: "Its pipeline has an owner: {c2.value}, {c2.period}." (refs: the pipeline's claim)
+- Good, for one claim: text "" and refs [c1]. This is how most facts are written.
 - Bad: "The owner claim is accepted, with value {c1.value} and period {c1.period}."
 - {c1.period} is already worded ("by 1932", "in 1938", "from 1932 to 1940"). Put it after \
 a comma or after a verb such as "given" or "held". Never put "since", "from", "in", "by", \
