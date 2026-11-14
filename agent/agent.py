@@ -141,6 +141,18 @@ def _finish(
     }
 
 
+def _passes(error: Exception) -> bool:
+    """A model error worth one more try: the connection dropped or timed out, or the
+    model was rate-limited, overloaded or failed on its side."""
+    import anthropic
+
+    if isinstance(error, anthropic.APIConnectionError):
+        return True
+    return isinstance(error, anthropic.APIStatusError) and (
+        error.status_code == 429 or error.status_code >= 500
+    )
+
+
 def build_graph(store: StoreClient | None = None, model: Any = None):
     """The graph. Evals and tests pass a store client over a fake store, and may pass a
     scripted model; otherwise both come from the settings."""
@@ -148,7 +160,8 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
     if store is None:
         store = StoreClient(settings.store_url, settings.store_token)
     if model is None:
-        model = init_chat_model(settings.model, max_tokens=4000, timeout=120)
+        # The client retries a dropped connection, 429, 529 and 5xx with backoff.
+        model = init_chat_model(settings.model, max_tokens=4000, timeout=120, max_retries=3)
 
     def new_loop(handles: Handles):
         # Made for each question, so each question starts with tools that have read nothing.
@@ -182,9 +195,19 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         blocked: list[list[str]] = []
         handles = Handles()
         loop = new_loop(handles)
+        retried = False
         for attempt in range(2):
             try:
-                result = loop.invoke({"messages": messages})
+                try:
+                    result = loop.invoke({"messages": messages})
+                except Exception as error:
+                    if retried or not _passes(error):
+                        raise
+                    # Once per question. Fresh tools, so nothing from the failed try
+                    # counts as already read; the handles stay, so C1 still means C1.
+                    retried = True
+                    loop = new_loop(handles)
+                    result = loop.invoke({"messages": messages})
             except StoreError as error:
                 return _finish(
                     failure(STORE_FAILURES.get(error.kind, "store_unreachable")),

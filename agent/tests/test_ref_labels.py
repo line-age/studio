@@ -60,7 +60,7 @@ def test_a_section_and_a_pipeline_go_by_their_names():
 
 
 def test_a_link_says_what_it_links():
-    world, read = _read("s08", "r01", "s06")
+    _, read = _read("s08", "r01", "s06")
     end = next(lk for lk in read.links.values() if lk["relation"] == "same_as")
     member = next(lk for lk in read.links.values() if lk["relation"] == "part_of")
     end_ref, member_ref = _refs(
