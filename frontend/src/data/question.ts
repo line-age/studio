@@ -221,4 +221,7 @@ export const STARTERS = {
   say: "What does store say about this?",
   unknown: "Why is this Unknown?",
   proposed: "What is proposed here, and why?",
+  // What code works out around a section, and the leads it finds (Figma section 13).
+  surrounds: "What surrounds this section?",
+  lookFor: "What could we look for here?",
 } as const

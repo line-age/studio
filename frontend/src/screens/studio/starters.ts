@@ -6,10 +6,19 @@ import type { Starter } from "./add-to-agent"
 
 /*
  * Which questions a person can start from a thing. Each only reads: what
- * store says, why something is Unknown, what is proposed and why. Questions
- * that search the sources or change a claim are not offered until something
- * can answer them.
+ * store says, why something is Unknown, what is proposed and why, what
+ * surrounds a section and where to look next. Questions that search the
+ * sources or change a claim are not offered until something can answer them.
  */
+
+/** On a section: what store says, what surrounds it, and where to look next. */
+export function sectionStarters(): Starter[] {
+  return [
+    { words: STARTERS.say },
+    { words: STARTERS.surrounds },
+    { words: STARTERS.lookFor },
+  ]
+}
 
 /** On a claim: what store says; why it is Unknown; what is proposed. */
 export function claimStarters(

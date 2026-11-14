@@ -93,6 +93,18 @@ beforeEach(() => {
 })
 
 describe("asking the Agent", () => {
+  it("offers what surrounds a section and where to look, on a section", async () => {
+    const user = await open()
+    await user.click(screen.getByRole("option", { name: /North line/ }))
+    const section = screen.getByRole("treeitem", { name: /Birch to Cedar/ })
+    expect(await menu(user, section)).toEqual([
+      "What does store say about this?",
+      "What surrounds this section?",
+      "What could we look for here?",
+      "Add to the Agent chat",
+    ])
+  })
+
   it("offers questions that only read on a claim, by what the claim is", async () => {
     const user = await open()
     const claims = await openSection(user)

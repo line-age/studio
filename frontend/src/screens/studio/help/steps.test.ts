@@ -16,9 +16,10 @@ describe("the words of Help", () => {
     for (const text of texts) expect(text).not.toMatch(/[–—]| - /)
   })
 
-  it("says plainly that the Agent does not answer yet", () => {
+  it("says plainly where the Agent answers and where it cannot yet", () => {
     const agent = HELP_STEPS.find((step) => step.id === "agent")
-    expect(agent?.body).toMatch(/does not answer yet/)
+    expect(agent?.body).toMatch(/On store's data the Agent answers/)
+    expect(agent?.body).toMatch(/on the sample it cannot yet/)
   })
 
   it("has one id per step", () => {

@@ -66,14 +66,14 @@ export const HELP_STEPS: readonly HelpStep[] = [
   {
     id: "agent",
     title: "Ask the Agent",
-    body: '"Ask the Agent" hands what you selected to the Agent as references. It shows on the map after a selection made there, and the Agent is always in the rail. Right click a section, a claim, a source or a proposal to ask about it: "What does store say about this?", "Why is this Unknown?", "What is proposed here, and why?". The Agent does not answer yet.',
+    body: '"Ask the Agent" hands what you selected to the Agent as references. It shows on the map after a selection made there, and the Agent is always in the rail. Right click a section, a claim, a source or a proposal to ask about it: "What does store say about this?", "Why is this Unknown?", "What is proposed here, and why?", and on a section "What surrounds this section?" and "What could we look for here?". On store\'s data the Agent answers; on the sample it cannot yet.',
     targets: ["ask-agent", "agent"],
     needs: "selection",
   },
   {
     id: "agent-panel",
     title: "Asking the Agent",
-    body: "What you handed over sits with your message as attachments; a starter question puts its words in the box, and you can change them. A question you send stays here with a line that says the Agent cannot answer yet. Answers say what each statement rests on; click one to open it.",
+    body: 'What you handed over sits with your message as attachments; a starter question puts its words in the box, and you can change them. An answer shows what the Agent read above it, each statement\'s source beside it and sections as links; click any to open it. "Worked out" marks what the Agent worked out itself, and "Lead, not in store" marks where to look next: neither is a claim. On the sample, a question stays here with a line that says the Agent cannot answer yet.',
     targets: ["agent-panel"],
     needs: "agent",
   },

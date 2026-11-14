@@ -121,6 +121,8 @@ describe("a question for the Agent", () => {
       "What does store say about this?",
       "Why is this Unknown?",
       "What is proposed here, and why?",
+      "What surrounds this section?",
+      "What could we look for here?",
     ])
   })
 })

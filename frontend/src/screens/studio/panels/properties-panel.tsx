@@ -35,12 +35,11 @@ import type { Section } from "@/data/schema"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
-import { STARTERS } from "@/data/question"
-
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import {
   claimStarters,
   pipelineRowStarters,
+  sectionStarters,
   sectionClaimStarters,
 } from "../starters"
 import { useSettings } from "../settings"
@@ -282,7 +281,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                             },
                           ]
                     }
-                    starters={[{ words: STARTERS.say }]}
+                    starters={sectionStarters()}
                   >
                     <TreeItem
                       role="treeitem"
