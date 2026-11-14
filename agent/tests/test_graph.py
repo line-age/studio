@@ -46,7 +46,8 @@ def unknown_owner(feature_id):
 
 def test_store_does_not_say_end_to_end(world):
     s01 = world["codes"]["s01"]
-    model = scripted([("read_feature", {"feature_id": s01})], unknown_owner(s01))
+    # What is attached is read by code before the model starts; the model only drafts.
+    model = scripted(unknown_owner(s01))
 
     out, store = ask(world, model, "Who owns this section?", [s01])
 
@@ -125,9 +126,8 @@ def test_two_bad_drafts_end_with_the_fixed_line(world):
 
 def test_an_unknown_without_a_read_is_blocked(world):
     s01 = world["codes"]["s01"]
-    out, _ = ask(
-        world, scripted(unknown_owner(s01), unknown_owner(s01)), "Who owns this section?", [s01]
-    )
+    # Nothing attached, so nothing was read: an unknown about s01 rests on nothing.
+    out, _ = ask(world, scripted(unknown_owner(s01), unknown_owner(s01)), "Who owns s01?")
     assert out["answer"]["statements"][0]["text"] == FIXED_LINES["check_failed"]
 
 
@@ -384,3 +384,43 @@ def test_the_model_cites_a_claim_by_its_handle_and_code_turns_it_into_the_id(wor
     ref = out["answer"]["statements"][0]["refs"][0]
     assert made[0]._of[owner["id"]].startswith("C")
     assert ref["id"] == owner["id"]
+
+
+def test_everything_attached_is_read_at_once_before_the_model_starts(world):
+    codes = [world["codes"][c] for c in ("s01", "s02", "s05")]
+    seen_by_model = []
+
+    from tests.support import ScriptedModel
+
+    class Watching(ScriptedModel):
+        def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+            seen_by_model.append([m for m in messages if isinstance(m, ToolMessage)])
+            return super()._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
+
+    model = Watching(messages=iter(scripted(unknown_owner(codes[0])).messages))
+    out, store = ask(world, model, "Who owns these?", codes)
+    # The first time the model is called, all three reads are already there.
+    assert len(seen_by_model[0]) == 3
+    assert sorted(store.requests) == sorted(f"/features/{c}" for c in codes)
+    assert out["tools"] == ["read_feature"] * 3
+
+
+def test_two_claims_read_at_once_never_share_a_handle():
+    import threading
+
+    from tools import Handles
+
+    handles = Handles()
+    ids = [f"claim-{n}" for n in range(4000)]
+
+    def take(part):
+        for claim_id in part:
+            handles.of(claim_id)
+
+    threads = [threading.Thread(target=take, args=(ids[n::8],)) for n in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert len(set(handles.ids)) == len(ids)
+    assert all(handles.resolve(handles.of(c)) == c for c in ids)

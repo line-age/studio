@@ -230,6 +230,27 @@ def run(**cases):
     }
 
 
+def timed(attached, seconds):
+    report = run(a=("agent-draft", [(True,)] * len(seconds)))
+    case = report["cases"]["a"]
+    case["attached"] = attached
+    for r, s in zip(case["repeats"], seconds, strict=True):
+        r["seconds"] = s
+    return report
+
+
+def test_speed_is_the_median_of_repeats_by_how_much_is_attached():
+    assert reports.speed(timed(1, [3.0, 9.0, 4.0])) == {"one": 4.0}
+    assert reports.speed(timed(10, [11.0, 12.5, 30.0])) == {"ten": 12.5}
+    assert reports.speed(run(a=("agent-draft", [(True,)]))) == {}
+
+
+def test_a_slow_answer_breaks_the_speed_gate():
+    assert reports.gates(timed(1, [4.0, 5.0, 6.0]), None) == []
+    assert any("one section" in g for g in reports.gates(timed(1, [5.5, 6.0, 4.0]), None))
+    assert any("10 sections" in g for g in reports.gates(timed(10, [13.0, 13.0, 1.0]), None))
+
+
 def test_a_case_passes_on_a_majority_of_repeats():
     report = run(
         a=("person", [(True,), (True,), (False,)]), b=("person", [(True,), (False,), (False,)])

@@ -1,0 +1,2063 @@
+{
+ "meta": {
+  "name": "speed-before-A4",
+  "at": "2026-11-14T12:00:01+00:00",
+  "model": "anthropic:claude-sonnet-5-5",
+  "commit": "724dc57",
+  "prompt": "9c7635dbf72f",
+  "repeat": 3
+ },
+ "cases": {
+  "B01-001": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.62
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.4
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.45
+    }
+   ]
+  },
+  "B01-002": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner of Sampletown lateral is Example Pipe Line Co., by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.12
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.6
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner of Sampletown lateral is Example Pipe Line Co., by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.14
+    }
+   ]
+  },
+  "B01-003": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938, according to Example Gazette, vol. 38 no. 11, p. 112. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.81
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938, according to Example Gazette, vol. 38 no. 11, p. 112. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.86
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938, according to Example Gazette, vol. 38 no. 11, p. 112. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.61
+    }
+   ]
+  },
+  "B01-004": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value for the owner, Sample Gas Co., was rejected. It was given in 1938 in Example Gazette, vol. 38 no. 11, p. 113.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.64
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value for the owner, Sample Gas Co., was rejected. It was given in 1938 in Example Gazette, vol. 38 no. 11, p. 113.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.88
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value for the owner, Sample Gas Co., was rejected. It was given in 1938 in Example Gazette, vol. 38 no. 11, p. 113.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.94
+    }
+   ]
+  },
+  "B01-005": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store no longer has that. Attach it again from the list or the map.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.19
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store no longer has that. Attach it again from the list or the map.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.41
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store no longer has that. Attach it again from the list or the map.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 2.64
+    }
+   ]
+  },
+  "B01-006": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 2f6569d5.\nIts pipeline has an owner: Example Pipe Line Co., in 1932, according to Example Gazette, vol. 32 no. 3, p. 40.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.7
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 2f6569d5.\nIts pipeline has an owner: Example Pipe Line Co., in 1932, according to Example Gazette, vol. 32 no. 3, p. 40.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.46
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 2f6569d5.\nIts pipeline has an owner: Example Pipe Line Co., in 1932, according to Example Gazette, vol. 32 no. 3, p. 40.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 5.59
+    }
+   ]
+  },
+  "B01-007": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner of section c1e08407 is Placeholder Fuel and Light Co., held in 1938, according to Example Gazette, vol. 38 no. 11, p. 140.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.03
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner of section c1e08407 is Placeholder Fuel and Light Co., held in 1938, according to Example Gazette, vol. 38 no. 11, p. 140.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.26
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner of section c1e08407 is Placeholder Fuel and Light Co., held in 1938, according to Example Gazette, vol. 38 no. 11, p. 140.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.37
+    }
+   ]
+  },
+  "B02-001": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The diameter is 20 in, by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.\nThe owner is Example Pipe Line Co., by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.\nThe status is operational, by 1932, according to Example Gazette pipeline map, 1932 printing.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.31
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The diameter is 20 in, by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.\nThe owner is Example Pipe Line Co., by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.\nThe status is operational, by 1932, according to Example Gazette pipeline map, 1932 printing.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.4
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The diameter is 20 in, by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.\nThe owner is Example Pipe Line Co., by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.\nThe status is operational, by 1932, according to Example Gazette pipeline map, 1932 printing.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.89
+    }
+   ]
+  },
+  "B02-002": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Two accepted claims for the operator overlap and disagree: Example Pipe Line Co., held from 1932 to 1940, and Sample Gas Co., held from 1938. The sources are Example Gazette, vol. 32 no. 3, p. 44 for Example Pipe Line Co. and Example Gazette, vol. 38 no. 11, p. 120 for Sample Gas Co..\nThe operator is Example Pipe Line Co., held from 1932 to 1940, according to Example Gazette, vol. 32 no. 3, p. 44.\nThe operator is Sample Gas Co., held from 1938, according to Example Gazette, vol. 38 no. 11, p. 120.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.69
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Two accepted claims disagree on the operator. One gives Example Pipe Line Co., from 1932 to 1940, according to Example Gazette, vol. 32 no. 3, p. 44. The other gives Sample Gas Co., from 1938, according to Example Gazette, vol. 38 no. 11, p. 120.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.63
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Two accepted claims for the operator disagree. One gives Example Pipe Line Co., from 1932 to 1940, according to Example Gazette, vol. 32 no. 3, p. 44. The other gives Sample Gas Co., from 1938, according to Example Gazette, vol. 38 no. 11, p. 120.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.94
+    }
+   ]
+  },
+  "B02-003": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938. Nobody has decided on it yet. The source is Example Gazette, vol. 38 no. 11, p. 112.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.55
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938, according to Example Gazette, vol. 38 no. 11, p. 112. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.6
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938, according to Example Gazette, vol. 38 no. 11, p. 112. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.7
+    }
+   ]
+  },
+  "B02-004": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nYes, someone reviewed it. One value for the owner, Sample Gas Co., was rejected. It was given in 1938 in Example Gazette, vol. 38 no. 11, p. 113.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.08
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nYes. One value for the owner, Sample Gas Co., was rejected. It was given in 1938 in Example Gazette, vol. 38 no. 11, p. 113.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.46
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value for the owner, Sample Gas Co., was rejected. It was given in 1938 in Example Gazette, vol. 38 no. 11, p. 113.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.74
+    }
+   ]
+  },
+  "B02-005": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The diameter is 16 in, held by 1938, according to Example Gazette pipeline map, 1938 printing, lettered along the line.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.14
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The diameter is 16 in, by 1938, according to Example Gazette pipeline map, 1938 printing, lettered along the line.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.92
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The diameter is 16 in, by 1938, according to Example Gazette pipeline map, 1938 printing, lettered along the line.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.61
+    }
+   ]
+  },
+  "B02-006": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The name is Example trunk line, in 1932, according to Example Gazette, vol. 32 no. 3, p. 40.\nThe owner is Example Pipe Line Co., in 1932, according to Example Gazette, vol. 32 no. 3, p. 40.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.12
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The name is Example trunk line, in 1932, according to Example Gazette, vol. 32 no. 3, p. 40.\nThe owner is Example Pipe Line Co., in 1932, according to Example Gazette, vol. 32 no. 3, p. 40.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 3.59
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The name is Example trunk line, in 1932, according to Example Gazette, vol. 32 no. 3, p. 40.\nThe owner is Example Pipe Line Co., in 1932, according to Example Gazette, vol. 32 no. 3, p. 40.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 2.91
+    }
+   ]
+  },
+  "B02-007": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932, and this claim is accepted. It rests on Example Gazette, vol. 32 no. 3, p. 41, which says “The Example Pipe Line Co. has completed its line to Sampletown.”.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [
+      [
+       "statement 2: a fact states a value through {c1.value}",
+       "draft: {\"statements\":[{\"kind\":\"fact\",\"attribute\":null,\"text\":\"The owner is {c1.value}, {c1.period}, and this claim is {c1.status}.\",\"refs\":[{\"key\":\"c1\",\"type\":\"claim\",\"id\":\"dbebb526-29da-5fd4-9149-fceba21dff4e\"}]},{\"kind\":\"fact\",\"attribute\":null,\"text\":\"It rests on {c1.source}, {c1.locator}, which says {c1.quote}.\",\"refs\":[{\"key\":\"c1\",\"type\":\"claim\",\"id\":\"dbebb526-29da-5fd4-9149-fceba21dff4e\"}]}]}"
+      ]
+     ],
+     "seconds": 7.47
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner of Sampletown lateral is Example Pipe Line Co., by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41. This claim is accepted, and the source says “The Example Pipe Line Co. has completed its line to Sampletown.”.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [
+      [
+       "statement 2: a fact states a value through {c1.value}",
+       "draft: {\"statements\":[{\"kind\":\"fact\",\"attribute\":null,\"text\":\"The owner of {f1.name} is {c1.value}, {c1.period}, and this claim is {c1.status}.\",\"refs\":[{\"key\":\"c1\",\"type\":\"claim\",\"id\":\"dbebb526-29da-5fd4-9149-fceba21dff4e\"},{\"key\":\"f1\",\"type\":\"feature\",\"id\":\"ca5d65a4-bfa9-5734-8d8a-f08fe72a8bb2\"}]},{\"kind\":\"fact\",\"attribute\":null,\"text\":\"It rests on {c1.source}, {c1.locator}, which says {c1.quote}.\",\"refs\":[{\"key\":\"c1\",\"type\":\"claim\",\"id\":\"dbebb526-29da-5fd4-9149-fceba21dff4e\"}]}]}"
+      ]
+     ],
+     "seconds": 8.47
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner of Sampletown lateral is Example Pipe Line Co., by March 1932, and this claim is accepted. It rests on Example Gazette, vol. 32 no. 3, p. 41, which says “The Example Pipe Line Co. has completed its line to Sampletown.”",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 4.3
+    }
+   ]
+  },
+  "B02-009": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 10,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The status of section 0fc87cac is operational, by 1932. The source is Example Gazette pipeline map, 1932 printing.\nThe diameter of Sampletown lateral is 20 in, by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.\nThe owner of Sampletown lateral is Example Pipe Line Co., by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.\nThe status of Sampletown lateral is operational, by 1932. The source is Example Gazette pipeline map, 1932 printing.\nFor section 1eb0fe9b, a tool proposed Sample Gas Co. as the owner, in 1938. Nobody has decided on it yet. The source is Example Gazette, vol. 38 no. 11, p. 112.\nThe status of section 1eb0fe9b is operational, by 1932. The source is Example Gazette pipeline map, 1932 printing.\nFor section e2a1d0c5, one value for the owner, Sample Gas Co., was rejected. It was given in 1938 in Example Gazette, vol. 38 no. 11, p. 113.\nThe status of section e2a1d0c5 is operational, by 1938. The source is Example Gazette pipeline map, 1938 printing.\nThe operator of section 63179b43 is Example Pipe Line Co., from 1932 to 1940, according to Example Gazette, vol. 32 no. 3, p. 44.\nThe operator of section 63179b43 is also given as Sample Gas Co., from 1938, according to Example Gazette, vol. 38 no. 11, p. 120. The two operator claims overlap and disagree.\nThe status of section 63179b43 is operational, by 1938. The source is Example Gazette pipeline map, 1938 printing.\nThe status of section 2f6569d5 is operational, by 1932. The source is Example Gazette pipeline map, 1932 printing.\nThe diameter of section 34cddc9b is 16 in, by 1938, according to Example Gazette pipeline map, 1938 printing, lettered along the line.\nThe status of section 34cddc9b is operational, by 1932. The source is Example Gazette pipeline map, 1932 printing.\nThe owner of section 5d3b575e is Invented Natural Gas Corp., in 1938, according to Example Gazette, vol. 38 no. 11, p. 130.\nThe status of section 5d3b575e is operational, by 1938. The source is Example Gazette pipeline map, 1938 printing.\nThe name of Mockville loop is Mockville loop, in 1932, according to Example Gazette, vol. 32 no. 3, p. 47.\nFor Mockville loop, a tool proposed 12 in as the diameter, in 1938. Nobody has decided on it yet. The source is Example Gazette, vol. 38 no. 11, p. 131.\nThe status of Mockville loop is operational, by 1932. The source is Example Gazette pipeline map, 1932 printing.\nThe status of Mockville loop is also operational, from 1933, according to Example Gazette, vol. 32 no. 3, p. 47.\nThe owner of section c1e08407 is Placeholder Fuel and Light Co., in 1938, according to Example Gazette, vol. 38 no. 11, p. 140.\nThe status of section c1e08407 is operational, by 1938. The source is Example Gazette pipeline map, 1938 printing.\nThe pipeline Example trunk line has an owner: Example Pipe Line Co., in 1932. The source is Example Gazette, vol. 32 no. 3, p. 40.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 27.86
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "For section 0fc87cac, the status is operational, by 1932. The source is Example Gazette pipeline map, 1932 printing.\nFor Sampletown lateral, the diameter is 20 in, by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.\nFor Sampletown lateral, the owner is Example Pipe Line Co., by March 1932, according to Example Gazette, vol. 32 no. 3, p. 41.\nFor Sampletown lateral, the status is operational, by 1932. The source is Example Gazette pipeline map, 1932 printing.\nFor section 1eb0fe9b, a tool proposed Sample Gas Co. as the owner, in 1938. Nobody has decided on it yet. The source is Example Gazette, vol. 38 no. 11, p. 112.\nFor section 1eb0fe9b, the status is operational, by 1932. The source is Example Gazette pipeline map, 1932 printing.\nFor section e2a1d0c5, one value for the owner, Sample Gas Co., was rejected. It was given in 1938 in Example Gazette, vol. 38 no. 11, p. 113.\nFor section e2a1d0c5, the status is operational, by 1938. The source is Example Gazette pipeline map, 1938 printing.\nFor section 63179b43, the operator was Example Pipe Line Co., from 1932 to 1940, according to Example Gazette, vol. 32 no. 3, p. 44.\nFor section 63179b43, the operator was also given as Sample Gas Co., from 1938, according to Example Gazette, vol. 38 no. 11, p. 120.\nFor section 63179b43, the two operator claims, Example Pipe Line Co. and Sample Gas Co., overlap in time and disagree. The sources are Example Gazette, vol. 32 no. 3, p. 44 for Example Pipe Line Co. and Example Gazette, vol. 38 no. 11, p. 120 for Sample Gas Co..\nFor section 63179b43, the status is operational, by 1938. The source is Example Gazette pipeline map, 1938 printing.\nFor section 2f6569d5, the status is operational, by 1932. The source is Example Gazette pipeline map, 1932 printing.\nFor section 34cddc9b, the diameter is 16 in, by 1938, according to Example Gazette pipeline map, 1938 printing, lettered along the line.\nFor section 34cddc9b, the status is operational, by 1932. The source is Example Gazette pipeline map, 1932 printing.\nTheir pipeline, Example trunk line, has an owner: Example Pipe Line Co., in 1932. The source is Example Gazette, vol. 32 no. 3, p. 40.\nFor section 5d3b575e, the owner is Invented Natural Gas Corp., in 1938, according to Example Gazette, vol. 38 no. 11, p. 130.\nFor section 5d3b575e, the status is operational, by 1938. The source is Example Gazette pipeline map, 1938 printing.\nFor Mockville loop, the name is Mockville loop, in 1932, according to Example Gazette, vol. 32 no. 3, p. 47.\nFor Mockville loop, a tool proposed 12 in as the diameter, in 1938. Nobody has decided on it yet. The source is Example Gazette, vol. 38 no. 11, p. 131.\nFor Mockville loop, the status is operational, by 1932. The source is Example Gazette pipeline map, 1932 printing.\nFor Mockville loop, the status is also operational, from 1933, according to Example Gazette, vol. 32 no. 3, p. 47.\nFor section c1e08407, the owner is Placeholder Fuel and Light Co., in 1938, according to Example Gazette, vol. 38 no. 11, p. 140.\nFor section c1e08407, the status is operational, by 1938. The source is Example Gazette pipeline map, 1938 printing.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 28.5
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.owner.accepted; does not rest on s05.operator.accepted"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a failure statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": false,
+       "comment": "did not call read_feature"
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden, tools_ok"
+      }
+     },
+     "answer": "The Agent could not finish. Your question is kept; try again.",
+     "tools": [],
+     "blocked": [
+      [
+       "the run failed: StructuredOutputValidationError: Failed to parse structured output for tool 'Draft': Native structured output expected valid JSON for Draft, but parsing failed: Unterminated string starting at: line 1 column 6415 (char 6414).."
+      ]
+     ],
+     "seconds": 30.78
+    }
+   ]
+  }
+ }
+}

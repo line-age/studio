@@ -15,6 +15,7 @@ import hashlib
 import json
 import os
 import subprocess
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
@@ -38,11 +39,15 @@ def run_case(case: Case) -> dict[str, Any]:
     store = FakeStore(world)
     question = question_for(case, world)
     message = HumanMessage(content=question["words"], additional_kwargs={"question": question})
+    graph = build_graph(store=store.client())
+    start = time.perf_counter()
     try:
-        state = build_graph(store=store.client()).invoke({"messages": [message]})
+        state = graph.invoke({"messages": [message]})
     except Exception as exc:  # noqa: BLE001 - a crash is a failed case, not a failed run
         return {"answer": None, "tools": [], "error": f"{type(exc).__name__}: {exc}"[:500]}
     return {
+        # From the question in to the checked answer out, as a person waits for it.
+        "seconds": round(time.perf_counter() - start, 2),
         "answer": state.get("answer"),
         "tools": state.get("tools") or [],
         "blocked": state.get("blocked") or [],
@@ -75,6 +80,7 @@ def _entry(case: Case) -> dict[str, Any]:
         "behaviour": case.behaviour,
         "split": case.split,
         "labeled_by": case.labeled_by,
+        "attached": len(case.question.get("about", [])),
         "repeats": [],
     }
 
@@ -94,6 +100,7 @@ def run_local(cases: list[Case], repeat: int, name: str) -> dict[str, Any]:
             "answer": _text(outputs),
             "tools": outputs["tools"],
             "blocked": outputs.get("blocked", []),
+            "seconds": outputs.get("seconds"),
         }
 
     out = {"meta": _meta(name, repeat), "cases": {c.id: _entry(c) for c in cases}}

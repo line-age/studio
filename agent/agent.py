@@ -10,6 +10,7 @@ no checkpointer; the server supplies both.
 """
 
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from langchain.agents import create_agent
@@ -88,13 +89,46 @@ def _prompt(question: Question) -> str:
                 lines.append(
                     f"- a {item.kind}, id {item.id}, on the section {item.on.sectionId}"
                     + (f" ({item.on.attribute})" if item.on.attribute else "")
-                    + ". Read that section to find it."
+                    + ". It is in that section's result."
                 )
             else:
                 lines.append(f"- a {item.kind}, id {item.id}{where}")
     else:
         lines.append("Nothing is attached.")
     return "\n".join(lines)
+
+
+def _to_read(question: Question) -> list[str]:
+    """The features to read for what is attached: a section or pipeline itself, a claim's
+    or citation's section. Each once, in the order attached."""
+    ids: list[str] = []
+    for item in question.about:
+        fid = item.id if item.kind in ("section", "pipeline") else None
+        if item.kind in ("claim", "citation") and item.on and item.on.sectionId:
+            fid = item.on.sectionId
+        if fid and fid not in ids:
+            ids.append(fid)
+    return ids
+
+
+def _read_attached(question: Question, read_feature: Any) -> list[Any]:
+    """Read everything attached before the model starts, all at once, as if the model had
+    asked: one model turn fewer, and the reads run in parallel. Raises StoreError."""
+    ids = _to_read(question)
+    if not ids:
+        return []
+    calls = [
+        {
+            "name": "read_feature",
+            "args": {"feature_id": fid},
+            "id": f"read_{n}",
+            "type": "tool_call",
+        }
+        for n, fid in enumerate(ids)
+    ]
+    with ThreadPoolExecutor(max_workers=min(8, len(calls))) as pool:
+        results = list(pool.map(read_feature.invoke, calls))
+    return [AIMessage(content="", tool_calls=calls), *results]
 
 
 def _point_unknowns_at_the_attached_thing(draft: Draft, question: Question, read) -> None:
@@ -165,9 +199,10 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
 
     def new_loop(handles: Handles):
         # Made for each question, so each question starts with tools that have read nothing.
-        return create_agent(
+        tools = make_tools(store, handles)
+        return tools, create_agent(
             model,
-            tools=make_tools(store, handles),
+            tools=tools,
             system_prompt=prompts.SYSTEM,
             response_format=ProviderStrategy(Draft),
             name="studio-agent-loop",
@@ -189,12 +224,20 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
             blocked = [[f"the question is longer than {MAX_QUESTION_CHARS} characters"]]
             return _finish(failure("check_failed"), message, [], seen, blocked)
 
-        messages: list[Any] = [HumanMessage(_prompt(question))]
         tools: list[str] = []
         artifacts: list[dict[str, Any]] = []
         blocked: list[list[str]] = []
         handles = Handles()
-        loop = new_loop(handles)
+        (read_feature, *_), loop = new_loop(handles)
+        try:
+            first_reads = _read_attached(question, read_feature)
+        except StoreError as error:
+            return _finish(
+                failure(STORE_FAILURES.get(error.kind, "store_unreachable")), message, [], seen
+            )
+        tools += ["read_feature"] * (len(first_reads) - 1 if first_reads else 0)
+        artifacts += [m.artifact for m in first_reads if isinstance(m, ToolMessage) and m.artifact]
+        messages: list[Any] = [HumanMessage(_prompt(question)), *first_reads]
         retried = False
         for attempt in range(2):
             try:
@@ -206,7 +249,7 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
                     # Once per question. Fresh tools, so nothing from the failed try
                     # counts as already read; the handles stay, so C1 still means C1.
                     retried = True
-                    loop = new_loop(handles)
+                    _, loop = new_loop(handles)
                     result = loop.invoke({"messages": messages})
             except StoreError as error:
                 return _finish(

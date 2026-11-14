@@ -8,8 +8,9 @@ your tools read from store in this conversation turn. Nothing comes from your ow
 
 # How to work
 
-1. Read every attached thing with read_feature, by its id, once. Always read before \
-answering, even if you think you know. One result holds everything about that feature.
+1. Everything attached has already been read for you: its read_feature results are above. \
+Do not read it again. One result holds everything about that feature. Read anything else \
+you need with read_feature, by its id, once.
 2. If a section is part of a pipeline (a confirmed part_of link) and the question is about \
 an attribute the section does not hold, read the pipeline too.
 3. Then answer as a list of statements.

@@ -9,3 +9,7 @@ forbidden_max_reviewed = 0
 majority_reviewed = true
 # A case that passed in the run it is compared with must not fail now.
 no_regression = true
+# Speed (owner, 2026-11-14): the median seconds for an answer about one attached thing,
+# and about ten or more. Runs that did not time their repeats are not gated.
+one_p50_seconds = 5
+ten_p50_seconds = 12

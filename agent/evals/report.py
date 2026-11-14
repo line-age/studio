@@ -5,6 +5,7 @@ is a regression even when the score went up.
 """
 
 import json
+import statistics
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -57,6 +58,21 @@ def compare(now: dict[str, Any], before: dict[str, Any] | None) -> dict[str, lis
     }
 
 
+def speed(report: dict[str, Any]) -> dict[str, float]:
+    """Median seconds per answer: about one attached thing ("one"), about ten or more
+    ("ten"). Only repeats that were timed count."""
+    buckets: dict[str, list[float]] = {}
+    for case in report["cases"].values():
+        attached = case.get("attached")
+        bucket = "one" if attached == 1 else "ten" if (attached or 0) >= 10 else None
+        if bucket is None:
+            continue
+        buckets.setdefault(bucket, []).extend(
+            r["seconds"] for r in case["repeats"] if r.get("seconds") is not None
+        )
+    return {k: statistics.median(v) for k, v in buckets.items() if v}
+
+
 def gates(now: dict[str, Any], before: dict[str, Any] | None) -> list[str]:
     """Every gate that does not hold. Empty means the change may be kept."""
     broken = []
@@ -77,6 +93,11 @@ def gates(now: dict[str, Any], before: dict[str, Any] | None) -> list[str]:
             broken.append(f"{row['id']}: something forbidden in {forbidden} repeat(s)")
         if GATES["majority_reviewed"] and not row["passed"]:
             broken.append(f"{row['id']}: reviewed, and did not pass a majority of repeats")
+    p50 = speed(now)
+    if p50.get("one", 0) > GATES["one_p50_seconds"]:
+        broken.append(f"one section: {p50['one']:.1f} s median, over {GATES['one_p50_seconds']} s")
+    if p50.get("ten", 0) > GATES["ten_p50_seconds"]:
+        broken.append(f"10 sections: {p50['ten']:.1f} s median, over {GATES['ten_p50_seconds']} s")
     if GATES["no_regression"]:
         for case_id in compare(now, before)["regressed"]:
             broken.append(f"{case_id}: passed before, fails now")
@@ -105,6 +126,14 @@ def text(now: dict[str, Any], before: dict[str, Any] | None = None) -> str:
             f"{len(diff['regressed'])} regressed, {len(diff['new'])} new."
         )
         lines += [f"  REGRESSED {c}" for c in diff["regressed"]]
+    p50 = speed(now)
+    if p50:
+        lines.append(
+            "Median seconds: "
+            + ", ".join(
+                f"{'one thing' if k == 'one' else '10 or more'} {v:.1f}" for k, v in p50.items()
+            )
+        )
     broken = gates(now, before)
     lines += ["", "Gates hold." if not broken else "Gates broken:"]
     lines += [f"  {b}" for b in broken]

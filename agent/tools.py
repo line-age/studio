@@ -2,6 +2,7 @@
 store returned: the artifact is what the grounding ledger is built from."""
 
 import json
+import threading
 from typing import Any
 
 from langchain_core.tools import BaseTool, tool
@@ -34,12 +35,15 @@ class Handles:
     def __init__(self) -> None:
         self.ids: dict[str, str] = {}
         self._of: dict[str, str] = {}
+        # Reads run in parallel threads; two claims must never get the same handle.
+        self._lock = threading.Lock()
 
     def of(self, claim_id: str) -> str:
-        if claim_id not in self._of:
-            handle = f"C{len(self._of) + 1}"
-            self._of[claim_id], self.ids[handle] = handle, claim_id
-        return self._of[claim_id]
+        with self._lock:
+            if claim_id not in self._of:
+                handle = f"C{len(self._of) + 1}"
+                self._of[claim_id], self.ids[handle] = handle, claim_id
+            return self._of[claim_id]
 
     def resolve(self, ref_id: str) -> str:
         return self.ids.get(ref_id.strip().upper(), ref_id)
