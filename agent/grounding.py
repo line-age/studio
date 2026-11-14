@@ -216,8 +216,6 @@ def answer_problems(answer: Answer, read: Read) -> list[str]:
                     f"statement {n}: store already holds an accepted {statement.attribute} "
                     "there; do not ask for it, say what store holds instead"
                 )
-        if kind == "worked_out" and statement.text not in {w["text"] for w in read.worked.values()}:
-            problems.append(f"statement {n}: a worked-out fact is code's sentence, unchanged")
         if kind == "fact" and not any(r.type in ("claim", "link") for r in refs):
             problems.append(f"statement {n}: a fact must name the claim it rests on")
         if kind == "unknown":
@@ -270,10 +268,12 @@ def reads_from(artifacts: list[dict[str, Any]]) -> Read:
     for artifact in artifacts:
         for feature in artifact.get("features", []):
             read.feature(feature)
+            read.context_only.discard(feature["id"])  # read in its own right
         # Read for context: known, but never counted as the section's own.
         for feature in artifact.get("context_features", []):
             if feature["id"] not in read.features:
                 read.feature(feature)
+                read.context_only.add(feature["id"])
         for item in artifact.get("worked_out", []):
             read.worked[item["handle"]] = item
         merged = artifact.get("features", [])[1:]

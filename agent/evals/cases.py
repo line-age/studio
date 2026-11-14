@@ -17,7 +17,13 @@ CASES = Path(__file__).parent / "cases"
 NAMESPACE = uuid.UUID("0c1d7e57-ca5e-4000-8000-000000000000")
 SPLITS = ("dev", "held_out")
 # What must keep passing while a behaviour is built: its cases run with these.
-KEEPS = {"B02": ["B01"], "B03": ["B01", "B02"], "B17": ["B01", "B02"], "B18": ["B01", "B02", "B17"]}
+KEEPS = {
+    "B02": ["B01"],
+    "B03": ["B01", "B02"],
+    "B17": ["B01", "B02"],
+    "B18": ["B01", "B02", "B17"],
+    "B19": ["B01", "B02", "B17", "B18"],
+}
 LABELS = ("agent-draft", "person")
 MUST_KEYS = {"first_kind", "kinds", "refs", "unknown", "fixed_line", "tools", "text"}
 MUST_NOT_KEYS = {"kinds", "refs", "tools", "text"}

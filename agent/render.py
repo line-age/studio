@@ -365,6 +365,9 @@ class Read:
         self.links: dict[str, dict[str, Any]] = {}
         # Features whose claims store counts as another's (a merged trace): section -> them.
         self.scope: dict[str, list[str]] = {}
+        # Features read only as what surrounds a section: a claim of theirs always says
+        # whose it is, never reads as the section's.
+        self.context_only: set[str] = set()
         # What code worked out about a section (context.py), by handle: W1 -> WorkedOut.
         self.worked: dict[str, dict[str, Any]] = {}
 
@@ -450,7 +453,7 @@ def claim_line(claim: dict[str, Any], read: Read, name_things: bool) -> str:
     what = claim["attribute_key"].replace("_", " ")
     value, period = value_words(claim), period_words(claim)
     whose = read.features[holder(claim["feature_id"], read)]
-    subject = feature_name(whose) if name_things else None
+    subject = feature_name(whose) if name_things or whose["id"] in read.context_only else None
     if whose.get("kind") == "line":
         # A pipeline's claim is never read as the section's: it always says whose it is.
         name = feature_name(whose)

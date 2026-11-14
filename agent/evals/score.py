@@ -6,6 +6,7 @@ cannot hide here.
 """
 
 import calendar
+import itertools
 import json
 import re
 from typing import Any
@@ -56,6 +57,8 @@ def _printings(world: dict[str, Any]) -> list[int]:
 
 
 def _map_year(claim: dict[str, Any], role: str) -> int | None:
+    """A map's year, read here on purpose and not through context.py: the score checks
+    the Agent, so it must not share the Agent's code for what it checks."""
     for citation in claim.get("citations") or []:
         if citation.get("role") == role and str(citation.get("as_of_edtf") or "")[:4].isdigit():
             return int(citation["as_of_edtf"][:4])
@@ -86,6 +89,48 @@ def _gone_on(world: dict[str, Any], fid: str) -> int | None:
     )
 
 
+def _route(world: dict[str, Any], fid: str) -> list[list[float]]:
+    return [
+        line
+        for c in world["features"][fid]["claims"]
+        if c["attribute_key"] == "route" and c["status"] == "accepted"
+        for line in c["value_geom"]["coordinates"]
+    ]
+
+
+def _near(p: list[float], lines: list[list[list[float]]], within: float = 50.0) -> bool:
+    """Is a point within `within` m of the lines? Sampled every step of a segment, flat
+    earth: its own way, not the Agent's."""
+    import math
+
+    kx = 111_320 * math.cos(math.radians(p[1]))
+    for line in lines:
+        for a, b in itertools.pairwise(line):
+            steps = 400
+            for n in range(steps + 1):
+                x = a[0] + (b[0] - a[0]) * n / steps
+                y = a[1] + (b[1] - a[1]) * n / steps
+                if math.hypot((x - p[0]) * kx, (y - p[1]) * 110_574) <= within:
+                    return True
+    return False
+
+
+def _touch(world: dict[str, Any], a: str, b: str) -> bool:
+    ra, rb = _route(world, a), _route(world, b)
+    ends = lambda r: [p for line in r for p in (line[0], line[-1])]
+    return any(_near(p, rb) for p in ends(ra)) or any(_near(p, ra) for p in ends(rb))
+
+
+def _same_pipe(world: dict[str, Any], fid: str) -> set[str]:
+    return {
+        end
+        for link in world["links"]
+        if fid in (link["from_feature_id"], link["to_feature_id"])
+        and link["relation"] in ("same_as", "split_into", "overlaps")
+        for end in (link["from_feature_id"], link["to_feature_id"])
+    }
+
+
 def _worked_out_problems(
     where: str, text: str, refs: list[dict[str, Any]], world: dict[str, Any]
 ) -> tuple[list[str], list[str]]:
@@ -111,6 +156,18 @@ def _worked_out_problems(
             gone = _gone_on(world, links[ref["id"]]["from_feature_id"])
             if gone:
                 allowed.append(str(gone))
+    features = [r["id"] for r in refs if r["type"] == "feature" and r["id"] in world["features"]]
+    if "is drawn touching" in text and len(features) == 2 and not _touch(world, *features):
+        problems.append(f"{where}: the two lines are not drawn touching")
+    if "no section in store is drawn touching" in text and features:
+        me = features[0]
+        drawn = (
+            {row["properties"]["section_id"] for row in world["sections"]}
+            - _same_pipe(world, me)
+            - {me}
+        )
+        if any(_touch(world, me, other) for other in drawn):
+            problems.append(f"{where}: a section is drawn touching it")
     return problems, allowed
 
 

@@ -136,6 +136,8 @@ class _Prefetched:
             )
         )
         self._fetch(self.pipelines)
+        # Not attached: one store cannot read now is left to the model, not a failure.
+        self.pipelines = [p for p in self.pipelines if isinstance(self._got.get(p), dict)]
 
     def _fetch(self, ids: list[str]) -> None:
         if ids:

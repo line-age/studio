@@ -239,6 +239,7 @@ class WorkedOut(_Strict):
         "split",
         "overlap",
         "parallel",
+        "link",
         "drawn_touching",
     ]
     text: str

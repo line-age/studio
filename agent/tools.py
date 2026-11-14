@@ -3,6 +3,7 @@ store returned: the artifact is what the grounding ledger is built from."""
 
 import json
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from langchain_core.tools import BaseTool, tool
@@ -103,6 +104,22 @@ def _merged_into(feature: dict[str, Any]) -> list[str]:
     ]
 
 
+def _read_many(store: StoreClient, ids: list[str]) -> dict[str, dict[str, Any]]:
+    """Several features at once; one that cannot be read is left out."""
+
+    def one(fid: str) -> dict[str, Any] | None:
+        try:
+            return store.feature(fid)
+        except StoreError:
+            return None
+
+    if not ids:
+        return {}
+    with ThreadPoolExecutor(max_workers=min(8, len(ids))) as pool:
+        found = dict(zip(ids, pool.map(one, ids), strict=True))
+    return {fid: f for fid, f in found.items() if f is not None}
+
+
 # Full context for this many sections per question; the rest get their claims (owner,
 # 2026-11-14).
 CONTEXT_FOR = 3
@@ -173,9 +190,9 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
     @tool(response_format="content_and_artifact")
     def read_context(section_id: str) -> tuple[str, dict[str, Any]]:
         """What code works out about one section from store, beyond its own claims: which
-        map printing first shows it, what store holds about its end, and what its links
-        say (its pipeline, with the pipeline's own claims, other traces of the same pipe,
-        a pipe beside it). Each item has a
+        map printing first shows it, what store holds about its end, what its links say
+        (its pipeline, with the pipeline's own claims, other traces of the same pipe, a
+        pipe beside it), and the sections drawn touching it, with their own claims. Each item has a
         handle (W1, W2...) and a sentence code wrote. To use one, add a statement of kind
         worked_out with that handle in refs and leave its text empty."""
         if section_id in context_seen:
@@ -198,18 +215,25 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
             raise
         if feature.get("kind") != "section":
             return "Context is worked out for a section only.", {}
-        context_seen.add(section_id)
         # Counted as read with its merged traces, as read_feature counts it.
         merged, _ = _with_merged(store, feature)
-        ends = context.read_ends(store, feature)
+        ends = context.read_ends(store, feature, known={m["id"]: m for m in merged})
         try:
             editions = context.edition_years(store, feature.get("network"))
         except StoreError:
             # The list of printings is a help; without it nothing is said of an earlier one.
             editions = context.Editions([], complete=False)
-        worked = context.edition_facts(
-            feature, ends, editions, handles.worked
-        ) + context.link_facts(feature, ends, handles.worked)
+        try:
+            near = context.find_neighbours(store, feature)
+        except StoreError:
+            near = []  # what surrounds it is a help, never a reason to fail
+        touching = _read_many(store, [sid for sid, _, _ in near])
+        found = [(touching[sid], meets) for sid, meets, _ in near if sid in touching]
+        worked = (
+            context.edition_facts(feature, ends, editions, handles.worked)
+            + context.link_facts(feature, ends, handles.worked)
+            + context.neighbour_facts(feature, found, handles.worked)
+        )
         view: dict[str, Any] = {
             "section": feature_name(feature),
             "worked_out": [{"handle": w.handle, "text": w.text} for w in worked],
@@ -234,10 +258,24 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
                 }
                 for line in lines
             ]
+        if found:
+            # Each neighbour's own claims, kept under it: they are that section's.
+            view["drawn_touching"] = [
+                {
+                    "section": feature_name(other),
+                    "claims_of_that_section": [
+                        _claim_view(c, handles)
+                        for c in other.get("claims") or []
+                        if c["attribute_key"] != "route"
+                    ],
+                }
+                for other, _ in found
+            ]
+        context_seen.add(section_id)  # only once it was read: a failed try can be retried
         artifact = {
             "context_of": feature["id"],
             "features": [feature, *merged],
-            "context_features": list(ends.values()),
+            "context_features": [*ends.values(), *(other for other, _ in found)],
             "worked_out": [w.model_dump() for w in worked],
         }
         return json.dumps(view, ensure_ascii=False), artifact

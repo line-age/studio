@@ -75,9 +75,9 @@ say" or fact about that attribute before it, so the person sees what is already 
 Never ask for an attribute store already holds an accepted claim for: say what it holds \
 instead. If no attribute is named, ask for owner.
 - worked_out: something code worked out about a section, from read_context: which map \
-printing first shows it, what store holds about its end, and what its links say (its \
+printing first shows it, what store holds about its end, what its links say (its \
 pipeline, another trace of the same pipe, the section it was cut from, a pipe beside \
-it). Put its handle in refs ({"key": "w1", "type": "worked_out", "id": "W1"}) and leave \
+it), and what it is drawn touching. Put its handle in refs ({"key": "w1", "type": "worked_out", "id": "W1"}) and leave \
 text empty: code writes the sentence, marked as worked out or proposed. Use them when \
 the question is about the section's history, its maps, when it started or ended, its \
 pipeline or other traces, or "tell me about it". When the question is when it ended, \
@@ -85,6 +85,11 @@ always include the one that says whether store knows. Never turn one into a fact
 it in your own words.
 - Under its_pipeline, read_context lists the pipeline's own claims (C handles). Report \
 one as a fact with that claim (text empty): code says it is the pipeline's.
+- read_context also says which sections are drawn touching it, as worked-out facts, and \
+lists each one's claims under drawn_touching. Use them when asked what is around it, \
+what it touches or meets, or "tell me about it". A neighbour's claim is that section's, \
+never this one's: report it as a fact (text empty) and code names whose it is. Never say \
+"connected" or "joined": lines drawn touching on a map do not prove the pipes joined.
 - clarify, refusal, greeting: leave text empty; code writes these.
 
 # Writing

@@ -115,7 +115,7 @@ def test_what_code_works_out_is_grounded_by_an_independent_check(world, code):
 def test_a_worked_out_sentence_changed_is_blocked(world):
     draft, answer, read, problems_of = _answer_for(world, "s14")
     answer.statements[0].text = answer.statements[0].text.replace("1926", "1920")
-    assert any("code's sentence" in p for p in problems_of(draft, answer, read))
+    assert any("its handle's sentence" in p for p in problems_of(draft, answer, read))
 
 
 def test_a_worked_out_handle_nobody_read_cannot_be_rendered(world):
@@ -230,3 +230,119 @@ def test_a_worked_out_statement_carrying_another_handles_sentence_is_blocked(wor
     draft, answer, read, problems_of = _answer_for(world, "s14")
     answer.statements[0].text = answer.statements[1].text  # W1 cited, W2's words shown
     assert any("its handle's sentence" in p for p in problems_of(draft, answer, read))
+
+
+def near(world, code):
+    store = FakeStore(world).client()
+    feature = store.feature(world["codes"][code])
+    return {
+        next(c for c, i in world["codes"].items() if i == sid): (meets, gap)
+        for sid, meets, gap in context.find_neighbours(store, feature)
+    }
+
+
+def test_neighbours_are_found_by_how_they_are_drawn(world):
+    assert near(world, "s14") == {"s15": ("end_to_end", 0.0)}  # d19 is its twin, not a neighbour
+    assert near(world, "s16") == {"s15": ("end_to_middle", 0.0)}
+    assert set(near(world, "s15")) >= {"s14", "s16"}
+    assert "s18" not in near(world, "s15")  # crossing is not touching
+    assert near(world, "s17") == {}  # a near miss
+    assert near(world, "s18") == {}
+
+
+@pytest.mark.parametrize("code", ["s14", "s15", "s16", "s17", "s18"])
+def test_what_is_drawn_touching_is_grounded_by_an_independent_check(world, code):
+    from evals.score import ungrounded
+
+    draft, answer, read, problems_of = _answer_for(world, code)
+    assert problems_of(draft, answer, read) == []
+    assert ungrounded(answer.model_dump(), world) == []
+    for statement in answer.statements:
+        assert "connected" not in statement.text
+
+
+def test_touching_said_of_two_lines_that_only_cross_is_ungrounded(world):
+    from evals.score import ungrounded
+
+    s15, s18 = world["codes"]["s15"], world["codes"]["s18"]
+    bad = {
+        "statements": [
+            {
+                "kind": "worked_out",
+                "text": "Worked out from the traced lines: a is drawn touching b: their ends meet.",
+                "refs": [{"type": "feature", "id": s15}, {"type": "feature", "id": s18}],
+            }
+        ]
+    }
+    assert any("not drawn touching" in p for p in ungrounded(bad, world))
+
+
+def test_a_neighbours_claim_always_says_whose_it_is(world):
+    from render import render
+    from schemas import Draft
+
+    _, _, read, _ = _answer_for(world, "s14")
+    owner = next(
+        c
+        for c in read.claims.values()
+        if c["feature_id"] == world["codes"]["s15"] and c["attribute_key"] == "owner"
+    )
+    draft = Draft.model_validate(
+        {
+            "statements": [
+                {
+                    "kind": "fact",
+                    "text": "",
+                    "refs": [{"key": "c", "type": "claim", "id": owner["id"]}],
+                }
+            ]
+        }
+    )
+    text = render(draft, read).statements[0].text
+    assert text.startswith("For section ")
+
+
+def _section(fid, links, claims=()):
+    return {"id": fid, "kind": "section", "label": None, "claims": list(claims), "links": links}
+
+
+def _link(rel, a, b, status="confirmed"):
+    return {
+        "id": f"{rel}-{a}-{b}",
+        "relation": rel,
+        "status": status,
+        "from_feature_id": a,
+        "to_feature_id": b,
+    }
+
+
+def test_an_overlap_is_said_the_way_store_holds_it():
+    a, b = "a" * 8 + "-0", "b" * 8 + "-0"
+    link = _link("overlaps", a, b)
+    (fact,) = context.link_facts(_section(a, [link]), {b: _section(b, [link])}, lambda: "W1")
+    assert "section aaaaaaaa runs along part of section bbbbbbbb" in fact.text
+
+
+def test_a_section_in_a_pipeline_is_never_said_to_be_in_none():
+    a, l1, l2 = "a" * 8 + "-0", "c" * 8 + "-0", "d" * 8 + "-0"
+    links = [_link("part_of", a, l1), _link("part_of", a, l2, "proposed")]
+    line = lambda i: {"id": i, "kind": "line", "label": None, "claims": [], "links": []}
+    counter = itertools.count(1)
+    facts_ = context.link_facts(
+        _section(a, links), {l1: line(l1), l2: line(l2)}, lambda: f"W{next(counter)}"
+    )
+    assert not any("in no pipeline" in f.text for f in facts_)
+
+
+def test_an_end_that_could_not_be_read_says_nothing_of_the_end(world):
+    store = FakeStore(world).client()
+    section = store.feature(world["codes"]["s09"])
+    found = context.edition_facts(section, {}, context.Editions([], True), lambda: "W1")
+    assert not by(found, "not_traced_later") and not by(found, "removal")
+
+
+def test_a_link_store_has_no_words_for_is_said_as_it_is():
+    a, b = "a" * 8 + "-0", "b" * 8 + "-0"
+    link = _link("serves", a, b)
+    (fact,) = context.link_facts(_section(a, [link]), {b: _section(b, [link])}, lambda: "W1")
+    assert "serves link between" in fact.text and "second pipe" not in fact.text

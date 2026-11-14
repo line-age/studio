@@ -17,6 +17,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
+import geometry
 from render import feature_name, is_traced_as_gone
 from schemas import WorkedOut
 from store_client import MAX_LIMIT, StoreError
@@ -26,7 +27,9 @@ EDITIONS_TTL_SECONDS = 600
 _editions: "weakref.WeakKeyDictionary[Any, dict[str | None, tuple[float, Editions]]]" = (
     weakref.WeakKeyDictionary()
 )
-# Held while fetching, so questions arriving together share one listing.
+# One lock per store and network, held while fetching, so questions arriving together
+# share one listing and a slow network never holds up another.
+_editions_locks: dict[tuple[int, str | None], threading.Lock] = {}
 _editions_lock = threading.Lock()
 
 _YEAR = re.compile(r"(\d{4})")
@@ -44,7 +47,9 @@ class Editions:
 def edition_years(store: Any, network: str | None) -> Editions:
     key = getattr(store, "origin", store)
     with _editions_lock:
-        kept = _editions.setdefault(key, {}).get(network)
+        lock = _editions_locks.setdefault((id(key), network), threading.Lock())
+    with lock:
+        kept = _editions.get(key, {}).get(network)
         if kept and time.monotonic() - kept[0] < EDITIONS_TTL_SECONDS:
             return kept[1]
         listing = store.sections(network=network, limit=MAX_LIMIT)
@@ -56,7 +61,8 @@ def edition_years(store: Any, network: str | None) -> Editions:
             }
         )
         editions = Editions(years, complete=not listing.cut)
-        _editions[key][network] = (time.monotonic(), editions)
+        with _editions_lock:
+            _editions.setdefault(key, {})[network] = (time.monotonic(), editions)
         return editions
 
 
@@ -118,10 +124,15 @@ def edition_facts(
             WorkedOut(handle=handle(), what="first_edition", text=text, rests_on=[claim["id"]])
         )
 
-    ended = part_ended = False
+    ended = part_ended = unread = False
     for link in removal_links(feature):
         gone = others.get(link["from_feature_id"])
-        if gone is None or not is_traced_as_gone(gone):
+        if gone is None:
+            # Could not be read: it may be a line traced as gone, so nothing is said of
+            # the end rather than something false.
+            unread = True
+            continue
+        if not is_traced_as_gone(gone):
             continue
         year = next(
             (
@@ -152,7 +163,7 @@ def edition_facts(
             )
         facts.append(WorkedOut(handle=handle(), what="removal", text=text, rests_on=[link["id"]]))
 
-    if not ended:
+    if not ended and not unread:
         facts.append(
             WorkedOut(
                 handle=handle(),
@@ -170,9 +181,13 @@ def edition_facts(
     return facts
 
 
-def read_ends(store: Any, feature: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    """The features at the far end of every link the section is on, read at once. One
-    that cannot be read is left out: context is a help, never a reason to fail."""
+def read_ends(
+    store: Any, feature: dict[str, Any], known: dict[str, dict[str, Any]] | None = None
+) -> dict[str, dict[str, Any]]:
+    """The features at the far end of every link the section is on, read at once, using
+    any already `known`. One that cannot be read is left out, and edition_facts then
+    says nothing of the end: context is a help, never a reason to fail."""
+    known = known or {}
     ids = list(
         dict.fromkeys(
             link["to_feature_id"]
@@ -181,7 +196,7 @@ def read_ends(store: Any, feature: dict[str, Any]) -> dict[str, dict[str, Any]]:
             for link in feature.get("links") or []
         )
     )
-    ids = [i for i in ids if i != feature["id"]]
+    ids = [i for i in ids if i != feature["id"] and i not in known]
 
     def one(fid: str) -> dict[str, Any] | None:
         try:
@@ -189,11 +204,11 @@ def read_ends(store: Any, feature: dict[str, Any]) -> dict[str, dict[str, Any]]:
         except StoreError:
             return None
 
-    if not ids:
-        return {}
-    with ThreadPoolExecutor(max_workers=min(8, len(ids))) as pool:
-        found = dict(zip(ids, pool.map(one, ids), strict=True))
-    return {fid: f for fid, f in found.items() if f is not None}
+    found: dict[str, dict[str, Any] | None] = {}
+    if ids:
+        with ThreadPoolExecutor(max_workers=min(8, len(ids))) as pool:
+            found = dict(zip(ids, pool.map(one, ids), strict=True))
+    return {**known, **{fid: f for fid, f in found.items() if f is not None}}
 
 
 def pipeline_words(line: dict[str, Any]) -> str:
@@ -220,8 +235,11 @@ def _link_clause(
         )
         return clause, "split"
     if relation == "overlaps":
-        return f"{them} runs along part of {me}", "overlap"
-    return f"{them} is drawn as a second pipe beside {me}", "parallel"
+        a, b = (me, them) if mine else (them, me)
+        return f"{a} runs along part of {b}", "overlap"
+    if relation == "parallel_to":
+        return f"{them} is drawn as a second pipe beside {me}", "parallel"
+    return f"store holds a {relation.replace('_', ' ')} link between {me} and {them}", "link"
 
 
 def link_facts(
@@ -232,6 +250,12 @@ def link_facts(
     is the editions' (edition_facts). A proposed link is said as proposed, never as so."""
     name = feature_name(feature)
     facts: list[WorkedOut] = []
+    in_one = any(
+        link["relation"] == "part_of"
+        and link["status"] == "confirmed"
+        and link["from_feature_id"] == feature["id"]
+        for link in feature.get("links") or []
+    )
     for link in feature.get("links") or []:
         if link["status"] == "rejected":
             continue
@@ -248,7 +272,91 @@ def link_facts(
                 text += f" Store counts its claims as {name}'s."
         else:
             text = f"It is proposed, and not yet decided, that {clause}."
-            if what == "pipeline":
+            if what == "pipeline" and not in_one:
                 text += " Until someone decides, it is in no pipeline."
         facts.append(WorkedOut(handle=handle(), what=what, text=text, rests_on=[link["id"]]))
     return facts
+
+
+# Neighbours read in full per section, nearest first: enough to see around it.
+NEIGHBOURS_MAX = 8
+
+
+def route_lines(feature: dict[str, Any]) -> list[list[tuple[float, float]]]:
+    """The section's traced line: its accepted route claims."""
+    return [
+        line
+        for claim in feature.get("claims") or []
+        if claim["attribute_key"] == "route" and claim["status"] == "accepted"
+        for line in geometry.lines_of(claim.get("value_geom"))
+    ]
+
+
+def _same_pipe(feature: dict[str, Any]) -> set[str]:
+    """Features its links say are the same pipe or part of it: said by the links, never
+    as neighbours."""
+    return {
+        end
+        for link in feature.get("links") or []
+        if link["relation"] in ("same_as", "split_into", "overlaps")
+        for end in (link["from_feature_id"], link["to_feature_id"])
+    }
+
+
+def find_neighbours(store: Any, feature: dict[str, Any]) -> list[tuple[str, geometry.Meets, float]]:
+    """Sections drawn touching this one, nearest first: (id, how they meet, gap in m)."""
+    mine = route_lines(feature)
+    if not mine:
+        return []
+    rows = store.sections(
+        network=feature.get("network"), bbox=geometry.bbox_around(mine), limit=500
+    ).rows
+    skip = _same_pipe(feature) | {feature["id"]}
+    theirs: dict[str, list[list[tuple[float, float]]]] = {}
+    for row in rows:
+        sid = row["properties"].get("section_id")
+        if sid and sid not in skip:
+            theirs.setdefault(sid, []).extend(geometry.lines_of(row.get("geometry")))
+    found = [
+        (sid, *meets) for sid, lines in theirs.items() if (meets := geometry.touching(mine, lines))
+    ]
+    return sorted(found, key=lambda f: f[2])[:NEIGHBOURS_MAX]
+
+
+_MEETS = {
+    "end_to_end": "{other} is drawn touching {me}: their ends meet.",
+    "end_to_middle": "{me} is drawn touching {other}: its end meets the middle of {other}.",
+    "middle_to_end": "{other} is drawn touching {me}: its end meets the middle of {me}.",
+}
+
+
+def neighbour_facts(
+    feature: dict[str, Any],
+    found: list[tuple[dict[str, Any], geometry.Meets]],
+    handle: Callable[[], str],
+) -> list[WorkedOut]:
+    """What the section is drawn touching, in code's words. Never "connected": lines
+    meeting on a map do not prove the pipes joined."""
+    me = feature_name(feature)
+    if not found:
+        return [
+            WorkedOut(
+                handle=handle(),
+                what="drawn_touching",
+                text=f"Worked out from the traced lines: no section in store is drawn touching {me}.",
+                rests_on=[feature["id"]],
+            )
+        ]
+    return [
+        WorkedOut(
+            handle=handle(),
+            what="drawn_touching",
+            text=(
+                "Worked out from the traced lines: "
+                + _MEETS[meets].format(me=me, other=feature_name(other))
+                + " Lines drawn touching do not prove the pipes joined."
+            ),
+            rests_on=[feature["id"], other["id"]],
+        )
+        for other, meets in found
+    ]
