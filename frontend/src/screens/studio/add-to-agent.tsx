@@ -81,6 +81,7 @@ export interface EditTarget {
 
 export function AddToAgentMenu({
   items = [],
+  selection = [],
   refs = [],
   starters = [],
   changes = [],
@@ -95,6 +96,12 @@ export function AddToAgentMenu({
   changes?: readonly MenuChange[]
   /** Sections, by the pipeline or group they are in. */
   items?: AgentAttachment[]
+  /**
+   * The whole selection, when the thing right-clicked is one part of a larger
+   * one. The menu then offers both: the thing itself first, then the
+   * selection. Leave empty when the selection is just the thing.
+   */
+  selection?: AgentAttachment[]
   /** Finer things: a claim, a source, a proposal. */
   refs?: readonly AgentRef[]
   /**
@@ -178,6 +185,12 @@ export function AddToAgentMenu({
           <Icon name="ask" />
           {askLabel}
         </ContextMenuItem>
+        {selection.length > 0 && (
+          <ContextMenuItem onClick={() => ask(selection)}>
+            <Icon name="ask" />
+            Add the selection to the Agent chat
+          </ContextMenuItem>
+        )}
       </ContextMenuContent>
     </ContextMenu>
   )

@@ -17,8 +17,6 @@ import { Kbd } from "@/components/ui/kbd"
 import {
   hasCriteria,
   sectionMatches,
-  sectionLabel,
-  selectionSize,
   unionBounds,
   type Bounds,
 } from "@/data/derive"
@@ -28,17 +26,11 @@ import { sectionStatus } from "@/data/status"
 import { cn } from "@/lib/utils"
 
 import { SEARCH_INPUT_ID } from "../panels/pipelines-panel"
-import {
-  AddToAgentMenu,
-  useAskAgent,
-  useSelectionAttachments,
-} from "../add-to-agent"
+import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { usePipelineChanges } from "../pipeline-actions"
 import { useLeftPanel } from "../left-panel-context"
 import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
-import { useHelp } from "../help/help-store"
-import { HELP_STEPS } from "../help/steps"
 import { useCamera, useStudio } from "../studio-store"
 import { linesInLoop, type Point } from "./lasso"
 import { readMapColors } from "./map-colors"
@@ -46,7 +38,7 @@ import { addKeyName, holdsAddKey, mapClick } from "./click-selection"
 import { FollowMapToggle } from "./follow-map-toggle"
 import { statusesDrawn } from "./line-style"
 import { MapKey } from "./map-key"
-import { SelectionBar } from "./selection-bar"
+import { AgentBar } from "./selection-bar"
 
 const MAP_STYLE = "mapbox://styles/mapbox/light-v11"
 const HIT_LAYER = "sections-hit"
@@ -107,17 +99,17 @@ export function StudioMap({ token }: { token: string }) {
   const select = useStudio((s) => s.select)
   const tool = useStudio((s) => s.tool)
   const setTool = useStudio((s) => s.setTool)
-  const askAgent = useAskAgent()
 
   // The loop being drawn with the Lasso, in screen pixels.
   const [loop, setLoop] = useState<Point[] | null>(null)
   const loopRef = useRef<Point[] | null>(null)
-  // What the last click or loop on the map selected: the bar at the top of
-  // the map offers the Agent for it until the selection changes.
-  const [bar, setBar] = useState<ReadonlySet<string> | null>(null)
-  const touring = useHelp(
-    (s) => s.step !== null && HELP_STEPS[s.step].id === "agent"
-  )
+  // The bar at the top of the map offers the Agent for the selection just
+  // made, until it changes (see AgentBar).
+  const bar = useStudio((s) => s.agentBar)
+  const offerAgent = useStudio((s) => s.offerAgent)
+  const dismissAgentBar = useStudio((s) => s.dismissAgentBar)
+  // The hint sits under the bar while the bar shows.
+  const barShown = bar !== null && bar === selected
   // A click can follow the release that ends a loop; it must not select.
   const skipClick = useRef(false)
   const setView = useStudio((s) => s.setView)
@@ -314,7 +306,7 @@ export function StudioMap({ token }: { token: string }) {
     // Nothing caught changes nothing; the Lasso stays in hand to try again.
     if (caught.length === 0) return
     select(shift ? [...new Set([...selected, ...caught])] : caught)
-    setBar(useStudio.getState().selection)
+    offerAgent()
     setTool("select")
   }
   const finishRef = useRef(finishLoop)
@@ -335,7 +327,7 @@ export function StudioMap({ token }: { token: string }) {
       }
       if (event.key === "Escape") {
         if (loopRef.current) cancelLoop()
-        else if (bar) setBar(null)
+        else if (bar) dismissAgentBar()
         else setTool("select")
       } else if (event.key === "v" || event.key === "V") setTool("select")
       else if (event.key === "l" || event.key === "L") setTool("lasso")
@@ -347,7 +339,7 @@ export function StudioMap({ token }: { token: string }) {
       window.removeEventListener("keydown", onKeyDown)
       window.removeEventListener("mouseup", onMouseUp)
     }
-  }, [bar, setTool])
+  }, [bar, dismissAgentBar, setTool])
 
   const onMouseDown = (event: MapMouseEvent) => {
     const { button, ctrlKey } = event.originalEvent
@@ -370,7 +362,7 @@ export function StudioMap({ token }: { token: string }) {
       empty: selected.size === 0,
     })
     if (action === "nothing") return
-    setBar(null)
+    dismissAgentBar()
     if (action === "step-back" || id === null) {
       stepBack(groups.flatMap((g) => g.summary.sections.map((s) => s.id)))
       return
@@ -381,7 +373,7 @@ export function StudioMap({ token }: { token: string }) {
     const selection = useStudio.getState().selection
     // Of several, the one just added is the one opened on the right.
     if (selection.size > 1 && selection.has(id)) focusSection(id)
-    if (selection.size > 0) setBar(selection)
+    offerAgent()
   }
 
   const onMouseMove = (event: MapMouseEvent) => {
@@ -404,11 +396,6 @@ export function StudioMap({ token }: { token: string }) {
     [selected]
   )
   const visibility = (on: boolean) => (on ? "visible" : "none")
-
-  // The bar belongs to the selection the loop made; any change retires it.
-  // The Help tour shows it too, on the step that explains it.
-  const barShown =
-    (bar !== null && bar === selected) || (touring && selected.size > 0)
 
   if (failed) {
     throw new Error("The map could not load its style.")
@@ -599,20 +586,7 @@ export function StudioMap({ token }: { token: string }) {
         </svg>
       )}
 
-      {barShown && (
-        <SelectionBar
-          label={
-            // One section goes by its name.
-            groups.length === 1 && groups[0].sections.length === 1
-              ? sectionLabel(groups[0].sections[0])
-              : selectionSize(groups)
-          }
-          onAsk={() => {
-            askAgent(selection)
-            setBar(null)
-          }}
-        />
-      )}
+      <AgentBar />
 
       {/* How to select several: said while exactly one section is selected
           and the Select tool is in hand. At the top centre, under the

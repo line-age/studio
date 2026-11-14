@@ -23,6 +23,7 @@ import { dataSource } from "@/data/load-network"
 import { HidePanels } from "../panel-toggle"
 import { AgentConversation, type Agent } from "./agent-conversation"
 import { AgentInbox } from "./agent-inbox"
+import { AttachPicker } from "./attach-picker"
 import { useStudioData } from "../studio-data"
 import { useStudio, type SentQuestion } from "../studio-store"
 
@@ -313,9 +314,6 @@ function AttachmentChips({
   )
 }
 
-/** The last hand-over the message box took the cursor for. */
-let askHandled = 0
-
 export function AgentPanel() {
   const { network } = useStudioData()
   const asked = useStudio((s) => s.agentAsked)
@@ -329,6 +327,8 @@ export function AgentPanel() {
   // A message the Agent could not take stays in the box; this says why, for
   // as long as the reason holds.
   const [held, setHeld] = useState<"working" | "down" | null>(null)
+  // The attach picker is open above the message.
+  const [picking, setPicking] = useState(false)
 
   const composer = (agent: Agent | null) => (
     <div className="flex shrink-0 flex-col gap-2 px-3 pb-3">
@@ -341,6 +341,17 @@ export function AgentPanel() {
       <Composer
         placeholder="Ask about a section. Type # to pick one."
         attachments={<PendingAttachments />}
+        onAttach={() => setPicking(true)}
+        picker={
+          picking && (
+            <AttachPicker
+              onClose={() => {
+                setPicking(false)
+                messageRef.current?.focus()
+              }}
+            />
+          )
+        }
         inputRef={messageRef}
         draft={draft === null ? undefined : { text: draft, nonce: asked }}
         onSend={(words) => {
@@ -383,8 +394,10 @@ export function AgentPanel() {
 
   // "Ask the Agent" hands over references and expects to type next.
   useEffect(() => {
-    if (asked === askHandled) return
-    askHandled = asked
+    // Once per hand-over, even when the panel opens for it or opens again.
+    const s = useStudio.getState()
+    if (asked === s.agentAskFocused) return
+    s.agentAskTaken()
     messageRef.current?.focus()
   }, [asked])
 

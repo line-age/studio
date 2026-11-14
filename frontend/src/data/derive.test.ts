@@ -31,6 +31,9 @@ import {
   inView,
   matchesUnknownIn,
   unknownCounts,
+  unknownAttributesOf,
+  optionCounts,
+  pipelineClaimsProgress,
   intersects,
   search,
   sectionStats,
@@ -117,6 +120,12 @@ describe("summarise", () => {
       null,
       null,
     ])
+  })
+
+  it("says how many of a pipeline's claim rows are cited", () => {
+    const [north, south] = network.pipelines
+    expect(pipelineClaimsProgress(north)).toBe("2/4 cited")
+    expect(pipelineClaimsProgress(south)).toBe("0/3 cited")
   })
 
   it("holds every section of a pipeline, whichever editions show it", () => {
@@ -230,6 +239,30 @@ describe("filters", () => {
         filterCounts(summaries, { ...NO_CRITERIA, unknownIn: [name] }).all
       ).toBe(count)
     }
+  })
+
+  it("counts Unknown in with the other filters in force", () => {
+    const counts = (criteria: typeof NO_CRITERIA) =>
+      new Map(
+        optionCounts(summaries, criteria, "unknownIn", unknownAttributesOf).map(
+          (o) => [o.name, o.count]
+        )
+      )
+    // With no other filter it is the plain count.
+    expect(counts(NO_CRITERIA).get("Diameter")).toBe(3)
+    // Another filter narrows it to what choosing Diameter would show.
+    const narrowed = (["not-started", "in-progress"] as const).map((status) => {
+      const shown = filterCounts(summaries, {
+        ...NO_CRITERIA,
+        unknownIn: ["Diameter"],
+      }).status[status]
+      expect(counts({ ...NO_CRITERIA, status }).get("Diameter") ?? 0).toBe(
+        shown
+      )
+      return shown
+    })
+    // The test network makes at least one of them narrower than the whole.
+    expect(narrowed.some((n) => n < 3)).toBe(true)
   })
 
   it("narrows by company and by build year, on the same section", () => {

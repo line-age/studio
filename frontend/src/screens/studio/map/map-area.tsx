@@ -3,6 +3,8 @@ import { Suspense, lazy } from "react"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { Hint } from "@/components/hint"
 
+import { AgentBar } from "./selection-bar"
+
 /*
  * The map library is large, so it loads in its own chunk after the panels
  * are on screen.
@@ -31,10 +33,14 @@ export function MapArea() {
   const token = mapboxToken()
   if (!token) {
     return (
-      <Message title="The map needs a Mapbox token">
-        Put your public token in .env.local as VITE_MAPBOX_TOKEN and restart the
-        dev server. The lists and panels work without it.
-      </Message>
+      <div className="relative h-full">
+        <Message title="The map needs a Mapbox token">
+          Put your public token in .env.local as VITE_MAPBOX_TOKEN and restart
+          the dev server. The lists and panels work without it.
+        </Message>
+        {/* A selection made in the list still offers the Agent. */}
+        <AgentBar />
+      </div>
     )
   }
   return (

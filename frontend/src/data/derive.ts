@@ -178,6 +178,17 @@ export function pipelineClaims(pipeline: Pipeline): Claim[] {
   })
 }
 
+/**
+ * How many of a pipeline's rows are cited, said as a section's are: "2/3
+ * cited". Counted over the rows the panel shows, so an Unknown row is in the
+ * total and the number always matches what is listed.
+ */
+export function pipelineClaimsProgress(pipeline: Pipeline): string {
+  const rows = pipelineClaims(pipeline)
+  const cited = rows.filter((c) => c.value !== null).length
+  return `${formatCount(cited)}/${formatCount(rows.length)} cited`
+}
+
 /** A claim's value with the period it holds for: "Alder Gas Co., by 1931". */
 export function datedValue(claim: Claim): string | null {
   if (claim.value === null) return null
@@ -887,6 +898,15 @@ export function matchesUnknownIn(
   attributes: readonly string[]
 ): boolean {
   return matchesCriteria(summary, { ...NO_CRITERIA, unknownIn: attributes })
+}
+
+/** The attributes a section has Unknown, each once: what "Unknown in" counts. */
+export function unknownAttributesOf(section: Section): readonly string[] {
+  return [
+    ...new Set(
+      section.claims.flatMap((c) => (c.value === null ? c.attribute : []))
+    ),
+  ]
 }
 
 /**

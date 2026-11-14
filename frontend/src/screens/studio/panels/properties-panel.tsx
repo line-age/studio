@@ -18,6 +18,7 @@ import {
   datedValue,
   doneLabel,
   pipelineClaims,
+  pipelineClaimsProgress,
   pipelineLabel,
   formatCount,
   geometryBounds,
@@ -231,11 +232,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
             trailing={
               single.kind === "proposed"
                 ? "Proposed, not confirmed"
-                : plural(
-                    single.pipeline.claims.filter((c) => c.value !== null)
-                      .length,
-                    "claim"
-                  )
+                : pipelineClaimsProgress(single.pipeline)
             }
           />
           {pipelineClaims(single.pipeline).map((claim, index, all) => {

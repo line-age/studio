@@ -108,6 +108,11 @@ interface StudioState {
   /** The selected sections. They may belong to several pipelines. */
   selection: ReadonlySet<string>
   /**
+   * The selection the "Ask the Agent" bar offers: the one the person just
+   * made, on the map or in the list. Any later change retires the bar.
+   */
+  agentBar: ReadonlySet<string> | null
+  /**
    * The one section in focus: the only selected one, or the one opened in
    * the properties panel while several are selected.
    */
@@ -196,6 +201,12 @@ interface StudioState {
   /** `follow` also moves the "in view" list to the new place. */
   requestFit: (bounds: Bounds | null, follow?: boolean) => void
   attachToAgent: (items: AgentAttachment[]) => void
+  /** The last hand-over the message box took the cursor for. */
+  agentAskFocused: number
+  agentAskTaken: () => void
+  /** Show the "Ask the Agent" bar for the selection as it is now. */
+  offerAgent: () => void
+  dismissAgentBar: () => void
   /**
    * Attach, and ask the chat to take the cursor. With `words` a starter
    * question goes in the message box; the person can change it.
@@ -358,6 +369,7 @@ export const useStudio = create<StudioState>((set) => ({
   list: null,
   selectedPipelineId: null,
   selection: new Set(),
+  agentBar: null,
   selectedSectionId: null,
   tool: "select",
   selectedAttribute: null,
@@ -369,6 +381,7 @@ export const useStudio = create<StudioState>((set) => ({
   agentRefs: [],
   agentDraft: null,
   agentAsked: 0,
+  agentAskFocused: 0,
   sentQuestions: [],
   pipelineEdit: null,
   openedCitation: null,
@@ -518,6 +531,10 @@ export const useStudio = create<StudioState>((set) => ({
     set(bounds ? { fit: { bounds, nonce: (nonce += 1), follow } } : {}),
   // One attachment per pipeline: adding to a pipeline already attached
   // widens that attachment.
+  agentAskTaken: () => set((s) => ({ agentAskFocused: s.agentAsked })),
+  offerAgent: () =>
+    set((s) => ({ agentBar: s.selection.size > 0 ? s.selection : null })),
+  dismissAgentBar: () => set({ agentBar: null }),
   attachToAgent: (items) =>
     set((s) => ({
       agentAttachments: mergeAttachments(s.agentAttachments, items),
