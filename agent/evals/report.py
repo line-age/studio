@@ -58,19 +58,32 @@ def compare(now: dict[str, Any], before: dict[str, Any] | None) -> dict[str, lis
     }
 
 
+def _bucket(case: dict[str, Any]) -> str | None:
+    attached = case.get("attached") or 0
+    return "one" if attached == 1 else "ten" if attached >= 10 else None
+
+
 def speed(report: dict[str, Any]) -> dict[str, float]:
     """Median seconds per answer: about one attached thing ("one"), about ten or more
-    ("ten"). Only repeats that were timed count."""
+    ("ten"). Measured as the eval runs them, four at a time, so a little slower than one
+    person asking alone. Only repeats that were timed count; see `untimed`."""
     buckets: dict[str, list[float]] = {}
     for case in report["cases"].values():
-        attached = case.get("attached")
-        bucket = "one" if attached == 1 else "ten" if (attached or 0) >= 10 else None
-        if bucket is None:
-            continue
-        buckets.setdefault(bucket, []).extend(
-            r["seconds"] for r in case["repeats"] if r.get("seconds") is not None
-        )
+        if bucket := _bucket(case):
+            buckets.setdefault(bucket, []).extend(
+                r["seconds"] for r in case["repeats"] if r.get("seconds") is not None
+            )
     return {k: statistics.median(v) for k, v in buckets.items() if v}
+
+
+def untimed(report: dict[str, Any]) -> list[str]:
+    """Cases in a speed bucket with a repeat that crashed and so was not timed: the speed
+    gate cannot pass on them. A run made before timing existed has no bucket."""
+    return sorted(
+        case_id
+        for case_id, case in report["cases"].items()
+        if _bucket(case) and any(r.get("seconds") is None for r in case["repeats"])
+    )
 
 
 def gates(now: dict[str, Any], before: dict[str, Any] | None) -> list[str]:
@@ -94,6 +107,8 @@ def gates(now: dict[str, Any], before: dict[str, Any] | None) -> list[str]:
         if GATES["majority_reviewed"] and not row["passed"]:
             broken.append(f"{row['id']}: reviewed, and did not pass a majority of repeats")
     p50 = speed(now)
+    for case_id in untimed(now):
+        broken.append(f"{case_id}: a repeat was not timed (it crashed), so speed is not known")
     if p50.get("one", 0) > GATES["one_p50_seconds"]:
         broken.append(f"one section: {p50['one']:.1f} s median, over {GATES['one_p50_seconds']} s")
     if p50.get("ten", 0) > GATES["ten_p50_seconds"]:

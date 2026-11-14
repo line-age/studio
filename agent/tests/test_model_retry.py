@@ -1,5 +1,6 @@
 """A model error that passes (a dropped connection, an overloaded or rate-limited
-model) is tried again once; then the fixed line. Any other error is not retried."""
+model) is tried again once; then the fixed line. Any other error, a timeout among them,
+is not retried."""
 
 import anthropic
 import httpx
@@ -23,7 +24,6 @@ def _status(code):
 
 PASSING = [
     anthropic.APIConnectionError(request=_request()),
-    anthropic.APITimeoutError(request=_request()),
     _status(429),
     _status(529),
     _status(503),
@@ -84,7 +84,12 @@ def test_twice_is_the_fixed_line():
     assert statements[0]["text"] == FIXED_LINES["model_failed"]
 
 
-@pytest.mark.parametrize("error", [_status(400), ValueError("bad output")], ids=str)
+# A timeout is not tried again here: the client already waited and retried it.
+@pytest.mark.parametrize(
+    "error",
+    [_status(400), ValueError("bad output"), anthropic.APITimeoutError(request=_request())],
+    ids=str,
+)
 def test_an_error_that_will_not_pass_is_not_retried(error):
     s01 = load_world("small")["codes"]["s01"]
     model = failing([error], [("read_feature", {"feature_id": s01})], _unknown_owner(s01))

@@ -17,6 +17,7 @@ from langchain.agents import create_agent
 from langchain.agents.structured_output import ProviderStrategy
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage, HumanMessage, RemoveMessage, ToolMessage
+from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, MessagesState, StateGraph
 
 import prompts
@@ -111,9 +112,40 @@ def _to_read(question: Question) -> list[str]:
     return ids
 
 
-def _read_attached(question: Question, read_feature: Any) -> list[Any]:
-    """Read everything attached before the model starts, all at once, as if the model had
-    asked: one model turn fewer, and the reads run in parallel. Raises StoreError."""
+class _Prefetched:
+    """Store, with the attached features already fetched: the slow part runs in
+    parallel, while the tool still reads them one by one, so claim handles (C1, C2...)
+    come out in the order attached and the reads stay inside the run's trace."""
+
+    def __init__(self, store: StoreClient, ids: list[str]) -> None:
+        self._store = store
+        self._got: dict[str, Any] = {}
+        if ids:
+            with ThreadPoolExecutor(max_workers=min(8, len(ids))) as pool:
+                for fid, got in zip(ids, pool.map(self._try, ids), strict=True):
+                    self._got[fid] = got
+
+    def _try(self, fid: str) -> Any:
+        try:
+            return self._store.feature(fid)
+        except StoreError as error:
+            return error
+
+    def feature(self, feature_id: str) -> dict[str, Any]:
+        got = self._got.pop(feature_id, None)
+        if got is None:
+            return self._store.feature(feature_id)
+        if isinstance(got, StoreError):
+            raise got
+        return got
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._store, name)
+
+
+def _read_attached(question: Question, read_feature: Any, config: Any) -> list[Any]:
+    """Read everything attached before the model starts, as if the model had asked: one
+    model turn fewer. Raises StoreError."""
     ids = _to_read(question)
     if not ids:
         return []
@@ -126,9 +158,16 @@ def _read_attached(question: Question, read_feature: Any) -> list[Any]:
         }
         for n, fid in enumerate(ids)
     ]
-    with ThreadPoolExecutor(max_workers=min(8, len(calls))) as pool:
-        results = list(pool.map(read_feature.invoke, calls))
+    results = [read_feature.invoke(call, config) for call in calls]
     return [AIMessage(content="", tool_calls=calls), *results]
+
+
+def _all_gone(question: Question, artifacts: list[dict[str, Any]]) -> bool:
+    """Every attached section or pipeline is one store no longer has. A claim or citation
+    has no read of its own: it is found on its section."""
+    attached = [i.id for i in question.about if i.id and i.kind in ("section", "pipeline")]
+    gone = {a["not_found"] for a in artifacts if "not_found" in a}
+    return bool(attached) and set(attached) <= gone
 
 
 def _point_unknowns_at_the_attached_thing(draft: Draft, question: Question, read) -> None:
@@ -180,6 +219,8 @@ def _passes(error: Exception) -> bool:
     model was rate-limited, overloaded or failed on its side."""
     import anthropic
 
+    if isinstance(error, anthropic.APITimeoutError):
+        return False  # the client already waited and retried; once more would double it
     if isinstance(error, anthropic.APIConnectionError):
         return True
     return isinstance(error, anthropic.APIStatusError) and (
@@ -200,14 +241,16 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         model = init_chat_model(
             settings.model,
             max_tokens=4000,
-            timeout=120,
-            max_retries=3,
+            # An answer takes seconds; a minute means something is wrong. With the
+            # client's retries a person waits at most about three minutes.
+            timeout=60,
+            max_retries=2,
             output_config={"effort": "low"},
         )
 
-    def new_loop(handles: Handles):
+    def new_loop(handles: Handles, reader: Any = store):
         # Made for each question, so each question starts with tools that have read nothing.
-        tools = make_tools(store, handles)
+        tools = make_tools(reader, handles)
         return tools, create_agent(
             model,
             tools=tools,
@@ -216,7 +259,7 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
             name="studio-agent-loop",
         )
 
-    def answer(state: AgentState) -> dict:
+    def answer(state: AgentState, config: RunnableConfig) -> dict:
         seen = len(state["messages"])
         message = next(
             (m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None
@@ -236,29 +279,34 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         artifacts: list[dict[str, Any]] = []
         blocked: list[list[str]] = []
         handles = Handles()
-        (read_feature, *_), loop = new_loop(handles)
+        reader = _Prefetched(store, _to_read(question))
+        (read_feature, *_), loop = new_loop(handles, reader)
         try:
-            first_reads = _read_attached(question, read_feature)
+            first_reads = _read_attached(question, read_feature, config)
         except StoreError as error:
             return _finish(
                 failure(STORE_FAILURES.get(error.kind, "store_unreachable")), message, [], seen
             )
         tools += ["read_feature"] * (len(first_reads) - 1 if first_reads else 0)
         artifacts += [m.artifact for m in first_reads if isinstance(m, ToolMessage) and m.artifact]
+        # Nothing attached is left in store: the answer is fixed, no model needed.
+        if _all_gone(question, artifacts):
+            answer = Answer(statements=[Statement(kind="failure", text=FIXED_LINES["not_found"])])
+            return _finish(answer, message, tools, seen)
         messages: list[Any] = [HumanMessage(_prompt(question)), *first_reads]
         retried = False
         for attempt in range(2):
             try:
                 try:
-                    result = loop.invoke({"messages": messages})
+                    result = loop.invoke({"messages": messages}, config)
                 except Exception as error:
                     if retried or not _passes(error):
                         raise
                     # Once per question. Fresh tools, so nothing from the failed try
                     # counts as already read; the handles stay, so C1 still means C1.
                     retried = True
-                    _, loop = new_loop(handles)
-                    result = loop.invoke({"messages": messages})
+                    _, loop = new_loop(handles, reader)
+                    result = loop.invoke({"messages": messages}, config)
             except StoreError as error:
                 return _finish(
                     failure(STORE_FAILURES.get(error.kind, "store_unreachable")),
@@ -273,10 +321,7 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
             tools += [c["name"] for m in run if isinstance(m, AIMessage) for c in m.tool_calls]
             artifacts += [m.artifact for m in run if isinstance(m, ToolMessage) and m.artifact]
 
-            # A claim or citation has no read of its own: it is found on its section.
-            attached = [i.id for i in question.about if i.id and i.kind in ("section", "pipeline")]
-            gone = {a["not_found"] for a in artifacts if "not_found" in a}
-            if attached and set(attached) <= gone:
+            if _all_gone(question, artifacts):
                 answer = Answer(
                     statements=[Statement(kind="failure", text=FIXED_LINES["not_found"])]
                 )

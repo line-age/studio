@@ -103,3 +103,63 @@ def test_a_pipelines_claim_always_says_it_is_the_pipelines(world):
     )
     text = render(_picked(claim["id"]), read).statements[0].text
     assert text.startswith(("For the pipeline ", "For pipeline "))
+
+
+def _feature(fid, claims=(), links=()):
+    return {
+        "id": fid,
+        "kind": "section",
+        "label": None,
+        "claims": list(claims),
+        "links": list(links),
+    }
+
+
+def _owner(cid):
+    return {
+        "id": cid,
+        "attribute_key": "owner",
+        "status": "accepted",
+        "value_text": "Invented Gas Co.",
+        "valid_edtf": "1938",
+        "citations": [],
+    }
+
+
+def test_a_split_sections_claim_stays_the_split_sections():
+    parent, a, b = "p" * 8 + "-0", "a" * 8 + "-0", "b" * 8 + "-0"
+    links = [
+        {
+            "id": f"k{n}",
+            "relation": "split_into",
+            "status": "confirmed",
+            "from_feature_id": parent,
+            "to_feature_id": piece,
+        }
+        for n, piece in enumerate((a, b))
+    ]
+    read = Read()
+    read.feature(_feature(parent, [_owner("c1")], links))
+    read.feature(_feature(a, links=links[:1]))
+    read.feature(_feature(b, links=links[1:]))
+    read.merge(a, [parent])
+    read.merge(b, [parent])
+    statement = render(_picked("c1"), read).statements[0]
+    # Not said of A or B, which both count it: it is the split section's.
+    assert statement.text.startswith("The owner is ")
+    assert "aaaaaaaa" not in statement.text and "bbbbbbbb" not in statement.text
+    assert (
+        statement.refs[0].label == "section pppppppp, split into section aaaaaaaa, section bbbbbbbb"
+    )
+
+
+def test_one_section_with_a_merged_trace_is_one_thing(world):
+    from grounding import reads_from
+    from tools import make_tools
+
+    (read_feature,) = make_tools(FakeStore(world).client())
+    read = reads_from([read_feature.func(world["codes"]["s13"])[1]])
+    on_trace = _claim(world, read, "d13", "owner", "accepted")
+    on_section = _claim(world, read, "s13", "status", "accepted")
+    texts = [s.text for s in render(_picked(on_trace["id"], on_section["id"]), read).statements]
+    assert not any(t.startswith("For ") for t in texts)

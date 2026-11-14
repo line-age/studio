@@ -105,4 +105,18 @@ describe("a message the Agent cannot take", () => {
     expect(service.ask).toHaveBeenCalledOnce()
     await waitFor(() => expect(box).toHaveValue("Who owns it?"))
   })
+
+  it("does not put a failed question over words typed since", async () => {
+    service.fails = true
+    let fail: () => void = () => undefined
+    service.ask.mockImplementationOnce((_q: unknown, onFailed?: () => void) => {
+      fail = () => onFailed?.()
+      return Promise.resolve()
+    })
+    const { user, box } = await open()
+    await user.type(box, "Who owns it?{Enter}")
+    await user.type(box, "Something else")
+    act(() => fail())
+    expect(box).toHaveValue("Something else")
+  })
 })

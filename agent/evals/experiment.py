@@ -39,9 +39,9 @@ def run_case(case: Case) -> dict[str, Any]:
     store = FakeStore(world)
     question = question_for(case, world)
     message = HumanMessage(content=question["words"], additional_kwargs={"question": question})
-    graph = build_graph(store=store.client())
-    start = time.perf_counter()
     try:
+        graph = build_graph(store=store.client())
+        start = time.perf_counter()
         state = graph.invoke({"messages": [message]})
     except Exception as exc:  # noqa: BLE001 - a crash is a failed case, not a failed run
         return {"answer": None, "tools": [], "error": f"{type(exc).__name__}: {exc}"[:500]}

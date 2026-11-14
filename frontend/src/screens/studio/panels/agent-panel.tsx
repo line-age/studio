@@ -360,9 +360,11 @@ export function AgentPanel() {
             setHeld(null)
             // If it never gets an answer, the words and what was attached
             // come back to the box.
-            void agent.ask(question, () =>
+            void agent.ask(question, () => {
+              // Never over words the person has typed since.
+              if (messageRef.current?.value.trim()) return
               useStudio.getState().askAgent(attachments, { refs, words })
-            )
+            })
             s.clearAgentDraft()
             return
           }

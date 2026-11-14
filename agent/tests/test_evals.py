@@ -251,6 +251,12 @@ def test_a_slow_answer_breaks_the_speed_gate():
     assert any("10 sections" in g for g in reports.gates(timed(10, [13.0, 13.0, 1.0]), None))
 
 
+def test_a_crashed_repeat_is_never_fast():
+    report = timed(1, [1.0, 1.0, 1.0])
+    report["cases"]["a"]["repeats"][2]["seconds"] = None
+    assert any("not timed" in g for g in reports.gates(report, None))
+
+
 def test_a_case_passes_on_a_majority_of_repeats():
     report = run(
         a=("person", [(True,), (True,), (False,)]), b=("person", [(True,), (False,), (False,)])

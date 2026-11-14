@@ -139,26 +139,35 @@ export function useAgent() {
   }, [live, saved])
 
   /**
-   * `onFailed` runs when the run fails or the service cannot be reached, so
-   * the person can send the question again.
+   * `onFailed` runs once when the run fails or the service cannot be reached, so the
+   * person can send the question again. The SDK may report one failure twice.
    */
-  const ask = (question: Question, onFailed?: () => void) =>
-    stream
-      .submit(
-        {
-          messages: [
-            {
-              type: "human",
-              id: crypto.randomUUID(),
-              content: question.words,
-              additional_kwargs: { question },
-            },
-          ],
-        } as never,
-        { multitaskStrategy: "reject", onError: () => onFailed?.() }
-      )
-      // "reject" throws when a run is already in flight.
-      .catch(() => onFailed?.())
+  const ask = (question: Question, onFailed?: () => void) => {
+    let reported = false
+    const failed = () => {
+      if (reported) return
+      reported = true
+      onFailed?.()
+    }
+    return (
+      stream
+        .submit(
+          {
+            messages: [
+              {
+                type: "human",
+                id: crypto.randomUUID(),
+                content: question.words,
+                additional_kwargs: { question },
+              },
+            ],
+          } as never,
+          { multitaskStrategy: "reject", onError: failed }
+        )
+        // "reject" throws when a run is already in flight.
+        .catch(failed)
+    )
+  }
 
   const stop = () => stream.stop({ cancel: true })
 

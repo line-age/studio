@@ -424,3 +424,33 @@ def test_two_claims_read_at_once_never_share_a_handle():
         t.join()
     assert len(set(handles.ids)) == len(ids)
     assert all(handles.resolve(handles.of(c)) == c for c in ids)
+
+
+def test_handles_follow_the_order_things_were_attached(world, monkeypatch):
+    import tools as tools_module
+
+    codes = [world["codes"][c] for c in ("s05", "s02", "s03")]
+    made = []
+    original = tools_module.Handles.__init__
+
+    def keep(self):
+        original(self)
+        made.append(self)
+
+    monkeypatch.setattr(tools_module.Handles, "__init__", keep)
+    ask(world, scripted(unknown_owner(codes[0])), "Who owns these?", codes)
+    # Reads run in parallel, yet C1 is always a claim of the first thing attached.
+    first_claim = world["features"][codes[0]]["claims"][0]
+    assert made[0].ids["C1"] == first_claim["id"]
+
+
+def test_a_question_about_nothing_store_has_needs_no_model(world):
+    from tests.support import ScriptedModel
+
+    class Never(ScriptedModel):
+        def _generate(self, *a, **k):
+            raise AssertionError("the model was called")
+
+    gone = "00000000-0000-4000-8000-00000000dead"
+    out, _ = ask(world, Never(messages=iter([])), "Who owns it?", [gone])
+    assert out["answer"]["statements"][0]["text"] == FIXED_LINES["not_found"]

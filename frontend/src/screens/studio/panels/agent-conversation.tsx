@@ -194,7 +194,7 @@ function Conversation({
         {agent.turns.length === 0 && <Marker>No conversation yet.</Marker>}
         {agent.error && (
           <Marker>
-            The Agent could not answer. Your question is back in the box.
+            The Agent could not answer. Send the question again to retry.
           </Marker>
         )}
       </div>

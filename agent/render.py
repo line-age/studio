@@ -284,15 +284,33 @@ def is_traced_as_gone(feature: dict[str, Any]) -> bool:
     )
 
 
+def _counted_for(feature_id: str, read: "Read") -> list[str]:
+    """The sections whose claims store counts this feature's among: the one a trace was
+    merged into, or every section a split section was cut into."""
+    return [s for s, merged in read.scope.items() if feature_id in merged]
+
+
+def _split_from(feature_id: str, read: "Read") -> bool:
+    return any(
+        link["relation"] == "split_into"
+        and link["status"] == "confirmed"
+        and link.get("from_feature_id") == feature_id
+        for link in read.links.values()
+    )
+
+
 def ref_label(feature_id: str, read: "Read") -> str:
     """What a feature is, in Studio's words: a section, a pipeline, a trace merged into a
-    section, or a line traced as gone."""
+    section, a section that was split, or a line traced as gone."""
     feature = read.features[feature_id]
     if is_traced_as_gone(feature):
         return f"line traced as gone {feature_id[:8]}"
-    into = next((s for s, merged in read.scope.items() if feature_id in merged), None)
-    if into is not None:
-        return f"trace {feature_id[:8]}, merged into {feature_name(read.features[into])}"
+    into = _counted_for(feature_id, read)
+    if into and _split_from(feature_id, read):
+        names = ", ".join(feature_name(read.features[s]) for s in into)
+        return f"section {feature_id[:8]}, split into {names}"
+    if len(into) == 1:
+        return f"trace {feature_id[:8]}, merged into {feature_name(read.features[into[0]])}"
     return feature_name(feature)
 
 
@@ -398,46 +416,53 @@ def _sources_left_out(draft: DraftStatement, read: Read) -> list[str]:
     return [source_line(left)] if left else []
 
 
+def _one_full_stop(text: str) -> str:
+    """A value that ends a sentence with its own full stop ("Co.") takes no second one."""
+    return re.sub(r"(?<=[A-Za-z]\.)\.(?=\s|$)", "", text)
+
+
 def writes_itself(draft: DraftStatement) -> bool:
     """A fact about one claim with no text: code writes the whole sentence."""
     claims = [r for r in draft.refs if r.type == "claim"]
     return draft.kind == "fact" and not draft.text.strip() and len(claims) == 1
 
 
-def _holder(claim: dict[str, Any], read: Read) -> dict[str, Any]:
-    """Whose claim it is as a reviewer sees it: the section a merged trace counts for."""
-    into = next((s for s, merged in read.scope.items() if claim["feature_id"] in merged), None)
-    return read.features[into or claim["feature_id"]]
+def holder(feature_id: str, read: Read) -> str:
+    """Whose claim it is as a reviewer sees it: the one section a merged trace counts for.
+    A split section's claim counts for every piece, so it stays the split section's."""
+    into = _counted_for(feature_id, read)
+    return into[0] if len(into) == 1 else feature_id
 
 
 def claim_line(claim: dict[str, Any], read: Read, name_things: bool) -> str:
     """One claim in code's words: its value, when it holds, its status and its source."""
     what = claim["attribute_key"].replace("_", " ")
     value, period = value_words(claim), period_words(claim)
-    holder = _holder(claim, read)
-    subject = feature_name(holder) if name_things else None
-    if holder.get("kind") == "line":
+    whose = read.features[holder(claim["feature_id"], read)]
+    subject = feature_name(whose) if name_things else None
+    if whose.get("kind") == "line":
         # A pipeline's claim is never read as the section's: it always says whose it is.
-        name = feature_name(holder)
+        name = feature_name(whose)
         subject = name if name.startswith("pipeline ") else f"the pipeline {name}"
-    if claim["status"] == "candidate":
-        who = {"pipeline": "A tool", "person": "A person"}.get(
-            claim.get("asserted_by_kind") or "", "Someone"
-        )
+    status = claim["status"]
+    if status == "candidate":
+        # Who proposed it comes from STATUS_WORDS ("proposed by a tool ..."), one wording.
+        by = re.match(r"proposed by (a \w+)", status_words(claim))
+        who = by.group(1).capitalize() if by else "Someone"
         of = f" of {subject}" if subject else ""
         line = f"{who} proposed {value} as the {what}{of}, {period}. Nobody has decided on it yet."
-    elif claim["status"] == "rejected":
+    elif status == "rejected":
         of = f" for {subject}" if subject else ""
         line = f"One value{of}, {value}, was rejected as the {what}. It was given {period}."
-    else:
+    elif status == "accepted":
         line = (
             f"For {subject}, the {what} is {value}, {period}."
             if subject
-            else (f"The {what} is {value}, {period}.")
+            else f"The {what} is {value}, {period}."
         )
-    # A value that ends with its own full stop ("Co.") takes no second one.
-    line = re.sub(r"(?<=[A-Za-z]\.)\.(?=\s|$)", "", line)
-    return f"{line} {source_line([claim])}"
+    else:
+        raise Unfillable(f"a claim that is {status} has no sentence of its own")
+    return f"{_one_full_stop(line)} {source_line([claim])}"
 
 
 def render_statement(draft: DraftStatement, read: Read, name_things: bool = False) -> Statement:
@@ -503,9 +528,7 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
         text = claim_line(read.claims[claim_id], read, name_things)
         return Statement(kind="fact", text=text, refs=refs, attribute=draft.attribute)
 
-    text = SLOT.sub(fill, draft.text).strip()
-    # A value that ends a sentence with its own full stop ("Co.") takes no second one.
-    text = re.sub(r"(?<=[A-Za-z]\.)\.(?=\s|$)", "", text)
+    text = _one_full_stop(SLOT.sub(fill, draft.text).strip())
     refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]
     text = " ".join([text, *_sources_left_out(draft, read)])
     return Statement(kind=draft.kind, text=text, refs=refs, attribute=draft.attribute)
@@ -515,8 +538,9 @@ def render(draft: Draft, read: Read) -> Answer:
     """The draft with every slot filled. Not yet checked: grounding decides that."""
     # About several things, each "Store does not say" names which one.
     about = {r.id for s in draft.statements for r in s.refs if r.type == "feature"}
+    # A claim on a trace merged into a section is about that section, not a second thing.
     about |= {
-        read.claims[r.id]["feature_id"]
+        holder(read.claims[r.id]["feature_id"], read)
         for s in draft.statements
         for r in s.refs
         if r.type == "claim" and r.id in read.claims
