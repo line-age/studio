@@ -98,6 +98,12 @@ interface StudioState {
   tool: MapTool
   selectedAttribute: string | null
   expandedSectionIds: ReadonlySet<string>
+  /**
+   * Goes up each time a section is picked to be read (map, list, search,
+   * chat), so the properties panel brings it into view even when it is
+   * the same section as before.
+   */
+  sectionPicked: number
   /** The map's current view; null until the map has drawn once. */
   view: Bounds | null
   fit: FitRequest | null
@@ -314,6 +320,7 @@ export const useStudio = create<StudioState>((set) => ({
   tool: "select",
   selectedAttribute: null,
   expandedSectionIds: new Set(),
+  sectionPicked: 0,
   view: null,
   fit: null,
   agentAttachments: [],
@@ -381,9 +388,18 @@ export const useStudio = create<StudioState>((set) => ({
   setSearchWholeEdition: (searchWholeEdition) => set({ searchWholeEdition }),
   setList: (list) => set({ list }),
   select: (sectionIds) =>
-    set({
-      ...selected(sectionIds),
-      selectedAttribute: null,
+    set((s) => {
+      const settled = selected(sectionIds)
+      const only = settled.selectedSectionId
+      // A lone section (a lasso that caught one) opens, as a click does.
+      return only
+        ? {
+            ...settled,
+            selectedAttribute: null,
+            expandedSectionIds: new Set(s.expandedSectionIds).add(only),
+            sectionPicked: s.sectionPicked + 1,
+          }
+        : { ...settled, selectedAttribute: null }
     }),
   selectPipeline: (pipelineId, sectionIds) =>
     set({
@@ -423,18 +439,22 @@ export const useStudio = create<StudioState>((set) => ({
       ...selected([sectionId]),
       selectedAttribute: null,
       expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
+      sectionPicked: s.sectionPicked + 1,
     })),
   focusSection: (sectionId) =>
     set((s) => ({
       selectedSectionId: sectionId,
       selectedAttribute: null,
       expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
+      sectionPicked: s.sectionPicked + 1,
     })),
   selectAttribute: (sectionId, attribute, keep = false) =>
     set((s) => ({
       ...(keep ? { selectedSectionId: sectionId } : selected([sectionId])),
       selectedAttribute: attribute,
       expandedSectionIds: new Set(s.expandedSectionIds).add(sectionId),
+      // Choosing a claim in the tree keeps the tree where it is.
+      sectionPicked: keep ? s.sectionPicked : s.sectionPicked + 1,
     })),
   closeAttribute: () => set({ selectedAttribute: null }),
   toggleExpanded: (sectionId) =>

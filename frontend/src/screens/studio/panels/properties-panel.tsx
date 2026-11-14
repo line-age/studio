@@ -71,6 +71,7 @@ export function PropertiesPanel() {
 function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const selectedSectionId = useStudio((s) => s.selectedSectionId)
   const selectedAttribute = useStudio((s) => s.selectedAttribute)
+  const sectionPicked = useStudio((s) => s.sectionPicked)
   const expanded = useStudio((s) => s.expandedSectionIds)
   const selection = useStudio((s) => s.selection)
   const select = useStudio((s) => s.select)
@@ -104,8 +105,9 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const pickedInTree = useRef(false)
 
   // A section picked elsewhere (map, list, search, chat) comes to the top of
-  // the tree, open, so its claims are in view. One picked in the tree only
-  // comes into view: it should not jump away from the pointer.
+  // the tree, open, so its claims are in view, also when it is picked again
+  // after the tree was scrolled. One picked in the tree only comes into
+  // view: it should not jump away from the pointer.
   useEffect(() => {
     const fromTree = pickedInTree.current
     pickedInTree.current = false
@@ -113,7 +115,12 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
     treeRef.current
       ?.querySelector(`[data-section="${CSS.escape(selectedSectionId)}"]`)
       ?.scrollIntoView({ block: fromTree ? "nearest" : "start" })
-  }, [selectedSectionId])
+  }, [selectedSectionId, sectionPicked])
+  // A tick that left the section in focus as it was must not carry over to
+  // the next pick made elsewhere.
+  useEffect(() => {
+    pickedInTree.current = false
+  })
 
   const multi = groups.length > 1
   const single = groups[0].summary

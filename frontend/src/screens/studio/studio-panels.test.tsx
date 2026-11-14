@@ -151,6 +151,17 @@ describe("Studio panels", () => {
       await user.click(screen.getByRole("option", { name: /North line/ }))
       await user.click(screen.getByRole("treeitem", { name: /Birch to Cedar/ }))
       expect(calls.filter((c) => c.id !== null).at(-1)?.block).toBe("nearest")
+
+      // Picked again from elsewhere after the tree moved: to the top again.
+      calls.length = 0
+      act(() => useStudio.getState().selectSection("s-3"))
+      act(() => useStudio.getState().selectSection("s-3"))
+      expect(calls.filter((c) => c.id === "s-3")).toHaveLength(2)
+
+      // A lasso that catches one section opens it, as a click does.
+      act(() => useStudio.getState().select(["s-1"]))
+      expect(useStudio.getState().expandedSectionIds.has("s-1")).toBe(true)
+      expect(calls.at(-1)).toEqual({ id: "s-1", block: "start" })
     } finally {
       spy.mockRestore()
     }

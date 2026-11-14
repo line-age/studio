@@ -160,9 +160,9 @@ describe("reviewing", () => {
     expect(own).toHaveTextContent("NameUnknown")
     expect(own).toHaveTextContent("OperatorUnknown")
 
-    // From a section, Owner leads back to the pipeline as a whole.
+    // From a section, Owner leads back to the pipeline as a whole. A lone
+    // selected section opens by itself.
     act(() => useStudio.getState().select(["s-1"]))
-    await user.click(screen.getByRole("treeitem", { name: /Alder to Birch/ }))
     await user.click(rowOf("Alder to Birch", "Owner"))
     expect(useStudio.getState().selection).toEqual(new Set(["s-1", "s-2"]))
     expect(
