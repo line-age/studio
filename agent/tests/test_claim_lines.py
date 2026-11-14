@@ -77,7 +77,7 @@ def test_a_claim_held_through_a_merged_trace_is_said_of_the_section(world):
     from grounding import reads_from
     from tools import make_tools
 
-    (read_feature,) = make_tools(FakeStore(world).client())
+    read_feature, _ = make_tools(FakeStore(world).client())
     read = reads_from([read_feature.func(world["codes"]["s13"])[1]])
     owner = _claim(world, read, "d13", "owner", "accepted")
     text = render(_picked(owner["id"]), read).statements[0].text
@@ -157,7 +157,7 @@ def test_one_section_with_a_merged_trace_is_one_thing(world):
     from grounding import reads_from
     from tools import make_tools
 
-    (read_feature,) = make_tools(FakeStore(world).client())
+    read_feature, _ = make_tools(FakeStore(world).client())
     read = reads_from([read_feature.func(world["codes"]["s13"])[1]])
     on_trace = _claim(world, read, "d13", "owner", "accepted")
     on_section = _claim(world, read, "s13", "status", "accepted")

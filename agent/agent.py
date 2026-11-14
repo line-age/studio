@@ -125,6 +125,11 @@ class _Prefetched:
                 for fid, got in zip(ids, pool.map(self._try, ids), strict=True):
                     self._got[fid] = got
 
+    @property
+    def origin(self) -> StoreClient:
+        """The store underneath, which outlives a question (context.py caches by it)."""
+        return self._store
+
     def _try(self, fid: str) -> Any:
         try:
             return self._store.feature(fid)
@@ -132,7 +137,7 @@ class _Prefetched:
             return error
 
     def feature(self, feature_id: str) -> dict[str, Any]:
-        got = self._got.pop(feature_id, None)
+        got = self._got.get(feature_id)  # kept: read_context reads it again
         if got is None:
             return self._store.feature(feature_id)
         if isinstance(got, StoreError):
@@ -143,12 +148,20 @@ class _Prefetched:
         return getattr(self._store, name)
 
 
-def _read_attached(question: Question, read_feature: Any, config: Any) -> list[Any]:
+# Full context for this many attached sections; the rest get their claims (owner,
+# 2026-11-14).
+CONTEXT_FOR = 3
+
+
+def _read_attached(
+    question: Question, read_feature: Any, read_context: Any, config: Any
+) -> list[Any]:
     """Read everything attached before the model starts, as if the model had asked: one
-    model turn fewer. Raises StoreError."""
+    model turn fewer. The first sections also get their context. Raises StoreError."""
     ids = _to_read(question)
     if not ids:
         return []
+    sections = [i.id for i in question.about if i.kind == "section" and i.id]
     calls = [
         {
             "name": "read_feature",
@@ -157,8 +170,17 @@ def _read_attached(question: Question, read_feature: Any, config: Any) -> list[A
             "type": "tool_call",
         }
         for n, fid in enumerate(ids)
+    ] + [
+        {
+            "name": "read_context",
+            "args": {"section_id": fid},
+            "id": f"context_{n}",
+            "type": "tool_call",
+        }
+        for n, fid in enumerate(sections[:CONTEXT_FOR])
     ]
-    results = [read_feature.invoke(call, config) for call in calls]
+    tools = {"read_feature": read_feature, "read_context": read_context}
+    results = [tools[call["name"]].invoke(call, config) for call in calls]
     return [AIMessage(content="", tool_calls=calls), *results]
 
 
@@ -280,14 +302,14 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         blocked: list[list[str]] = []
         handles = Handles()
         reader = _Prefetched(store, _to_read(question))
-        (read_feature, *_), loop = new_loop(handles, reader)
+        (read_feature, read_context), loop = new_loop(handles, reader)
         try:
-            first_reads = _read_attached(question, read_feature, config)
+            first_reads = _read_attached(question, read_feature, read_context, config)
         except StoreError as error:
             return _finish(
                 failure(STORE_FAILURES.get(error.kind, "store_unreachable")), message, [], seen
             )
-        tools += ["read_feature"] * (len(first_reads) - 1 if first_reads else 0)
+        tools += [c["name"] for m in first_reads[:1] for c in m.tool_calls]
         artifacts += [m.artifact for m in first_reads if isinstance(m, ToolMessage) and m.artifact]
         # Nothing attached is left in store: the answer is fixed, no model needed.
         if _all_gone(question, artifacts):

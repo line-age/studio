@@ -56,8 +56,9 @@ def test_store_does_not_say_end_to_end(world):
     assert [(s.kind, s.text, s.attribute) for s in answer.statements] == [
         ("unknown", "Store does not say who owns it.", "owner")
     ]
-    assert out["tools"] == ["read_feature"]
-    assert store.requests == [f"/features/{s01}"]
+    assert out["tools"] == ["read_feature", "read_context"]
+    # The section once, and the printings in store for its context.
+    assert [r for r in store.requests if r.startswith("/features")] == [f"/features/{s01}"]
     reply = out["messages"][-1]
     assert reply.additional_kwargs["answer"] == out["answer"]
     assert reply.additional_kwargs["answers"] == "q1"
@@ -336,7 +337,7 @@ def test_a_feature_read_twice_in_one_question_is_fetched_once(world):
     read = ("read_feature", {"feature_id": s01})
     out, store = ask(world, scripted([read], [read], unknown_owner(s01)), "Who owns it?", [s01])
     assert out["answer"]["statements"][0]["kind"] == "unknown"
-    assert store.requests == [f"/features/{s01}"]
+    assert [r for r in store.requests if r.startswith("/features")] == [f"/features/{s01}"]
 
 
 def test_the_model_cites_a_claim_by_its_handle_and_code_turns_it_into_the_id(world, monkeypatch):
@@ -400,10 +401,11 @@ def test_everything_attached_is_read_at_once_before_the_model_starts(world):
 
     model = Watching(messages=iter(scripted(unknown_owner(codes[0])).messages))
     out, store = ask(world, model, "Who owns these?", codes)
-    # The first time the model is called, all three reads are already there.
-    assert len(seen_by_model[0]) == 3
-    assert sorted(store.requests) == sorted(f"/features/{c}" for c in codes)
-    assert out["tools"] == ["read_feature"] * 3
+    # The first time the model is called, all three reads and their context are there.
+    assert len(seen_by_model[0]) == 6
+    features = [r for r in store.requests if r.startswith("/features")]
+    assert sorted(features) == sorted(f"/features/{c}" for c in codes)
+    assert out["tools"] == ["read_feature"] * 3 + ["read_context"] * 3
 
 
 def test_two_claims_read_at_once_never_share_a_handle():

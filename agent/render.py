@@ -323,6 +323,15 @@ def _link_label(link: dict[str, Any], read: "Read") -> str:
     return LINK_WORDS.get(relation, relation)
 
 
+def _kind_of(ref_id: str, read: "Read") -> str:
+    """What an id that code worked from is: a claim, a link or a feature."""
+    if ref_id in read.claims:
+        return "claim"
+    if ref_id in read.links:
+        return "link"
+    return "feature"
+
+
 def _ref(ref_type: str, ref_id: str, read: "Read") -> Ref:
     if ref_type == "claim":
         claim = read.claims.get(ref_id)
@@ -356,6 +365,8 @@ class Read:
         self.links: dict[str, dict[str, Any]] = {}
         # Features whose claims store counts as another's (a merged trace): section -> them.
         self.scope: dict[str, list[str]] = {}
+        # What code worked out about a section (context.py), by handle: W1 -> WorkedOut.
+        self.worked: dict[str, dict[str, Any]] = {}
 
     def merge(self, section_id: str, merged: list[str]) -> None:
         self.scope.setdefault(section_id, [])
@@ -521,6 +532,15 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
         subject = feature_name(read.features[about]) if name_things and about else None
         text = unknown_line(draft.attribute, subject)
         return Statement(kind="unknown", text=text, refs=refs, attribute=draft.attribute)
+
+    if draft.kind == "worked_out":
+        # Code wrote the sentence when it worked the fact out; the model only picked it.
+        handles = [r.id.strip().upper() for r in draft.refs if r.type == "worked_out"]
+        if len(handles) != 1 or handles[0] not in read.worked:
+            raise Unfillable("a worked_out statement names one W handle from read_context")
+        item = read.worked[handles[0]]
+        refs = [_ref(_kind_of(i, read), i, read) for i in item["rests_on"]]
+        return Statement(kind="worked_out", text=item["text"], refs=refs)
 
     if writes_itself(draft):
         refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]

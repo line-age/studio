@@ -70,8 +70,13 @@ class Question(_Strict):
 
 class DraftRef(_Strict):
     key: str = Field(description="A short local name used in slots: c1, c2, f1.")
-    type: Literal["claim", "feature", "link"]
-    id: str = Field(description="As the tool showed it: a claim's handle (C1) or a feature's id.")
+    type: Literal["claim", "feature", "link", "worked_out"]
+    id: str = Field(
+        description=(
+            "As the tool showed it: a claim's handle (C1), a worked-out item's handle (W1) "
+            "or a feature's id."
+        )
+    )
 
 
 # store's attribute keys. A closed list in the schema also keeps the model's output from
@@ -96,7 +101,9 @@ AttributeKey = Literal[
 
 class DraftStatement(_Strict):
     # help and reading come with their behaviours (B10, B12) and their checks.
-    kind: Literal["fact", "unknown", "clarify", "refusal", "greeting", "citation_request"]
+    kind: Literal[
+        "fact", "unknown", "clarify", "refusal", "greeting", "citation_request", "worked_out"
+    ]
     attribute: AttributeKey | None = Field(
         None, description="For kind unknown: the store attribute key that was checked."
     )

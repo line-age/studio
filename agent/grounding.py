@@ -99,7 +99,9 @@ def own_words_problems(draft: Draft) -> list[str]:
     """What the model wrote outside slots: no digit, quotation, id, name or number word."""
     problems = []
     for n, statement in enumerate(draft.statements, 1):
-        if statement.kind in (*FIXED, "unknown", "citation_request") or writes_itself(statement):
+        if statement.kind in (*FIXED, "unknown", "citation_request", "worked_out") or (
+            writes_itself(statement)
+        ):
             continue  # code writes the whole sentence
         own = SLOT.sub(" ", statement.text)
         if re.search(r"\d", own):
@@ -214,6 +216,8 @@ def answer_problems(answer: Answer, read: Read) -> list[str]:
                     f"statement {n}: store already holds an accepted {statement.attribute} "
                     "there; do not ask for it, say what store holds instead"
                 )
+        if kind == "worked_out" and statement.text not in {w["text"] for w in read.worked.values()}:
+            problems.append(f"statement {n}: a worked-out fact is code's sentence, unchanged")
         if kind == "fact" and not any(r.type in ("claim", "link") for r in refs):
             problems.append(f"statement {n}: a fact must name the claim it rests on")
         if kind == "unknown":
@@ -248,6 +252,12 @@ def reads_from(artifacts: list[dict[str, Any]]) -> Read:
     for artifact in artifacts:
         for feature in artifact.get("features", []):
             read.feature(feature)
+        # Read for context: known, but never counted as the section's own.
+        for feature in artifact.get("context_features", []):
+            if feature["id"] not in read.features:
+                read.feature(feature)
+        for item in artifact.get("worked_out", []):
+            read.worked[item["handle"]] = item
         merged = artifact.get("features", [])[1:]
         if merged:
             read.merge(artifact["features"][0]["id"], [m["id"] for m in merged])

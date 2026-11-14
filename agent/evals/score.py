@@ -44,6 +44,68 @@ def _held(world: dict[str, Any], feature_id: str, attribute: str) -> bool:
     )
 
 
+def _printings(world: dict[str, Any]) -> list[int]:
+    """The printings a reader of store can know of: years sections are first shown."""
+    return sorted(
+        {
+            int(row["properties"]["time_start"][:4])
+            for row in world["sections"]
+            if row["properties"].get("time_start")
+        }
+    )
+
+
+def _shown_from(world: dict[str, Any], fid: str) -> int | None:
+    """The earliest printing an accepted status claim says shows this feature."""
+    years = [
+        int(c["valid_edtf"][-4:])
+        for c in world["features"][fid]["claims"]
+        if c["attribute_key"] == "status"
+        and c["status"] == "accepted"
+        and c.get("value_text") == "operational"
+        and c.get("valid_edtf")
+    ]
+    return min(years) if years else None
+
+
+def _gone_on(world: dict[str, Any], fid: str) -> int | None:
+    """The printing a line traced as gone was traced on: the end of its period."""
+    return next(
+        (
+            int(c["valid_edtf"][-4:])
+            for c in world["features"][fid]["claims"]
+            if c.get("value_text") == "decommissioned" and c.get("valid_edtf")
+        ),
+        None,
+    )
+
+
+def _worked_out_problems(
+    where: str, text: str, refs: list[dict[str, Any]], world: dict[str, Any]
+) -> tuple[list[str], list[str]]:
+    """Every year a worked-out sentence names, worked out again here from the world. The
+    years it may name, and what is wrong."""
+    problems: list[str] = []
+    allowed: list[str] = []
+    claims, links = _claims(world), {link["id"]: link for link in world["links"]}
+    for ref in refs:
+        if ref["type"] == "claim" and ref["id"] in claims:
+            fid = claims[ref["id"]]["feature_id"]
+            first = _shown_from(world, fid)
+            before = [y for y in _printings(world) if first and y < first]
+            said = re.search(r"first traced on the (\d{4}) printing", text)
+            if said and int(said.group(1)) != first:
+                problems.append(f"{where}: first shown in {first}, not {said.group(1)}")
+            said = re.search(r"not on the (\d{4}) printing", text)
+            if said and (not before or int(said.group(1)) != before[-1]):
+                problems.append(f"{where}: the printing before is not {said.group(1)}")
+            allowed += [str(first), *(str(y) for y in before[-1:])]
+        if ref["type"] == "link" and ref["id"] in links:
+            gone = _gone_on(world, links[ref["id"]]["from_feature_id"])
+            allowed.append(str(gone))
+    return problems, allowed
+
+
 def ungrounded(answer: dict[str, Any], world: dict[str, Any], question: str = "") -> list[str]:
     """Every way the answer says something the world does not back. Empty means grounded."""
     problems: list[str] = []
@@ -87,6 +149,9 @@ def ungrounded(answer: dict[str, Any], world: dict[str, Any], question: str = ""
             for fid in features:
                 if fid in world["features"] and attribute and _held(world, fid, attribute):
                     problems.append(f"{where}: store does hold an accepted {attribute}")
+        elif kind == "worked_out":
+            if not refs:
+                problems.append(f"{where}: worked out from nothing")
         elif not backing and not [r for r in refs if r["type"] == "link"]:
             problems.append(f"{where}: rests on no claim or link")
 
@@ -95,11 +160,22 @@ def ungrounded(answer: dict[str, Any], world: dict[str, Any], question: str = ""
         named = {r["id"] for r in refs if r["type"] == "feature"} | {
             c["feature_id"] for c in backing
         }
+        # A link names what it links.
+        named |= {
+            end
+            for r in refs
+            if r["type"] == "link" and r["id"] in links
+            for end in (links[r["id"]]["from_feature_id"], links[r["id"]]["to_feature_id"])
+        }
         # A claim on a trace merged into a section is said of that section.
         held = {c["feature_id"] for c in backing}
         named |= {f for f in world["features"] if held & set(scope(world["links"], f)) - {f}}
         names = [feature_name(world["features"][f]) for f in named if f in world["features"]]
-        source = " ".join([json.dumps(backing, ensure_ascii=False), question, *names])
+        worked: list[str] = []
+        if kind == "worked_out":
+            wrong, worked = _worked_out_problems(where, text, refs, world)
+            problems += wrong
+        source = " ".join([json.dumps(backing, ensure_ascii=False), question, *names, *worked])
         for number in re.findall(r"\d+(?:\.\d+)?", text):
             if number not in re.findall(r"\d+(?:\.\d+)?", source):
                 problems.append(f"{where}: the number {number} is in no cited claim")

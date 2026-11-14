@@ -14,7 +14,7 @@ from tools import make_tools
 def _read(*codes):
     world = load_world("small")
     store = FakeStore(world).client()
-    (read_feature,) = make_tools(store)
+    read_feature, _ = make_tools(store)
     artifacts = [read_feature.func(world["codes"][code])[1] for code in codes]
     return world, reads_from(artifacts)
 

@@ -7,6 +7,8 @@ from typing import Any
 
 from langchain_core.tools import BaseTool, tool
 
+import context
+from render import feature_name
 from store_client import StoreClient, StoreError
 
 # What the model is shown of a claim. The ids are what it cites; everything else is what
@@ -35,6 +37,7 @@ class Handles:
     def __init__(self) -> None:
         self.ids: dict[str, str] = {}
         self._of: dict[str, str] = {}
+        self._worked = 0
         # Reads run in parallel threads; two claims must never get the same handle.
         self._lock = threading.Lock()
 
@@ -44,6 +47,12 @@ class Handles:
                 handle = f"C{len(self._of) + 1}"
                 self._of[claim_id], self.ids[handle] = handle, claim_id
             return self._of[claim_id]
+
+    def worked(self) -> str:
+        """The next handle for something code worked out: W1, W2, ..."""
+        with self._lock:
+            self._worked += 1
+            return f"W{self._worked}"
 
     def resolve(self, ref_id: str) -> str:
         return self.ids.get(ref_id.strip().upper(), ref_id)
@@ -98,6 +107,7 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
     """Tools for one question. A feature read twice in the same question is not fetched
     again: the model is told it already has it. Claims are shown by handle (`handles`)."""
     seen: set[str] = set()
+    context_seen: set[str] = set()
     handles = handles if handles is not None else Handles()
 
     @tool(response_format="content_and_artifact")
@@ -147,4 +157,37 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
             )
         return json.dumps(view, ensure_ascii=False), {"features": [feature, *merged]}
 
-    return [read_feature]
+    @tool(response_format="content_and_artifact")
+    def read_context(section_id: str) -> tuple[str, dict[str, Any]]:
+        """What code works out about one section from store, beyond its own claims: which
+        map printing first shows it, and what store holds about its end. Each item has a
+        handle (W1, W2...) and a sentence code wrote. To use one, add a statement of kind
+        worked_out with that handle in refs and leave its text empty."""
+        if section_id in context_seen:
+            return f"You already read the context of {section_id}. Use that result.", {}
+        try:
+            feature = store.feature(section_id)
+        except StoreError as error:
+            if error.kind in ("not_found", "bad_request"):
+                return (
+                    f"Store has no feature with the id {section_id}.",
+                    {"not_found": section_id},
+                )
+            raise
+        if feature.get("kind") != "section":
+            return "Context is worked out for a section only.", {}
+        context_seen.add(section_id)
+        ends = context.read_ends(store, feature)
+        worked = context.edition_facts(feature, ends, context.edition_years(store), handles.worked)
+        view = {
+            "section": feature_name(feature),
+            "worked_out": [{"handle": w.handle, "text": w.text} for w in worked],
+        }
+        artifact = {
+            "context_of": feature["id"],
+            "context_features": [feature, *ends.values()],
+            "worked_out": [w.model_dump() for w in worked],
+        }
+        return json.dumps(view, ensure_ascii=False), artifact
+
+    return [read_feature, read_context]
