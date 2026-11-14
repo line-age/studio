@@ -195,7 +195,15 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         store = StoreClient(settings.store_url, settings.store_token)
     if model is None:
         # The client retries a dropped connection, 429, 529 and 5xx with backoff.
-        model = init_chat_model(settings.model, max_tokens=4000, timeout=120, max_retries=3)
+        # Low effort: the model picks claims and code writes the words, so deep thinking
+        # buys nothing here and cost most of the wait (ten sections 18.7 s to 8.1 s).
+        model = init_chat_model(
+            settings.model,
+            max_tokens=4000,
+            timeout=120,
+            max_retries=3,
+            output_config={"effort": "low"},
+        )
 
     def new_loop(handles: Handles):
         # Made for each question, so each question starts with tools that have read nothing.
