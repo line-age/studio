@@ -72,6 +72,18 @@ export function Composer({
         autoComplete="off"
         value={message}
         onChange={(event) => setMessage(event.target.value)}
+        // Enter sends, Shift+Enter starts a new line. Not while an input
+        // method is still composing a character.
+        onKeyDown={(event) => {
+          if (
+            event.key !== "Enter" ||
+            event.shiftKey ||
+            event.nativeEvent.isComposing
+          )
+            return
+          event.preventDefault()
+          event.currentTarget.form?.requestSubmit()
+        }}
         placeholder={placeholder}
         className="field-sizing-content max-h-40 min-h-5 resize-none bg-transparent type-ui-sm outline-none placeholder:text-muted-foreground"
       />
