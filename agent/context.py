@@ -28,8 +28,10 @@ _editions: "weakref.WeakKeyDictionary[Any, dict[str | None, tuple[float, Edition
     weakref.WeakKeyDictionary()
 )
 # One lock per store and network, held while fetching, so questions arriving together
-# share one listing and a slow network never holds up another.
-_editions_locks: dict[tuple[int, str | None], threading.Lock] = {}
+# share one listing and a slow network never holds up another. Kept as long as the store.
+_editions_locks: "weakref.WeakKeyDictionary[Any, dict[str | None, threading.Lock]]" = (
+    weakref.WeakKeyDictionary()
+)
 _editions_lock = threading.Lock()
 
 _YEAR = re.compile(r"(\d{4})")
@@ -47,7 +49,7 @@ class Editions:
 def edition_years(store: Any, network: str | None) -> Editions:
     key = getattr(store, "origin", store)
     with _editions_lock:
-        lock = _editions_locks.setdefault((id(key), network), threading.Lock())
+        lock = _editions_locks.setdefault(key, {}).setdefault(network, threading.Lock())
     with lock:
         kept = _editions.get(key, {}).get(network)
         if kept and time.monotonic() - kept[0] < EDITIONS_TTL_SECONDS:
@@ -163,7 +165,19 @@ def edition_facts(
             )
         facts.append(WorkedOut(handle=handle(), what="removal", text=text, rests_on=[link["id"]]))
 
-    if not ended and not unread:
+    if unread and not ended:
+        facts.append(
+            WorkedOut(
+                handle=handle(),
+                what="not_traced_later",
+                text=(
+                    f"Whether store holds an end for {name} could not be read in full just "
+                    "now, so when it ended is not known here."
+                ),
+                rests_on=[feature["id"]],
+            )
+        )
+    elif not ended:
         facts.append(
             WorkedOut(
                 handle=handle(),
@@ -181,22 +195,13 @@ def edition_facts(
     return facts
 
 
-def read_ends(
-    store: Any, feature: dict[str, Any], known: dict[str, dict[str, Any]] | None = None
+def read_many(
+    store: Any, ids: list[str], known: dict[str, dict[str, Any]] | None = None
 ) -> dict[str, dict[str, Any]]:
-    """The features at the far end of every link the section is on, read at once, using
-    any already `known`. One that cannot be read is left out, and edition_facts then
-    says nothing of the end: context is a help, never a reason to fail."""
+    """Several features at once, using any already `known`. One that cannot be read is
+    left out; the caller says less rather than something false."""
     known = known or {}
-    ids = list(
-        dict.fromkeys(
-            link["to_feature_id"]
-            if link["from_feature_id"] == feature["id"]
-            else link["from_feature_id"]
-            for link in feature.get("links") or []
-        )
-    )
-    ids = [i for i in ids if i != feature["id"] and i not in known]
+    todo = [i for i in dict.fromkeys(ids) if i not in known]
 
     def one(fid: str) -> dict[str, Any] | None:
         try:
@@ -204,11 +209,26 @@ def read_ends(
         except StoreError:
             return None
 
-    found: dict[str, dict[str, Any] | None] = {}
-    if ids:
-        with ThreadPoolExecutor(max_workers=min(8, len(ids))) as pool:
-            found = dict(zip(ids, pool.map(one, ids), strict=True))
-    return {**known, **{fid: f for fid, f in found.items() if f is not None}}
+    got: dict[str, dict[str, Any] | None] = {}
+    if todo:
+        with ThreadPoolExecutor(max_workers=min(8, len(todo))) as pool:
+            got = dict(zip(todo, pool.map(one, todo), strict=True))
+    return {
+        fid: f for fid in dict.fromkeys(ids) if (f := known.get(fid) or got.get(fid)) is not None
+    }
+
+
+def read_ends(
+    store: Any, feature: dict[str, Any], known: dict[str, dict[str, Any]] | None = None
+) -> dict[str, dict[str, Any]]:
+    """The features at the far end of every link the section is on."""
+    ids = [
+        link["to_feature_id"]
+        if link["from_feature_id"] == feature["id"]
+        else link["from_feature_id"]
+        for link in feature.get("links") or []
+    ]
+    return read_many(store, [i for i in ids if i != feature["id"]], known)
 
 
 def pipeline_words(line: dict[str, Any]) -> str:
@@ -293,34 +313,53 @@ def route_lines(feature: dict[str, Any]) -> list[list[tuple[float, float]]]:
 
 
 def _same_pipe(feature: dict[str, Any]) -> set[str]:
-    """Features its links say are the same pipe or part of it: said by the links, never
-    as neighbours."""
+    """Features its links say are the same pipe or part of it, not rejected: said by the
+    links, never as neighbours. A rejected link says they are different pipes."""
     return {
         end
         for link in feature.get("links") or []
         if link["relation"] in ("same_as", "split_into", "overlaps")
+        and link["status"] != "rejected"
         for end in (link["from_feature_id"], link["to_feature_id"])
     }
 
 
-def find_neighbours(store: Any, feature: dict[str, Any]) -> list[tuple[str, geometry.Meets, float]]:
-    """Sections drawn touching this one, nearest first: (id, how they meet, gap in m)."""
+class Neighbours:
+    """Sections drawn touching one, nearest first: (id, how they meet, gap in m). When
+    the search could not be made in full, `unmeasured` says why, and nothing is said of
+    what it does not touch."""
+
+    def __init__(
+        self, found: list[tuple[str, geometry.Meets, float]], unmeasured: str | None = None
+    ) -> None:
+        self.found, self.unmeasured = found, unmeasured
+
+
+def find_neighbours(store: Any, feature: dict[str, Any]) -> Neighbours:
     mine = route_lines(feature)
     if not mine:
-        return []
-    rows = store.sections(
-        network=feature.get("network"), bbox=geometry.bbox_around(mine), limit=500
-    ).rows
+        return Neighbours([], "store holds no accepted traced line for it")
+    try:
+        listing = store.sections(
+            network=feature.get("network"), bbox=geometry.bbox_around(mine), limit=MAX_LIMIT
+        )
+    except StoreError:
+        return Neighbours([], "store could not be searched just now")
     skip = _same_pipe(feature) | {feature["id"]}
     theirs: dict[str, list[list[tuple[float, float]]]] = {}
-    for row in rows:
+    for row in listing.rows:
         sid = row["properties"].get("section_id")
         if sid and sid not in skip:
             theirs.setdefault(sid, []).extend(geometry.lines_of(row.get("geometry")))
-    found = [
-        (sid, *meets) for sid, lines in theirs.items() if (meets := geometry.touching(mine, lines))
-    ]
-    return sorted(found, key=lambda f: f[2])[:NEIGHBOURS_MAX]
+    found = sorted(
+        (
+            (sid, *meets)
+            for sid, lines in theirs.items()
+            if (meets := geometry.touching(mine, lines))
+        ),
+        key=lambda f: f[2],
+    )[:NEIGHBOURS_MAX]
+    return Neighbours(found, "store's listing around it was cut off" if listing.cut else None)
 
 
 _MEETS = {
@@ -333,21 +372,13 @@ _MEETS = {
 def neighbour_facts(
     feature: dict[str, Any],
     found: list[tuple[dict[str, Any], geometry.Meets]],
+    unmeasured: str | None,
     handle: Callable[[], str],
 ) -> list[WorkedOut]:
     """What the section is drawn touching, in code's words. Never "connected": lines
-    meeting on a map do not prove the pipes joined."""
+    meeting on a map do not prove the pipes joined. "None" only when it was measured."""
     me = feature_name(feature)
-    if not found:
-        return [
-            WorkedOut(
-                handle=handle(),
-                what="drawn_touching",
-                text=f"Worked out from the traced lines: no section in store is drawn touching {me}.",
-                rests_on=[feature["id"]],
-            )
-        ]
-    return [
+    facts = [
         WorkedOut(
             handle=handle(),
             what="drawn_touching",
@@ -360,3 +391,25 @@ def neighbour_facts(
         )
         for other, meets in found
     ]
+    if unmeasured:
+        facts.append(
+            WorkedOut(
+                handle=handle(),
+                what="drawn_touching",
+                text=(
+                    f"Which sections are drawn touching {me} is not known in full here: "
+                    f"{unmeasured}."
+                ),
+                rests_on=[feature["id"]],
+            )
+        )
+    elif not found:
+        facts.append(
+            WorkedOut(
+                handle=handle(),
+                what="drawn_touching",
+                text=f"Worked out from the traced lines: no section in store is drawn touching {me}.",
+                rests_on=[feature["id"]],
+            )
+        )
+    return facts

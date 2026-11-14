@@ -346,3 +346,20 @@ def test_the_context_shapes_are_drawn_as_their_cases_need(world):
     # Crosses s15, but no end of either is near the other: not touching.
     assert all(_to_line(p, s15) > 50 for p in (s18[0], s18[-1]))
     assert all(_to_line(p, s18) > 50 for p in (s15[0], s15[-1]))
+
+
+def test_a_citation_request_rests_on_the_feature_it_asks_about(world):
+    from evals.score import ungrounded
+
+    s14 = world["codes"]["s14"]
+    answer = {
+        "statements": [
+            {
+                "kind": "citation_request",
+                "text": "I cannot look for new sources yet. This is what I would ask for: "
+                f"a source for the owner of section {s14[:8]}.",
+                "refs": [{"type": "feature", "id": s14}],
+            }
+        ]
+    }
+    assert ungrounded(answer, world) == []

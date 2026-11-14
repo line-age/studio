@@ -9,7 +9,8 @@ from typing import Any
 from langchain_core.tools import BaseTool, tool
 
 import context
-from render import feature_name
+import leads
+from render import feature_name, is_traced_as_gone
 from store_client import StoreClient, StoreError
 
 # What the model is shown of a claim. The ids are what it cites; everything else is what
@@ -39,6 +40,7 @@ class Handles:
         self.ids: dict[str, str] = {}
         self._of: dict[str, str] = {}
         self._worked = 0
+        self._leads = 0
         # Reads run in parallel threads; two claims must never get the same handle.
         self._lock = threading.Lock()
 
@@ -54,6 +56,12 @@ class Handles:
         with self._lock:
             self._worked += 1
             return f"W{self._worked}"
+
+    def lead(self) -> str:
+        """The next handle for a lead code found: L1, L2, ..."""
+        with self._lock:
+            self._leads += 1
+            return f"L{self._leads}"
 
     def resolve(self, ref_id: str) -> str:
         return self.ids.get(ref_id.strip().upper(), ref_id)
@@ -104,22 +112,6 @@ def _merged_into(feature: dict[str, Any]) -> list[str]:
     ]
 
 
-def _read_many(store: StoreClient, ids: list[str]) -> dict[str, dict[str, Any]]:
-    """Several features at once; one that cannot be read is left out."""
-
-    def one(fid: str) -> dict[str, Any] | None:
-        try:
-            return store.feature(fid)
-        except StoreError:
-            return None
-
-    if not ids:
-        return {}
-    with ThreadPoolExecutor(max_workers=min(8, len(ids))) as pool:
-        found = dict(zip(ids, pool.map(one, ids), strict=True))
-    return {fid: f for fid, f in found.items() if f is not None}
-
-
 # Full context for this many sections per question; the rest get their claims (owner,
 # 2026-11-14).
 CONTEXT_FOR = 3
@@ -156,6 +148,7 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
     again: the model is told it already has it. Claims are shown by handle (`handles`)."""
     seen: set[str] = set()
     context_seen: set[str] = set()
+    context_lock = threading.Lock()
     handles = handles if handles is not None else Handles()
 
     @tool(response_format="content_and_artifact")
@@ -192,18 +185,29 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
         """What code works out about one section from store, beyond its own claims: which
         map printing first shows it, what store holds about its end, what its links say
         (its pipeline, with the pipeline's own claims, other traces of the same pipe, a
-        pipe beside it), and the sections drawn touching it, with their own claims. Each item has a
-        handle (W1, W2...) and a sentence code wrote. To use one, add a statement of kind
-        worked_out with that handle in refs and leave its text empty."""
-        if section_id in context_seen:
-            return f"You already read the context of {section_id}. Use that result.", {}
-        if len(context_seen) >= CONTEXT_FOR:
-            # Full context for a few sections; the rest are answered from their claims
-            # (owner, 2026-11-14). Saying so costs no store read.
-            return (
-                f"Context is worked out for {CONTEXT_FOR} sections per question, and they "
-                "are read. Answer the others from their claims."
-            ), {}
+        pipe beside it), the sections drawn touching it with their own claims, and leads:
+        where to look next, found by fixed rules. Each item has a handle (W1, L1) and a
+        sentence code wrote. To use one, add a statement of kind worked_out (W) or lead
+        (L) with that handle in refs and leave its text empty."""
+        with context_lock:
+            if section_id in context_seen:
+                return f"You already read the context of {section_id}. Use that result.", {}
+            if len(context_seen) >= CONTEXT_FOR:
+                # Full context for a few sections; the rest are answered from their claims
+                # (owner, 2026-11-14). Saying so costs no store read.
+                return (
+                    f"Context is worked out for {CONTEXT_FOR} sections per question, and "
+                    "they are read. Answer the others from their claims."
+                ), {}
+            context_seen.add(section_id)  # held now, so parallel calls do not both run
+        try:
+            return _context_of(section_id)
+        except Exception:
+            with context_lock:
+                context_seen.discard(section_id)  # a failed try can be tried again
+            raise
+
+    def _context_of(section_id: str) -> tuple[str, dict[str, Any]]:
         try:
             feature = store.feature(section_id)
         except StoreError as error:
@@ -217,22 +221,30 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
             return "Context is worked out for a section only.", {}
         # Counted as read with its merged traces, as read_feature counts it.
         merged, _ = _with_merged(store, feature)
-        ends = context.read_ends(store, feature, known={m["id"]: m for m in merged})
-        try:
-            editions = context.edition_years(store, feature.get("network"))
-        except StoreError:
-            # The list of printings is a help; without it nothing is said of an earlier one.
-            editions = context.Editions([], complete=False)
-        try:
-            near = context.find_neighbours(store, feature)
-        except StoreError:
-            near = []  # what surrounds it is a help, never a reason to fail
-        touching = _read_many(store, [sid for sid, _, _ in near])
-        found = [(touching[sid], meets) for sid, meets, _ in near if sid in touching]
+        known = {m["id"]: m for m in merged}
+
+        def printings() -> context.Editions:
+            try:
+                return context.edition_years(store, feature.get("network"))
+            except StoreError:
+                # A help only: without it nothing is said of an earlier printing.
+                return context.Editions([], complete=False)
+
+        # Independent store reads, at once.
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            ends_job = pool.submit(context.read_ends, store, feature, known)
+            editions_job = pool.submit(printings)
+            near_job = pool.submit(context.find_neighbours, store, feature)
+            ends, editions, near = ends_job.result(), editions_job.result(), near_job.result()
+        touching = context.read_many(store, [sid for sid, _, _ in near.found], known=ends)
+        found = [(touching[sid], meets) for sid, meets, _ in near.found if sid in touching]
+        unmeasured = near.unmeasured or (
+            "some of them could not be read just now" if len(found) < len(near.found) else None
+        )
         worked = (
             context.edition_facts(feature, ends, editions, handles.worked)
             + context.link_facts(feature, ends, handles.worked)
-            + context.neighbour_facts(feature, found, handles.worked)
+            + context.neighbour_facts(feature, found, unmeasured, handles.worked)
         )
         view: dict[str, Any] = {
             "section": feature_name(feature),
@@ -258,6 +270,31 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
                 }
                 for line in lines
             ]
+        scope = {feature["id"], *known}
+        twins = [
+            (link, ends[link["from_feature_id"]])
+            for link in feature.get("links") or []
+            if link["relation"] == "same_as"
+            and link["status"] == "proposed"
+            and link["to_feature_id"] == feature["id"]
+            and link["from_feature_id"] in ends
+            and not is_traced_as_gone(ends[link["from_feature_id"]])
+        ]
+        found_leads = leads.find_leads(
+            feature,
+            lambda attribute: any(
+                c["attribute_key"] == attribute and c["status"] == "accepted"
+                for f in (feature, *merged)
+                for c in f.get("claims") or []
+            ),
+            [other for other, _ in found if other["id"] not in scope],
+            lines,
+            twins,
+            editions,
+            handles.lead,
+        )
+        if found_leads:
+            view["leads"] = [{"handle": lead.handle, "text": lead.text} for lead in found_leads]
         if found:
             # Each neighbour's own claims, kept under it: they are that section's.
             view["drawn_touching"] = [
@@ -271,12 +308,12 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
                 }
                 for other, _ in found
             ]
-        context_seen.add(section_id)  # only once it was read: a failed try can be retried
         artifact = {
             "context_of": feature["id"],
             "features": [feature, *merged],
             "context_features": [*ends.values(), *(other for other, _ in found)],
             "worked_out": [w.model_dump() for w in worked],
+            "leads": [lead.model_dump() for lead in found_leads],
         }
         return json.dumps(view, ensure_ascii=False), artifact
 

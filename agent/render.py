@@ -11,7 +11,16 @@ import re
 from decimal import Decimal
 from typing import Any
 
-from schemas import FIXED_KINDS, Answer, CitationRequest, Draft, DraftStatement, Ref, Statement
+from schemas import (
+    FIXED_KINDS,
+    Answer,
+    CitationRequest,
+    Draft,
+    DraftStatement,
+    Hint,
+    Ref,
+    Statement,
+)
 
 # Agreed by the owner. Evals match them exactly; changing one is a deliberate edit
 # with an eval run before and after.
@@ -370,6 +379,8 @@ class Read:
         self.context_only: set[str] = set()
         # What code worked out about a section (context.py), by handle: W1 -> WorkedOut.
         self.worked: dict[str, dict[str, Any]] = {}
+        # Leads code found (leads.py), by handle: L1 -> Lead. Never a claim.
+        self.leads: dict[str, dict[str, Any]] = {}
 
     def merge(self, section_id: str, merged: list[str]) -> None:
         self.scope.setdefault(section_id, [])
@@ -525,7 +536,19 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
             ),
             refs=refs,
             attribute=draft.attribute,
-            request=CitationRequest(feature_id=features[0], attribute_keys=[draft.attribute]),
+            request=CitationRequest(
+                feature_id=features[0],
+                attribute_keys=[draft.attribute],
+                # The section's leads for this attribute, and when to search: hints for
+                # cite, never claims.
+                hints=[
+                    Hint(rule=lead["rule"], text=lead["text"])
+                    for lead in read.leads.values()
+                    if lead["rests_on"][:1] == [features[0]]
+                    and lead.get("attribute") in (draft.attribute, None)
+                    and lead["rule"] not in ("conflict",)
+                ],
+            ),
         )
 
     if draft.kind == "unknown":
@@ -536,14 +559,25 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
         text = unknown_line(draft.attribute, subject)
         return Statement(kind="unknown", text=text, refs=refs, attribute=draft.attribute)
 
-    if draft.kind == "worked_out":
-        # Code wrote the sentence when it worked the fact out; the model only picked it.
-        handles = [r.id.strip().upper() for r in draft.refs if r.type == "worked_out"]
-        if len(handles) != 1 or handles[0] not in read.worked:
-            raise Unfillable("a worked_out statement names one W handle from read_context")
-        item = read.worked[handles[0]]
+    if draft.kind in ("worked_out", "lead"):
+        # Code wrote the sentence when it worked the fact out or found the lead; the
+        # model only picked it.
+        pool = read.worked if draft.kind == "worked_out" else read.leads
+        handles = [r.id.strip().upper() for r in draft.refs if r.type == draft.kind]
+        if len(handles) != 1 or handles[0] not in pool:
+            letter = "W" if draft.kind == "worked_out" else "L"
+            raise Unfillable(
+                f"a {draft.kind} statement names one {letter} handle from read_context"
+            )
+        item = pool[handles[0]]
         refs = [_ref(_kind_of(i, read), i, read) for i in item["rests_on"]]
-        return Statement(kind="worked_out", text=item["text"], refs=refs)
+        return Statement(
+            kind=draft.kind,
+            text=item["text"],
+            refs=refs,
+            attribute=item.get("attribute"),
+            rule=item.get("rule"),
+        )
 
     if writes_itself(draft):
         refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]

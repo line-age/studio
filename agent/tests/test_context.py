@@ -237,7 +237,7 @@ def near(world, code):
     feature = store.feature(world["codes"][code])
     return {
         next(c for c, i in world["codes"].items() if i == sid): (meets, gap)
-        for sid, meets, gap in context.find_neighbours(store, feature)
+        for sid, meets, gap in context.find_neighbours(store, feature).found
     }
 
 
@@ -334,11 +334,14 @@ def test_a_section_in_a_pipeline_is_never_said_to_be_in_none():
     assert not any("in no pipeline" in f.text for f in facts_)
 
 
-def test_an_end_that_could_not_be_read_says_nothing_of_the_end(world):
+def test_an_end_that_could_not_be_read_is_not_known_never_none(world):
     store = FakeStore(world).client()
     section = store.feature(world["codes"]["s09"])
     found = context.edition_facts(section, {}, context.Editions([], True), lambda: "W1")
-    assert not by(found, "not_traced_later") and not by(found, "removal")
+    (unknown,) = by(found, "not_traced_later")
+    assert not by(found, "removal")
+    assert "could not be read in full" in unknown.text
+    assert "No line traced as gone is confirmed" not in unknown.text
 
 
 def test_a_link_store_has_no_words_for_is_said_as_it_is():

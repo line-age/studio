@@ -131,6 +131,27 @@ def _same_pipe(world: dict[str, Any], fid: str) -> set[str]:
     }
 
 
+def _lead_problems(
+    where: str, text: str, refs: list[dict[str, Any]], world: dict[str, Any]
+) -> list[str]:
+    """A lead is marked as not in store, and one about a neighbour rests on a section
+    that really is drawn touching the one asked about."""
+    problems = []
+    if not text.startswith(("Not in store", "Not settled in store")):
+        problems.append(f"{where}: a lead does not say it is not in store")
+    claims = _claims(world)
+    me = next((r["id"] for r in refs if r["type"] == "feature"), None)
+    if "drawn touching" in text and me:
+        for ref in refs:
+            claim = claims.get(ref["id"]) if ref["type"] == "claim" else None
+            if claim and not _touch(world, me, claim["feature_id"]):
+                problems.append(f"{where}: the lead's section is not drawn touching it")
+    for word in ("connected", "built in", "was built"):
+        if word in text.lower():
+            problems.append(f"{where}: a lead says {word!r}")
+    return problems
+
+
 def _worked_out_problems(
     where: str, text: str, refs: list[dict[str, Any]], world: dict[str, Any]
 ) -> tuple[list[str], list[str]]:
@@ -214,9 +235,13 @@ def ungrounded(answer: dict[str, Any], world: dict[str, Any], question: str = ""
             for fid in features:
                 if fid in world["features"] and attribute and _held(world, fid, attribute):
                     problems.append(f"{where}: store does hold an accepted {attribute}")
-        elif kind == "worked_out":
+        elif kind in ("worked_out", "lead"):
             if not refs:
                 problems.append(f"{where}: worked out from nothing")
+        elif kind == "citation_request":
+            # Code's sentence about what it would ask for: it names the feature, no claim.
+            if not [r for r in refs if r["type"] == "feature"]:
+                problems.append(f"{where}: a citation request names no feature")
         elif not backing and not [r for r in refs if r["type"] == "link"]:
             problems.append(f"{where}: rests on no claim or link")
 
@@ -237,9 +262,11 @@ def ungrounded(answer: dict[str, Any], world: dict[str, Any], question: str = ""
         named |= {f for f in world["features"] if held & set(scope(world["links"], f)) - {f}}
         names = [feature_name(world["features"][f]) for f in named if f in world["features"]]
         worked: list[str] = []
-        if kind == "worked_out":
+        if kind in ("worked_out", "lead"):
             wrong, worked = _worked_out_problems(where, text, refs, world)
             problems += wrong
+        if kind == "lead":
+            problems += _lead_problems(where, text, refs, world)
         source = " ".join([json.dumps(backing, ensure_ascii=False), question, *names, *worked])
         for number in re.findall(r"\d+(?:\.\d+)?", text):
             if number not in re.findall(r"\d+(?:\.\d+)?", source):

@@ -25,6 +25,18 @@
           "title": "Text",
           "type": "string"
         },
+        "attribute": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attribute"
+        },
         "rests_on": {
           "items": {
             "type": "string"

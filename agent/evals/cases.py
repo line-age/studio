@@ -23,6 +23,7 @@ KEEPS = {
     "B17": ["B01", "B02"],
     "B18": ["B01", "B02", "B17"],
     "B19": ["B01", "B02", "B17", "B18"],
+    "B20": ["B01", "B02", "B17", "B18", "B19"],
 }
 LABELS = ("agent-draft", "person")
 MUST_KEYS = {"first_kind", "kinds", "refs", "unknown", "fixed_line", "tools", "text"}

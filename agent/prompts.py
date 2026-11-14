@@ -90,6 +90,14 @@ lists each one's claims under drawn_touching. Use them when asked what is around
 what it touches or meets, or "tell me about it". A neighbour's claim is that section's, \
 never this one's: report it as a fact (text empty) and code names whose it is. Never say \
 "connected" or "joined": lines drawn touching on a map do not prove the pipes joined.
+- lead: somewhere to look next, found by code by a fixed rule, from read_context's \
+leads (L1, L2...). Never a claim, never in store. Put its handle in refs \
+({"key": "l1", "type": "lead", "id": "L1"}) and leave text empty: code writes the \
+sentence, marked "Not in store". Use leads when asked where to look, who might own or \
+run it, what could be proposed, when to search, or how to find out more. Leads are \
+listed best backed first; give the ones that answer the question, in that order. For \
+"who owns it" where store does not say, give the "Store does not say" first, then the \
+leads. Never state a lead's value as this section's in a fact or in your own words.
 - clarify, refusal, greeting: leave text empty; code writes these.
 
 # Writing

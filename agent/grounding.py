@@ -14,7 +14,7 @@ the evals for background and memory (B5) are for.
 import re
 from typing import Any
 
-from render import FIXED_LINES, SLOT, Read, writes_itself
+from render import FIXED_LINES, SLOT, Read, holder, writes_itself
 from schemas import Answer, Draft
 
 _UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.IGNORECASE)
@@ -95,15 +95,25 @@ ATTRIBUTE_WORDS = {
 FIXED = ("refusal", "failure", "greeting", "clarify")
 
 
+# Words that turn a clue into a claim: two traced lines meeting do not prove the pipes
+# joined, and when a map shows a line is never when it was built.
+_NEVER_SAID = re.compile(r"\b(connected|connects|connecting|joined|joins|built)\b", re.IGNORECASE)
+
+
 def own_words_problems(draft: Draft) -> list[str]:
     """What the model wrote outside slots: no digit, quotation, id, name or number word."""
     problems = []
     for n, statement in enumerate(draft.statements, 1):
-        if statement.kind in (*FIXED, "unknown", "citation_request", "worked_out") or (
+        if statement.kind in (*FIXED, "unknown", "citation_request", "worked_out", "lead") or (
             writes_itself(statement)
         ):
             continue  # code writes the whole sentence
         own = SLOT.sub(" ", statement.text)
+        for word in _NEVER_SAID.findall(own):
+            problems.append(
+                f"statement {n}: {word.lower()!r} in your own words; lines drawn touching do "
+                "not prove pipes joined, and a map date is never a build date"
+            )
         if re.search(r"\d", own):
             problems.append(f"statement {n}: a number in your own words; use a slot")
         if _NUMBER_WORDS.search(own):
@@ -134,6 +144,16 @@ def fact_problems(draft: Draft, read: Read) -> list[str]:
             continue
         slots = _slots(statement.text)
         claims = {r.key: read.claims.get(r.id) for r in statement.refs if r.type == "claim"}
+        around = [
+            key
+            for key, claim in claims.items()
+            if claim and holder(claim["feature_id"], read) in read.context_only
+        ]
+        if around:
+            problems.append(
+                f"statement {n}: {', '.join(around)} is a claim of a section around it, not "
+                "of this one; leave the text empty so code says whose it is, or use a lead"
+            )
         if not any(field == "value" for _, field in slots):
             problems.append(f"statement {n}: a fact states a value through {{c1.value}}")
         used = {key for key, _ in slots}
@@ -242,13 +262,14 @@ def answer_problems(answer: Answer, read: Read) -> list[str]:
 
 
 def worked_out_problems(draft: Draft, answer: Answer, read: Read) -> list[str]:
-    """A worked-out statement says exactly what its own handle holds, nothing else."""
+    """A worked-out fact or a lead says exactly what its own handle holds, nothing else."""
     problems = []
     for n, (wrote, shown) in enumerate(zip(draft.statements, answer.statements, strict=False), 1):
-        if wrote.kind != "worked_out":
+        if wrote.kind not in ("worked_out", "lead"):
             continue
-        handles = [r.id.strip().upper() for r in wrote.refs if r.type == "worked_out"]
-        item = read.worked.get(handles[0]) if len(handles) == 1 else None
+        pool = read.worked if wrote.kind == "worked_out" else read.leads
+        handles = [r.id.strip().upper() for r in wrote.refs if r.type == wrote.kind]
+        item = pool.get(handles[0]) if len(handles) == 1 else None
         if item is None or shown.text != item["text"]:
             problems.append(f"statement {n}: a worked-out fact is its handle's sentence, unchanged")
     return problems
@@ -276,6 +297,8 @@ def reads_from(artifacts: list[dict[str, Any]]) -> Read:
                 read.context_only.add(feature["id"])
         for item in artifact.get("worked_out", []):
             read.worked[item["handle"]] = item
+        for item in artifact.get("leads", []):
+            read.leads[item["handle"]] = item
         merged = artifact.get("features", [])[1:]
         if merged:
             read.merge(artifact["features"][0]["id"], [m["id"] for m in merged])
