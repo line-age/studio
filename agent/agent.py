@@ -26,7 +26,7 @@ from render import FIXED_LINES, Unfillable, as_text, failure, render
 from schemas import Answer, Draft, DraftRef, Question, Statement
 from settings import MAX_QUESTION_CHARS, load
 from store_client import StoreClient, StoreError
-from tools import Handles, make_tools
+from tools import CONTEXT_FOR, Handles, make_tools
 
 STORE_FAILURES = {"unreachable": "store_unreachable", "refused": "store_refused"}
 
@@ -120,6 +120,24 @@ class _Prefetched:
     def __init__(self, store: StoreClient, ids: list[str]) -> None:
         self._store = store
         self._got: dict[str, Any] = {}
+        self._fetch(ids)
+        # The pipelines those sections are in: the model would read them next, for any
+        # attribute a section does not hold. Read now, in the same parallel step.
+        self.pipelines = list(
+            dict.fromkeys(
+                link["to_feature_id"]
+                for got in self._got.values()
+                if isinstance(got, dict) and got.get("kind") == "section"
+                for link in got.get("links") or []
+                if link["relation"] == "part_of"
+                and link["status"] == "confirmed"
+                and link["from_feature_id"] == got["id"]
+                and link["to_feature_id"] not in ids
+            )
+        )
+        self._fetch(self.pipelines)
+
+    def _fetch(self, ids: list[str]) -> None:
         if ids:
             with ThreadPoolExecutor(max_workers=min(8, len(ids))) as pool:
                 for fid, got in zip(ids, pool.map(self._try, ids), strict=True):
@@ -148,20 +166,27 @@ class _Prefetched:
         return getattr(self._store, name)
 
 
-# Full context for this many attached sections; the rest get their claims (owner,
-# 2026-11-14).
-CONTEXT_FOR = 3
-
-
 def _read_attached(
-    question: Question, read_feature: Any, read_context: Any, config: Any
+    question: Question,
+    read_feature: Any,
+    read_context: Any,
+    config: Any,
+    pipelines: list[str] | None = None,
 ) -> list[Any]:
     """Read everything attached before the model starts, as if the model had asked: one
-    model turn fewer. The first sections also get their context. Raises StoreError."""
-    ids = _to_read(question)
+    model turn fewer. Then the pipelines those sections are in, and the first sections'
+    context. Raises StoreError."""
+    ids = _to_read(question) + [p for p in pipelines or [] if p not in _to_read(question)]
     if not ids:
         return []
-    sections = [i.id for i in question.about if i.kind == "section" and i.id]
+    sections = list(
+        dict.fromkeys(
+            i.id if i.kind == "section" else i.on.sectionId
+            for i in question.about
+            if (i.kind == "section" and i.id)
+            or (i.kind in ("claim", "citation") and i.on and i.on.sectionId)
+        )
+    )
     calls = [
         {
             "name": "read_feature",
@@ -304,7 +329,9 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         reader = _Prefetched(store, _to_read(question))
         (read_feature, read_context), loop = new_loop(handles, reader)
         try:
-            first_reads = _read_attached(question, read_feature, read_context, config)
+            first_reads = _read_attached(
+                question, read_feature, read_context, config, reader.pipelines
+            )
         except StoreError as error:
             return _finish(
                 failure(STORE_FAILURES.get(error.kind, "store_unreachable")), message, [], seen

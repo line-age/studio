@@ -230,7 +230,17 @@ class WorkedOut(_Strict):
     """A fact code worked out from what store holds, with what from. Never a claim."""
 
     handle: str
-    what: Literal["first_edition", "removal", "not_traced_later", "drawn_touching"]
+    what: Literal[
+        "first_edition",
+        "removal",
+        "not_traced_later",
+        "pipeline",
+        "same_pipe",
+        "split",
+        "overlap",
+        "parallel",
+        "drawn_touching",
+    ]
     text: str
     rests_on: list[str] = Field(default_factory=list)
 

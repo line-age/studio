@@ -243,8 +243,26 @@ def answer_problems(answer: Answer, read: Read) -> list[str]:
     return problems
 
 
+def worked_out_problems(draft: Draft, answer: Answer, read: Read) -> list[str]:
+    """A worked-out statement says exactly what its own handle holds, nothing else."""
+    problems = []
+    for n, (wrote, shown) in enumerate(zip(draft.statements, answer.statements, strict=False), 1):
+        if wrote.kind != "worked_out":
+            continue
+        handles = [r.id.strip().upper() for r in wrote.refs if r.type == "worked_out"]
+        item = read.worked.get(handles[0]) if len(handles) == 1 else None
+        if item is None or shown.text != item["text"]:
+            problems.append(f"statement {n}: a worked-out fact is its handle's sentence, unchanged")
+    return problems
+
+
 def problems_of(draft: Draft, answer: Answer, read: Read) -> list[str]:
-    return own_words_problems(draft) + fact_problems(draft, read) + answer_problems(answer, read)
+    return (
+        own_words_problems(draft)
+        + fact_problems(draft, read)
+        + answer_problems(answer, read)
+        + worked_out_problems(draft, answer, read)
+    )
 
 
 def reads_from(artifacts: list[dict[str, Any]]) -> Read:

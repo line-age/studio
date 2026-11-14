@@ -217,6 +217,11 @@
             "first_edition",
             "removal",
             "not_traced_later",
+            "pipeline",
+            "same_pipe",
+            "split",
+            "overlap",
+            "parallel",
             "drawn_touching"
           ],
           "title": "What",

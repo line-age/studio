@@ -55,26 +55,32 @@ def _printings(world: dict[str, Any]) -> list[int]:
     )
 
 
+def _map_year(claim: dict[str, Any], role: str) -> int | None:
+    for citation in claim.get("citations") or []:
+        if citation.get("role") == role and str(citation.get("as_of_edtf") or "")[:4].isdigit():
+            return int(citation["as_of_edtf"][:4])
+    return None
+
+
 def _shown_from(world: dict[str, Any], fid: str) -> int | None:
-    """The earliest printing an accepted status claim says shows this feature."""
+    """The earliest printing an accepted status claim cites as showing this feature."""
     years = [
-        int(c["valid_edtf"][-4:])
+        y
         for c in world["features"][fid]["claims"]
         if c["attribute_key"] == "status"
         and c["status"] == "accepted"
-        and c.get("value_text") == "operational"
-        and c.get("valid_edtf")
+        and (y := _map_year(c, "map_shows"))
     ]
     return min(years) if years else None
 
 
 def _gone_on(world: dict[str, Any], fid: str) -> int | None:
-    """The printing a line traced as gone was traced on: the end of its period."""
+    """The printing a line traced as gone was traced on, from a claim not rejected."""
     return next(
         (
-            int(c["valid_edtf"][-4:])
+            y
             for c in world["features"][fid]["claims"]
-            if c.get("value_text") == "decommissioned" and c.get("valid_edtf")
+            if c["status"] != "rejected" and (y := _map_year(c, "map_omits"))
         ),
         None,
     )
@@ -96,13 +102,15 @@ def _worked_out_problems(
             said = re.search(r"first traced on the (\d{4}) printing", text)
             if said and int(said.group(1)) != first:
                 problems.append(f"{where}: first shown in {first}, not {said.group(1)}")
-            said = re.search(r"not on the (\d{4}) printing", text)
+            said = re.search(r"not on the earlier (\d{4}) printing", text)
             if said and (not before or int(said.group(1)) != before[-1]):
                 problems.append(f"{where}: the printing before is not {said.group(1)}")
-            allowed += [str(first), *(str(y) for y in before[-1:])]
+            if first:
+                allowed += [str(first), *(str(y) for y in before[-1:])]
         if ref["type"] == "link" and ref["id"] in links:
             gone = _gone_on(world, links[ref["id"]]["from_feature_id"])
-            allowed.append(str(gone))
+            if gone:
+                allowed.append(str(gone))
     return problems, allowed
 
 

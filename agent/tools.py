@@ -103,6 +103,37 @@ def _merged_into(feature: dict[str, Any]) -> list[str]:
     ]
 
 
+# Full context for this many sections per question; the rest get their claims (owner,
+# 2026-11-14).
+CONTEXT_FOR = 3
+
+
+def _with_merged(
+    store: StoreClient, feature: dict[str, Any]
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Traces merged into a section, and traces merged into those, as store counts them;
+    and the ids of any that could not be read."""
+    merged: list[dict[str, Any]] = []
+    missing: list[str] = []
+    visited = {feature["id"]}
+    queue = _merged_into(feature)
+    while queue:
+        fid = queue.pop(0)
+        if fid in visited:
+            continue
+        visited.add(fid)
+        try:
+            found = store.feature(fid)
+        except StoreError as error:
+            if error.kind not in ("not_found", "bad_request"):
+                raise
+            missing.append(fid)
+            continue
+        merged.append(found)
+        queue += _merged_into(found)
+    return merged, missing
+
+
 def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseTool]:
     """Tools for one question. A feature read twice in the same question is not fetched
     again: the model is told it already has it. Claims are shown by handle (`handles`)."""
@@ -129,25 +160,7 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
                     {"not_found": feature_id},
                 )
             raise
-        # Traces merged into it, and traces merged into those, as store counts them.
-        merged: list[dict[str, Any]] = []
-        missing: list[str] = []
-        visited = {feature["id"]}
-        queue = _merged_into(feature)
-        while queue:
-            fid = queue.pop(0)
-            if fid in visited:
-                continue
-            visited.add(fid)
-            try:
-                found = store.feature(fid)
-            except StoreError as error:
-                if error.kind not in ("not_found", "bad_request"):
-                    raise
-                missing.append(fid)
-                continue
-            merged.append(found)
-            queue += _merged_into(found)
+        merged, missing = _with_merged(store, feature)
         seen.add(feature_id)
         view = _feature_view(feature, merged, handles)
         if missing:
@@ -160,11 +173,20 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
     @tool(response_format="content_and_artifact")
     def read_context(section_id: str) -> tuple[str, dict[str, Any]]:
         """What code works out about one section from store, beyond its own claims: which
-        map printing first shows it, and what store holds about its end. Each item has a
+        map printing first shows it, what store holds about its end, and what its links
+        say (its pipeline, with the pipeline's own claims, other traces of the same pipe,
+        a pipe beside it). Each item has a
         handle (W1, W2...) and a sentence code wrote. To use one, add a statement of kind
         worked_out with that handle in refs and leave its text empty."""
         if section_id in context_seen:
             return f"You already read the context of {section_id}. Use that result.", {}
+        if len(context_seen) >= CONTEXT_FOR:
+            # Full context for a few sections; the rest are answered from their claims
+            # (owner, 2026-11-14). Saying so costs no store read.
+            return (
+                f"Context is worked out for {CONTEXT_FOR} sections per question, and they "
+                "are read. Answer the others from their claims."
+            ), {}
         try:
             feature = store.feature(section_id)
         except StoreError as error:
@@ -177,15 +199,45 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
         if feature.get("kind") != "section":
             return "Context is worked out for a section only.", {}
         context_seen.add(section_id)
+        # Counted as read with its merged traces, as read_feature counts it.
+        merged, _ = _with_merged(store, feature)
         ends = context.read_ends(store, feature)
-        worked = context.edition_facts(feature, ends, context.edition_years(store), handles.worked)
-        view = {
+        try:
+            editions = context.edition_years(store, feature.get("network"))
+        except StoreError:
+            # The list of printings is a help; without it nothing is said of an earlier one.
+            editions = context.Editions([], complete=False)
+        worked = context.edition_facts(
+            feature, ends, editions, handles.worked
+        ) + context.link_facts(feature, ends, handles.worked)
+        view: dict[str, Any] = {
             "section": feature_name(feature),
             "worked_out": [{"handle": w.handle, "text": w.text} for w in worked],
         }
+        # Its pipeline's own claims, kept apart: they are the pipeline's, not the section's.
+        lines = [
+            ends[link["to_feature_id"]]
+            for link in feature.get("links") or []
+            if link["relation"] == "part_of"
+            and link["status"] == "confirmed"
+            and link["to_feature_id"] in ends
+        ]
+        if lines:
+            view["its_pipeline"] = [
+                {
+                    "pipeline": context.pipeline_words(line),
+                    "claims_of_the_pipeline": [
+                        _claim_view(c, handles)
+                        for c in line.get("claims") or []
+                        if c["attribute_key"] != "route"
+                    ],
+                }
+                for line in lines
+            ]
         artifact = {
             "context_of": feature["id"],
-            "context_features": [feature, *ends.values()],
+            "features": [feature, *merged],
+            "context_features": list(ends.values()),
             "worked_out": [w.model_dump() for w in worked],
         }
         return json.dumps(view, ensure_ascii=False), artifact

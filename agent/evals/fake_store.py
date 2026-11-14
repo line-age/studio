@@ -53,10 +53,14 @@ def _unprocessable(detail: str) -> httpx.Response:
 
 
 class FakeStore(httpx.BaseTransport):
-    def __init__(self, world: dict[str, Any], *, fail: str | None = None):
+    def __init__(
+        self, world: dict[str, Any], *, fail: str | None = None, fail_path: str | None = None
+    ):
         self.world = world
         # None, "unreachable", "refused" or "error".
         self.fail = fail
+        # A path that answers 500 while every other one works, such as "/sections".
+        self.fail_path = fail_path
         self.requests: list[str] = []
 
     def client(self) -> StoreClient:
@@ -67,7 +71,7 @@ class FakeStore(httpx.BaseTransport):
         self.requests.append(str(request.url.raw_path, "ascii"))
         if self.fail == "unreachable":
             raise httpx.ConnectError("no store", request=request)
-        if self.fail == "error":
+        if self.fail == "error" or (self.fail_path and request.url.path.startswith(self.fail_path)):
             return httpx.Response(500, json={"detail": "boom"})
         if self.fail == "refused" or request.headers.get("authorization") != f"Bearer {TOKEN}":
             return httpx.Response(401, json={"detail": "unknown token"})

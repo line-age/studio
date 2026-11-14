@@ -457,3 +457,28 @@ def test_a_question_about_nothing_store_has_needs_no_model(world):
     gone = "00000000-0000-4000-8000-00000000dead"
     out, _ = ask(world, Never(messages=iter([])), "Who owns it?", [gone])
     assert out["answer"]["statements"][0]["text"] == FIXED_LINES["not_found"]
+
+
+def test_a_failed_listing_of_printings_does_not_fail_the_question(world):
+    s01 = world["codes"]["s01"]
+    store = FakeStore(world, fail_path="/sections")
+    graph = build_graph(store=store.client(), model=scripted(unknown_owner(s01)))
+    question = {"words": "Who owns it?", "about": [{"kind": "section", "id": s01}]}
+    message = HumanMessage("Who owns it?", id="q1", additional_kwargs={"question": question})
+    out = graph.invoke({"messages": [message]})
+    assert out["answer"]["statements"][0]["kind"] == "unknown"
+
+
+def test_a_sections_pipeline_is_read_before_the_model_starts(world):
+    s06, l01 = world["codes"]["s06"], world["codes"]["l01"]
+    out, store = ask(world, scripted(unknown_owner(s06)), "What do we know?", [s06])
+    assert f"/features/{l01}" in store.requests
+    assert out["tools"][:2] == ["read_feature", "read_feature"]
+
+
+def test_context_is_read_for_three_sections_and_no_more(world):
+    codes = [world["codes"][c] for c in ("s01", "s02", "s03", "s04")]
+    extra = ("read_context", {"section_id": codes[3]})
+    out, store = ask(world, scripted([extra], unknown_owner(codes[0])), "Tell me", codes)
+    assert out["tools"].count("read_context") == 4  # three read, the fourth told no
+    assert sum(r.startswith("/features") for r in store.requests) == 4  # no extra read
