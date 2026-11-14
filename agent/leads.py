@@ -28,7 +28,7 @@ from collections.abc import Callable
 from typing import Any
 
 from context import Editions, first_shown
-from render import Unfillable, feature_name, one_full_stop, period_words, value_words
+from render import Unfillable, feature_name, one_full_stop, period_words, source_of, value_words
 from schemas import Lead
 
 ASKED_FOR = ("owner", "operator", "name", "diameter")
@@ -134,13 +134,21 @@ def find_leads(
     }
     found: list[dict[str, Any]] = []
 
+    claims_by_id = {
+        c["id"]: c
+        for f in (*own, *neighbours, *pipelines, *(t for _, t in twins))
+        for c in f.get("claims") or []
+    }
+
     def lead(rule: str, text: str, attribute: str | None, rests_on: list[str], **more):
+        cited = next((claims_by_id[i] for i in rests_on if i in claims_by_id), None)
         found.append(
             {
                 "rule": rule,
                 "text": one_full_stop(text),
                 "attribute": attribute,
                 "rests_on": [feature["id"], *rests_on],
+                "source": source_of(cited) if cited else None,
                 **more,
             }
         )
@@ -168,8 +176,8 @@ def find_leads(
                 if page:
                     lead(
                         "neighbour_source",
-                        f"The page that names the {attribute} of {them}, drawn touching "
-                        f"{me}, may name {me}'s {attribute} too.",
+                        f"{page[0]}, {page[1]} names the {attribute} of {them}, drawn "
+                        f"touching {me}. The same page may name {me}'s {attribute} too.",
                         attribute,
                         [claim["id"]],
                         page=page,
@@ -188,7 +196,6 @@ def find_leads(
     # 3: its pipeline's own owner or operator.
     for line in pipelines:
         name = feature_name(line)
-        pipeline = name if name.startswith("pipeline ") else f"the pipeline {name}"
         for attribute in CARRIED:
             if attribute in holds:
                 continue
@@ -196,9 +203,9 @@ def find_leads(
                 if value:
                     lead(
                         "pipeline_claims",
-                        f"{pipeline[0].upper()}{pipeline[1:]}, which {me} is part of, has the "
-                        f"{attribute} {value[1]}, {period}. Worth checking whether that holds "
-                        f"for {me} itself.",
+                        f"The pipeline {me} is part of, {name}, has the {attribute} "
+                        f"{value[1]}, {period}. Worth checking whether that holds for {me} "
+                        "itself.",
                         attribute,
                         [claim["id"]],
                         value=value,
@@ -296,6 +303,7 @@ def find_leads(
             rule=item["rule"],
             text=item["text"],
             attribute=item["attribute"],
+            source=item.get("source"),
             rests_on=list(dict.fromkeys(item["rests_on"])),
             backing=-rank(item)[0],
         )

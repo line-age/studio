@@ -99,7 +99,7 @@ describe("an answer about several sections", () => {
       within(answer).getByRole("region", { name: "Birch to Cedar" })
     ).toHaveTextContent("Example Gazette, p. 41")
     // s-3 has no statement: listed after, and it opens.
-    expect(answer).toHaveTextContent("1 more section.")
+    expect(answer).toHaveTextContent("1 more section is not in this answer.")
     await userEvent.click(
       within(answer).getByRole("button", { name: "Dale to Elm" })
     )

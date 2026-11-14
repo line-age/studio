@@ -166,6 +166,8 @@ class Hint(_Strict):
 
     rule: LeadRule
     text: str
+    # The source and page the lead points to, when it rests on a cited claim.
+    source: str | None = None
 
 
 class CitationRequest(_Strict):
@@ -265,6 +267,8 @@ class Lead(_Strict):
     text: str
     # The attribute it would help find, if one: a citation request carries it as a hint.
     attribute: str | None = None
+    # The source and page it points to or rests on, when one: cite's best place to look.
+    source: str | None = None
     rests_on: list[str] = Field(default_factory=list)
     backing: int = 1
 

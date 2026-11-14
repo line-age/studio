@@ -239,33 +239,35 @@ def _point_unknowns_at_the_attached_thing(draft: Draft, question: Question, read
             statement.refs.append(DraftRef(key=key, type="feature", id=attached[0]))
 
 
+def _many(n: int, word: str) -> str:
+    return f"{n} {word}" + ("" if n == 1 else "s")
+
+
+def read_words(sections: int, pipelines: int, others: int = 0) -> str:
+    """ "Read 3 sections and 1 pipeline", never "Read 0 sections"."""
+    parts = [
+        _many(n, w)
+        for n, w in ((sections, "section"), (pipelines, "pipeline"), (others, "feature"))
+        if n
+    ]
+    return "Read " + " and ".join(parts) if parts else "Read nothing attached"
+
+
 class _Steps:
-    """What the Agent does for a question, in plain words. Sent as it happens on the
-    custom stream channel "steps", for Studio's chain of thought, and kept on the reply
-    so a reloaded thread shows them too. Says what was read, never what is true."""
+    """What the Agent does for a question, in plain words, kept in the graph's state and
+    on the reply: Studio shows them as a chain of thought. Says what was read, never what
+    is true."""
 
     def __init__(self) -> None:
         self.items: list[dict[str, Any]] = []
-        try:
-            from langgraph.config import get_stream_writer
-
-            self._write = get_stream_writer()
-        except Exception:  # noqa: BLE001 - outside a run (tests): nobody is listening
-            self._write = None
-
-    def _send(self) -> None:
-        if self._write is not None:
-            self._write({"name": "steps", "payload": list(self.items)})
 
     def start(self, text: str) -> None:
         """A step under way; it is done when the next one starts."""
         self.finish_all()
         self.items.append({"text": text, "done": False})
-        self._send()
 
     def add_done(self, text: str) -> None:
         self.items.append({"text": text, "done": True})
-        self._send()
 
     def finish_all(self) -> list[dict[str, Any]]:
         for item in self.items:
@@ -280,17 +282,13 @@ class _Steps:
         contexts = [a for a in artifacts if "context_of" in a]
         if len(features) > 4:
             sections = sum(1 for f in features if f.get("kind") == "section")
-            others = len(features) - sections
-            words = f"Read {sections} sections" + (f" and {others} pipelines" if others else "")
-            self.add_done(words)
+            lines = sum(1 for f in features if f.get("kind") == "line")
+            self.add_done(read_words(sections, lines, len(features) - sections - lines))
         else:
             for f in features:
                 pipeline = f.get("kind") == "line" and f["id"] not in attached
-                self.add_done(
-                    f"Read its pipeline, {feature_name(f)}"
-                    if pipeline
-                    else f"Read {feature_name(f)}"
-                )
+                name = feature_name(f)
+                self.add_done(f"Read its pipeline, {name}" if pipeline else f"Read {name}")
         for a in contexts:
             self.add_done(f"Read what surrounds {feature_name(a['features'][0])}")
 
@@ -381,6 +379,9 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         message = next(
             (m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None
         )
+        # What `read` fetched for this question, if this process ran it: taken at once,
+        # so an early return leaves nothing behind.
+        taken = prefetched.pop(message.id, None) if message is not None and message.id else None
         if message is None:
             return _finish(failure("check_failed"), message, [], seen)
         try:
@@ -397,8 +398,6 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
         blocked: list[list[str]] = []
         handles = Handles()
         steps = _Steps()
-        # What `read` fetched for this question, if this process ran it; else fetch now.
-        taken = prefetched.pop(message.id, None) if message.id else None
         steps.start("Reading store")
         reader = taken or _Prefetched(store, _to_read(question))
         (read_feature, read_context), loop = new_loop(handles, reader)
@@ -509,7 +508,11 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
             question = _question(message) if message is not None else None
         except ValueError:
             question = None
-        if question is None or not question.about:
+        if (
+            question is None
+            or not question.about
+            or len(question.words) > MAX_QUESTION_CHARS  # `answer` turns it away
+        ):
             return {"steps": [{"text": "Writing the answer", "done": False}]}
         ids = _to_read(question)
         reader = _Prefetched(store, ids)
@@ -530,7 +533,16 @@ def build_graph(store: StoreClient | None = None, model: Any = None):
             )
             steps.append({"text": words, "done": True})
         if len(steps) > 4:
-            steps = [{"text": f"Read {len(steps)} things attached", "done": True}]
+            kinds = [i.kind for i in question.about]
+            steps = [
+                {
+                    "text": read_words(
+                        kinds.count("section"),
+                        kinds.count("pipeline") + len(reader.pipelines),
+                    ),
+                    "done": True,
+                }
+            ]
         has_section = any(i.kind == "section" for i in question.about)
         steps.append(
             {

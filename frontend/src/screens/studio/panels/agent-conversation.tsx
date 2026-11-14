@@ -152,8 +152,10 @@ function AnswerBody({
       {rest.length > 0 && (
         <section className="flex flex-col gap-2 border-t border-border-subtle pt-3">
           <p className="type-ui-sm">
-            {plural(rest.length, "more section")}. What surrounds a section is
-            worked out three at a time; open one to see it.
+            {rest.length === 1
+              ? "1 more section is not in this answer."
+              : `${rest.length} more sections are not in this answer.`}{" "}
+            Open one, or ask about it.
           </p>
           <div className="flex flex-wrap gap-1">
             {rest.map((id) => (

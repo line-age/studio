@@ -134,3 +134,27 @@ describe("the sources below an answer", () => {
     expect(open).toHaveBeenCalledWith(owner)
   })
 })
+
+describe("counting what was read", () => {
+  it("says when nothing was read, and counts each kind", () => {
+    const { unmount } = render(
+      <AgentSteps
+        steps={[{ text: "Checking the answer", done: true }]}
+        working={false}
+      />
+    )
+    expect(
+      screen.getByRole("button", { name: /Wrote and checked the answer/ })
+    ).toBeInTheDocument()
+    unmount()
+    render(
+      <AgentSteps
+        steps={[{ text: "Read 3 sections and 1 pipeline", done: true }]}
+        working={false}
+      />
+    )
+    expect(
+      screen.getByRole("button", { name: /Read 4 things in store/ })
+    ).toBeInTheDocument()
+  })
+})

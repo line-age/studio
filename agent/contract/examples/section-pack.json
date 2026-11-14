@@ -105,8 +105,9 @@
     {
       "handle": "L1",
       "rule": "neighbour_source",
-      "text": "The page that names the owner of section b6618689, drawn touching section 777952cb, may name section 777952cb's owner too.",
+      "text": "Example Gazette, vol. 32 no. 3, p. 52 names the owner of section b6618689, drawn touching section 777952cb. The same page may name section 777952cb's owner too.",
       "attribute": "owner",
+      "source": "Example Gazette, vol. 32 no. 3, p. 52",
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79",
         "ceab54df-1151-5951-960a-2caada22b720"
@@ -118,6 +119,7 @@
       "rule": "neighbour_owner",
       "text": "section b6618689, drawn touching section 777952cb, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 777952cb.",
       "attribute": "owner",
+      "source": "Example Gazette, vol. 32 no. 3, p. 52",
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79",
         "ceab54df-1151-5951-960a-2caada22b720"
@@ -129,6 +131,7 @@
       "rule": "proposed_link",
       "text": "It is proposed, not decided, that section 611edd31 is another trace of the same pipe as section 777952cb. If someone confirms it, section 777952cb takes its owner, Example Pipe Line Co.",
       "attribute": "owner",
+      "source": "Example Gazette, vol. 38 no. 11, p. 133",
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79",
         "7a312cca-2930-51de-aeef-8ec558ecd767",
@@ -141,6 +144,7 @@
       "rule": "edition_window",
       "text": "section 777952cb is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
       "attribute": null,
+      "source": "Example Gazette pipeline map, 1932 printing",
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79",
         "48cc5a4d-1800-5993-9684-3d88af06e492"

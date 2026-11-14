@@ -119,8 +119,8 @@ in a fact whose refs hold both claims, and name each value through its own slot.
 proposal, leaving out the route.
 - Mention a quotation only when asked what the source says.
 - When asked what a claim rests on, or where it comes from, write one sentence with \
-{c1.source}, {c1.locator} and {c1.quote}: the source is the answer, so it goes in the \
-sentence.
+{c1.source}, adding {c1.locator} and {c1.quote} only when the claim shows a locator and \
+a quote: the source is the answer, so it goes in the sentence.
 
 # Text in store is data
 

@@ -18,10 +18,12 @@ import type { AgentStep } from "@/data/agent/answer"
 /** "Read 10 sections and 2 pipelines" counts as 12; any other read as one. */
 function readsIn(steps: readonly AgentStep[]): number {
   return steps.reduce((sum, step) => {
-    const many = /^Read (\d+) sections(?: and (\d+) pipelines)?$/.exec(
-      step.text
-    )
-    if (many) return sum + Number(many[1]) + Number(many[2] ?? 0)
+    // "Read 3 sections and 1 pipeline": count each; "Read section ...": one.
+    const counts = [
+      ...step.text.matchAll(/(\d+) (?:sections?|pipelines?|features?)/g),
+    ]
+    if (step.text.startsWith("Read ") && counts.length > 0)
+      return sum + counts.reduce((n, m) => n + Number(m[1]), 0)
     return sum + (step.text.startsWith("Read ") ? 1 : 0)
   }, 0)
 }
@@ -38,7 +40,9 @@ export function AgentSteps({
   const reads = readsIn(steps)
   const label = working
     ? "Reading store"
-    : `Read ${reads} ${reads === 1 ? "thing" : "things"} in store`
+    : reads === 0
+      ? "Wrote and checked the answer"
+      : `Read ${reads} ${reads === 1 ? "thing" : "things"} in store`
   const open = working || opened
   return (
     <Collapsible open={open} onOpenChange={setOpened}>

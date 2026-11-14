@@ -198,9 +198,13 @@ export function useAgent() {
 
   // What the Agent is doing now: the graph keeps it in its state ("steps"),
   // which arrives on the values stream as each node finishes.
+  // Until the new run's first node clears it, the state still holds the last
+  // answer (and its finished steps): only a cleared state is this run's.
+  const values = stream.values as
+    { steps?: unknown; answers?: string | null } | undefined
   const nowDoing = agentStep
     .array()
-    .safeParse((stream.values as { steps?: unknown } | undefined)?.steps)
+    .safeParse(values?.answers == null ? values?.steps : [])
 
   return {
     turns,

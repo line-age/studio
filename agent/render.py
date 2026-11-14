@@ -104,7 +104,11 @@ def as_text(answer: Answer) -> str:
     """The answer as plain text, each source after its statement: what a copy holds."""
     out = []
     for statement in answer.statements:
-        sources = list(dict.fromkeys(r.source for r in statement.refs if r.source))
+        sources = [
+            src
+            for src in dict.fromkeys(r.source for r in statement.refs if r.source)
+            if src not in statement.text  # already said in the sentence
+        ]
         tail = f" ({'; '.join(sources)})" if sources else ""
         out.append(KIND_PREFIX.get(statement.kind, "") + statement.text + tail)
     return "\n\n".join(out)
@@ -254,7 +258,8 @@ def status_words(claim: dict[str, Any]) -> str:
 def _citation(claim: dict[str, Any]) -> dict[str, Any] | None:
     """The citation that says it: a text that states it, or a map that shows it."""
     citations = claim.get("citations") or []
-    ranked = sorted(citations, key=lambda c: c.get("role") not in ("states", "map_shows"))
+    order = {"states": 0, "map_shows": 1}
+    ranked = sorted(citations, key=lambda c: order.get(c.get("role"), 2))
     return ranked[0] if ranked else None
 
 
@@ -365,7 +370,7 @@ def _ref(ref_type: str, ref_id: str, read: "Read") -> Ref:
             status=claim["status"],
             asserter=claim.get("asserted_by_kind"),
             label=ref_label(claim["feature_id"], read),
-            source=_where(claim),
+            source=source_of(claim),
         )
     if ref_type == "link":
         link = read.links.get(ref_id)
@@ -416,7 +421,8 @@ class Read:
             self.links[link["id"]] = link
 
 
-def _where(claim: dict[str, Any]) -> str | None:
+def source_of(claim: dict[str, Any]) -> str | None:
+    """A claim's source as people read it: its title and where in it."""
     citation = _citation(claim)
     title = citation.get("source_title") if citation else None
     if not title:
@@ -428,10 +434,10 @@ def source_line(claims: list[dict[str, Any]]) -> str:
     """What the claims of one sentence rest on, in code's words: each one's source, or
     that store holds none. With several, each source is tied to its value."""
     if len(claims) == 1:
-        where = _where(claims[0])
+        where = source_of(claims[0])
         return f"The source is {where}." if where else "Store holds no source for it."
     parts = [
-        f"{where} for {value_words(c)}" if (where := _where(c)) else f"none for {value_words(c)}"
+        f"{where} for {value_words(c)}" if (where := source_of(c)) else f"none for {value_words(c)}"
         for c in claims
     ]
     return f"The sources are {', '.join(parts[:-1])} and {parts[-1]}."
@@ -540,7 +546,7 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
                 # The section's leads for this attribute, and when to search: hints for
                 # cite, never claims.
                 hints=[
-                    Hint(rule=lead["rule"], text=lead["text"])
+                    Hint(rule=lead["rule"], text=lead["text"], source=lead.get("source"))
                     for lead in read.leads.values()
                     if lead["rests_on"][:1] == [features[0]]
                     and lead.get("attribute") in (draft.attribute, None)

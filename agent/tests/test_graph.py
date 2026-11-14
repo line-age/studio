@@ -492,3 +492,24 @@ def test_the_reply_keeps_what_the_agent_did_in_plain_words(world):
     assert any(w.startswith("Read what surrounds ") for w in words)
     assert "Writing the answer" in words and "Checking the answer" in words
     assert all(s["done"] for s in steps)
+
+
+def test_step_words_count_rightly():
+    from agent import read_words
+
+    assert read_words(1, 0) == "Read 1 section"
+    assert read_words(0, 5) == "Read 5 pipelines"
+    assert read_words(3, 1) == "Read 3 sections and 1 pipeline"
+    assert read_words(0, 0) == "Read nothing attached"
+
+
+def test_plain_text_never_says_a_source_twice():
+    from render import as_text
+    from schemas import Ref, Statement
+
+    said = Statement(
+        kind="fact",
+        text="The owner is X Co., according to A journal, p. 9.",
+        refs=[Ref(type="claim", id="c", source="A journal, p. 9")],
+    )
+    assert as_text(Answer(statements=[said])).count("A journal, p. 9") == 1

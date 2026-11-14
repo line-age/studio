@@ -37,6 +37,18 @@
           "default": null,
           "title": "Attribute"
         },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        },
         "rests_on": {
           "items": {
             "type": "string"

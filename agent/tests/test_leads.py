@@ -378,3 +378,21 @@ def test_the_model_may_write_a_fact_about_the_pipelines_own_claims(world):
     )
     problems = problems_of(draft, render(draft, read), read)
     assert not [p for p in problems if "around it" in p]
+
+
+def test_a_page_lead_names_its_page_and_carries_its_source(world):
+    item = lead(context_of(world, "s14"), "neighbour_source")
+    assert "Example Gazette, vol. 32 no. 3, p. 52 names the owner of" in item["text"]
+    assert item["source"] == "Example Gazette, vol. 32 no. 3, p. 52"
+
+
+def test_a_text_that_states_it_comes_before_a_map_that_shows_it():
+    from render import source_of
+
+    claim = {
+        "citations": [
+            {"role": "map_shows", "source_title": "A map", "locator": None},
+            {"role": "states", "source_title": "A journal", "locator": "p. 9"},
+        ]
+    }
+    assert source_of(claim) == "A journal, p. 9"
