@@ -27,6 +27,17 @@ export const agentAnswerRef = z.object({
   label: z.string().nullable().optional(),
 })
 
+/** The fixed rules a lead is found by (studio/agent/schemas.py, LeadRule). */
+const leadRule = z.enum([
+  "neighbour_source",
+  "neighbour_owner",
+  "pipeline_claims",
+  "edition_window",
+  "proposed_link",
+  "rejected_value",
+  "conflict",
+])
+
 export const agentStatement = z.object({
   kind: z.enum([
     "fact",
@@ -39,6 +50,10 @@ export const agentStatement = z.object({
     "greeting",
     "failure",
     "citation_request",
+    // Worked out by code from what store holds, never a claim.
+    "worked_out",
+    // Somewhere to look, found by code by a fixed rule: "Not in store".
+    "lead",
   ]),
   text: z.string(),
   refs: z.array(agentAnswerRef).default([]),
@@ -49,9 +64,15 @@ export const agentStatement = z.object({
       feature_id: z.string(),
       attribute_keys: z.array(z.string()),
       priority: z.enum(["interactive", "background"]),
+      /** The section's leads, as hints for the search. Never a claim. */
+      hints: z
+        .array(z.object({ rule: leadRule, text: z.string() }))
+        .default([]),
     })
     .nullable()
     .optional(),
+  /** For a lead: the rule that found it. */
+  rule: leadRule.nullable().optional(),
 })
 
 export const agentAnswer = z.object({

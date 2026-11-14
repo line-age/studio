@@ -28,6 +28,7 @@ describe("the answer contract", () => {
     "answer-unknown-with-proposal",
     "answer-refusal",
     "answer-failure",
+    "answer-context",
     "answer-citation-request",
   ])("reads the service's example %s", (name) => {
     expect(agentAnswer.safeParse(example(name)).success).toBe(true)

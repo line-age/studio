@@ -1,0 +1,373 @@
+{
+  "$defs": {
+    "Lead": {
+      "additionalProperties": false,
+      "description": "Somewhere to look, found by a fixed rule. Not in store, never written to it.\n`backing` counts the independent things it rests on; more ranks higher.",
+      "properties": {
+        "handle": {
+          "title": "Handle",
+          "type": "string"
+        },
+        "rule": {
+          "enum": [
+            "neighbour_source",
+            "neighbour_owner",
+            "pipeline_claims",
+            "edition_window",
+            "proposed_link",
+            "rejected_value",
+            "conflict"
+          ],
+          "title": "Rule",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "rests_on": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Rests On",
+          "type": "array"
+        },
+        "backing": {
+          "default": 1,
+          "title": "Backing",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "handle",
+        "rule",
+        "text"
+      ],
+      "title": "Lead",
+      "type": "object"
+    },
+    "Neighbour": {
+      "additionalProperties": false,
+      "description": "A section drawn touching this one: a line end within the tolerance of the other\nline. A clue, never proof that the pipes joined.",
+      "properties": {
+        "section_id": {
+          "title": "Section Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "meets": {
+          "enum": [
+            "end_to_end",
+            "end_to_middle",
+            "middle_to_end"
+          ],
+          "title": "Meets",
+          "type": "string"
+        },
+        "gap_m": {
+          "title": "Gap M",
+          "type": "number"
+        },
+        "claims": {
+          "items": {
+            "$ref": "#/$defs/PackClaim"
+          },
+          "title": "Claims",
+          "type": "array"
+        }
+      },
+      "required": [
+        "section_id",
+        "name",
+        "meets",
+        "gap_m"
+      ],
+      "title": "Neighbour",
+      "type": "object"
+    },
+    "PackClaim": {
+      "additionalProperties": false,
+      "description": "A claim store holds, as code words it. `handle` is how the model names it (C1).",
+      "properties": {
+        "handle": {
+          "title": "Handle",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "attribute": {
+          "title": "Attribute",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "period": {
+          "title": "Period",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "candidate",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        }
+      },
+      "required": [
+        "handle",
+        "id",
+        "attribute",
+        "value",
+        "period",
+        "status"
+      ],
+      "title": "PackClaim",
+      "type": "object"
+    },
+    "PackLink": {
+      "additionalProperties": false,
+      "description": "A link store holds from or to the section, and what is at its other end.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "relation": {
+          "enum": [
+            "same_as",
+            "overlaps",
+            "split_into",
+            "part_of",
+            "parallel_to"
+          ],
+          "title": "Relation",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "proposed",
+            "confirmed",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "other_id": {
+          "title": "Other Id",
+          "type": "string"
+        },
+        "other": {
+          "title": "Other",
+          "type": "string"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        }
+      },
+      "required": [
+        "id",
+        "relation",
+        "status",
+        "other_id",
+        "other"
+      ],
+      "title": "PackLink",
+      "type": "object"
+    },
+    "WorkedOut": {
+      "additionalProperties": false,
+      "description": "A fact code worked out from what store holds, with what from. Never a claim.",
+      "properties": {
+        "handle": {
+          "title": "Handle",
+          "type": "string"
+        },
+        "what": {
+          "enum": [
+            "first_edition",
+            "removal",
+            "not_traced_later",
+            "drawn_touching"
+          ],
+          "title": "What",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "rests_on": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Rests On",
+          "type": "array"
+        }
+      },
+      "required": [
+        "handle",
+        "what",
+        "text"
+      ],
+      "title": "WorkedOut",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Everything code can say about one section from store: the chat answers from it\nand cite takes it as its brief. Fields follow cite's input (ids, line type, name,\nstates, place names, observations). States and places are empty until place data\ncomes in (owner, 2026-11-14).",
+  "properties": {
+    "version": {
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "section_id": {
+      "title": "Section Id",
+      "type": "string"
+    },
+    "network": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Network"
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Name"
+    },
+    "endpoints": {
+      "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "number"
+          }
+        ],
+        "type": "array"
+      },
+      "title": "Endpoints",
+      "type": "array"
+    },
+    "states": {
+      "items": {
+        "type": "string"
+      },
+      "title": "States",
+      "type": "array"
+    },
+    "places": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Places",
+      "type": "array"
+    },
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/PackClaim"
+      },
+      "title": "Claims",
+      "type": "array"
+    },
+    "pipeline_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Pipeline Id"
+    },
+    "pipeline_claims": {
+      "items": {
+        "$ref": "#/$defs/PackClaim"
+      },
+      "title": "Pipeline Claims",
+      "type": "array"
+    },
+    "links": {
+      "items": {
+        "$ref": "#/$defs/PackLink"
+      },
+      "title": "Links",
+      "type": "array"
+    },
+    "neighbours": {
+      "items": {
+        "$ref": "#/$defs/Neighbour"
+      },
+      "title": "Neighbours",
+      "type": "array"
+    },
+    "worked_out": {
+      "items": {
+        "$ref": "#/$defs/WorkedOut"
+      },
+      "title": "Worked Out",
+      "type": "array"
+    },
+    "leads": {
+      "items": {
+        "$ref": "#/$defs/Lead"
+      },
+      "title": "Leads",
+      "type": "array"
+    }
+  },
+  "required": [
+    "section_id"
+  ],
+  "title": "SectionPack",
+  "type": "object"
+}

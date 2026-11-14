@@ -120,6 +120,7 @@ def test_two_bad_drafts_end_with_the_fixed_line(world):
             "refs": [],
             "attribute": None,
             "request": None,
+            "rule": None,
         }
     ]
 

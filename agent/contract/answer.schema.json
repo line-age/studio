@@ -23,6 +23,13 @@
           ],
           "title": "Priority",
           "type": "string"
+        },
+        "hints": {
+          "items": {
+            "$ref": "#/$defs/Hint"
+          },
+          "title": "Hints",
+          "type": "array"
         }
       },
       "required": [
@@ -30,6 +37,35 @@
         "attribute_keys"
       ],
       "title": "CitationRequest",
+      "type": "object"
+    },
+    "Hint": {
+      "additionalProperties": false,
+      "description": "A lead handed to cite with a citation request: where to look, not what is true.",
+      "properties": {
+        "rule": {
+          "enum": [
+            "neighbour_source",
+            "neighbour_owner",
+            "pipeline_claims",
+            "edition_window",
+            "proposed_link",
+            "rejected_value",
+            "conflict"
+          ],
+          "title": "Rule",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule",
+        "text"
+      ],
+      "title": "Hint",
       "type": "object"
     },
     "Ref": {
@@ -146,7 +182,9 @@
             "refusal",
             "greeting",
             "failure",
-            "citation_request"
+            "citation_request",
+            "worked_out",
+            "lead"
           ],
           "title": "Kind",
           "type": "string"
@@ -184,6 +222,27 @@
             }
           ],
           "default": null
+        },
+        "rule": {
+          "anyOf": [
+            {
+              "enum": [
+                "neighbour_source",
+                "neighbour_owner",
+                "pipeline_claims",
+                "edition_window",
+                "proposed_link",
+                "rejected_value",
+                "conflict"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rule"
         }
       },
       "required": [

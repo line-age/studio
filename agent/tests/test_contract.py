@@ -4,14 +4,14 @@ import pytest
 
 from evals.fake_store import FakeStore, load_world
 from render import FIXED_LINES, Read, Unfillable, period_words, render, value_words
-from schemas import Answer, Draft, Question
+from schemas import Answer, Draft, Question, SectionPack
 from settings import ROOT
 
 CONTRACT = ROOT / "contract"
 
 
 def test_the_schema_files_are_what_the_code_says():
-    for name, model in (("answer", Answer), ("question", Question)):
+    for name, model in (("answer", Answer), ("question", Question), ("section-pack", SectionPack)):
         on_disk = json.loads((CONTRACT / f"{name}.schema.json").read_text())
         assert on_disk == model.model_json_schema(), f"contract/{name}.schema.json is stale"
 
@@ -20,7 +20,13 @@ def test_the_schema_files_are_what_the_code_says():
     "path", sorted((CONTRACT / "examples").glob("*.json")), ids=lambda p: p.stem
 )
 def test_every_example_is_valid(path):
-    model = Answer if path.stem.startswith("answer") else Question
+    model = (
+        Answer
+        if path.stem.startswith("answer")
+        else SectionPack
+        if path.stem.startswith("section-pack")
+        else Question
+    )
     model.model_validate_json(path.read_text())
 
 

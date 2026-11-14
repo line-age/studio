@@ -222,6 +222,7 @@ def test_a_citation_request_is_written_by_code_and_carries_what_store_would_be_s
         "feature_id": s02,
         "attribute_keys": ["operator"],
         "priority": "interactive",
+        "hints": [],
     }
     assert problems_of(draft, answer, read) == []
 
