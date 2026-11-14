@@ -1,3 +1,4 @@
+import { shortId } from "../short-id"
 import { describe, expect, it } from "vitest"
 
 import { NO_PIPELINE_ID, summarise } from "@/data/derive"
@@ -236,7 +237,7 @@ describe("toNetwork", () => {
 
   it("leaves a section with no label unnamed, under a short code", () => {
     expect(section(ID_A).name).toBeNull()
-    expect(section(ID_A).code).toBe("aaaaaaaa")
+    expect(section(ID_A).code).toBe(shortId(ID_A)) // the random end of the id
     expect(section(ID_C).name).toBe("Dale to Elm")
   })
 
@@ -289,7 +290,7 @@ describe("toNetwork", () => {
     it("names a pipeline from its name claim, or leaves it Unknown", () => {
       expect(line(LINE_1).name).toBe("Alder trunk")
       expect(line(LINE_2).name).toBeNull()
-      expect(line(LINE_2).code).toBe("22222222")
+      expect(line(LINE_2).code).toBe(shortId(LINE_2))
       expect(line(LINE_2).claims).toEqual([])
     })
 

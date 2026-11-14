@@ -257,12 +257,12 @@ def _leads(feature, neighbours=(), pipelines=(), twins=(), merged=()):
     )
 
 
-ME = "m" * 8 + "-0"
+ME = "m" * 8
 
 
 def test_a_value_ruled_out_is_never_offered_by_another_rule():
     me = _feature(ME, [_claim("r", "owner", "Acme Gas", status="rejected")])
-    other = _feature("n" * 8 + "-0", [_claim("c", "owner", "Acme Gas")])
+    other = _feature("n" * 8, [_claim("c", "owner", "Acme Gas")])
     found = _leads(me, neighbours=[other])
     # The neighbour's page may still be pointed to; its value is never offered.
     assert not [lead for lead in found if lead.rule == "neighbour_owner"]
@@ -287,28 +287,28 @@ def test_owners_with_no_dates_at_all_neither_crash_nor_conflict():
 
 def test_a_merged_traces_owner_that_disagrees_is_a_conflict():
     me = _feature(ME, [_claim("a", "owner", "A Co.", edtf="1938")])
-    twin = _feature("t" * 8 + "-0", [_claim("b", "owner", "B Co.", edtf="1938")])
+    twin = _feature("t" * 8, [_claim("b", "owner", "B Co.", edtf="1938")])
     (conflict,) = [lead for lead in _leads(me, merged=[twin]) if lead.rule == "conflict"]
     assert "two accepted owner values for the same years" in conflict.text
 
 
 def test_a_claim_with_no_words_gives_no_lead_and_fails_nothing():
     bad = _claim("c", "owner", None)
-    other = _feature("n" * 8 + "-0", [bad, _claim("d", "operator", "Op Co.")])
+    other = _feature("n" * 8, [bad, _claim("d", "operator", "Op Co.")])
     found = _leads(_feature(ME), neighbours=[other])
     assert any("Op Co." in lead.text for lead in found)
 
 
 def test_two_neighbours_citing_one_page_are_one_place_to_look_and_one_source():
-    a = _feature("a" * 8 + "-0", [_claim("c1", "owner", "Acme Gas", page="p. 9")])
-    b = _feature("b" * 8 + "-0", [_claim("c2", "owner", "Acme Gas", page="p. 9")])
+    a = _feature("a" * 8, [_claim("c1", "owner", "Acme Gas", page="p. 9")])
+    b = _feature("b" * 8, [_claim("c2", "owner", "Acme Gas", page="p. 9")])
     found = _leads(_feature(ME), neighbours=[a, b])
     assert len([lead for lead in found if lead.rule == "neighbour_source"]) == 1
     assert {lead.backing for lead in found if lead.rule == "neighbour_owner"} == {1}
 
 
 def test_a_link_is_not_backing():
-    twin = _feature("t" * 8 + "-0", [_claim("c", "owner", "Acme Gas")])
+    twin = _feature("t" * 8, [_claim("c", "owner", "Acme Gas")])
     link = {"id": "k", "relation": "same_as", "status": "proposed"}
     (proposed,) = [
         lead for lead in _leads(_feature(ME), twins=[(link, twin)]) if lead.rule == "proposed_link"
@@ -317,11 +317,9 @@ def test_a_link_is_not_backing():
 
 
 def test_two_independent_sources_for_one_value_rank_first():
-    a = _feature("a" * 8 + "-0", [_claim("c1", "owner", "Acme Gas", source="Journal A")])
-    line = _feature(
-        "l" * 8 + "-0", [_claim("c2", "owner", "Acme Gas", source="Journal B")], kind="line"
-    )
-    b = _feature("b" * 8 + "-0", [_claim("c3", "owner", "Other Co.", source="Journal C")])
+    a = _feature("a" * 8, [_claim("c1", "owner", "Acme Gas", source="Journal A")])
+    line = _feature("l" * 8, [_claim("c2", "owner", "Acme Gas", source="Journal B")], kind="line")
+    b = _feature("b" * 8, [_claim("c3", "owner", "Other Co.", source="Journal C")])
     found = [
         lead
         for lead in _leads(_feature(ME), neighbours=[b, a], pipelines=[line])

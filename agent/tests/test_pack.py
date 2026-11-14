@@ -5,6 +5,7 @@ import json
 
 from evals.fake_store import FakeStore, load_world
 from pack import brief
+from render import short_id
 from schemas import SectionPack
 from settings import ROOT
 from tools import make_tools
@@ -40,7 +41,7 @@ def test_the_pack_holds_what_cite_takes_in():
 def test_the_pack_reads_as_a_brief_and_says_only_what_it_holds():
     pack = pack_of("s14")
     text = brief(pack)
-    assert text.startswith(f"Section: section {pack.section_id[:8]}")
+    assert text.startswith(f"Section: section {short_id(pack.section_id)}")
     assert "States and places: Unknown" in text
     assert "Worked out (not claims):" in text and "Leads (not in store; where to look):" in text
     for lead in pack.leads:

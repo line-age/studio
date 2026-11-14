@@ -6,7 +6,7 @@ traced as gone are not on its list, so the service names them.
 
 from evals.fake_store import FakeStore, load_world
 from grounding import reads_from
-from render import render
+from render import render, short_id
 from schemas import Draft
 from tools import make_tools
 
@@ -27,7 +27,7 @@ def _refs(read, refs):
 
 
 def _short(world, code):
-    return world["codes"][code][:8]
+    return short_id(world["codes"][code])
 
 
 def test_a_claim_on_a_merged_trace_names_the_trace_and_the_section():
@@ -73,3 +73,17 @@ def test_a_link_says_what_it_links():
     # A line traced as gone that is the same pipe ends the section (Studio: an end).
     assert end_ref.label == "End, traced as gone"
     assert member_ref.label == "Part of a pipeline"
+
+
+def test_sections_made_in_one_import_get_different_names():
+    """Seen on real data: store's ids are UUIDv7, so one import's sections share their
+    first digits (the time). Two of them were both "section 01a1a923"."""
+    from render import feature_name
+
+    a = {"id": "01a1a923-0000-7000-8000-00000000aaaa", "kind": "section", "label": None}
+    b = {"id": "01a1a923-0000-7000-8000-00000000bbbb", "kind": "section", "label": None}
+    assert feature_name(a) != feature_name(b)
+    # The same hash Studio computes (frontend/src/data/short-id.test.ts pins it too).
+    from render import short_id
+
+    assert short_id("01a1a923-2283-41d1-7a93-9a959dcd3f22") == "114d686e"

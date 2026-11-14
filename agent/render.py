@@ -58,12 +58,33 @@ UNKNOWN_WORDS = {
 }
 
 
+def short_id(feature_id: Any) -> str:
+    """A feature's short name: 8 hex digits hashed from its whole id (FNV-1a, 32 bits,
+    then murmur3's finaliser).
+
+    Not a slice of the id: store's ids share their first digits within one import (the
+    time) and run in sequence at the end (sections side by side differ by one digit),
+    so a slice names many sections the same or nearly so. Studio computes the same hash
+    (`src/data/short-id.ts`), so a name in an answer is the name on screen.
+    """
+    h = 0x811C9DC5
+    for byte in str(feature_id).lower().encode():
+        h = ((h ^ byte) * 0x01000193) & 0xFFFFFFFF
+    # murmur3's finaliser: one changed character changes every digit.
+    h ^= h >> 16
+    h = (h * 0x85EBCA6B) & 0xFFFFFFFF
+    h ^= h >> 13
+    h = (h * 0xC2B2AE35) & 0xFFFFFFFF
+    h ^= h >> 16
+    return f"{h:08x}"
+
+
 def feature_name(feature: dict[str, Any]) -> str:
     """A feature as Studio names it: its label, or its kind and short code."""
     if feature.get("label"):
         return str(feature["label"])
     kind = "pipeline" if feature.get("kind") == "line" else feature.get("kind", "feature")
-    return f"{kind} {str(feature['id'])[:8]}"
+    return f"{kind} {short_id(feature['id'])}"
 
 
 NAMED_UNKNOWN_WORDS = {
@@ -329,13 +350,13 @@ def ref_label(feature_id: str, read: "Read") -> str:
     section, a section that was split, or a line traced as gone."""
     feature = read.features[feature_id]
     if is_traced_as_gone(feature):
-        return f"line traced as gone {feature_id[:8]}"
+        return f"line traced as gone {short_id(feature_id)}"
     into = _counted_for(feature_id, read)
     if into and _split_from(feature_id, read):
         names = ", ".join(feature_name(read.features[s]) for s in into)
-        return f"section {feature_id[:8]}, split into {names}"
+        return f"section {short_id(feature_id)}, split into {names}"
     if len(into) == 1:
-        return f"trace {feature_id[:8]}, merged into {feature_name(read.features[into[0]])}"
+        return f"trace {short_id(feature_id)}, merged into {feature_name(read.features[into[0]])}"
     return feature_name(feature)
 
 

@@ -6,7 +6,7 @@ import pytest
 
 from evals.fake_store import FakeStore, load_world
 from grounding import problems_of
-from render import Read, Unfillable, feature_name, render
+from render import Read, Unfillable, feature_name, render, short_id
 from schemas import Draft
 
 
@@ -80,7 +80,7 @@ def test_a_claim_held_through_a_merged_trace_is_said_of_the_section(world):
     owner = _claim(world, read, "d13", "owner", "accepted")
     text = render(_picked(owner["id"]), read).statements[0].text
     assert text.startswith("The owner is ")
-    assert "d13" not in text and world["codes"]["d13"][:8] not in text
+    assert "d13" not in text and short_id(world["codes"]["d13"]) not in text
 
 
 def test_a_route_claim_cannot_be_said_as_a_value(world):
@@ -125,7 +125,7 @@ def _owner(cid):
 
 
 def test_a_split_sections_claim_stays_the_split_sections():
-    parent, a, b = "p" * 8 + "-0", "a" * 8 + "-0", "b" * 8 + "-0"
+    parent, a, b = "p" * 8, "a" * 8, "b" * 8
     links = [
         {
             "id": f"k{n}",
@@ -145,9 +145,9 @@ def test_a_split_sections_claim_stays_the_split_sections():
     statement = render(_picked("c1"), read).statements[0]
     # Not said of A or B, which both count it: it is the split section's.
     assert statement.text.startswith("The owner is ")
-    assert "aaaaaaaa" not in statement.text and "bbbbbbbb" not in statement.text
-    assert (
-        statement.refs[0].label == "section pppppppp, split into section aaaaaaaa, section bbbbbbbb"
+    assert short_id(a) not in statement.text and short_id(b) not in statement.text
+    assert statement.refs[0].label == (
+        f"section {short_id(parent)}, split into section {short_id(a)}, section {short_id(b)}"
     )
 
 

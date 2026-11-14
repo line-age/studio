@@ -7,6 +7,7 @@ import pytest
 
 import context
 from evals.fake_store import FakeStore, load_world
+from render import short_id
 
 
 @pytest.fixture
@@ -317,14 +318,14 @@ def _link(rel, a, b, status="confirmed"):
 
 
 def test_an_overlap_is_said_the_way_store_holds_it():
-    a, b = "a" * 8 + "-0", "b" * 8 + "-0"
+    a, b = "a" * 8, "b" * 8
     link = _link("overlaps", a, b)
     (fact,) = context.link_facts(_section(a, [link]), {b: _section(b, [link])}, lambda: "W1")
-    assert "section aaaaaaaa runs along part of section bbbbbbbb" in fact.text
+    assert f"section {short_id(a)} runs along part of section {short_id(b)}" in fact.text
 
 
 def test_a_section_in_a_pipeline_is_never_said_to_be_in_none():
-    a, l1, l2 = "a" * 8 + "-0", "c" * 8 + "-0", "d" * 8 + "-0"
+    a, l1, l2 = "a" * 8, "c" * 8, "d" * 8
     links = [_link("part_of", a, l1), _link("part_of", a, l2, "proposed")]
     line = lambda i: {"id": i, "kind": "line", "label": None, "claims": [], "links": []}
     counter = itertools.count(1)
@@ -345,7 +346,7 @@ def test_an_end_that_could_not_be_read_is_not_known_never_none(world):
 
 
 def test_a_link_store_has_no_words_for_is_said_as_it_is():
-    a, b = "a" * 8 + "-0", "b" * 8 + "-0"
+    a, b = "a" * 8, "b" * 8
     link = _link("serves", a, b)
     (fact,) = context.link_facts(_section(a, [link]), {b: _section(b, [link])}, lambda: "W1")
     assert "serves link between" in fact.text and "second pipe" not in fact.text

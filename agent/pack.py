@@ -10,7 +10,7 @@ from typing import Any
 
 import geometry
 from context import route_lines
-from render import feature_name, period_words, source_line, value_words
+from render import feature_name, period_words, short_id, source_line, value_words
 from schemas import Lead, Neighbour, PackClaim, PackLink, SectionPack, WorkedOut
 
 _NO_WORDS = ("route",)
@@ -63,7 +63,7 @@ def build_pack(
                 relation=link["relation"],
                 status=link["status"],
                 other_id=other_id,
-                other=feature_name(other) if other else f"feature {other_id[:8]}",
+                other=feature_name(other) if other else f"feature {short_id(other_id)}",
                 score=link.get("score"),
             )
         )
@@ -94,7 +94,7 @@ def build_pack(
 def brief(pack: SectionPack) -> str:
     """The pack as a person or cite reads it: what store holds, what code worked out,
     and where to look. Every line comes from the pack."""
-    name = pack.name or f"section {pack.section_id[:8]}"
+    name = pack.name or f"section {short_id(pack.section_id)}"
     out = [f"Section: {name} ({pack.section_id})", f"Network: {pack.network or 'Unknown'}"]
     if pack.endpoints:
         (x1, y1), (x2, y2) = pack.endpoints[0], pack.endpoints[-1]

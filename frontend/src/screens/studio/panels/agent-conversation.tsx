@@ -5,6 +5,7 @@ import { Bubble } from "@/components/bubble"
 import { Marker } from "@/components/marker"
 import { Button } from "@/components/ui/button"
 import { geometryBounds, plural, sectionLabel } from "@/data/derive"
+import { shortId } from "@/data/short-id"
 import { Icon } from "@/components/icons/icon"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -136,7 +137,7 @@ function AnswerBody({
               className="flex items-center gap-1 self-start rounded-sm type-ui-sm-medium text-primary outline-none hover:underline focus-visible:shadow-focus-ring"
             >
               <Icon name="line" className="size-3.5" />
-              {name(group.id) ?? group.id.slice(0, 8)}
+              {name(group.id) ?? shortId(group.id)}
             </button>
           )}
           {group.items.map((statement, i) => (
@@ -165,7 +166,7 @@ function AnswerBody({
                 onClick={() => openSection(id)}
                 className="rounded-full outline-none focus-visible:shadow-focus-ring"
               >
-                <Badge variant="outline">{name(id) ?? id.slice(0, 8)}</Badge>
+                <Badge variant="outline">{name(id) ?? shortId(id)}</Badge>
               </button>
             ))}
           </div>

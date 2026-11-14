@@ -34,14 +34,14 @@
       "relation": "same_as",
       "status": "proposed",
       "other_id": "611edd31-6648-5da1-8a80-1c3627b5763a",
-      "other": "section 611edd31",
+      "other": "section 66522f8a",
       "score": 0.7
     }
   ],
   "neighbours": [
     {
       "section_id": "b6618689-b54d-5157-9dac-d0e0e401a9d2",
-      "name": "section b6618689",
+      "name": "section fcf4207a",
       "meets": "end_to_end",
       "gap_m": 0.0,
       "claims": [
@@ -70,7 +70,7 @@
     {
       "handle": "W1",
       "what": "first_edition",
-      "text": "section 777952cb is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.",
+      "text": "section 698a2811 is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.",
       "rests_on": [
         "48cc5a4d-1800-5993-9684-3d88af06e492"
       ]
@@ -78,7 +78,7 @@
     {
       "handle": "W2",
       "what": "not_traced_later",
-      "text": "Store does not say when section 777952cb ended. No line traced as gone is confirmed for it, which is no proof that it lasted.",
+      "text": "Store does not say when section 698a2811 ended. No line traced as gone is confirmed for it, which is no proof that it lasted.",
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79"
       ]
@@ -86,7 +86,7 @@
     {
       "handle": "W3",
       "what": "same_pipe",
-      "text": "It is proposed, and not yet decided, that section 611edd31 is another trace of the same pipe as section 777952cb.",
+      "text": "It is proposed, and not yet decided, that section 66522f8a is another trace of the same pipe as section 698a2811.",
       "rests_on": [
         "7a312cca-2930-51de-aeef-8ec558ecd767"
       ]
@@ -94,7 +94,7 @@
     {
       "handle": "W4",
       "what": "drawn_touching",
-      "text": "section b6618689 is drawn touching section 777952cb: their ends meet. Lines drawn touching do not prove the pipes joined.",
+      "text": "section fcf4207a is drawn touching section 698a2811: their ends meet. Lines drawn touching do not prove the pipes joined.",
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79",
         "b6618689-b54d-5157-9dac-d0e0e401a9d2"
@@ -105,7 +105,7 @@
     {
       "handle": "L1",
       "rule": "neighbour_source",
-      "text": "Example Gazette, vol. 32 no. 3, p. 52 names the owner of section b6618689, drawn touching section 777952cb. The same page may name section 777952cb's owner too.",
+      "text": "Example Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.",
       "attribute": "owner",
       "source": "Example Gazette, vol. 32 no. 3, p. 52",
       "rests_on": [
@@ -117,7 +117,7 @@
     {
       "handle": "L2",
       "rule": "neighbour_owner",
-      "text": "section b6618689, drawn touching section 777952cb, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 777952cb.",
+      "text": "section fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.",
       "attribute": "owner",
       "source": "Example Gazette, vol. 32 no. 3, p. 52",
       "rests_on": [
@@ -129,7 +129,7 @@
     {
       "handle": "L3",
       "rule": "proposed_link",
-      "text": "It is proposed, not decided, that section 611edd31 is another trace of the same pipe as section 777952cb. If someone confirms it, section 777952cb takes its owner, Example Pipe Line Co.",
+      "text": "It is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
       "attribute": "owner",
       "source": "Example Gazette, vol. 38 no. 11, p. 133",
       "rests_on": [
@@ -142,7 +142,7 @@
     {
       "handle": "L4",
       "rule": "edition_window",
-      "text": "section 777952cb is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+      "text": "section 698a2811 is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
       "attribute": null,
       "source": "Example Gazette pipeline map, 1932 printing",
       "rests_on": [

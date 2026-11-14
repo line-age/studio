@@ -1,3 +1,4 @@
+import { shortId } from "../short-id"
 import { shownBy, yearOf } from "../evidence"
 import { citationRoles, parseNetwork, type Network } from "../schema"
 import {
@@ -82,8 +83,6 @@ const ATTRIBUTES: { attribute: string; key: string | null }[] = [
   { attribute: "Build date", key: null },
   { attribute: "Geometry", key: "route" },
 ]
-
-const shortId = (id: string) => id.slice(0, 8)
 
 const isRole = (role: string): role is Role =>
   (citationRoles as readonly string[]).includes(role)

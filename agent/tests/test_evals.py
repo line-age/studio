@@ -9,7 +9,7 @@ from evals.fake_store import FakeStore, load_world
 from evals.mutations import MUTATIONS, seeded
 from evals.score import ungrounded
 from evals.sync import _example
-from render import FIXED_LINES, Read, render
+from render import FIXED_LINES, Read, render, short_id
 from schemas import Draft
 
 
@@ -357,7 +357,7 @@ def test_a_citation_request_rests_on_the_feature_it_asks_about(world):
             {
                 "kind": "citation_request",
                 "text": "I cannot look for new sources yet. This is what I would ask for: "
-                f"a source for the owner of section {s14[:8]}.",
+                f"a source for the owner of section {short_id(s14)}.",
                 "refs": [{"type": "feature", "id": s14}],
             }
         ]
