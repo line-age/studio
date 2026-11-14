@@ -29,8 +29,15 @@ export const agentAnswerRef = z.object({
   source: z.string().nullable().optional(),
 })
 
-/** One thing the Agent did for an answer, in plain words (its chain of thought). */
-export const agentStep = z.object({ text: z.string(), done: z.boolean() })
+/**
+ * One thing the Agent did for an answer, in plain words (its chain of thought).
+ * `by: "cite"` marks a line from a search of the journals.
+ */
+export const agentStep = z.object({
+  text: z.string(),
+  done: z.boolean(),
+  by: z.string().nullable().optional(),
+})
 export type AgentStep = z.infer<typeof agentStep>
 
 /** The fixed rules a lead is found by (studio/agent/schemas.py, LeadRule). */
@@ -43,6 +50,47 @@ const leadRule = z.enum([
   "rejected_value",
   "conflict",
 ])
+
+/**
+ * A passage cite found and checked for one attribute of one section: not in
+ * store until the person presses Propose (studio/agent/schemas.py, Finding).
+ */
+export const agentFinding = z.object({
+  handle: z.string(),
+  section_id: z.string(),
+  attribute: z.enum(["owner", "diameter", "built"]),
+  value: z.string(),
+  date_words: z.string(),
+  /** The page's own words, as cite's verifier aligned them. */
+  quote: z.string(),
+  journal: z.string(),
+  volume: z.number().nullable().optional(),
+  number: z.number().nullable().optional(),
+  date: z.string(),
+  page: z.string(),
+  url: z.string(),
+  image_url: z.string().nullable().optional(),
+  page_width: z.number().nullable().optional(),
+  page_height: z.number().nullable().optional(),
+  highlight: z
+    .array(
+      z.object({
+        x0: z.number(),
+        y0: z.number(),
+        x1: z.number(),
+        y1: z.number(),
+      })
+    )
+    .default([]),
+  flags: z
+    .array(z.object({ flag: z.string(), reason: z.string() }))
+    .default([]),
+  places_matched: z.array(z.string()).default([]),
+  places_given: z.array(z.string()).default([]),
+  proposable: z.boolean().default(true),
+  not_proposable: z.string().nullable().optional(),
+})
+export type AgentFinding = z.infer<typeof agentFinding>
 
 export const agentStatement = z.object({
   kind: z.enum([
@@ -60,6 +108,14 @@ export const agentStatement = z.object({
     "worked_out",
     // Somewhere to look, found by code by a fixed rule: "Not in store".
     "lead",
+    // What cite found in the journals, not in store; with the passage.
+    "finding",
+    // What cite searched for and did not find.
+    "searched",
+    // A search waits for the towns along the line.
+    "ask_places",
+    // A finding the person proposed, now a candidate claim in store.
+    "proposed",
   ]),
   text: z.string(),
   refs: z.array(agentAnswerRef).default([]),
@@ -79,10 +135,13 @@ export const agentStatement = z.object({
     .optional(),
   /** For a lead: the rule that found it. */
   rule: leadRule.nullable().optional(),
+  /** For a finding: the passage, the page and whether it may be proposed. */
+  finding: agentFinding.nullable().optional(),
 })
 
 export const agentAnswer = z.object({
-  version: z.literal(1),
+  // 2 added what cite finds; 1 is what a thread saved before it still holds.
+  version: z.union([z.literal(1), z.literal(2)]),
   checked: z.boolean(),
   statements: z.array(agentStatement),
 })

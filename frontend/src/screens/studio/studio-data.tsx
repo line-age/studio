@@ -28,6 +28,8 @@ import { listFollowsMap, useStudio } from "./studio-store"
 
 interface StudioData {
   network: Network
+  /** Read the network again, as after the Agent proposed a claim. */
+  reload: () => void
   /** How the list is grouped: by pipeline, or by edition. */
   list: ListKind
   /** Every row of the list, whatever the filters say. */
@@ -50,12 +52,16 @@ interface StudioData {
 
 const StudioDataContext = createContext<StudioData | null>(null)
 
+const noReload = () => undefined
+
 export function StudioDataProvider({
   network,
+  reload = noReload,
   children,
 }: {
   /** A promise from loadNetwork(). Suspends until it settles. */
   network: Promise<Network>
+  reload?: () => void
   children: ReactNode
 }) {
   const loaded = use(network)
@@ -76,6 +82,7 @@ export function StudioDataProvider({
       list === "sections" ? everySection : summarise(loaded, rule, list)
     return {
       network: loaded,
+      reload,
       list,
       summaries,
       everySection,
@@ -85,7 +92,7 @@ export function StudioDataProvider({
       summaryById: new Map(summaries.map((s) => [s.id, s])),
       sectionById: new Map(loaded.sections.map((s) => [s.id, s])),
     }
-  }, [loaded, rule, chosen, editionYears, statesOf])
+  }, [loaded, rule, chosen, editionYears, statesOf, reload])
 
   return <StudioDataContext value={value}>{children}</StudioDataContext>
 }

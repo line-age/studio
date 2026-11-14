@@ -38,11 +38,16 @@ export function AgentSteps({
   const [opened, setOpened] = useState(false)
   if (steps.length === 0 && !working) return null
   const reads = readsIn(steps)
+  const searched = steps.some((step) => step.by === "cite")
   const label = working
-    ? "Reading store"
-    : reads === 0
-      ? "Wrote and checked the answer"
-      : `Read ${reads} ${reads === 1 ? "thing" : "things"} in store`
+    ? searched
+      ? "Searching the journals"
+      : "Reading store"
+    : searched
+      ? "Searched the journals"
+      : reads === 0
+        ? "Wrote and checked the answer"
+        : `Read ${reads} ${reads === 1 ? "thing" : "things"} in store`
   const open = working || opened
   return (
     <Collapsible open={open} onOpenChange={setOpened}>
@@ -75,7 +80,7 @@ export function AgentSteps({
                 name={step.done ? "check" : "history"}
                 className="size-3 shrink-0"
               />
-              {step.text}
+              {step.by === "cite" ? `cite: ${step.text}` : step.text}
             </li>
           ))}
         </ol>

@@ -57,7 +57,12 @@ import { applyUrl, followView, type UrlView } from "./url-state"
 export function StudioScreen() {
   // The view in the URL is applied once, before anything draws.
   const [linked] = useState(() => applyUrl(window.location.search))
-  const [network] = useState(() => loadNetwork())
+  const [network, setNetwork] = useState(() => loadNetwork())
+  // Read store again, keeping the screen as it is until the new data is in.
+  const reload = useMemo(
+    () => () => startTransition(() => setNetwork(loadNetwork())),
+    []
+  )
   const [loading, setLoading] = useState(true)
   const [panel, setPanel] = useState<LeftPanel>("pipelines")
   const [leftOpen, setLeftOpen] = useState(true)
@@ -124,7 +129,7 @@ export function StudioScreen() {
           )}
         >
           <Suspense fallback={<Frame busy />}>
-            <StudioDataProvider network={network}>
+            <StudioDataProvider network={network} reload={reload}>
               <Loaded linked={linked} />
             </StudioDataProvider>
           </Suspense>

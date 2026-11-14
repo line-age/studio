@@ -24,7 +24,7 @@ import type { Question } from "@/data/question"
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
 import { AgentSources } from "./agent-sources"
-import { AgentStatementView } from "./agent-statement"
+import { AgentStatementView, ProposeFinding } from "./agent-statement"
 import { AgentSteps } from "./agent-steps"
 
 /*
@@ -205,6 +205,8 @@ function Turn({
   }
   const about = asked(turn.question)
   const now = last && working && !turn.answer
+  // A search goes on after its first lines are shown: its steps stay live.
+  const searchingNow = last && working && turn.answer !== null
   return (
     <>
       <div className="flex flex-col items-end gap-1.5">
@@ -217,7 +219,10 @@ function Turn({
           role="article"
           aria-label="The Agent's answer"
         >
-          <AgentSteps steps={turn.steps} working={false} />
+          <AgentSteps
+            steps={searchingNow ? liveSteps : turn.steps}
+            working={searchingNow}
+          />
           <AnswerBody
             turn={{ ...turn, answer: turn.answer }}
             name={name}
@@ -245,8 +250,27 @@ function Conversation({
   composer: (agent: Agent) => React.ReactNode
 }) {
   const agent = useAgent()
+  const { network, reload } = useStudioData()
   const logRef = useRef<HTMLDivElement>(null)
   const last = agent.turns.at(-1)
+  // After a finding is proposed, store holds a new candidate claim: read again.
+  const reloaded = useRef<string | null>(null)
+  useEffect(() => {
+    if (!last?.answer || reloaded.current === last.id) return
+    if (last.answer.statements.some((s) => s.kind === "proposed")) {
+      reloaded.current = last.id
+      reload()
+    }
+  }, [last, reload])
+  const propose = agent.working
+    ? null
+    : (handle: string) =>
+        void agent.ask({
+          words: `Propose ${handle}`,
+          about: [],
+          network: network.name,
+          action: { kind: "propose", finding: handle },
+        })
   // Keep the newest turn in view as it is asked and answered.
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight })
@@ -255,9 +279,11 @@ function Conversation({
     <>
       <div className="flex items-center justify-between px-3 pt-2">
         <span className="type-ui-xs text-muted-foreground">
-          {agent.working
-            ? "The Agent is reading store"
-            : "One conversation, kept by the Agent"}
+          {agent.searching
+            ? "The Agent is searching the journals"
+            : agent.working
+              ? "The Agent is reading store"
+              : "One conversation, kept by the Agent"}
         </span>
         <span className="flex gap-1">
           {agent.working && (
@@ -281,15 +307,17 @@ function Conversation({
         aria-label="Conversation with the Agent"
         className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-3 py-4"
       >
-        {agent.turns.map((turn, i) => (
-          <Turn
-            key={turn.id}
-            turn={turn}
-            working={agent.working}
-            last={i === agent.turns.length - 1}
-            liveSteps={agent.liveSteps}
-          />
-        ))}
+        <ProposeFinding value={propose}>
+          {agent.turns.map((turn, i) => (
+            <Turn
+              key={turn.id}
+              turn={turn}
+              working={agent.working}
+              last={i === agent.turns.length - 1}
+              liveSteps={agent.liveSteps}
+            />
+          ))}
+        </ProposeFinding>
         {agent.turns.length === 0 && <Marker>No conversation yet.</Marker>}
         {agent.error && (
           <Marker>

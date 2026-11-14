@@ -1,0 +1,170 @@
+{
+  "version": 2,
+  "checked": true,
+  "statements": [
+    {
+      "kind": "citation_request",
+      "text": "Searching the journals for the diameter of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.",
+      "refs": [
+        {
+          "type": "feature",
+          "id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "section 06a875ca",
+          "source": null
+        }
+      ],
+      "attribute": null,
+      "request": {
+        "feature_id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+        "attribute_keys": [
+          "diameter"
+        ],
+        "priority": "interactive",
+        "hints": [
+          {
+            "rule": "edition_window",
+            "text": "section 06a875ca is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+            "source": "Example Gazette pipeline map, 1932 printing"
+          }
+        ]
+      },
+      "rule": null,
+      "finding": null
+    },
+    {
+      "kind": "finding",
+      "text": "Found, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+      "refs": [
+        {
+          "type": "feature",
+          "id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "section 06a875ca",
+          "source": "The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41"
+        }
+      ],
+      "attribute": "diameter",
+      "request": null,
+      "rule": null,
+      "finding": {
+        "handle": "F1",
+        "section_id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+        "attribute": "diameter",
+        "value": "10-in.",
+        "date_words": "as of 12 March 1931",
+        "quote": "A 10-in. line is being laid to Sampleton.",
+        "journal": "The Example Trade Journal",
+        "volume": 12,
+        "number": 3,
+        "date": "1931-03-12",
+        "page": "p. 41",
+        "url": "https://example.org/details/example-trade-journal-1931-03-12/page/n40",
+        "image_url": "https://example.org/download/example-trade-journal-1931-03-12/page/n40.jpg",
+        "page_width": 3600,
+        "page_height": 5000,
+        "highlight": [
+          {
+            "x0": 0.1,
+            "y0": 0.3,
+            "x1": 0.6,
+            "y1": 0.32
+          }
+        ],
+        "flags": [],
+        "places_matched": [
+          "Sampleton"
+        ],
+        "places_given": [
+          "Sampleton"
+        ],
+        "proposable": true,
+        "not_proposable": null
+      }
+    },
+    {
+      "kind": "finding",
+      "text": "Found, in doubt: 12-in. as the diameter of section 06a875ca, as of 7 May 1931. The Example Trade Journal, vol. 12 no. 9, 7 May 1931, p. 18.",
+      "refs": [
+        {
+          "type": "feature",
+          "id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "section 06a875ca",
+          "source": "The Example Trade Journal, vol. 12 no. 9, 7 May 1931, p. 18"
+        }
+      ],
+      "attribute": "diameter",
+      "request": null,
+      "rule": null,
+      "finding": {
+        "handle": "F2",
+        "section_id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+        "attribute": "diameter",
+        "value": "12-in.",
+        "date_words": "as of 7 May 1931",
+        "quote": "The 12-in. line to Sampleton is in operation.",
+        "journal": "The Example Trade Journal",
+        "volume": 12,
+        "number": 9,
+        "date": "1931-05-07",
+        "page": "p. 18",
+        "url": "https://example.org/details/example-trade-journal-1931-05-07/page/n40",
+        "image_url": "https://example.org/download/example-trade-journal-1931-05-07/page/n40.jpg",
+        "page_width": 3600,
+        "page_height": 5000,
+        "highlight": [
+          {
+            "x0": 0.1,
+            "y0": 0.3,
+            "x1": 0.6,
+            "y1": 0.32
+          }
+        ],
+        "flags": [
+          {
+            "flag": "judge_unclear",
+            "reason": "the passage could be about the branch line"
+          },
+          {
+            "flag": "location_unconfirmed",
+            "reason": "none of the section's places is in the quote"
+          }
+        ],
+        "places_matched": [],
+        "places_given": [],
+        "proposable": true,
+        "not_proposable": null
+      }
+    },
+    {
+      "kind": "worked_out",
+      "text": "The sources disagree on the diameter: 10-in. and 12-in.. Both are shown; neither is picked.",
+      "refs": [
+        {
+          "type": "feature",
+          "id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "section 06a875ca",
+          "source": null
+        }
+      ],
+      "attribute": null,
+      "request": null,
+      "rule": null,
+      "finding": null
+    }
+  ]
+}

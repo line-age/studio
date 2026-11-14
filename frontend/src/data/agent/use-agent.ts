@@ -200,14 +200,33 @@ export function useAgent() {
   // which arrives on the values stream as each node finishes.
   // Until the new run's first node clears it, the state still holds the last
   // answer (and its finished steps): only a cleared state is this run's.
+  // While cite searches, the answer so far is already in the state: its steps
+  // are this run's too, and its answer is shown before the run ends.
   const values = stream.values as
-    { steps?: unknown; answers?: string | null } | undefined
+    | {
+        steps?: unknown
+        answers?: string | null
+        answer?: unknown
+        cite_job?: unknown
+      }
+    | undefined
+  const searching = working && values?.cite_job != null
   const nowDoing = agentStep
     .array()
-    .safeParse(values?.answers == null ? values?.steps : [])
+    .safeParse(values?.answers == null || searching ? values?.steps : [])
+  const sofar = agentAnswer.safeParse(values?.answer)
+  const shown =
+    searching && sofar.success && sofar.data.checked
+      ? turns.map((t) =>
+          t.id === values?.answers && !t.answer
+            ? { ...t, answer: sofar.data }
+            : t
+        )
+      : turns
 
   return {
-    turns,
+    turns: shown,
+    searching,
     liveSteps: working && nowDoing.success ? nowDoing.data : [],
     ask,
     stop,

@@ -30,6 +30,8 @@ describe("the answer contract", () => {
     "answer-failure",
     "answer-context",
     "answer-citation-request",
+    "answer-finding",
+    "answer-proposed",
   ])("reads the service's example %s", (name) => {
     expect(agentAnswer.safeParse(example(name)).success).toBe(true)
   })

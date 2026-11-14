@@ -1,8 +1,15 @@
-import type { ReactNode } from "react"
+import { createContext, use, type ReactNode } from "react"
 
 import { Icon } from "@/components/icons/icon"
 import { Badge } from "@/components/ui/badge"
 import type { AgentAnswerRef, AgentStatement } from "@/data/agent/answer"
+
+import { AgentFindingCard } from "./agent-finding"
+
+/** Proposes a finding by its handle; null while nothing may be sent. */
+export const ProposeFinding = createContext<((handle: string) => void) | null>(
+  null
+)
 
 /*
  * One statement of an answer (Figma section 13). Each kind of thing has its
@@ -17,6 +24,7 @@ import type { AgentAnswerRef, AgentStatement } from "@/data/agent/answer"
 export const KIND_PREFIX: Partial<Record<AgentStatement["kind"], string>> = {
   worked_out: "Worked out",
   lead: "Lead, not in store",
+  searched: "Searched",
 }
 
 /** The things a sentence names that can be opened, by the words it uses. */
@@ -82,6 +90,7 @@ export function AgentStatementView({
   name: (id: string) => string | null
   open: (ref: AgentAnswerRef) => void
 }) {
+  const propose = use(ProposeFinding)
   const prefix = KIND_PREFIX[statement.kind]
   const { nodes, linked } = withLinks(
     statement.text,
@@ -110,6 +119,12 @@ export function AgentStatementView({
         )}
         {nodes}
       </p>
+      {statement.finding && (
+        <AgentFindingCard
+          finding={statement.finding}
+          onPropose={propose ?? undefined}
+        />
+      )}
       {(sources.size > 0 || others.length > 0) && (
         <div className="flex flex-wrap items-center gap-1.5">
           {[...sources].map(([source, ref]) => (
