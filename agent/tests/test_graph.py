@@ -57,6 +57,9 @@ def test_store_does_not_say_end_to_end(world):
     ]
     assert out["tools"] == ["read_feature"]
     assert store.requests == [f"/features/{s01}"]
+    reply = out["messages"][-1]
+    assert reply.additional_kwargs["answer"] == out["answer"]
+    assert reply.additional_kwargs["answers"] == "q1"
 
 
 def test_a_value_is_filled_from_the_claim_that_was_read(world):
@@ -107,7 +110,13 @@ def test_two_bad_drafts_end_with_the_fixed_line(world):
     model = scripted([("read_feature", {"feature_id": s01})], bad, bad)
     out, _ = ask(world, model, "Who owns this section?", [s01])
     assert out["answer"]["statements"] == [
-        {"kind": "failure", "text": FIXED_LINES["check_failed"], "refs": [], "attribute": None}
+        {
+            "kind": "failure",
+            "text": FIXED_LINES["check_failed"],
+            "refs": [],
+            "attribute": None,
+            "request": None,
+        }
     ]
 
 

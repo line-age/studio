@@ -1,5 +1,37 @@
 {
   "$defs": {
+    "CitationRequest": {
+      "additionalProperties": false,
+      "description": "What a citation request to store would hold (`POST /citation-requests`).",
+      "properties": {
+        "feature_id": {
+          "title": "Feature Id",
+          "type": "string"
+        },
+        "attribute_keys": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Attribute Keys",
+          "type": "array"
+        },
+        "priority": {
+          "default": "interactive",
+          "enum": [
+            "interactive",
+            "background"
+          ],
+          "title": "Priority",
+          "type": "string"
+        }
+      },
+      "required": [
+        "feature_id",
+        "attribute_keys"
+      ],
+      "title": "CitationRequest",
+      "type": "object"
+    },
     "Ref": {
       "additionalProperties": false,
       "description": "What a statement rests on, by store id, so Studio can open it.",
@@ -101,7 +133,8 @@
             "clarify",
             "refusal",
             "greeting",
-            "failure"
+            "failure",
+            "citation_request"
           ],
           "title": "Kind",
           "type": "string"
@@ -128,6 +161,17 @@
           ],
           "default": null,
           "title": "Attribute"
+        },
+        "request": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CitationRequest"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [

@@ -177,6 +177,8 @@ interface StudioState {
   detachRef: (key: string) => void
   /** Keep a sent question in the thread and clear what was attached. */
   sendQuestion: (sent: SentQuestion) => void
+  /** Empty the composer after a question went to the Agent service. */
+  clearAgentDraft: () => void
 }
 
 /** A question as sent, with what the screen needs to show it again. */
@@ -474,6 +476,8 @@ export const useStudio = create<StudioState>((set) => ({
       agentRefs: [],
       agentDraft: null,
     })),
+  clearAgentDraft: () =>
+    set({ agentAttachments: [], agentRefs: [], agentDraft: null }),
   detachFromAgent: (pipelineId) =>
     set((s) => ({
       agentAttachments: s.agentAttachments.filter(

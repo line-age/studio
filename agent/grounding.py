@@ -99,7 +99,7 @@ def own_words_problems(draft: Draft) -> list[str]:
     """What the model wrote outside slots: no digit, quotation, id, name or number word."""
     problems = []
     for n, statement in enumerate(draft.statements, 1):
-        if statement.kind in (*FIXED, "unknown"):
+        if statement.kind in (*FIXED, "unknown", "citation_request"):
             continue  # code writes the whole sentence
         own = SLOT.sub(" ", statement.text)
         if re.search(r"\d", own):
@@ -202,6 +202,18 @@ def answer_problems(answer: Answer, read: Read) -> list[str]:
                     problems.append(f"statement {n}: claim {ref.id} was not read in this run")
             elif ref.type == "feature" and ref.id not in read.features:
                 problems.append(f"statement {n}: feature {ref.id} was not read in this run")
+        if kind == "citation_request":
+            features = [r.id for r in refs if r.type == "feature"]
+            if not features or features[0] not in read.features or not statement.request:
+                problems.append(f"statement {n}: a citation request names a feature you read")
+            elif read.features[features[0]].get("kind") not in ("section", "line"):
+                problems.append(f"statement {n}: citations are asked for a section or a pipeline")
+            elif read.accepted(features[0], statement.attribute or ""):
+                # R14: never ask for what is already claimed.
+                problems.append(
+                    f"statement {n}: store already holds an accepted {statement.attribute} "
+                    "there; do not ask for it, say what store holds instead"
+                )
         if kind == "fact" and not any(r.type in ("claim", "link") for r in refs):
             problems.append(f"statement {n}: a fact must name the claim it rests on")
         if kind == "unknown":

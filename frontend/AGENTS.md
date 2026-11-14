@@ -307,8 +307,13 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - Asking (`src/data/question.ts`): a question carries the words, each attached thing by
   kind and store id (or its section and attribute when the data has no id), the edition
   in force and the network; `buildQuestion` makes it, and nothing else leaves the
-  screen. There is no service yet: a sent question stays in the thread
-  (`sentQuestions`) with the line "The Agent cannot answer yet". An answer in the data is
+  screen. On store's data the Agent service (`studio/agent`) answers it through this
+  app's `/agent` path (`src/data/agent/`, `panels/agent-conversation.tsx`): one shared
+  thread, kept by the service, shown again after a reload, with Stop and "Clear chat".
+  Only an answer the service checked is shown. Its contract is
+  `agent/contract/`, whose examples the tests read. On the sample nothing answers: a
+  sent question stays in the thread (`sentQuestions`) with the line "The Agent cannot
+  answer yet". Tests always run on the sample (`vite.config.ts`). An answer in the data is
   `statements`, each with the claims, sources or proposals it rests on (`refs`); a
   statement with none says store does not say. A reference opens what it names. The
   answer contract (only what store holds, every statement referenced, no writes) is in

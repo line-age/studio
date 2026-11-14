@@ -121,7 +121,19 @@ def _finish(
     answer.checked = True
     return {
         "blocked": blocked or [],
-        "messages": [AIMessage(content=as_text(answer))],
+        # The answer travels on its message too, so a reloaded thread shows every turn.
+        "messages": [
+            AIMessage(
+                # One id from the start, so what streams and what is saved are one message.
+                id=f"answer-{question.id}" if question is not None and question.id else None,
+                content=as_text(answer),
+                additional_kwargs={
+                    "answer": answer.model_dump(),
+                    "answers": question.id if question is not None else None,
+                    "tools": tools,
+                },
+            )
+        ],
         "answer": answer.model_dump(),
         "answers": question.id if question is not None else None,
         "tools": tools,

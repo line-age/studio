@@ -26,11 +26,20 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => path.replace(/^\/store/, ""),
           headers: { Authorization: `Bearer ${env.STORE_TOKEN ?? ""}` },
         },
+        // The Agent service (studio/agent). It takes no token; the browser never
+        // holds one. Its answers stream, so nothing here may buffer them.
+        "/agent": {
+          target: env.AGENT_URL || "http://127.0.0.1:47190",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/agent/, ""),
+        },
       },
     },
     test: {
       environment: "jsdom",
       setupFiles: ["./src/test/setup.ts"],
+      // Tests run on the sample, whatever a developer's .env.local says.
+      env: { VITE_DATA_SOURCE: "fixture" },
       css: false,
     },
   }

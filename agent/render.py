@@ -11,7 +11,7 @@ import re
 from decimal import Decimal
 from typing import Any
 
-from schemas import FIXED_KINDS, Answer, Draft, DraftStatement, Ref, Statement
+from schemas import FIXED_KINDS, Answer, CitationRequest, Draft, DraftStatement, Ref, Statement
 
 # Agreed by the owner. Evals match them exactly; changing one is a deliberate edit
 # with an eval run before and after.
@@ -49,9 +49,30 @@ UNKNOWN_WORDS = {
 }
 
 
-def unknown_line(attribute: str | None) -> str:
+def feature_name(feature: dict[str, Any]) -> str:
+    """A feature as Studio names it: its label, or its kind and short code."""
+    if feature.get("label"):
+        return str(feature["label"])
+    kind = "pipeline" if feature.get("kind") == "line" else feature.get("kind", "feature")
+    return f"{kind} {str(feature['id'])[:8]}"
+
+
+NAMED_UNKNOWN_WORDS = {
+    "owner": "who owns {}",
+    "operator": "who operates {}",
+    "name": "what {} is called",
+}
+
+
+def unknown_line(attribute: str | None, subject: str | None = None) -> str:
+    """ "Store does not say who owns it." With `subject`, it names what it is about."""
     if not attribute:
         return f"{UNKNOWN_OPENING}."
+    if subject:
+        words = NAMED_UNKNOWN_WORDS.get(
+            attribute, f"what the {attribute.replace('_', ' ')} of {{}} is"
+        )
+        return f"{UNKNOWN_OPENING} {words.format(subject)}."
     rest = UNKNOWN_WORDS.get(attribute, f"what its {attribute.replace('_', ' ')} is")
     return f"{UNKNOWN_OPENING} {rest}."
 
@@ -297,7 +318,7 @@ class Read:
             self.links[link["id"]] = link
 
 
-def render_statement(draft: DraftStatement, read: Read) -> Statement:
+def render_statement(draft: DraftStatement, read: Read, name_things: bool = False) -> Statement:
     """Fill a draft statement's slots. Raises Unfillable; never invents."""
     if draft.kind in FIXED_KINDS:
         line = "unrelated" if draft.kind == "refusal" else draft.kind
@@ -316,6 +337,11 @@ def render_statement(draft: DraftStatement, read: Read) -> Statement:
         ref = keys.get(key)
         if ref is None:
             raise Unfillable(f"the slot {match.group(0)} names a key that is not in refs")
+        if ref.type == "feature" and field == "name":
+            feature = read.features.get(ref.id)
+            if feature is None:
+                raise Unfillable(f"feature {ref.id} was not read from store in this run")
+            return feature_name(feature)
         if ref.type != "claim" or field not in SLOT_FIELDS:
             raise Unfillable(f"the slot {match.group(0)} is not a field of a claim")
         claim = read.claims.get(ref.id)
@@ -323,10 +349,30 @@ def render_statement(draft: DraftStatement, read: Read) -> Statement:
             raise Unfillable(f"claim {ref.id} was not read from store in this run")
         return _slot(claim, field)
 
+    if draft.kind == "citation_request":
+        refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]
+        features = [r.id for r in refs if r.type == "feature"]
+        if len(features) != 1 or not draft.attribute:
+            raise Unfillable("a citation request names one feature you read and one attribute")
+        subject = feature_name(read.features[features[0]])
+        words = draft.attribute.replace("_", " ")
+        return Statement(
+            kind="citation_request",
+            text=(
+                f"I cannot look for new sources yet. This is what I would ask for: "
+                f"a source for the {words} of {subject}."
+            ),
+            refs=refs,
+            attribute=draft.attribute,
+            request=CitationRequest(feature_id=features[0], attribute_keys=[draft.attribute]),
+        )
+
     if draft.kind == "unknown":
         # The model says which attribute; the sentence is code's, so nothing rides on it.
-        text = unknown_line(draft.attribute)
         refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]
+        about = next((r.id for r in refs if r.type == "feature"), None)
+        subject = feature_name(read.features[about]) if name_things and about else None
+        text = unknown_line(draft.attribute, subject)
         return Statement(kind="unknown", text=text, refs=refs, attribute=draft.attribute)
 
     text = SLOT.sub(fill, draft.text).strip()
@@ -338,4 +384,14 @@ def render_statement(draft: DraftStatement, read: Read) -> Statement:
 
 def render(draft: Draft, read: Read) -> Answer:
     """The draft with every slot filled. Not yet checked: grounding decides that."""
-    return Answer(statements=[render_statement(s, read) for s in draft.statements])
+    # About several things, each "Store does not say" names which one.
+    about = {r.id for s in draft.statements for r in s.refs if r.type == "feature"}
+    about |= {
+        read.claims[r.id]["feature_id"]
+        for s in draft.statements
+        for r in s.refs
+        if r.type == "claim" and r.id in read.claims
+    }
+    return Answer(
+        statements=[render_statement(s, read, name_things=len(about) > 1) for s in draft.statements]
+    )

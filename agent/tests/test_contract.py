@@ -238,3 +238,23 @@ def test_an_unknowns_sentence_is_code_s_whatever_the_model_wrote(s02):
         s02,
     )
     assert answer.statements[0].text == "Store does not say who operates it."
+
+
+def test_an_unknown_about_one_of_several_things_names_it():
+    from render import unknown_line
+
+    assert unknown_line("owner") == "Store does not say who owns it."
+    assert (
+        unknown_line("owner", "section 0fc87cac") == "Store does not say who owns section 0fc87cac."
+    )
+    assert unknown_line("diameter", "Sampletown lateral") == (
+        "Store does not say what the diameter of Sampletown lateral is."
+    )
+
+
+def test_a_feature_name_slot_is_its_label_or_its_short_code(s02):
+    feature_id = next(iter(s02.features))
+    answer = render(
+        draft("This is {f1.name}.", [{"key": "f1", "type": "feature", "id": feature_id}]), s02
+    )
+    assert answer.statements[0].text == "This is Sampletown lateral."

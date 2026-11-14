@@ -15,7 +15,8 @@
           "asserter": null
         }
       ],
-      "attribute": "owner"
+      "attribute": "owner",
+      "request": null
     },
     {
       "kind": "fact",
@@ -30,7 +31,8 @@
           "asserter": "pipeline"
         }
       ],
-      "attribute": null
+      "attribute": null,
+      "request": null
     }
   ]
 }

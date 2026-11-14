@@ -18,7 +18,10 @@ import {
 import { buildQuestion, refKey, refWords, type AgentRef } from "@/data/question"
 import type { ThreadItem } from "@/data/schema"
 
+import { dataSource } from "@/data/load-network"
+
 import { HidePanels } from "../panel-toggle"
+import { AgentConversation, type Agent } from "./agent-conversation"
 import { useStudioData } from "../studio-data"
 import { useStudio, type SentQuestion } from "../studio-store"
 
@@ -319,6 +322,37 @@ export function AgentPanel() {
   const sent = useStudio((s) => s.sentQuestions)
   const send = useStudio((s) => s.sendQuestion)
   const messageRef = useRef<HTMLTextAreaElement>(null)
+  // On store's data the Agent service answers; on the sample nothing does.
+  const fromStore = dataSource() === "store"
+
+  const composer = (agent: Agent | null) => (
+    <div className="shrink-0 px-3 pb-3">
+      <Composer
+        placeholder="Ask about a section. Type # to pick one."
+        attachments={<PendingAttachments />}
+        inputRef={messageRef}
+        draft={draft === null ? undefined : { text: draft, nonce: asked }}
+        onSend={(words) => {
+          const s = useStudio.getState()
+          const attachments = s.agentAttachments
+          const refs = s.agentRefs
+          const question = buildQuestion({
+            words,
+            sections: attachments,
+            refs,
+            network,
+          })
+          if (agent) {
+            if (agent.working) return
+            void agent.ask(question)
+            s.clearAgentDraft()
+            return
+          }
+          send({ question, attachments, refs })
+        }}
+      />
+    </div>
+  )
 
   // "Ask the Agent" hands over references and expects to type next.
   useEffect(() => {
@@ -332,44 +366,28 @@ export function AgentPanel() {
       <PanelHeader title="Agent" divider>
         <HidePanels />
       </PanelHeader>
-      <div
-        role="log"
-        aria-label="Conversation with the Agent"
-        className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-3 py-4"
-      >
-        {network.agentThread.map((item, i) => (
-          <ThreadEntry key={i} item={item} />
-        ))}
-        {sent.map((question, i) => (
-          <Sent key={i} sent={question} />
-        ))}
-        {network.agentThread.length === 0 && sent.length === 0 && (
-          <Marker>No conversation yet.</Marker>
-        )}
-      </div>
-      <div className="shrink-0 px-3 pb-3">
-        <Composer
-          placeholder="Ask about a section. Type # to pick one."
-          attachments={<PendingAttachments />}
-          inputRef={messageRef}
-          draft={draft === null ? undefined : { text: draft, nonce: asked }}
-          onSend={(words) => {
-            const s = useStudio.getState()
-            const attachments = s.agentAttachments
-            const refs = s.agentRefs
-            send({
-              question: buildQuestion({
-                words,
-                sections: attachments,
-                refs,
-                network,
-              }),
-              attachments,
-              refs,
-            })
-          }}
-        />
-      </div>
+      {fromStore ? (
+        <AgentConversation composer={(agent) => composer(agent)} />
+      ) : (
+        <>
+          <div
+            role="log"
+            aria-label="Conversation with the Agent"
+            className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-3 py-4"
+          >
+            {network.agentThread.map((item, i) => (
+              <ThreadEntry key={i} item={item} />
+            ))}
+            {sent.map((question, i) => (
+              <Sent key={i} sent={question} />
+            ))}
+            {network.agentThread.length === 0 && sent.length === 0 && (
+              <Marker>No conversation yet.</Marker>
+            )}
+          </div>
+          {composer(null)}
+        </>
+      )}
     </>
   )
 }

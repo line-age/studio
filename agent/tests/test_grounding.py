@@ -195,3 +195,52 @@ def test_a_handle_in_lower_case_is_still_the_claim():
 def test_fact_problems_ignore_unknowns_and_fixed_lines(world):
     draft = Draft.model_validate({"statements": [statement("unknown", "", [], "owner")]})
     assert fact_problems(draft, read_of(world, "s01")) == []
+
+
+def test_a_citation_request_is_written_by_code_and_carries_what_store_would_be_sent(world):
+    read = read_of(world, "s02")
+    s02 = world["codes"]["s02"]
+    draft = Draft.model_validate(
+        {
+            "statements": [
+                statement(
+                    "citation_request",
+                    "I found three new sources!",
+                    [{"key": "f1", "type": "feature", "id": s02}],
+                    "operator",
+                )
+            ]
+        }
+    )
+    answer = render(draft, read)
+    request = answer.statements[0]
+    assert request.text == (
+        "I cannot look for new sources yet. This is what I would ask for: a source for the "
+        "operator of Sampletown lateral."
+    )
+    assert request.request.model_dump() == {
+        "feature_id": s02,
+        "attribute_keys": ["operator"],
+        "priority": "interactive",
+    }
+    assert problems_of(draft, answer, read) == []
+
+
+def test_a_citation_request_for_something_not_read_is_blocked(world):
+    read = read_of(world, "s02")
+    draft = Draft.model_validate(
+        {
+            "statements": [
+                statement(
+                    "citation_request",
+                    "",
+                    [{"key": "f1", "type": "feature", "id": world["codes"]["s01"]}],
+                    "owner",
+                )
+            ]
+        }
+    )
+    from render import Unfillable
+
+    with pytest.raises(Unfillable):
+        render(draft, read)

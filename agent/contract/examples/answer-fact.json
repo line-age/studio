@@ -15,7 +15,8 @@
           "asserter": "person"
         }
       ],
-      "attribute": null
+      "attribute": null,
+      "request": null
     }
   ]
 }

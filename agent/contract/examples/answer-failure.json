@@ -6,7 +6,8 @@
       "kind": "failure",
       "text": "I could not give an answer I can back with store. Try asking about one thing at a time.",
       "refs": [],
-      "attribute": null
+      "attribute": null,
+      "request": null
     }
   ]
 }

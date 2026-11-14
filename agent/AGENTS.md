@@ -98,6 +98,21 @@ The service has no sign-in, and a browser can reach `127.0.0.1`. So:
 - Only a person's message is taken from outside. A system, tool or assistant message
   posted to the service is removed before anything reads it.
 
+## End-to-end QA in Studio, traced
+
+Everything on invented data, so tracing is safe:
+
+```sh
+uv run python -m evals.serve_world          # the small world, as store, on 127.0.0.1:47191
+uv run python serve.py --qa                  # the Agent on it (.env.qa), traced if AGENT_TRACING=true
+cd ../frontend && pnpm dev                   # with .env.local: VITE_DATA_SOURCE=store,
+                                             # STORE_URL=http://127.0.0.1:47191,
+                                             # STORE_TOKEN=lgt_invented_token_for_tests
+```
+
+Live traces land in LangSmith under `lineage-studio-agent` > Local, one thread for the
+chat. Eval runs are experiments on the dataset `studio-agent-cases` instead.
+
 ## How Studio talks to it (checked 2026-11-13)
 
 Measured with `@langchain/react` 1.2.14 `useStream` against `langgraph dev`
@@ -110,9 +125,12 @@ Measured with `@langchain/react` 1.2.14 `useStream` against `langgraph dev`
   Opening a thread that does not exist is a 404, so create before the hook mounts.
 - **Streaming.** Events arrive through the Vite proxy as they are sent, not in one piece.
   nginx needs `proxy_buffering off` for the same.
-- **Reload.** A reload during a run shows the run still going and then its result,
-  with no extra code. The state read on mount is the thread's values, so the checked
-  answer travels in state (`answer`), not only in messages.
+- **Reload.** A reload during a run shows the run still going and then its result.
+- **Where the answer is.** Each reply carries its checked answer in
+  `additional_kwargs` (`answer`, `answers`: the question's message id) and has the id
+  `answer-<question id>`. `useStream`'s live `messages` lack `additional_kwargs` for a
+  reply still arriving, and its `values.messages` are serialised LangChain objects, so
+  Studio reads the thread's state again whenever a run ends (`src/data/agent/`).
 - **One run at a time.** `submit(..., { multitaskStrategy: "reject" })` throws in the
   browser that already has a run. A second browser gets a 409 from the server.
 - **Stop.** `stop({ cancel: true })` ends the run as `interrupted`. The question stays

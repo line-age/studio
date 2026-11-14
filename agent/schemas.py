@@ -10,7 +10,18 @@ from pydantic import BaseModel, ConfigDict, Field
 CONTRACT_VERSION = 1
 
 StatementKind = Literal[
-    "fact", "unknown", "set", "reading", "help", "clarify", "refusal", "greeting", "failure"
+    "fact",
+    "unknown",
+    "set",
+    "reading",
+    "help",
+    "clarify",
+    "refusal",
+    "greeting",
+    "failure",
+    # A request for new citations: what store's POST /citation-requests would be sent.
+    # Version 1 only shows it; sending it (with the person's go-ahead) is step 2.
+    "citation_request",
 ]
 # Kinds whose text is written by code, never by the model, and which carry no reference.
 FIXED_KINDS: frozenset[str] = frozenset({"refusal", "greeting", "failure"})
@@ -79,7 +90,7 @@ AttributeKey = Literal[
 
 class DraftStatement(_Strict):
     # help and reading come with their behaviours (B10, B12) and their checks.
-    kind: Literal["fact", "unknown", "clarify", "refusal", "greeting"]
+    kind: Literal["fact", "unknown", "clarify", "refusal", "greeting", "citation_request"]
     attribute: AttributeKey | None = Field(
         None, description="For kind unknown: the store attribute key that was checked."
     )
@@ -112,12 +123,22 @@ class Ref(_Strict):
     asserter: Literal["person", "pipeline"] | None = None
 
 
+class CitationRequest(_Strict):
+    """What a citation request to store would hold (`POST /citation-requests`)."""
+
+    feature_id: str
+    attribute_keys: list[str]
+    priority: Literal["interactive", "background"] = "interactive"
+
+
 class Statement(_Strict):
     kind: StatementKind
     text: str
     refs: list[Ref] = Field(default_factory=list)
     # For kind unknown: what was looked for and not found.
     attribute: str | None = None
+    # For kind citation_request: the request, ready for step 2 to send.
+    request: CitationRequest | None = None
 
 
 class Answer(_Strict):
