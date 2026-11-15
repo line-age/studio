@@ -3,6 +3,11 @@ import { createContext, use, type ReactNode } from "react"
 import { Icon } from "@/components/icons/icon"
 import { Badge } from "@/components/ui/badge"
 import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -91,6 +96,80 @@ function withLinks(
   return { nodes, linked }
 }
 
+const STATE_WORDS: Record<string, string> = {
+  accepted: "Accepted claim",
+  candidate: "Proposed, not decided",
+  rejected: "Rejected claim",
+}
+
+/**
+ * A source a statement rests on, as AI Elements' Inline Citation: the pill
+ * opens the claim it was cited for; hovering it shows the source, the passage it
+ * quotes and a link to the source, without leaving the chat.
+ */
+function SourceCitation({
+  source,
+  claim,
+  open,
+}: {
+  source: string
+  claim: AgentAnswerRef
+  open: (ref: AgentAnswerRef) => void
+}) {
+  return (
+    <HoverCard>
+      <HoverCardTrigger
+        delay={150}
+        closeDelay={100}
+        render={
+          <button
+            type="button"
+            aria-label={`Open the claim, from ${source}`}
+            onClick={() => open(claim)}
+            className="max-w-full min-w-0 rounded-full outline-none focus-visible:shadow-focus-ring"
+          />
+        }
+      >
+        {/* A long source shortens; the hover card has it whole. */}
+        <Badge
+          variant="secondary"
+          className="max-w-full hover:bg-secondary-hover"
+        >
+          <Icon name="source" data-icon="inline-start" />
+          <span className="truncate">{source}</span>
+        </Badge>
+      </HoverCardTrigger>
+      <HoverCardContent className="flex w-72 flex-col gap-2">
+        <div className="flex flex-col gap-0.5">
+          <span className="type-ui-sm-medium">{source}</span>
+          {claim.status && (
+            <span className="type-ui-xs text-muted-foreground">
+              {STATE_WORDS[claim.status] ?? claim.status}
+              {claim.label ? ` · ${claim.label}` : ""}
+            </span>
+          )}
+        </div>
+        {claim.quote && (
+          <blockquote className="border-l-2 border-border pl-2 type-ui-xs">
+            {claim.quote}
+          </blockquote>
+        )}
+        {claim.url && (
+          <a
+            href={claim.url}
+            target="_blank"
+            rel="noreferrer"
+            className="type-ui-xs text-primary underline-offset-2 hover:underline"
+          >
+            Open the source
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        )}
+      </HoverCardContent>
+    </HoverCard>
+  )
+}
+
 function KindPrefix({
   kind,
   prefix,
@@ -162,20 +241,14 @@ export function AgentStatementView({
         />
       )}
       {(sources.size > 0 || others.length > 0) && (
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           {[...sources].map(([source, ref]) => (
-            <button
+            <SourceCitation
               key={source}
-              type="button"
-              aria-label={`Open the claim, from ${source}`}
-              onClick={() => open(ref)}
-              className="rounded-full outline-none focus-visible:shadow-focus-ring"
-            >
-              <Badge variant="secondary" className="hover:bg-secondary-hover">
-                <Icon name="source" data-icon="inline-start" />
-                {source}
-              </Badge>
-            </button>
+              source={source}
+              claim={ref}
+              open={open}
+            />
           ))}
           {others.map((ref) => {
             const label =

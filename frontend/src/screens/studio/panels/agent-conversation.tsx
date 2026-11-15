@@ -24,6 +24,7 @@ import type { Question } from "@/data/question"
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
 import { AgentSources } from "./agent-sources"
+import { ProposeOutcomes, type ProposeOutcome } from "./agent-finding"
 import { AgentStatementView, ProposeFinding } from "./agent-statement"
 import { AgentSteps } from "./agent-steps"
 
@@ -176,6 +177,25 @@ function AnswerBody({
   )
 }
 
+/** What came of each Propose, by finding handle, from the turns that asked. */
+function outcomesOf(
+  turns: readonly AgentTurn[],
+  working: boolean
+): Map<string, ProposeOutcome> {
+  const outcomes = new Map<string, ProposeOutcome>()
+  turns.forEach((turn, i) => {
+    const handle = turn.question.action?.finding
+    if (!handle) return
+    const first = turn.answer?.statements[0]
+    if (first?.kind === "proposed")
+      outcomes.set(handle, { state: "proposed", text: first.text })
+    else if (first) outcomes.set(handle, { state: "refused", text: first.text })
+    else if (working && i === turns.length - 1)
+      outcomes.set(handle, { state: "pending" })
+  })
+  return outcomes
+}
+
 /** A search was started and nothing came back from it: it was stopped. */
 function searchLeftUnfinished(statements: readonly AgentStatement[]): boolean {
   const started = statements.findIndex(
@@ -326,15 +346,17 @@ function Conversation({
         className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-3 py-4"
       >
         <ProposeFinding value={propose}>
-          {agent.turns.map((turn, i) => (
-            <Turn
-              key={turn.id}
-              turn={turn}
-              working={agent.working}
-              last={i === agent.turns.length - 1}
-              liveSteps={agent.liveSteps}
-            />
-          ))}
+          <ProposeOutcomes value={outcomesOf(agent.turns, agent.working)}>
+            {agent.turns.map((turn, i) => (
+              <Turn
+                key={turn.id}
+                turn={turn}
+                working={agent.working}
+                last={i === agent.turns.length - 1}
+                liveSteps={agent.liveSteps}
+              />
+            ))}
+          </ProposeOutcomes>
         </ProposeFinding>
         {agent.turns.length === 0 && <Marker>No conversation yet.</Marker>}
         {agent.error && (

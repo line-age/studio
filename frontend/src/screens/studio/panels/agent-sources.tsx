@@ -2,15 +2,20 @@ import { useState } from "react"
 
 import { Icon } from "@/components/icons/icon"
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+  Trace,
+  TraceCollapsible,
+  TraceCollapsibleContent,
+  TraceCollapsibleTrigger,
+  TraceIcon,
+  TraceLine,
+  TraceTitle,
+} from "@/components/ui/trace"
 import type { AgentAnswerRef, AgentStatement } from "@/data/agent/answer"
 
 /*
  * Every source an answer rests on, once each, folded at its end ("Used 2
- * sources", Figma section 13). A source opens the claim it was cited for.
+ * sources", Figma section 13). Built as AI Elements' Sources, on the stock
+ * Trace. A source opens the claim it was cited for.
  */
 export function AgentSources({
   statements,
@@ -27,31 +32,37 @@ export function AgentSources({
         sources.set(ref.source, ref)
   if (sources.size === 0) return null
   return (
-    <Collapsible open={opened} onOpenChange={setOpened}>
-      <CollapsibleTrigger className="flex items-center gap-1.5 rounded-sm type-ui-sm-medium text-muted-foreground outline-none hover:text-foreground focus-visible:shadow-focus-ring">
-        <Icon name="source" className="size-3.5" />
-        Used {sources.size} {sources.size === 1 ? "source" : "sources"}
-        <Icon
-          name={opened ? "chevron-down" : "chevron-right"}
-          className="size-3.5"
-        />
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <ul aria-label="Sources" className="mt-2 flex flex-col gap-1">
+    <TraceCollapsible open={opened} onOpenChange={(next) => setOpened(next)}>
+      <TraceCollapsibleTrigger>
+        <TraceLine>
+          <TraceIcon>
+            <Icon name="source" />
+          </TraceIcon>
+          <TraceTitle>
+            Used {sources.size} {sources.size === 1 ? "source" : "sources"}
+          </TraceTitle>
+        </TraceLine>
+      </TraceCollapsibleTrigger>
+      <TraceCollapsibleContent>
+        <Trace role="list" aria-label="Sources">
           {[...sources].map(([source, ref]) => (
-            <li key={source}>
+            <div key={source} role="listitem">
               <button
                 type="button"
                 onClick={() => open(ref)}
-                className="flex items-center gap-1.5 rounded-sm text-left type-ui-xs text-muted-foreground outline-none hover:text-foreground focus-visible:shadow-focus-ring"
+                className="rounded-md text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
               >
-                <Icon name="source" className="size-3 shrink-0" />
-                {source}
+                <TraceLine>
+                  <TraceIcon>
+                    <Icon name="source" />
+                  </TraceIcon>
+                  <TraceTitle>{source}</TraceTitle>
+                </TraceLine>
               </button>
-            </li>
+            </div>
           ))}
-        </ul>
-      </CollapsibleContent>
-    </Collapsible>
+        </Trace>
+      </TraceCollapsibleContent>
+    </TraceCollapsible>
   )
 }

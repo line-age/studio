@@ -186,6 +186,10 @@ class Ref(_Strict):
     # For a claim: its source as Studio shows it beside the statement ("Example Gazette,
     # vol. 32 no. 3, p. 41"), or None when store holds no source for it.
     source: str | None = None
+    # For a claim: the passage its citation quotes and a link to the source, as store
+    # holds them, for Studio to show on hover. None when store holds none.
+    quote: str | None = None
+    url: str | None = None
 
 
 LeadRule = Literal[

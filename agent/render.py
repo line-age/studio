@@ -392,6 +392,10 @@ def _ref(ref_type: str, ref_id: str, read: "Read") -> Ref:
             asserter=claim.get("asserted_by_kind"),
             label=ref_label(claim["feature_id"], read),
             source=source_of(claim),
+            quote=(_citation(claim) or {}).get("quote") or None,
+            url=(_citation(claim) or {}).get("url")
+            or (_citation(claim) or {}).get("archive_url")
+            or None,
         )
     if ref_type == "link":
         link = read.links.get(ref_id)

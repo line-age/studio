@@ -173,3 +173,28 @@ describe("an inferred statement", () => {
     expect(await screen.findByText(/No source states this/)).toBeInTheDocument()
   })
 })
+
+describe("a source pill", () => {
+  it("shows the passage and a link to the source on hover", async () => {
+    const quoted: AgentStatement = {
+      ...lead,
+      refs: [
+        {
+          ...owner,
+          quote: "Invented Gas Co. owns the line to Sampleton.",
+          url: "https://example.org/gazette/32/3#page=52",
+        },
+      ],
+    }
+    render(<AgentStatementView statement={quoted} name={name} open={vi.fn()} />)
+    await userEvent.hover(
+      screen.getByRole("button", { name: /Open the claim/ })
+    )
+    expect(
+      await screen.findByText("Invented Gas Co. owns the line to Sampleton.")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("link", { name: /Open the source/ })
+    ).toHaveAttribute("href", "https://example.org/gazette/32/3#page=52")
+  })
+})
