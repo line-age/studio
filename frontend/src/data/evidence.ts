@@ -187,6 +187,91 @@ export function proposedMembershipWords(
   return `${who} proposes that this section is part of ${which}. Score ${proposed.score.toFixed(2)}. Nobody has confirmed it, so the section is in no pipeline.`
 }
 
+/** A section's own identity line, for the citation pop-up's header. */
+export function featureIdentity(section: Section): string {
+  return section.name ?? "Unnamed gas section"
+}
+
+/**
+ * Citations at the very same place in the very same source count as one: the
+ * id where there is one, else the source and the place in it.
+ */
+function citationKey(citation: Citation): string {
+  return citation.id ?? `${citation.source}|${citation.locator ?? ""}`
+}
+
+/** One source, with every citation of the open claim that names it. */
+export interface SourceGroup {
+  key: string
+  source: string
+  citations: Citation[]
+}
+
+/**
+ * The open claim's citations, one row per source: the source's id where it
+ * has one, else its own name, keeps the same source from splitting in two.
+ */
+export function groupBySource(citations: readonly Citation[]): SourceGroup[] {
+  const order: string[] = []
+  const bySource = new Map<string, Citation[]>()
+  for (const citation of citations) {
+    const key = citation.sourceId ?? citation.source
+    if (!bySource.has(key)) {
+      order.push(key)
+      bySource.set(key, [])
+    }
+    bySource.get(key)!.push(citation)
+  }
+  return order.map((key) => {
+    const group = bySource.get(key)!
+    return { key, source: group[0].source, citations: group }
+  })
+}
+
+/** "2 passages" once a source is cited more than once; nothing for one. */
+export function passagesWords(count: number): string | undefined {
+  return count > 1 ? `${count} passages` : undefined
+}
+
+/** How a citation's source is shown: a reachable page, or not. Scan follows later. */
+export type ViewerKind = "web" | "unavailable"
+
+/**
+ * web once there is somewhere to send a reader (a url, an archived copy) or a
+ * passage to show; unavailable otherwise, including every scan today.
+ */
+export function viewerKindFor(citation: Citation): ViewerKind {
+  const reachable =
+    citation.url !== undefined ||
+    citation.archiveUrl !== undefined ||
+    citation.quote !== undefined
+  return reachable ? "web" : "unavailable"
+}
+
+/** "No quote, scanned map" for a scan citation that carries no passage. */
+export function noQuoteWords(citation: Citation): string | undefined {
+  return citation.sourceKind === "map_sheet" && citation.quote === undefined
+    ? "No quote, scanned map"
+    : undefined
+}
+
+/**
+ * How many of the section's claims this citation backs (derived First seen
+ * and Last seen claims included): the route and status claims a map sheet
+ * both shows and dates often share the very same citation.
+ */
+export function supportsCountFor(section: Section, citation: Citation): number {
+  const key = citationKey(citation)
+  return section.claims.filter((claim) =>
+    claim.citations.some((c) => citationKey(c) === key)
+  ).length
+}
+
+/** "Supports 3 claims" once a citation backs more than one; nothing for one. */
+export function supportsWords(count: number): string | undefined {
+  return count > 1 ? `Supports ${count} claims` : undefined
+}
+
 /** A proposed end or cut in words: what, by which tool, how sure. */
 export function proposedEndWords(end: ProposedEnd): string {
   const who = end.proposer ? `The ${end.proposer} tool` : "A tool"

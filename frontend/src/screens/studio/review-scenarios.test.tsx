@@ -94,7 +94,7 @@ describe("reviewing", () => {
     expect(window.location.search).toContain("sel=s-1")
   })
 
-  it("reads the source behind a value: which one, where, and puts it away", async () => {
+  it("opens the source behind a value, and puts it away", async () => {
     const user = await open()
     await user.type(
       screen.getByRole("combobox", { name: "Search name or code" }),
@@ -106,14 +106,15 @@ describe("reviewing", () => {
     })
     expect(detail).toHaveTextContent("12 in")
     expect(detail).toHaveTextContent("Cited")
-    // One source: it is shown open, with the place in it.
+    // One source: a click opens its citation pop-up, and Done puts it away.
     const sources = within(detail).getByRole("list", { name: "Sources" })
     const source = within(sources).getByRole("button", { name: "1937 edition" })
-    expect(source).toHaveAttribute("aria-expanded", "true")
-    expect(sources).toHaveTextContent("Where")
-    expect(sources).toHaveTextContent("grid ref. A-1")
     await user.click(source)
-    expect(sources).not.toHaveTextContent("grid ref. A-1")
+    expect(
+      screen.getByRole("dialog", { name: "Diameter of Alder to Birch" })
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Done" }))
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
 
     await user.click(
       within(detail).getByRole("button", { name: "Close the claim" })

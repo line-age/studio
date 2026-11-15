@@ -68,6 +68,10 @@ const citation = z.object({
   identifier: z.string().nullish(),
   /** From 0 to 1, when whoever cited it gave one. */
   confidence: z.number().nullish(),
+  /** The source's own address on the web, where it has one. */
+  url: z.string().nullish(),
+  /** A captured copy's address (for example, the Wayback Machine), where there is one. */
+  archive_url: z.string().nullish(),
 })
 
 const claim = z.object({

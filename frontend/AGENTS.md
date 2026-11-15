@@ -323,10 +323,20 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   (`panels/claim-detail.tsx`, Figma `112:566` and `112:786`): the value, any proposal
   (`ProposalCard`) and each source (`Citation`) with the place and the quote. It is read
   only. Accept, Reject and "Find a source" are in the drawing and left out until they
-  work. A citation shows only what the data holds: the source and its role; opened,
-  a map's edition and date, where, the quote, and last the trace file. Under a
-  proposal, "Ask the Agent about this" (Figma `223:11018`), not "Decide in the Agent"
-  (section 10, parked with deciding).
+  work. Clicking a source opens the citation pop-up (`citation-dialog/`, Figma `315:359`)
+  instead of expanding it in place. On the left a source list names every source the
+  claim cites, once each, with "N passages" where a source is cited more than once;
+  picking a row switches the details on the right to that source's first citation. A
+  citation's details show only what the data holds, in order: the source and its role;
+  a map's edition and date; where; the quote, or "No quote, scanned map" for a scan that
+  has none; the source's own identifier; confidence. A note says when the citation backs
+  more than one claim. Previous and Next step between the section's cited claims; Show
+  on map and Done close the pop-up; Open source shows only when the citation has a web
+  address. On the left of the source list, a source viewer (`source-viewer.tsx`, Figma
+  `336:13243`) shows what the data holds: today every citation shows the unavailable
+  kind, since Studio cannot yet serve scan images. Under a proposal, "Ask the Agent
+  about this" (Figma `223:11018`), not "Decide in the Agent" (section 10, parked with
+  deciding).
 - Notes are off the screen for now (owner, 2026-11-12): no pins, no layer row. The
   fixture still holds them. Do not bring them back without being asked.
 - The selection is a set of sections (`selection` in the Studio store) and may span

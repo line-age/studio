@@ -52,7 +52,7 @@ beforeEach(() => {
 })
 
 describe("evidence in the right panel", () => {
-  it("says what a map does for a claim, its edition and date, and the trace file last", async () => {
+  it("says what a map does for a claim, holding by the date given", async () => {
     const { detail } = await openClaim("Geometry")
     expect(detail).toHaveTextContent("Holds by June 1931.")
     const sources = within(detail).getByRole("list", { name: "Sources" })
@@ -60,20 +60,11 @@ describe("evidence in the right panel", () => {
       name: /Invented trunk map, 1931/,
     })
     expect(source).toHaveTextContent("Shown on")
-    expect(sources).toHaveTextContent("1931 edition, as of 30 June 1931")
-    expect(sources).toHaveTextContent("File")
-    expect(sources).toHaveTextContent("traces/1931/base.gpkg")
-    // The trace file is not a place in the source.
-    expect(sources).not.toHaveTextContent("Where")
   })
 
-  it("says when the claim was made and gives the source's identifier; no confidence where none was given", async () => {
+  it("says when the claim was made", async () => {
     const { detail } = await openClaim("Geometry")
     expect(detail).toHaveTextContent("Claim made 12 November 2026.")
-    const sources = within(detail).getByRole("list", { name: "Sources" })
-    expect(sources).toHaveTextContent("Identifier")
-    expect(sources).toHaveTextContent("invented-scan-1931.tif")
-    expect(sources).not.toHaveTextContent("Confidence")
   })
 
   it("keeps Last seen Unknown with the proposed end told, and nothing to decide", async () => {

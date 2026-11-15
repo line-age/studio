@@ -27,6 +27,7 @@ import { fixtureUrl, loadNetwork } from "@/data/load-network"
 import { FixtureError } from "@/data/schema"
 import { StoreError } from "@/data/store/client"
 
+import { CitationDialog } from "./citation-dialog/citation-dialog"
 import { HelpDialog } from "./help/help-dialog"
 import { useHelp } from "./help/help-store"
 import { Tour } from "./help/tour"
@@ -220,6 +221,7 @@ function Frame({
           />
           <HelpDialog />
           <Tour />
+          <CitationDialog />
         </>
       )}
       <div className="flex min-h-0 flex-1" aria-busy={busy}>

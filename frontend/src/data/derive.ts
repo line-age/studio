@@ -48,6 +48,11 @@ export function sectionLabel(section: Section): string {
   return section.name ?? section.code
 }
 
+/** A section's claims that carry at least one citation, in claim order. */
+export function citedClaims(section: Section): Claim[] {
+  return section.claims.filter((claim) => claim.citations.length > 0)
+}
+
 /** What a pipeline goes by in words: its name, or its code when it has none. */
 export function pipelineLabel(pipeline: Pipeline): string {
   return pipeline.name ?? pipeline.code

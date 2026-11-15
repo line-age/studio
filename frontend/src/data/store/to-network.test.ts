@@ -103,6 +103,36 @@ describe("toNetwork", () => {
     expect(claim(ID_B, "Diameter").citations[0].confidence).toBe(0.8)
   })
 
+  it("keeps a source's own address and an archived copy's, where either was given", () => {
+    const features = storeFeatures()
+    const b = features.find((f) => f.id === ID_B)!
+    const diameter = b.claims.find(
+      (c) => c.attribute_key === "diameter" && c.status === "accepted"
+    )!
+    diameter.citations[0].url = "https://example.invalid/source"
+    diameter.citations[0].archive_url = "https://web.archive.invalid/snap"
+    const withUrls = toNetwork("Gas network", storeRows(), features)
+    const sectionB = withUrls.sections.find((s) => s.id === ID_B)!
+    const diameterClaim = sectionB.claims.find(
+      (c) => c.attribute === "Diameter"
+    )!
+    expect(diameterClaim.citations[0].url).toBe(
+      "https://example.invalid/source"
+    )
+    expect(diameterClaim.citations[0].archiveUrl).toBe(
+      "https://web.archive.invalid/snap"
+    )
+    // A citation without either leaves both undefined.
+    expect(claim(ID_A, "Geometry").citations[0].url).toBeUndefined()
+    expect(claim(ID_A, "Geometry").citations[0].archiveUrl).toBeUndefined()
+  })
+
+  it("keeps a source's id and kind, for grouping citations by source", () => {
+    const [shows] = claim(ID_A, "Geometry").citations
+    expect(shows.sourceId).toBe("sheet-1931")
+    expect(shows.sourceKind).toBe("map_sheet")
+  })
+
   it("keeps the day a claim was made, and none for what Studio works out", () => {
     expect(claim(ID_A, "Geometry").madeAt).toBe("2026-11-12")
     expect(claim(ID_B, "Diameter").madeAt).toBe("2026-11-12")
