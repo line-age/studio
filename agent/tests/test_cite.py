@@ -325,3 +325,17 @@ def test_a_search_left_running_by_stop_is_recorded_as_stopped():
     out = ingress(state)
     assert out["cite"]["runs"][-1]["outcome"] == "stopped before it finished"
     assert out["cite_job"] is None
+
+
+def test_searching_the_same_years_again_is_allowed(world):
+    s01 = world["codes"]["s01"]
+    chat = Chat(
+        world,
+        request(s01, places=["Sampleton"]),
+        request(s01, places=["Sampleton"], years=[1931, 1932]),
+        cite=FakeCite("nothing_found", "owner_found"),
+    )
+    chat.ask("Find the owner, through Sampleton.", [s01])
+    again = chat.ask("Try the search again, same towns.")
+    assert "finding" in kinds(again)
+    assert chat.cite.inputs[-1]["search_window"] == {"from": 1931, "to": 1932}

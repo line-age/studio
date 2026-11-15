@@ -153,8 +153,10 @@ def check_request(
         if _fold(place) not in said:
             return Refused(CITE_LINES["not_given"].format(what=f"The place {place}"))
     years = sorted({y for d in drafts for y in d.years})
+    # An earlier search's years came from the person or from store's printings.
+    run_years = {y for r in runs or [] for y in range(*_span(r.get("years")))}
     for year in years:
-        if str(year) not in said and year not in store_years | found_years:
+        if str(year) not in said and year not in store_years | found_years | run_years:
             return Refused(CITE_LINES["not_given"].format(what=f"The year {year}"))
     ruled: list[tuple[str, str]] = []
     for d in drafts:
@@ -174,6 +176,10 @@ def check_request(
     # Cut to what one search reads by cite_input.build, which knows the first printing.
     window = (years[0], years[-1]) if years else None
     return CiteAsk(sections[0], attributes, places, window, ruled)
+
+
+def _span(years: list[int] | None) -> tuple[int, int]:
+    return (years[0], years[-1] + 1) if years else (0, 0)
 
 
 # The words -------------------------------------------------------------------------------
