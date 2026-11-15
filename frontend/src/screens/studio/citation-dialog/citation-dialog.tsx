@@ -14,6 +14,7 @@ import { CitationDetails } from "./citation-details"
 import { CitationFooter } from "./footer"
 import { CitationHeader } from "./header"
 import { SourceList } from "./source-list"
+import { SourceViewer } from "./source-viewer"
 
 /**
  * A citation opened from any claim's sources: its claim, feature, source and
@@ -62,7 +63,7 @@ export function CitationDialog() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(next) => !next && closeCitation()}>
-      <DialogContent showCloseButton={false} className="sm:max-w-lg">
+      <DialogContent showCloseButton={false} className="sm:max-w-2xl">
         {section && claim && citation && (
           <>
             <DialogTitle className="sr-only">
@@ -72,13 +73,16 @@ export function CitationDialog() {
               The sources cited for this claim.
             </DialogDescription>
             <CitationHeader section={section} claim={claim} />
-            <div className="-mx-4 flex max-h-80 flex-col overflow-y-auto border-y border-border-subtle">
-              <SourceList
-                citations={claim.citations}
-                selectedIndex={opened?.citationIndex ?? 0}
-                onSelect={selectCitation}
-              />
-              <CitationDetails citation={citation} section={section} />
+            <div className="-mx-4 flex border-y border-border-subtle">
+              <SourceViewer citation={citation} />
+              <div className="flex max-h-80 flex-1 flex-col overflow-y-auto border-l border-border-subtle">
+                <SourceList
+                  citations={claim.citations}
+                  selectedIndex={opened?.citationIndex ?? 0}
+                  onSelect={selectCitation}
+                />
+                <CitationDetails citation={citation} section={section} />
+              </div>
             </div>
             <CitationFooter section={section} citation={citation} />
           </>

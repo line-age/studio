@@ -135,8 +135,8 @@ describe("the citation pop-up", () => {
     const dialog = screen.getByRole("dialog")
     expect(within(dialog).getByText("Shown on")).toBeInTheDocument()
     expect(
-      within(dialog).getByText("1931 edition, as of 30 June 1931")
-    ).toBeInTheDocument()
+      within(dialog).getAllByText("1931 edition, as of 30 June 1931").length
+    ).toBeGreaterThan(0)
     expect(
       within(dialog).getByText("No quote, scanned map")
     ).toBeInTheDocument()
