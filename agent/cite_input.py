@@ -61,6 +61,16 @@ def _name_hint(features: list[dict[str, Any]]) -> str | None:
     return None
 
 
+def cut_window(start: int, end: int, first_year: int) -> tuple[int, int]:
+    """At most the years one search reads, those nearest the first printing: a line is
+    most often reported as it is laid, just before a map first shows it. cite cuts a
+    longer window the same way."""
+    if end - start + 1 <= CITE_WINDOW_YEARS:
+        return start, end
+    end = min(end, max(min(first_year, end), start + CITE_WINDOW_YEARS - 1))
+    return end - CITE_WINDOW_YEARS + 1, end
+
+
 def default_window(first_year: int, editions: Editions) -> tuple[int, int] | None:
     """Between the last printing without it and the first with it, when store has both:
     the latest years of that gap, as many as one search reads. A line is most often
@@ -104,7 +114,7 @@ def build(
         (c.get("source_title") for c in claim.get("citations") or [] if c.get("source_title")),
         None,
     )
-    window = ask.years or default_window(year, editions)
+    window = cut_window(*ask.years, year) if ask.years else default_window(year, editions)
     ruled = list(dict.fromkeys([*_rejected(own, ask.attributes), *ask.ruled_out]))
     section: dict[str, Any] = {
         "pipe_id": pipeline["id"] if pipeline else feature["id"],

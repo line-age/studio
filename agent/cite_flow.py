@@ -22,7 +22,6 @@ from cite_input import FROM_CITE, TO_CITE, WORDS, CiteAsk, years_in
 from cite_result import CiteClaim, CiteResult
 from render import Read, feature_name, one_full_stop, value_words
 from schemas import Box, DraftStatement, Finding, FindingFlag, Ref, Statement
-from settings import CITE_WINDOW_YEARS
 
 # Agreed words (plan D13). Evals match them exactly.
 FOUND = "Found, not in store"
@@ -172,10 +171,8 @@ def check_request(
         return AskForPlaces(sections[0], attributes)
     if without and "without" not in said:
         return Refused(CITE_LINES["not_given"].format(what="Searching without towns"))
-    window = None
-    if years:
-        start, end = years[0], years[-1]
-        window = (start, min(end, start + CITE_WINDOW_YEARS - 1))
+    # Cut to what one search reads by cite_input.build, which knows the first printing.
+    window = (years[0], years[-1]) if years else None
     return CiteAsk(sections[0], attributes, places, window, ruled)
 
 

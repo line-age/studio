@@ -154,8 +154,8 @@ def test_steering_years_and_a_turned_down_value_reach_cite(world):
     chat = Chat(world, request(s01, **steer))
     chat.ask("Owner? Through Sampleton, 1928 to 1935, and it is not Other Gas Co.", [s01])
     [sent] = chat.cite.inputs
-    # The window is cut to the most one search reads.
-    assert sent["search_window"] == {"from": 1928, "to": 1929}
+    # Cut to the two years nearest the first printing (1932), as cite would cut it.
+    assert sent["search_window"] == {"from": 1931, "to": 1932}
     assert {"attribute": "Ownership", "value": "Other Gas Co."} in sent["ruled_out"]
 
 
