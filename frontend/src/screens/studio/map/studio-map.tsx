@@ -13,6 +13,7 @@ import { Icon } from "@/components/icons/icon"
 import { MapControl } from "@/components/map-control"
 import { ToolPalette } from "@/components/tool-palette"
 import { Button } from "@/components/ui/button"
+import { Kbd } from "@/components/ui/kbd"
 import {
   hasCriteria,
   sectionMatches,
@@ -40,7 +41,7 @@ import { HELP_STEPS } from "../help/steps"
 import { useCamera, useStudio } from "../studio-store"
 import { linesInLoop, type Point } from "./lasso"
 import { readMapColors } from "./map-colors"
-import { holdsAddKey, mapClick } from "./click-selection"
+import { addKeyName, holdsAddKey, mapClick } from "./click-selection"
 import { FollowMapToggle } from "./follow-map-toggle"
 import { statusesDrawn } from "./line-style"
 import { MapKey } from "./map-key"
@@ -612,8 +613,16 @@ export function StudioMap({ token }: { token: string }) {
         />
       )}
 
-      <div className="pointer-events-none absolute inset-x-3 bottom-3 flex justify-center *:pointer-events-auto">
-        <div data-tour="tools">
+      <div className="pointer-events-none absolute inset-x-3 bottom-3 flex flex-col items-center gap-2">
+        {/* How to select several: said once something is selected, while
+            the Select tool is in hand. It never takes a click. */}
+        {tool === "select" && selected.size > 0 && (
+          <p className="flex items-center gap-1.5 rounded-lg border bg-background px-2.5 py-1 type-ui-xs whitespace-nowrap text-muted-foreground shadow-map-control">
+            <Kbd>{addKeyName()}</Kbd>
+            click a line to add it or take it off
+          </p>
+        )}
+        <div data-tour="tools" className="pointer-events-auto">
           <ToolPalette
             value={tool}
             only={TOOLS}
