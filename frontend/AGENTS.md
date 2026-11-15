@@ -327,7 +327,8 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   has none; the source's own identifier; confidence. A note says when the citation backs
   more than one claim. Previous and Next step between the section's cited claims; Show
   on map and Done close the pop-up; Open source shows only when the citation has a web
-  address. On the left of the source list, a source viewer (`source-viewer.tsx`, Figma
+  address of its own or an archived copy, and links to whichever it has (own address
+  first). On the left of the source list, a source viewer (`source-viewer.tsx`, Figma
   `336:13243`) shows what the data holds: today every citation shows the unavailable
   kind, since Studio cannot yet serve scan images. Under a proposal, "Ask the Agent
   about this" (Figma `223:11018`), not "Decide in the Agent" (section 10, parked with
