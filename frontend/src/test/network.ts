@@ -205,3 +205,57 @@ export function evidenceNetwork(): Network {
     ],
   })
 }
+
+/**
+ * One section, Elm to Fir, with two cited claims (a scanned map with no web
+ * address, and a web source with a quote and an address) and one Unknown
+ * claim with no source: for the citation pop-up's own tests.
+ */
+export function citationPopupNetwork(): Network {
+  return parseNetwork({
+    version: 2,
+    name: "Citation pop-up test network",
+    editions: [{ id: "ed-1931", year: 1931, label: "1931 edition" }],
+    pipelines: [],
+    sections: [
+      {
+        id: "s-1",
+        code: "S-0001",
+        name: "Elm to Fir",
+        pipelineId: null,
+        editionIds: ["ed-1931"],
+        geometry: line([
+          [0, 0],
+          [1, 1],
+        ]),
+        claims: [
+          {
+            attribute: "Geometry",
+            value: "Traced line",
+            citations: [
+              {
+                source: "Invented trunk map, 1931",
+                role: "map_shows",
+                asOf: "1931-06",
+                sourceKind: "map_sheet",
+              },
+            ],
+          },
+          {
+            attribute: "Diameter",
+            value: "12 in",
+            citations: [
+              {
+                source: "Invented Gas Review, 1931",
+                role: "states",
+                quote: '"12 IN."',
+                url: "https://example.invalid/review",
+              },
+            ],
+          },
+          unknown("Owner"),
+        ],
+      },
+    ],
+  })
+}

@@ -1,5 +1,3 @@
-import { useState } from "react"
-
 import { Citation } from "@/components/citation"
 import { GroupLabel } from "@/components/group-label"
 import { Hint } from "@/components/hint"
@@ -13,9 +11,7 @@ import { Button } from "@/components/ui/button"
 import { pipelineLabel, sectionLabel } from "@/data/derive"
 import {
   citationLine,
-  confidenceWords,
   formatMadeAt,
-  editionWords,
   formatValid,
   PIPELINE_ROW,
   proposedEndsFor,
@@ -56,16 +52,7 @@ function AskAboutProposals({ refs }: { refs: AgentRef[] }) {
 
 function Detail({ section, claim }: { section: Section; claim: Claim }) {
   const close = useStudio((s) => s.closeAttribute)
-  // A claim with one source shows it open.
-  const [open, setOpen] = useState<ReadonlySet<number>>(
-    () => new Set(claim.citations.length === 1 ? [0] : [])
-  )
-  const toggle = (index: number) =>
-    setOpen((was) => {
-      const next = new Set(was)
-      if (!next.delete(index)) next.add(index)
-      return next
-    })
+  const openCitation = useStudio((s) => s.openCitation)
   const ends = proposedEndsFor(section, claim.attribute)
   const waiting = claim.proposals.length + ends.length
   return (
@@ -159,18 +146,9 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
                 <Citation
                   source={citation.source}
                   role={roleWords(citation.role)}
-                  edition={editionWords(citation)}
-                  locator={citation.locator}
-                  quote={citation.quote}
-                  identifier={citation.identifier}
-                  confidence={
-                    citation.confidence === undefined
-                      ? undefined
-                      : confidenceWords(citation.confidence)
+                  onClick={() =>
+                    openCitation(section.id, claim.attribute, index)
                   }
-                  file={citation.file}
-                  open={open.has(index)}
-                  onToggle={() => toggle(index)}
                 />
               </AddToAgentMenu>
             ))}

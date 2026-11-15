@@ -2,6 +2,7 @@ import { create } from "zustand"
 
 import type { Bounds, ListKind, Membership } from "@/data/derive"
 import { refKey, type AgentRef, type Question } from "@/data/question"
+import type { Claim } from "@/data/schema"
 import type { SectionStatus } from "@/data/status"
 
 /*
@@ -49,6 +50,13 @@ export interface AgentAttachment {
 
 /** The map tool in hand. Select clicks sections; Lasso draws a loop round them. */
 export type MapTool = "select" | "lasso"
+
+/** The citation pop-up's open claim and which of its citations is shown. */
+export interface OpenCitation {
+  sectionId: string
+  attribute: string
+  citationIndex: number
+}
 
 interface StudioState {
   /** Keep what has a section with this status. */
@@ -131,6 +139,8 @@ interface StudioState {
    * bottom of the right panel. Not in the URL.
    */
   pipelineEdit: PipelineEdit | null
+  /** The citation pop-up: null while closed. */
+  openedCitation: OpenCitation | null
 
   /** Choose a status; the one already chosen goes back to all. */
   setStatus: (status: SectionStatus | "all") => void
@@ -202,6 +212,19 @@ interface StudioState {
   clearAgentDraft: () => void
   /** Open the dock for choosing where sections go, or close it (null). */
   editPipeline: (edit: PipelineEdit | null) => void
+  /** Open the citation pop-up at one claim's citation; 0 when not given. */
+  openCitation: (
+    sectionId: string,
+    attribute: string,
+    citationIndex?: number
+  ) => void
+  closeCitation: () => void
+  /**
+   * Move the pop-up to the next or previous of the section's claims that
+   * carries a citation, in `claims` order; arriving at it selects its first
+   * citation. Does nothing past the first or the last.
+   */
+  stepClaim: (claims: readonly Claim[], direction: 1 | -1) => void
 }
 
 /** A question as sent, with what the screen needs to show it again. */
@@ -346,6 +369,7 @@ export const useStudio = create<StudioState>((set) => ({
   agentAsked: 0,
   sentQuestions: [],
   pipelineEdit: null,
+  openedCitation: null,
 
   setStatus: (status) =>
     set((s) => ({ status: s.status === status ? "all" : status })),
@@ -523,6 +547,27 @@ export const useStudio = create<StudioState>((set) => ({
         (a) => a.pipelineId !== pipelineId
       ),
     })),
+  openCitation: (sectionId, attribute, citationIndex = 0) =>
+    set({ openedCitation: { sectionId, attribute, citationIndex } }),
+  closeCitation: () => set({ openedCitation: null }),
+  stepClaim: (claims, direction) =>
+    set((s) => {
+      if (!s.openedCitation) return {}
+      const cited = claims.filter((c) => c.citations.length > 0)
+      const at = cited.findIndex(
+        (c) => c.attribute === s.openedCitation!.attribute
+      )
+      const next = at === -1 ? undefined : cited[at + direction]
+      return next
+        ? {
+            openedCitation: {
+              sectionId: s.openedCitation.sectionId,
+              attribute: next.attribute,
+              citationIndex: 0,
+            },
+          }
+        : {}
+    }),
 }))
 
 /** Zoom and centre change on every frame of a pan, so they get their own store. */

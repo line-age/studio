@@ -5,6 +5,7 @@ import { testNetwork } from "@/test/network"
 import { parseNetwork } from "./schema"
 import {
   NO_CRITERIA,
+  citedClaims,
   firstEdition,
   groupSelection,
   groupsLabel,
@@ -426,6 +427,34 @@ describe("sections in no pipeline", () => {
     const hits = search(looseGroups(), "s-0004")
     expect(hits[0].sections).toEqual([
       { sectionId: "s-4", name: "S-0004", code: null, reason: null },
+    ])
+  })
+})
+
+describe("citedClaims", () => {
+  it("keeps only the claims that carry a citation, in claim order", () => {
+    const [section] = testNetwork().sections
+    const withUncited = {
+      ...section,
+      claims: [
+        {
+          attribute: "Diameter",
+          value: "12 in",
+          citations: [{ source: "A map" }],
+          proposals: [],
+        },
+        { attribute: "Owner", value: null, citations: [], proposals: [] },
+        {
+          attribute: "Build date",
+          value: "1930",
+          citations: [{ source: "A map" }],
+          proposals: [],
+        },
+      ],
+    }
+    expect(citedClaims(withUncited).map((c) => c.attribute)).toEqual([
+      "Diameter",
+      "Build date",
     ])
   })
 })
