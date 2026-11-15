@@ -91,6 +91,26 @@ describe("the citation pop-up", () => {
     expect(screen.getByRole("button", { name: "Next claim" })).toBeDisabled()
   })
 
+  it("ignores ArrowRight and ArrowLeft while focus is in the source list", async () => {
+    const { user } = await openCitation("Geometry", /Invented trunk map, 1931/)
+    const dialog = screen.getByRole("dialog", {
+      name: "Geometry of Elm to Fir",
+    })
+    const sources = within(dialog).getByRole("list", { name: "Sources" })
+    const sourceButton = within(sources).getByRole("button", {
+      name: /Invented trunk map, 1931/,
+    })
+    sourceButton.focus()
+    await user.keyboard("{ArrowRight}")
+    expect(
+      screen.queryByRole("dialog", { name: "Geometry of Elm to Fir" })
+    ).toBeInTheDocument()
+    await user.keyboard("{ArrowLeft}")
+    expect(
+      screen.queryByRole("dialog", { name: "Geometry of Elm to Fir" })
+    ).toBeInTheDocument()
+  })
+
   it("closes on Esc and returns focus to the row that opened it", async () => {
     const { user, source } = await openCitation(
       "Geometry",
