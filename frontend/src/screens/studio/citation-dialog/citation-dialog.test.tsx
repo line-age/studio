@@ -62,7 +62,7 @@ describe("the citation pop-up", () => {
     const dialog = screen.getByRole("dialog", {
       name: "Diameter of Elm to Fir",
     })
-    expect(within(dialog).getByText("2 of 2")).toBeInTheDocument()
+    expect(within(dialog).getByText("2 of 3")).toBeInTheDocument()
   })
 
   it("disables Previous on the first cited claim, enables Next", async () => {
@@ -88,6 +88,8 @@ describe("the citation pop-up", () => {
     expect(hasDialogNamed("Geometry of Elm to Fir")).toBe(true)
     await user.keyboard("{ArrowRight}")
     expect(hasDialogNamed("Diameter of Elm to Fir")).toBe(true)
+    await user.click(screen.getByRole("button", { name: "Next claim" }))
+    expect(hasDialogNamed("Length of Elm to Fir")).toBe(true)
     expect(screen.getByRole("button", { name: "Next claim" })).toBeDisabled()
   })
 
@@ -167,6 +169,23 @@ describe("the citation pop-up", () => {
     const dialog = screen.getByRole("dialog")
     expect(within(dialog).getByText("Quote")).toBeInTheDocument()
     expect(within(dialog).getByText('"12 IN."')).toBeInTheDocument()
+  })
+
+  it("truncates a long source title instead of stretching the dialog", async () => {
+    await openCitation("Length", /Invented Review of Regional Gas/)
+    const dialog = screen.getByRole("dialog")
+    const sources = within(dialog).getByRole("list", { name: "Sources" })
+    const row = within(sources).getByText(/Invented Review of Regional Gas/)
+    expect(row.className).toContain("truncate")
+    expect(row.className).toContain("min-w-0")
+    // The row's flex ancestors must each carry min-w-0, or a flex item
+    // without it refuses to shrink below its text's full width and the
+    // dialog's header/footer buttons are pushed off-screen (Figma `315:359`
+    // keeps titles inside the dialog; frame 7, `362:13676`, shows the
+    // truncated case).
+    const column = dialog.querySelector(".max-h-80")
+    expect(column).not.toBeNull()
+    expect(column!.className).toContain("min-w-0")
   })
 
   it("gives every icon button an accessible name", async () => {
