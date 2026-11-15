@@ -84,3 +84,20 @@ describe("stepClaim", () => {
     expect(useStudio.getState().selectedAttribute).toBe("Diameter")
   })
 })
+
+describe("selectCitation", () => {
+  it("switches the open citation's index, keeping its section and claim", () => {
+    useStudio.getState().openCitation("s-1", "Geometry", 0)
+    useStudio.getState().selectCitation(1)
+    expect(useStudio.getState().openedCitation).toEqual({
+      sectionId: "s-1",
+      attribute: "Geometry",
+      citationIndex: 1,
+    })
+  })
+
+  it("does nothing with no citation open", () => {
+    useStudio.getState().selectCitation(1)
+    expect(useStudio.getState().openedCitation).toBeNull()
+  })
+})

@@ -225,6 +225,8 @@ interface StudioState {
    * citation. Does nothing past the first or the last.
    */
   stepClaim: (claims: readonly Claim[], direction: 1 | -1) => void
+  /** Switch the open citation to another of the same claim's citations. */
+  selectCitation: (citationIndex: number) => void
 }
 
 /** A question as sent, with what the screen needs to show it again. */
@@ -568,6 +570,12 @@ export const useStudio = create<StudioState>((set) => ({
           }
         : {}
     }),
+  selectCitation: (citationIndex) =>
+    set((s) =>
+      s.openedCitation
+        ? { openedCitation: { ...s.openedCitation, citationIndex } }
+        : {}
+    ),
 }))
 
 /** Zoom and centre change on every frame of a pan, so they get their own store. */

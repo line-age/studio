@@ -130,6 +130,25 @@ describe("the citation pop-up", () => {
     expect(useStudio.getState().selectedSectionId).toBe("s-1")
   })
 
+  it("shows the open citation's details, including the no-quote scanned map note", async () => {
+    await openCitation("Geometry", /Invented trunk map, 1931/)
+    const dialog = screen.getByRole("dialog")
+    expect(within(dialog).getByText("Shown on")).toBeInTheDocument()
+    expect(
+      within(dialog).getByText("1931 edition, as of 30 June 1931")
+    ).toBeInTheDocument()
+    expect(
+      within(dialog).getByText("No quote, scanned map")
+    ).toBeInTheDocument()
+  })
+
+  it("shows a cited quote under a Quote row", async () => {
+    await openCitation("Diameter", /Invented Gas Review, 1931/)
+    const dialog = screen.getByRole("dialog")
+    expect(within(dialog).getByText("Quote")).toBeInTheDocument()
+    expect(within(dialog).getByText('"12 IN."')).toBeInTheDocument()
+  })
+
   it("gives every icon button an accessible name", async () => {
     await openCitation("Geometry", /Invented trunk map, 1931/)
     const dialog = screen.getByRole("dialog")

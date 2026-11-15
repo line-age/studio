@@ -10,8 +10,10 @@ import { featureIdentity } from "@/data/evidence"
 
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
+import { CitationDetails } from "./citation-details"
 import { CitationFooter } from "./footer"
 import { CitationHeader } from "./header"
+import { SourceList } from "./source-list"
 
 /**
  * A citation opened from any claim's sources: its claim, feature, source and
@@ -22,6 +24,7 @@ export function CitationDialog() {
   const opened = useStudio((s) => s.openedCitation)
   const closeCitation = useStudio((s) => s.closeCitation)
   const stepClaim = useStudio((s) => s.stepClaim)
+  const selectCitation = useStudio((s) => s.selectCitation)
   const { sectionById } = useStudioData()
 
   const section = opened ? sectionById.get(opened.sectionId) : undefined
@@ -69,6 +72,14 @@ export function CitationDialog() {
               The sources cited for this claim.
             </DialogDescription>
             <CitationHeader section={section} claim={claim} />
+            <div className="-mx-4 flex max-h-80 flex-col overflow-y-auto border-y border-border-subtle">
+              <SourceList
+                citations={claim.citations}
+                selectedIndex={opened?.citationIndex ?? 0}
+                onSelect={selectCitation}
+              />
+              <CitationDetails citation={citation} section={section} />
+            </div>
             <CitationFooter section={section} citation={citation} />
           </>
         )}
