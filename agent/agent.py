@@ -829,6 +829,11 @@ def build_graph(
                 ]
             else:
                 records = cite_flow.findings_of(result, job["section_id"], len(findings) + 1)
+                try:
+                    feature = store.feature(job["section_id"])
+                    cite_flow.mark_held(records, [feature, *_with_merged(store, feature)[0]])
+                except StoreError:
+                    pass  # unread, a finding stays "not in store"; Propose checks again
                 for record in records:
                     findings[record["finding"]["handle"]] = record
                 report = cite_flow.report(

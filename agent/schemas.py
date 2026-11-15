@@ -260,6 +260,9 @@ class Finding(_Strict):
     places_matched: list[str] = Field(default_factory=list)
     # Of those, the ones the person typed in.
     places_given: list[str] = Field(default_factory=list)
+    # Store already holds this value for the section, and with which status: then it
+    # is not "not in store", and Propose is not offered.
+    in_store: Literal["accepted", "candidate", "rejected"] | None = None
     # Whether Propose may write it, and if not, why (a "by" build date, plan D12).
     proposable: bool = True
     not_proposable: str | None = None

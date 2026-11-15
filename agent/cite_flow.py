@@ -26,6 +26,9 @@ from schemas import Box, DraftStatement, Finding, FindingFlag, Ref, Statement
 # Agreed words (plan D13). Evals match them exactly.
 FOUND = "Found, not in store"
 IN_DOUBT = "Found, in doubt"
+# Found again: store already holds it (as accepted, a candidate or rejected).
+FOUND_IN_STORE = "Found, already in store as {status}"
+IN_STORE_WORDS = {"accepted": "accepted", "candidate": "a candidate", "rejected": "rejected"}
 CITE_LINES = {
     "ask_places": (
         "Which towns does it run between or through? I search the journals by place names. "
@@ -224,7 +227,10 @@ def reference(f: Finding) -> str:
 
 
 def finding_sentence(f: Finding, subject: str) -> str:
-    lead = IN_DOUBT if f.flags else FOUND
+    if f.in_store:
+        lead = FOUND_IN_STORE.format(status=IN_STORE_WORDS[f.in_store])
+    else:
+        lead = IN_DOUBT if f.flags else FOUND
     if f.attribute == "built":
         said = f"{subject}, {f.date_words}"
     else:
@@ -299,6 +305,17 @@ def findings_of(result: CiteResult, section_id: str, next_handle: int) -> list[d
             }
         )
     return out
+
+
+def mark_held(records: list[dict[str, Any]], features: list[dict[str, Any]]) -> None:
+    """A finding store already holds says so, and is not offered to Propose."""
+    for record in records:
+        held = held_in_store(record, features)
+        if held is not None:
+            f = record["finding"]
+            f["in_store"] = held["status"]
+            f["proposable"] = False
+            f["not_proposable"] = f"store already holds it ({IN_STORE_WORDS[held['status']]})"
 
 
 def reference_of(record: dict[str, Any]) -> str:

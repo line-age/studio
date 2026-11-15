@@ -339,3 +339,14 @@ def test_searching_the_same_years_again_is_allowed(world):
     again = chat.ask("Try the search again, same towns.")
     assert "finding" in kinds(again)
     assert chat.cite.inputs[-1]["search_window"] == {"from": 1931, "to": 1932}
+
+
+def test_a_value_store_already_holds_is_found_in_store_and_not_offered_to_propose(world):
+    s03 = world["codes"]["s03"]  # holds a candidate owner
+    held = next(c for c in world["features"][s03]["claims"] if c["attribute_key"] == "owner")
+    held["value_text"] = "Example Pipe Line Co."
+    chat = Chat(world, request(s03, places=["Sampleton"]))
+    out = chat.ask("Find the owner, through Sampleton.", [s03])
+    finding = next(s for s in out["answer"]["statements"] if s["kind"] == "finding")
+    assert finding["text"].startswith("Found, already in store as a candidate:")
+    assert finding["finding"]["proposable"] is False

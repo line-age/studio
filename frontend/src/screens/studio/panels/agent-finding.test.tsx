@@ -68,3 +68,26 @@ describe("a finding", () => {
     expect(screen.queryByRole("button", { name: "Propose" })).toBeNull()
   })
 })
+
+describe("a finding store already holds", () => {
+  it("says so and offers no Propose", () => {
+    const held = {
+      ...findings[0],
+      finding: {
+        ...findings[0].finding!,
+        in_store: "candidate" as const,
+        proposable: false,
+        not_proposable: "store already holds it (a candidate)",
+      },
+    }
+    render(
+      <ProposeFinding value={vi.fn()}>
+        <AgentStatementView statement={held} name={name} open={vi.fn()} />
+      </ProposeFinding>
+    )
+    expect(
+      screen.getByText("Found by cite, in store as a candidate")
+    ).toBeVisible()
+    expect(screen.queryByRole("button", { name: "Propose" })).toBeNull()
+  })
+})

@@ -87,6 +87,8 @@ export const agentFinding = z.object({
     .default([]),
   places_matched: z.array(z.string()).default([]),
   places_given: z.array(z.string()).default([]),
+  /** Store already holds this value, with this status: then it is not new. */
+  in_store: z.enum(["accepted", "candidate", "rejected"]).nullable().optional(),
   proposable: z.boolean().default(true),
   not_proposable: z.string().nullable().optional(),
 })

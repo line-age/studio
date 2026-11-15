@@ -54,6 +54,12 @@ function PageCrop({ finding }: { finding: AgentFinding }) {
   )
 }
 
+const IN_STORE = {
+  accepted: "accepted",
+  candidate: "a candidate",
+  rejected: "rejected",
+} as const
+
 function reference(f: AgentFinding): string {
   const issue = f.volume && f.number ? `, vol. ${f.volume} no. ${f.number}` : ""
   return `${f.journal}${issue}, ${f.date}, ${f.page}`
@@ -74,7 +80,11 @@ export function AgentFindingCard({
       aria-label={`Finding ${finding.handle}`}
     >
       <div className="flex flex-wrap items-center gap-1.5">
-        <Badge variant="ai">Found by cite, not in store</Badge>
+        <Badge variant="ai">
+          {finding.in_store
+            ? `Found by cite, in store as ${IN_STORE[finding.in_store]}`
+            : "Found by cite, not in store"}
+        </Badge>
         {doubt && <Badge variant="outline">In doubt</Badge>}
         <span className="type-ui-mono-xs text-muted-foreground">
           {finding.handle}
@@ -129,7 +139,7 @@ export function AgentFindingCard({
         )
       ) : (
         <p className="type-ui-xs text-muted-foreground">
-          Cannot be proposed: {finding.not_proposable}
+          Not offered to propose: {finding.not_proposable}
         </p>
       )}
     </div>

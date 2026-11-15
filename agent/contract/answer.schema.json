@@ -206,6 +206,23 @@
           "title": "Places Given",
           "type": "array"
         },
+        "in_store": {
+          "anyOf": [
+            {
+              "enum": [
+                "accepted",
+                "candidate",
+                "rejected"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "In Store"
+        },
         "proposable": {
           "default": true,
           "title": "Proposable",

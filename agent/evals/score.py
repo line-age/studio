@@ -11,7 +11,7 @@ import json
 import re
 from typing import Any
 
-from cite_flow import CITE_LINES, FOUND, IN_DOUBT
+from cite_flow import CITE_LINES, FOUND, IN_DOUBT, IN_STORE_WORDS
 from evals.make_world import scope
 from render import FIXED_LINES, feature_name
 
@@ -237,9 +237,15 @@ def _cite_problems(
             problems.append(f"{where}: the passage is on no page cite read")
         elif f.get("value") not in values:
             problems.append(f"{where}: cite did not find {f.get('value')!r} on that page")
-        if not text.startswith((FOUND + ":", IN_DOUBT + ":")):
-            problems.append(f"{where}: a finding does not say it is not in store")
-        if bool(f.get("flags")) != text.startswith(IN_DOUBT):
+        held = f.get("in_store")
+        lead = (
+            f"Found, already in store as {IN_STORE_WORDS[held]}:"
+            if held
+            else (IN_DOUBT if f.get("flags") else FOUND) + ":"
+        )
+        if not text.startswith(lead):
+            problems.append(f"{where}: a finding does not say whether it is in store")
+        if not held and bool(f.get("flags")) != text.startswith(IN_DOUBT):
             problems.append(f"{where}: a finding in doubt must say so, and only then")
         return problems
     if kind == "ask_places":
