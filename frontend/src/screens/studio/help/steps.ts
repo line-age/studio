@@ -73,7 +73,7 @@ export const HELP_STEPS: readonly HelpStep[] = [
   {
     id: "agent-panel",
     title: "Asking the Agent",
-    body: 'What you handed over sits with your message as attachments; a starter question puts its words in the box, and you can change them. An answer shows what the Agent read above it, each statement\'s source beside it and sections as links; click any to open it. "Worked out" marks what the Agent worked out itself, and "Lead, not in store" marks where to look next: neither is a claim. On the sample, a question stays here with a line that says the Agent cannot answer yet.',
+    body: 'What you handed over sits with your message as attachments; a starter question puts its words in the box, and you can change them. An answer shows what the Agent read above it, each statement\'s source beside it and sections as links; click any to open it. "Inferred" marks what the Agent concluded from what store holds, which no source states, and "Lead, not in store" marks where to look next: neither is a claim. On the sample, a question stays here with a line that says the Agent cannot answer yet.',
     targets: ["agent-panel"],
     needs: "agent",
   },

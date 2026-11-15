@@ -70,7 +70,7 @@ describe("a statement", () => {
     }
     render(<AgentStatementView statement={bare} name={name} open={vi.fn()} />)
     expect(screen.getByText("Store holds no source")).toBeInTheDocument()
-    expect(screen.queryByText(/not in store ·|Worked out ·/)).toBeNull()
+    expect(screen.queryByText(/not in store ·|Inferred ·/)).toBeNull()
   })
 })
 
@@ -156,5 +156,20 @@ describe("counting what was read", () => {
     expect(
       screen.getByRole("button", { name: /Read 4 things in store/ })
     ).toBeInTheDocument()
+  })
+})
+
+describe("an inferred statement", () => {
+  it("says what Inferred means when the word is hovered or focused", async () => {
+    const inferred: AgentStatement = {
+      kind: "worked_out",
+      text: "section 11111111 is first traced on the 1932 printing.",
+      refs: [{ type: "feature", id: SECTION, label: "section 11111111" }],
+    }
+    render(
+      <AgentStatementView statement={inferred} name={name} open={vi.fn()} />
+    )
+    await userEvent.tab()
+    expect(await screen.findByText(/No source states this/)).toBeInTheDocument()
   })
 })

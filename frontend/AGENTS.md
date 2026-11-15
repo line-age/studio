@@ -319,7 +319,8 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   `steps` state; folded after, "Read 4 things in store"); what a statement rests on is a
   neutral source pill that opens the claim, its state said in the sentence; a section
   the sentence names is a link in the text; a worked-out fact or a lead carries a grey
-  prefix ("Worked out", "Lead, not in store") and is never shown as a claim; "Used n
+  prefix ("Inferred", with what it means on hover; "Lead, not in store") and is never
+  shown as a claim; "Used n
   sources" ends it. What cite found is a finding card under its sentence
   (`panels/agent-finding.tsx`, stock parts, not in Figma yet): the AI badge "Found by
   cite, not in store", the page's own words, the passage marked on a crop of the page,

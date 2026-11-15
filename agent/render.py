@@ -118,7 +118,7 @@ def failure(line: str = "check_failed") -> Answer:
 
 # How a statement that is not a claim is marked when the answer is read as plain text.
 # Studio shows the same kinds as a grey prefix.
-KIND_PREFIX = {"worked_out": "Worked out: ", "lead": "Lead, not in store: "}
+KIND_PREFIX = {"worked_out": "Inferred: ", "lead": "Lead, not in store: "}
 
 
 def as_text(answer: Answer) -> str:

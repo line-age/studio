@@ -2,6 +2,11 @@ import { createContext, use, type ReactNode } from "react"
 
 import { Icon } from "@/components/icons/icon"
 import { Badge } from "@/components/ui/badge"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import type { AgentAnswerRef, AgentStatement } from "@/data/agent/answer"
 
 import { AgentFindingCard } from "./agent-finding"
@@ -14,16 +19,22 @@ export const ProposeFinding = createContext<((handle: string) => void) | null>(
 /*
  * One statement of an answer (Figma section 13). Each kind of thing has its
  * own look, so none is taken for another:
- *  - the kind, when it is not a claim: a grey prefix ("Worked out", "Lead,
- *    not in store");
+ *  - the kind, when it is not a claim: a grey prefix ("Inferred", "Lead,
+ *    not in store"), with what it means on hover where the word is not enough;
  *  - a section the sentence names: a link in the text, which opens it;
  *  - what it rests on: a neutral pill with the source icon, the source and
  *    page; a click opens the claim. Its state is in the sentence's words.
  */
 
 export const KIND_PREFIX: Partial<Record<AgentStatement["kind"], string>> = {
-  worked_out: "Worked out",
+  worked_out: "Inferred",
   lead: "Lead, not in store",
+}
+
+/** What a prefix means, shown on hover or focus. */
+export const KIND_MEANS: Partial<Record<AgentStatement["kind"], string>> = {
+  worked_out:
+    "Concluded from what store holds, such as which maps show the line. No source states this, so it is not a claim.",
 }
 
 /** The things a sentence names that can be opened, by the words it uses. */
@@ -80,6 +91,36 @@ function withLinks(
   return { nodes, linked }
 }
 
+function KindPrefix({
+  kind,
+  prefix,
+}: {
+  kind: AgentStatement["kind"]
+  prefix: string
+}) {
+  const means = KIND_MEANS[kind]
+  const grey = "type-ui-sm-medium text-muted-foreground"
+  if (!means) return <span className={grey}>{prefix} · </span>
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <span
+              tabIndex={0}
+              className={`${grey} rounded-sm underline decoration-dotted underline-offset-2 outline-none focus-visible:shadow-focus-ring`}
+            />
+          }
+        >
+          {prefix}
+        </TooltipTrigger>
+        <TooltipContent className="max-w-64">{means}</TooltipContent>
+      </Tooltip>
+      <span className={grey}> · </span>
+    </>
+  )
+}
+
 export function AgentStatementView({
   statement,
   name,
@@ -111,11 +152,7 @@ export function AgentStatementView({
   return (
     <div className="flex flex-col gap-1" data-kind={statement.kind}>
       <p className="type-ui-sm">
-        {prefix && (
-          <span className="type-ui-sm-medium text-muted-foreground">
-            {prefix} ·{" "}
-          </span>
-        )}
+        {prefix && <KindPrefix kind={statement.kind} prefix={prefix} />}
         {nodes}
       </p>
       {statement.finding && (
