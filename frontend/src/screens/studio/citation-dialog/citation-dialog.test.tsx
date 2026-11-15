@@ -178,14 +178,27 @@ describe("the citation pop-up", () => {
     const row = within(sources).getByText(/Invented Review of Regional Gas/)
     expect(row.className).toContain("truncate")
     expect(row.className).toContain("min-w-0")
-    // The row's flex ancestors must each carry min-w-0, or a flex item
-    // without it refuses to shrink below its text's full width and the
-    // dialog's header/footer buttons are pushed off-screen (Figma `315:359`
-    // keeps titles inside the dialog; frame 7, `362:13676`, shows the
-    // truncated case).
+    // Every ancestor up to DialogContent's own grid must carry min-w-0, or
+    // whichever one lacks it refuses to shrink below its text's full width
+    // and the dialog's header/footer buttons are pushed off-screen (Figma
+    // `315:359` keeps titles inside the dialog; frame 7, `362:13676`, shows
+    // the truncated case). DialogContent itself is a CSS grid, so each
+    // direct child (header row, content row, footer row) is a grid item
+    // that needs the same min-w-0 floor removed as a flex item would.
+    expect(sources.className).toContain("min-w-0")
     const column = dialog.querySelector(".max-h-80")
     expect(column).not.toBeNull()
     expect(column!.className).toContain("min-w-0")
+    const contentRow = column!.parentElement!
+    expect(contentRow.className).toContain("min-w-0")
+    const header = screen
+      .getByRole("button", { name: "Previous claim" })
+      .closest("[data-slot='dialog-header']")!
+    expect(header.className).toContain("min-w-0")
+    const footer = screen
+      .getByRole("button", { name: "Done" })
+      .closest("[data-slot='dialog-footer']")!
+    expect(footer.className).toContain("min-w-0")
   })
 
   it("gives every icon button an accessible name", async () => {
