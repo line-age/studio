@@ -59,6 +59,14 @@ const citation = z.object({
   identifier: z.string().min(1).optional(),
   /** How sure whoever cited it was, from 0 to 1. Absent when not given. */
   confidence: z.number().min(0).max(1).optional(),
+  /** The source's own address on the web, where it has one. */
+  url: z.string().min(1).optional(),
+  /** A captured copy's address (for example, the Wayback Machine), where there is one. */
+  archiveUrl: z.string().min(1).optional(),
+  /** The source's id in store, so citations of the same source group together. */
+  sourceId: z.string().min(1).optional(),
+  /** The source's kind, as store names it: "map_sheet", a web page, a text document. */
+  sourceKind: z.string().min(1).optional(),
 })
 
 const proposal = z.object({

@@ -53,6 +53,10 @@ interface Citation {
   locator?: string
   file?: string
   quote?: string
+  url?: string
+  archiveUrl?: string
+  sourceId?: string
+  sourceKind?: string
 }
 
 interface Claim {
@@ -109,6 +113,10 @@ const toCitation = (c: StoreCitation): Citation => ({
   ...(typeof c.confidence === "number" && c.confidence >= 0 && c.confidence <= 1
     ? { confidence: c.confidence }
     : {}),
+  ...(c.url ? { url: c.url } : {}),
+  ...(c.archive_url ? { archiveUrl: c.archive_url } : {}),
+  sourceId: c.source_id,
+  sourceKind: c.source_kind,
 })
 
 /** The day a claim was made, from store's timestamp. */

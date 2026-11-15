@@ -6,14 +6,21 @@ import {
   citationLine,
   confidenceWords,
   editionWords,
+  featureIdentity,
   formatAsOf,
   formatMadeAt,
   formatValid,
+  groupBySource,
+  noQuoteWords,
+  passagesWords,
   proposalCount,
   proposedEndsFor,
   proposedEndWords,
   roleWords,
   shownBy,
+  supportsCountFor,
+  supportsWords,
+  viewerKindFor,
 } from "./evidence"
 import { needsDecision } from "./status"
 
@@ -147,6 +154,106 @@ describe("a proposed end or cut", () => {
     expect(proposalCount(withEnds, lastSeen)).toBe(1)
     expect(needsDecision(section)).toBe(false)
     expect(needsDecision(withEnds)).toBe(true)
+  })
+})
+
+describe("a citation pop-up's sources", () => {
+  it("groups citations by source, counting passages shared by one", () => {
+    const citations = [
+      { source: "Source A", sourceId: "src-a", locator: "p. 1" },
+      { source: "Source A", sourceId: "src-a", locator: "p. 2" },
+      { source: "Source B", sourceId: "src-b" },
+    ]
+    const groups = groupBySource(citations)
+    expect(groups).toHaveLength(2)
+    expect(groups[0].citations).toHaveLength(2)
+    expect(passagesWords(groups[0].citations.length)).toBe("2 passages")
+    expect(passagesWords(groups[1].citations.length)).toBeUndefined()
+  })
+
+  it("decides the viewer from what a reader can reach", () => {
+    expect(
+      viewerKindFor({ source: "A page", url: "https://example.invalid" })
+    ).toBe("web")
+    expect(viewerKindFor({ source: "A text", quote: '"12 IN."' })).toBe("web")
+    expect(viewerKindFor({ source: "A map", sourceKind: "map_sheet" })).toBe(
+      "unavailable"
+    )
+  })
+
+  it("notes a scan with no quote as carrying none to show", () => {
+    expect(noQuoteWords({ source: "Sheet", sourceKind: "map_sheet" })).toBe(
+      "No quote, scanned map"
+    )
+    expect(
+      noQuoteWords({ source: "Sheet", sourceKind: "map_sheet", quote: "text" })
+    ).toBeUndefined()
+    expect(noQuoteWords({ source: "Page", sourceKind: "web" })).toBeUndefined()
+  })
+
+  it("counts a citation across every claim it backs, by id or by place", () => {
+    const [section] = testNetwork().sections
+    const shared = {
+      id: "cit-1931",
+      source: "Invented trunk map, 1931",
+      role: "map_shows" as const,
+      asOf: "1931-06",
+    }
+    const withShared = {
+      ...section,
+      claims: [
+        {
+          attribute: "Geometry",
+          value: "Traced line",
+          citations: [shared],
+          proposals: [],
+        },
+        {
+          attribute: "Status",
+          value: "operational",
+          citations: [shared],
+          proposals: [],
+        },
+        {
+          attribute: "First seen",
+          value: "1931",
+          citations: [shared],
+          proposals: [],
+        },
+      ],
+    }
+    expect(supportsCountFor(withShared, shared)).toBe(3)
+    expect(supportsWords(3)).toBe("Supports 3 claims")
+    expect(supportsWords(1)).toBeUndefined()
+
+    // Two citations with no id, the same source and place, count as one.
+    const noId = { source: "A journal", locator: "p. 41" }
+    const samePlace = {
+      ...section,
+      claims: [
+        {
+          attribute: "Owner",
+          value: "Alder Gas Co.",
+          citations: [noId],
+          proposals: [],
+        },
+        {
+          attribute: "Operator",
+          value: "Alder Gas Co.",
+          citations: [{ ...noId }],
+          proposals: [],
+        },
+      ],
+    }
+    expect(supportsCountFor(samePlace, noId)).toBe(2)
+  })
+
+  it("gives a section with no name its own identity line", () => {
+    const [section] = testNetwork().sections
+    expect(featureIdentity(section)).toBe("Alder to Birch")
+    expect(featureIdentity({ ...section, name: null })).toBe(
+      "Unnamed gas section"
+    )
   })
 })
 
