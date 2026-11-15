@@ -26,6 +26,8 @@ KEEPS = {
     "B20": ["B01", "B02", "B17", "B18", "B19"],
     # Searching with cite: each keeps what store says (B01, B02) and the leads (B20).
     **{b: ["B01", "B02", "B20"] for b in ("B21", "B22", "B23", "B24", "B25", "B26", "B27")},
+    # Proposing a pipeline: a question about a pipeline still reads store (B18).
+    "B28": ["B01", "B02", "B18"],
 }
 LABELS = ("agent-draft", "person")
 # Behaviours about searching with cite: their cases always run with the fake cite.
@@ -69,6 +71,11 @@ class Case:
         return bool(self.turns or self.cite) or self.behaviour in SEARCHING
 
     @property
+    def acts(self) -> bool:
+        """A button is pressed in it (an action): it runs with a proposal client."""
+        return any(q.get("action") for q in (self.question, *self.turns))
+
+    @property
     def example_id(self) -> str:
         """A stable id for the LangSmith dataset, so a re-sync updates and never copies."""
         return str(uuid.uuid5(NAMESPACE, self.id))
@@ -104,7 +111,10 @@ def question_for(
             about.append({"kind": item["kind"], "id": world["codes"][item["code"]], "on": None})
     out = {"words": question["words"], "about": about, "network": "gas"}
     if question.get("action"):
-        out["action"] = question["action"]
+        action = dict(question["action"])
+        if "section_ids" in action:  # the world's codes, as for `about`
+            action["section_ids"] = [world["codes"].get(c, c) for c in action["section_ids"]]
+        out["action"] = action
     return out
 
 

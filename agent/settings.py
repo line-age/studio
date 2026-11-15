@@ -20,8 +20,9 @@ CITE_WINDOW_YEARS = 2
 @dataclass(frozen=True)
 class Settings:
     model: str
+    # Store is read with no token: store takes a request with none as the local person
+    # (development, while there are no users). The read client sends GET only.
     store_url: str
-    store_token: str = field(repr=False)
     # cite's Agent Server. Empty: the Agent cannot search, and says what it would ask for.
     cite_url: str = ""
     # A second store token, minted for the pipeline `cite@<version>`: the only one that
@@ -80,7 +81,6 @@ def load() -> Settings:
     return Settings(
         model=os.environ.get("AGENT_MODEL", "anthropic:claude-sonnet-5-5"),
         store_url=os.environ.get("STORE_URL", "http://localhost:47110").rstrip("/"),
-        store_token=os.environ.get("STORE_TOKEN", ""),
         cite_url=os.environ.get("CITE_URL", "").rstrip("/"),
         cite_store_token=os.environ.get("STORE_CITE_TOKEN", ""),
     )

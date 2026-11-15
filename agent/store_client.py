@@ -3,7 +3,8 @@
 Four things happen here and nowhere else, so neither the model nor a trace can get
 around them:
 
-- Only GET requests leave. The Agent's token could propose; this client cannot.
+- Only GET requests leave, with no token: store takes a request with none as the local
+  person, so this client must never be able to write.
 - What comes back is cut down to the fields listed below. People's names, and the fields
   known to carry them, are not on the list.
 - Attribute keys are checked: store's `/missing` does not check them and answers a
@@ -190,18 +191,16 @@ class StoreClient:
     def __init__(
         self,
         base_url: str,
-        token: str,
         *,
         transport: httpx.BaseTransport | None = None,
         timeout: float = 30.0,
     ):
         self._http = httpx.Client(
             base_url=check_store_url(base_url),
-            headers={"Authorization": f"Bearer {token}"},
             transport=transport,
             timeout=timeout,
             follow_redirects=False,
-            # Never send the token through a proxy picked up from the environment.
+            # Never send what store answers through a proxy picked up from the environment.
             trust_env=False,
             event_hooks={"request": [_only_get]},
         )

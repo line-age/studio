@@ -306,13 +306,17 @@ export function toNetwork(
     { id: string; pipelineId: string; score: number; proposer?: string }[]
   >()
   const confirmedIn = new Map<string, string>()
+  const membershipOf = new Map<string, string>()
   for (const link of links) {
     if (link.relation !== "part_of") continue
     const [sectionId, lineId] = sectionIds.has(link.from_feature_id)
       ? [link.from_feature_id, link.to_feature_id]
       : [link.to_feature_id, link.from_feature_id]
     if (!sectionIds.has(sectionId) || sectionIds.has(lineId)) continue
-    if (link.status === "confirmed") confirmedIn.set(sectionId, lineId)
+    if (link.status === "confirmed") {
+      confirmedIn.set(sectionId, lineId)
+      membershipOf.set(sectionId, link.id)
+    }
     if (link.status !== "proposed") continue
     const proposer = toolName(link)
     proposedIn.set(sectionId, [
@@ -482,6 +486,9 @@ export function toNetwork(
       code: shortId(feature.id),
       name: feature.label ? feature.label : null,
       pipelineId: pipelineOf(feature.id),
+      ...(membershipOf.has(feature.id)
+        ? { membershipId: membershipOf.get(feature.id) }
+        : {}),
       proposedMemberships: proposedIn.get(feature.id) ?? [],
       editionIds: editionIds.length > 0 ? editionIds : [editions[0].id],
       geometry: lineGeometry(route.value_geom, feature.id),

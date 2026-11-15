@@ -122,8 +122,11 @@ export const agentStatement = z.object({
     "searched",
     // A search waits for the towns along the line.
     "ask_places",
-    // A finding the person proposed, now a candidate claim in store.
+    // A finding the person proposed, now a candidate claim in store; or a
+    // pipeline the person proposed, now a line with proposed memberships.
     "proposed",
+    // The attached sections could be proposed as one pipeline, on a button.
+    "pipeline_offer",
   ]),
   text: z.string(),
   refs: z.array(agentAnswerRef).default([]),
@@ -145,6 +148,17 @@ export const agentStatement = z.object({
   rule: leadRule.nullable().optional(),
   /** For a finding: the passage, the page and whether it may be proposed. */
   finding: agentFinding.nullable().optional(),
+  /**
+   * For a pipeline offer: the sections, and those already confirmed in a
+   * pipeline (proposed too; they stay where they are until a person moves them).
+   */
+  pipeline: z
+    .object({
+      section_ids: z.array(z.string()),
+      in_pipeline: z.array(z.string()).default([]),
+    })
+    .nullable()
+    .optional(),
 })
 
 export const agentAnswer = z.object({

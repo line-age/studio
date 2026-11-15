@@ -17,9 +17,10 @@ chat as references; groups the one list by edition or by pipeline; keeps the vie
 URL; walks a first-time visitor through the screen with a Help tour, and explains each
 area and the words in a Help dialog; lets a person ask the Agent about a section, a
 claim, a source or a proposal with questions that only read, keeps a sent question in
-the thread, and shows an answer's statements with what each rests on. Nothing can be
-edited and the Agent does not answer yet: a sent question goes nowhere, and the thread
-says so. The repo `README.md` one level
+the thread, and shows an answer's statements with what each rests on; makes, changes
+and takes sections out of pipelines from the right-click menu, and decides what tools
+proposed (pipelines, ends, candidate claims) in the Agent's inbox, as the person using
+it (2026-11-15, plan 005). The repo `README.md` one level
 up shows it with screenshots; keep those current when the screen changes visibly.
 
 The workspace `AGENTS.md` two levels up holds the project-wide rules and the full Figma
@@ -165,8 +166,22 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - Counts and statuses are derived in `src/data/derive.ts`, never stored or hard-coded.
 - Data comes from a fixture or from store, chosen by `VITE_DATA_SOURCE`, and only through
   `loadNetwork()`. One never stands in for the other when it fails. The app reaches store
-  at its own `/store` path; the dev server and nginx add the token. No token, and no
-  name starting with `VITE_` that holds one, ever goes in the code or the bundle.
+  at its own `/store` path, which the dev server and nginx pass on with no token: while
+  there are no users, store takes a request with none as the local person ("Local
+  developer"), who reads and decides (plan 005, D3). No token, and no name starting with
+  `VITE_` that holds one, ever goes in the code or the bundle.
+- Writing (plan 005). `src/data/store/write.ts` is the frontend's only place for store's
+  write shapes: pure bundle builders (`placeBundle` makes a pipeline, adds to one, moves
+  and takes out: the membership left is rejected, the new one confirmed, in one bundle;
+  `decideMembershipsBundle`), the reviews, and refusals in words (`WriteError`). Every
+  new row has an external key from the action's key, made when the person presses it, so
+  a retry makes nothing twice. `src/data/changes.ts` holds every change as one type
+  (`Change`): `applyChange` makes it in memory on the sample (tests, demo),
+  `sendChange` sends it to store; `change()` on the data provider picks one and, on
+  store, reads the network again once store answers. Nothing shows as done before that.
+  A section is in one pipeline for its whole life: leaving one says it was wrong. A
+  proposed pipeline is decided whole; a confirm leaves a section already in another
+  pipeline where it is, with its proposal (D2).
 - `src/data/store/to-network.ts` is the only place that knows store's shapes. It shows
   accepted claims as cited values, candidate claims as proposals and everything else as
   Unknown. A `line` is a pipeline: a section is in it once its `part_of` link is
@@ -192,8 +207,9 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   Last seen; a proposed `overlaps` link is a proposed cut, shown on Geometry
   (`section.proposedEnds`, Figma `211:8081` and `211:8327`). Each says what is proposed,
   by which tool and the score, and counts toward "Needs your decision". While that
-  claim is open the map draws the line traced as gone, dashed. There is no button to
-  decide. Last seen stays Unknown until a person confirms the link in store; then it is
+  claim is open the map draws the line traced as gone, dashed. A proposed end is
+  decided in the Agent's inbox; a proposed cut has no button anywhere (store would take a
+  confirm with its default cut). Last seen stays Unknown until a person confirms the link in store; then it is
   cited to both maps (Figma `213:8036`).
 - One list, one rail item ("Network"), grouped by the "Group by" select
   (`panels/group-by-select.tsx`; Figma section 12, `237:10367`; the owner, 2026-11-13).
@@ -273,7 +289,13 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   the tokens. No raw colour in map code either.
 - Not designed means not built: nothing new until Figma has it. Section 7 of the Studio
   page has the status counts, in-place filters, layers button, Settings and the table.
-  The one menu is the right click (stock shadcn Context Menu, the owner's request):
+  The one menu is the right click (stock shadcn Context Menu, the owner's request).
+  At its top, the changes (`pipeline-actions.ts`, Figma `213:8451`, `209:7993`): on one
+  section "Change pipeline", which opens the dock at the bottom of the right panel
+  (`panels/pipeline-dock.tsx`, `209:8268`: Move to a pipeline, Not in a pipeline or New
+  pipeline, then Change); on several, "Make pipeline" (at once; the new pipeline has no
+  name until a source gives one) and "Add to a pipeline" (the dock). The dock then says
+  what the change came to, or why store refused it. Below them,
   "Add to the Agent chat" everywhere, and above it the starter questions that only read
   (`starters.ts`): "What does store say about this?" on a section, a claim or a source,
   "What surrounds this section?" and "What could we look for here?" on a section,
@@ -305,6 +327,14 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - The selection is a set of sections (`selection` in the Studio store) and may span
   pipelines. Derive pipelines from it with `groupSelection`; do not store a selected
   pipeline. Use `aria-label` on icon-only buttons.
+- The Agent's inbox (`panels/agent-inbox.tsx`, Figma `216:9658`), above the chat:
+  "n proposals waiting", folded until opened, then every proposal on a ProposalCard
+  (the Proposed badge, the tool that proposed it, now and proposed, why) with its
+  decision: a proposed pipeline "Confirm all n" (or "Confirm m" when some sections are
+  already in another pipeline, which the card says) and "Reject all"; a proposed end
+  Confirm and Reject; a candidate claim, cite's findings among them, Accept and Reject;
+  a proposed cut no button. Read from the network, no model; twenty at a time. The
+  claim detail still decides nothing: its proposal points to the Agent.
 - Asking (`src/data/question.ts`): a question carries the words, each attached thing by
   kind and store id (or its section and attribute when the data has no id), the edition
   in force and the network; `buildQuestion` makes it, and nothing else leaves the

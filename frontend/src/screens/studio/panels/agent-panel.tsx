@@ -22,6 +22,7 @@ import { dataSource } from "@/data/load-network"
 
 import { HidePanels } from "../panel-toggle"
 import { AgentConversation, type Agent } from "./agent-conversation"
+import { AgentInbox } from "./agent-inbox"
 import { useStudioData } from "../studio-data"
 import { useStudio, type SentQuestion } from "../studio-store"
 
@@ -392,6 +393,7 @@ export function AgentPanel() {
       <PanelHeader title="Agent" divider>
         <HidePanels />
       </PanelHeader>
+      <AgentInbox />
       {fromStore ? (
         <AgentConversation composer={(agent) => composer(agent)} />
       ) : (

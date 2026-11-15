@@ -3,8 +3,9 @@ import { z } from "zod"
 /*
  * Reading from store, the Lineage database's API. The browser never talks to
  * store itself: it asks this app's own origin at /store, and the server in
- * front (Vite in development, nginx in the container) passes the request on
- * with the token. So no token is ever in this code or in the bundle.
+ * front (Vite in development, nginx in the container) passes the request on.
+ * No token: store takes a request with none as the local person while there
+ * are no users. Writing is in write.ts.
  *
  * Only the fields Studio uses are read. The name of whoever asserted or
  * reviewed a claim is in store's answer and is left out here on purpose. For a
@@ -21,7 +22,7 @@ export type StoreErrorKind = "unreachable" | "refused" | "unreadable"
 
 const messages: Record<StoreErrorKind, string> = {
   unreachable: "Store cannot be reached.",
-  refused: "Store refused the token.",
+  refused: "Store refused the request.",
   unreadable: "Store answered in a form Studio does not understand.",
 }
 
@@ -131,7 +132,7 @@ async function get<T>(path: string, schema: z.ZodType<T>): Promise<T> {
   if (response.status === 401 || response.status === 403) {
     throw new StoreError(
       "refused",
-      `${path} answered ${response.status}. Check STORE_TOKEN.`
+      `${path} answered ${response.status}. Does store take a request with no token?`
     )
   }
   if ([502, 503, 504].includes(response.status)) {

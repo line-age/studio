@@ -1,4 +1,13 @@
-import { createContext, use, useMemo, type ReactNode } from "react"
+import {
+  createContext,
+  use,
+  useCallback,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react"
+
+import { applyChange, sendChange, type Change } from "@/data/changes"
 
 import {
   defaultList,
@@ -14,7 +23,9 @@ import {
   type SectionCriteria,
   type SelectionGroup,
 } from "@/data/derive"
+import { dataSource, type DataSource } from "@/data/load-network"
 import type { Network, Section } from "@/data/schema"
+import { actionKey } from "@/data/store/write"
 import { statesBySection, type StatesLookup } from "@/data/us-states"
 
 import { useSettings } from "./settings"
@@ -30,6 +41,16 @@ interface StudioData {
   network: Network
   /** Read the network again, as after the Agent proposed a claim. */
   reload: () => void
+  /** Where the network comes from: the sample, or store. */
+  source: DataSource
+  /**
+   * Make a change as the person using Studio. On store it is sent and the
+   * network read again once store says it is done; on the sample it is made
+   * in memory. Throws a WriteError (in words) when store refuses it. `key`
+   * is the action's key, made when the person pressed it: a retry passes the
+   * same one, so nothing is made twice.
+   */
+  change: (change: Change, key?: string) => Promise<void>
   /** How the list is grouped: by pipeline, or by edition. */
   list: ListKind
   /** Every row of the list, whatever the filters say. */
@@ -57,14 +78,32 @@ const noReload = () => undefined
 export function StudioDataProvider({
   network,
   reload = noReload,
+  source = dataSource(),
   children,
 }: {
   /** A promise from loadNetwork(). Suspends until it settles. */
   network: Promise<Network>
   reload?: () => void
+  source?: DataSource
   children: ReactNode
 }) {
-  const loaded = use(network)
+  const fetched = use(network)
+  // The sample, as changed in memory since it was loaded.
+  const [edited, setEdited] = useState<{ from: Network; to: Network } | null>(
+    null
+  )
+  const loaded = edited?.from === fetched ? edited.to : fetched
+  const change = useCallback(
+    async (change: Change, key = actionKey()) => {
+      if (source === "store") {
+        await sendChange(loaded, change, key)
+        reload()
+        return
+      }
+      setEdited({ from: fetched, to: applyChange(loaded, change, key) })
+    },
+    [source, loaded, fetched, reload]
+  )
   const rule = useSettings((s) => s.requiredAttributes)
   const chosen = useStudio((s) => s.list)
 
@@ -83,6 +122,8 @@ export function StudioDataProvider({
     return {
       network: loaded,
       reload,
+      source,
+      change,
       list,
       summaries,
       everySection,
@@ -92,7 +133,7 @@ export function StudioDataProvider({
       summaryById: new Map(summaries.map((s) => [s.id, s])),
       sectionById: new Map(loaded.sections.map((s) => [s.id, s])),
     }
-  }, [loaded, rule, chosen, editionYears, statesOf, reload])
+  }, [loaded, rule, chosen, editionYears, statesOf, reload, source, change])
 
   return <StudioDataContext value={value}>{children}</StudioDataContext>
 }

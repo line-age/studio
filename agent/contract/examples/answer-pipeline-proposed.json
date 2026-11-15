@@ -1,0 +1,73 @@
+{
+  "version": 2,
+  "checked": true,
+  "statements": [
+    {
+      "kind": "proposed",
+      "text": "Proposed a pipeline of 3 sections. Decide it in the inbox.",
+      "refs": [
+        {
+          "type": "feature",
+          "id": "10055830-c09e-5d09-bdfe-0917da1bcca6",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "pipeline 2681aba0",
+          "source": null,
+          "quote": null,
+          "url": null,
+          "role": null,
+          "as_of": null
+        },
+        {
+          "type": "feature",
+          "id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "section 06a875ca",
+          "source": null,
+          "quote": null,
+          "url": null,
+          "role": null,
+          "as_of": null
+        },
+        {
+          "type": "feature",
+          "id": "ca5d65a4-bfa9-5734-8d8a-f08fe72a8bb2",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "Sampletown lateral",
+          "source": null,
+          "quote": null,
+          "url": null,
+          "role": null,
+          "as_of": null
+        },
+        {
+          "type": "feature",
+          "id": "18dd9183-6303-5ec5-bcc6-5a448f11d365",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "section 7707ea05",
+          "source": null,
+          "quote": null,
+          "url": null,
+          "role": null,
+          "as_of": null
+        }
+      ],
+      "attribute": null,
+      "request": null,
+      "rule": null,
+      "finding": null,
+      "pipeline": null
+    }
+  ]
+}

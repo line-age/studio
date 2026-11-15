@@ -4,7 +4,7 @@ import json
 import httpx
 import pytest
 
-from evals.fake_store import TOKEN, WORLDS, FakeStore, load_world
+from evals.fake_store import CITE_TOKEN, WORLDS, FakeStore, load_world
 from evals.make_world import BUILDERS, TRACER, render
 from store_client import ATTRIBUTE_KEYS, StoreClient, StoreError
 
@@ -19,9 +19,7 @@ def ids(listing):
 
 
 def answering(response: httpx.Response) -> StoreClient:
-    return StoreClient(
-        "http://store", TOKEN, transport=httpx.MockTransport(lambda request: response)
-    )
+    return StoreClient("http://store", transport=httpx.MockTransport(lambda request: response))
 
 
 # The worlds
@@ -240,7 +238,6 @@ def test_the_fake_refuses_what_store_refuses(small):
     http = httpx.Client(
         base_url="http://store",
         transport=FakeStore(small),
-        headers={"Authorization": f"Bearer {TOKEN}"},
     )
     for path in ("/sections?at=1930", "/links?status=accepted", "/sections?limit=20000"):
         assert http.get(path).status_code == 422, path
@@ -259,15 +256,21 @@ def test_nothing_but_a_get_can_leave_the_client(small):
     assert store.requests == []
 
 
-def test_the_token_is_not_in_a_repr_or_an_error(small):
+def test_the_proposal_token_is_not_in_a_repr_and_never_on_a_read(small):
     from settings import Settings
 
-    settings = Settings(model="m", store_url="http://store", store_token=TOKEN)
-    assert TOKEN not in repr(settings)
-    client = FakeStore(small, fail="unreachable").client()
-    with pytest.raises(StoreError) as failure:
-        client.feature(small["codes"]["s01"])
-    assert TOKEN not in str(failure.value) and TOKEN not in repr(client)
+    settings = Settings(model="m", store_url="http://store", cite_store_token=CITE_TOKEN)
+    assert CITE_TOKEN not in repr(settings)
+    seen = []
+
+    def answer(request):
+        seen.append(request.headers.get("authorization"))
+        return httpx.Response(200, json={"id": small["codes"]["s01"], "claims": [], "links": []})
+
+    StoreClient("http://store", transport=httpx.MockTransport(answer)).feature(
+        small["codes"]["s01"]
+    )
+    assert seen == [None]
 
 
 def test_attribute_keys_are_stores_registry():
@@ -279,7 +282,7 @@ def test_attribute_keys_are_stores_registry():
 )
 def test_the_token_is_not_sent_in_the_clear_to_another_machine(url):
     with pytest.raises(StoreError, match="STORE_URL"):
-        StoreClient(url, TOKEN)
+        StoreClient(url)
 
 
 @pytest.mark.parametrize(
@@ -292,4 +295,4 @@ def test_the_token_is_not_sent_in_the_clear_to_another_machine(url):
     ],
 )
 def test_a_local_or_encrypted_store_address_is_accepted(url):
-    StoreClient(url, TOKEN).close()
+    StoreClient(url).close()

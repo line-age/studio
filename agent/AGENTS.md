@@ -1,8 +1,9 @@
 # AGENTS.md: the Studio Agent
 
 The service that answers Lineage Studio's chat. It reads `store`, searches the journals
-with `cite` when asked, and writes one thing only: a finding the person pressed Propose
-on, as a candidate claim. What
+with `cite` when asked, and writes only on the person's button: a finding they pressed
+Propose on, as a candidate claim, or the sections they pressed Propose pipeline on, as a
+new pipeline with proposed memberships. What
 it does, takes in and gives out is in the controlplane's
 [components.md](https://github.com/line-age/controlplane/blob/main/components.md#review);
 this file says how it is built and the rules for working on it. It wins over any file
@@ -12,7 +13,9 @@ State (2026-11-14): B1 (Store does not say), B2 (what store says about an attach
 thing) and section context are built: B17 (which printings show it, what ends it), B18
 (its links and its pipeline), B19 (what it is drawn touching) and B20 (leads found by
 fixed rules). 38 cases pass on three repeats, with the grounding check that blocks an
-answer store does not back. The cases are drafts until a person reviews them. Built on
+answer store does not back. B21 to B27 (searching with cite, Propose) and B28 (proposing
+a pipeline, 2026-11-15: 25 of 25 with what it keeps, three repeats) follow. The cases are
+drafts until a person reviews them. Built on
 LangChain's agent loop; Deep Agents (planning, files) comes in with whole-network
 questions (B8). Behaviours are added one at a time, each with its eval first.
 
@@ -36,9 +39,22 @@ questions (B8). Behaviours are added one at a time, each with its eval first.
   never on the model's knowledge, a basemap label, a similar name, a line's shape or a
   guessed build date. A map's year is never a build date.
 - **Read, and propose only on the button.** The store client sends GET requests and
-  nothing else. The one write is `store_writer.py` (`POST /bundles` only, its own
-  `cite@` token), called only by the `propose` node on the person's Propose action,
-  never by the model or from words. It writes a candidate; a person decides.
+  nothing else, with no token: store takes a request with none as the local person
+  (development, while there are no users; plan 005), so that client must never be able
+  to write. The writes are `store_writer.py` (`POST /bundles` only, its own `cite@`
+  pipeline token, so store keeps what it writes a candidate claim or a proposed link),
+  called only by the `propose` and `propose_pipeline` nodes on the person's action,
+  never by the model or from words. A person decides, in Studio's inbox (R12).
+- **A pipeline is offered by code, made on the button.** Words that ask to make the
+  attached sections one pipeline (`pipeline_flow.asks_for_pipeline`) get code's offer
+  (`pipeline_offer`, no model); Studio shows it as a Confirmation. Two or more sections,
+  sections only, one network. A section already in a pipeline is proposed too and says
+  so; it stays where it is until a person moves it (R13). The new line has no label: no
+  name until one is cited.
+- **The bundles are store's.** `contract/store-bundle.schema.json` is store's `Bundle`
+  as JSON Schema (from `store/model`, `Bundle.model_json_schema(by_alias=True)`);
+  `tests/test_pipeline.py` checks every bundle the Agent builds against it with every
+  object closed. Regenerate it when store's bundle changes.
 - **cite is a service, never imported.** It is reached over HTTP (`cite_client.py`,
   `CITE_URL`); its code, prompts and fixtures stay out of this public repo. Code checks
   every search request (`cite_flow.check_request`): places, years and turned-down values
@@ -68,16 +84,17 @@ questions (B8). Behaviours are added one at a time, each with its eval first.
 | `cite_input.py` | A section as cite takes it in: ids, name hint, first printing, the person's places, the window, ruled-out values |
 | `cite_client.py` | cite over HTTP: one search at a time in a background thread; cancelled when nothing polls it for 15 s |
 | `cite_result.py` | What the Agent reads of cite's result (`contract/cite-result.schema.json`) |
-| `store_writer.py` | The one write: a proposed finding as a bundle, `POST /bundles` only |
+| `store_writer.py` | The writes, `POST /bundles` only: a proposed finding (`bundle`) and a proposed pipeline (`pipeline_bundle`) |
+| `pipeline_flow.py` | Proposing a pipeline: the words that ask for one, code's offer and outcome lines |
 | `evals/fake_cite.py` | A scripted cite with invented results, for tests and evals |
 | `grounding.py` | The check every answer passes before it is shown, and what it cannot see |
 | `schemas.py` | The contract: the question, the draft the model writes, the answer Studio renders |
 | `render.py` | The fixed lines, and the one place values become words: fills the model's slots from what was read |
-| `contract/` | The question, the answer and the section pack as JSON Schema, with examples (one invented pack is the golden cite brief); checked against the code |
+| `contract/` | The question, the answer and the section pack as JSON Schema, with examples (one invented pack is the golden cite brief); checked against the code. Also store's bundle (`store-bundle.schema.json`), vendored |
 | `prompts.py` | The prompts, reviewed like code |
 | `settings.py` | Settings from the environment, and the tracing switch |
 | `serve.py` | Starts the service: decides tracing, then hands over to `langgraph dev` |
-| `store_client.py` | Store over HTTP. Only GET can leave it; it keeps a listed set of fields (no people's names), checks attribute keys and ids, and flags a list that may be cut off |
+| `store_client.py` | Store over HTTP, with no token. Only GET can leave it; it keeps a listed set of fields (no people's names), checks attribute keys and ids, and flags a list that may be cut off |
 | `evals/make_world.py` | Makes the invented store states (`worlds/`) that tests and evals run on |
 | `evals/fake_store.py` | Serves one world through the real store client; can be told to fail |
 | `evals/` | Cases, checks, gates, runs and reports: see `evals/README.md` |
@@ -136,8 +153,7 @@ Everything on invented data, so tracing is safe:
 uv run python -m evals.serve_world          # the small world, as store, on 127.0.0.1:47191
 uv run python serve.py --qa                  # the Agent on it (.env.qa), traced if AGENT_TRACING=true
 cd ../frontend && pnpm dev                   # with .env.local: VITE_DATA_SOURCE=store,
-                                             # STORE_URL=http://127.0.0.1:47191,
-                                             # STORE_TOKEN=lgt_invented_token_for_tests
+                                             # STORE_URL=http://127.0.0.1:47191 (no token)
 ```
 
 Live traces land in LangSmith under `lineage-studio-agent` > Local, one thread for the

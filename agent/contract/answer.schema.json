@@ -317,6 +317,31 @@
       "title": "Hint",
       "type": "object"
     },
+    "PipelineOffer": {
+      "additionalProperties": false,
+      "description": "What a pipeline_offer would propose: Studio sends `section_ids` back, unchanged, in\nthe action propose_pipeline. `in_pipeline`: those already confirmed in a pipeline;\nthey are proposed too, and stay where they are until a person moves them.",
+      "properties": {
+        "section_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Section Ids",
+          "type": "array"
+        },
+        "in_pipeline": {
+          "items": {
+            "type": "string"
+          },
+          "title": "In Pipeline",
+          "type": "array"
+        }
+      },
+      "required": [
+        "section_ids"
+      ],
+      "title": "PipelineOffer",
+      "type": "object"
+    },
     "Ref": {
       "additionalProperties": false,
       "description": "What a statement rests on, by store id, so Studio can open it.",
@@ -497,7 +522,8 @@
             "finding",
             "searched",
             "ask_places",
-            "proposed"
+            "proposed",
+            "pipeline_offer"
           ],
           "title": "Kind",
           "type": "string"
@@ -561,6 +587,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/Finding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "pipeline": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PipelineOffer"
             },
             {
               "type": "null"

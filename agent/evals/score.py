@@ -13,6 +13,7 @@ from typing import Any
 
 from cite_flow import CITE_LINES, FOUND, IN_DOUBT, IN_STORE_WORDS
 from evals.make_world import scope
+from pipeline_flow import LINES as PIPELINE_LINES
 from render import FIXED_LINES, feature_name
 
 # Words a sentence may capitalise without having read them from store.
@@ -260,6 +261,66 @@ def _cite_problems(
     return problems
 
 
+def _slots(line: str) -> str:
+    return re.sub(r"\\\{\w+\\\}", ".+", re.escape(line))
+
+
+# Proposing a pipeline: code's lines, the offer with or without its "already in a
+# pipeline" part.
+_PIPELINE_LINES = [
+    re.compile("^" + _slots(line) + "$")
+    for key, line in PIPELINE_LINES.items()
+    if key not in ("offer", "offer_placed")
+] + [
+    re.compile(
+        "^"
+        + _slots(PIPELINE_LINES["offer"])
+        + "(?:"
+        + _slots(PIPELINE_LINES["offer_placed"])
+        + ")?$"
+    )
+]
+
+
+def _pipeline_line(text: str) -> bool:
+    return any(p.match(text) for p in _PIPELINE_LINES)
+
+
+def _confirmed_in(world: dict[str, Any], section_id: str) -> bool:
+    return any(
+        link["from_feature_id"] == section_id
+        and link["relation"] == "part_of"
+        and link["status"] == "confirmed"
+        for link in world["links"]
+    )
+
+
+def _pipeline_problems(where: str, statement: dict[str, Any], world: dict[str, Any]) -> list[str]:
+    """An offer or outcome about proposing a pipeline, re-checked against the world: code's
+    line, every feature in store, the count is the sections it names, and the offer lists
+    those sections and, of them, the ones already in a pipeline."""
+    text, refs = statement["text"], statement.get("refs", [])
+    problems = [] if _pipeline_line(text) else [f"{where}: not code's line"]
+    features = [r["id"] for r in refs if r["type"] == "feature"]
+    problems += [
+        f"{where}: feature {f} is not in store" for f in features if f not in world["features"]
+    ]
+    sections = [f for f in features if world["features"].get(f, {}).get("kind") == "section"]
+    numbers = re.findall(r"\d+", text)
+    if numbers and sections and numbers[0] != str(len(sections)):
+        problems.append(f"{where}: says {numbers[0]} sections and names {len(sections)}")
+    if statement["kind"] == "pipeline_offer":
+        offer = statement.get("pipeline") or {}
+        if offer.get("section_ids") != sections:
+            problems.append(f"{where}: the offer is not the sections it names")
+        placed = [s for s in sections if _confirmed_in(world, s)]
+        if offer.get("in_pipeline") != placed:
+            problems.append(f"{where}: in a pipeline: {placed}, not {offer.get('in_pipeline')}")
+        if bool(placed) != (len(numbers) > 1):
+            problems.append(f"{where}: says wrongly whether any is already in a pipeline")
+    return problems
+
+
 def ungrounded(
     answer: dict[str, Any],
     world: dict[str, Any],
@@ -273,6 +334,11 @@ def ungrounded(
     for n, statement in enumerate(answer.get("statements", [])):
         kind, text, refs = statement["kind"], statement["text"], statement.get("refs", [])
         where = f"statement {n + 1} ({kind})"
+        if kind == "pipeline_offer" or (
+            kind in ("proposed", "refusal", "failure") and _pipeline_line(text)
+        ):
+            problems += _pipeline_problems(where, statement, world)
+            continue
         about_search = kind in CITE_KINDS or (
             kind == "worked_out" and text.startswith("The sources disagree")
         )

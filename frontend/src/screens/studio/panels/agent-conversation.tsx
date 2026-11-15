@@ -34,7 +34,11 @@ import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
 import { AgentSources } from "./agent-sources"
 import { ProposeOutcomes, type ProposeOutcome } from "./agent-finding"
-import { AgentStatementView, ProposeFinding } from "./agent-statement"
+import {
+  AgentStatementView,
+  ProposeFinding,
+  ProposePipeline,
+} from "./agent-statement"
 import { AgentSteps } from "./agent-steps"
 
 /*
@@ -335,6 +339,15 @@ function Conversation({
           network: network.name,
           action: { kind: "propose", finding: handle },
         })
+  const proposePipeline = agent.working
+    ? null
+    : (sectionIds: string[]) =>
+        void agent.ask({
+          words: `Propose these ${sectionIds.length} sections as one pipeline`,
+          about: [],
+          network: network.name,
+          action: { kind: "propose_pipeline", section_ids: sectionIds },
+        })
   // Keep the newest turn in view as it is asked and answered.
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight })
@@ -420,19 +433,21 @@ function Conversation({
         aria-label="Conversation with the Agent"
         className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-3 py-4"
       >
-        <ProposeFinding value={propose}>
-          <ProposeOutcomes value={outcomesOf(agent.turns, agent.working)}>
-            {agent.turns.map((turn, i) => (
-              <Turn
-                key={turn.id}
-                turn={turn}
-                working={agent.working}
-                last={i === agent.turns.length - 1}
-                liveSteps={agent.liveSteps}
-              />
-            ))}
-          </ProposeOutcomes>
-        </ProposeFinding>
+        <ProposePipeline value={proposePipeline}>
+          <ProposeFinding value={propose}>
+            <ProposeOutcomes value={outcomesOf(agent.turns, agent.working)}>
+              {agent.turns.map((turn, i) => (
+                <Turn
+                  key={turn.id}
+                  turn={turn}
+                  working={agent.working}
+                  last={i === agent.turns.length - 1}
+                  liveSteps={agent.liveSteps}
+                />
+              ))}
+            </ProposeOutcomes>
+          </ProposeFinding>
+        </ProposePipeline>
         {agent.turns.length === 0 && <Marker>No conversation yet.</Marker>}
         {agent.error && (
           <Marker>

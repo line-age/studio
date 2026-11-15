@@ -97,7 +97,10 @@ describe("asking the Agent", () => {
     const user = await open()
     await user.click(screen.getByRole("option", { name: /North line/ }))
     const section = screen.getByRole("treeitem", { name: /Birch to Cedar/ })
+    // The row is ticked with its pipeline, so the changes are the selection's.
     expect(await menu(user, section)).toEqual([
+      "Make pipeline",
+      "Add to a pipeline",
       "What does store say about this?",
       "What surrounds this section?",
       "What could we look for here?",

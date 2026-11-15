@@ -2,6 +2,7 @@ import { createContext, use, type ReactNode } from "react"
 
 import { Icon } from "@/components/icons/icon"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   HoverCard,
   HoverCardContent,
@@ -17,6 +18,11 @@ import type { AgentAnswerRef, AgentStatement } from "@/data/agent/answer"
 import { AgentFindingCard } from "./agent-finding"
 
 /** Proposes a finding by its handle; null while nothing may be sent. */
+/** Propose sections as one pipeline (the action propose_pipeline), or null while the Agent works. */
+export const ProposePipeline = createContext<
+  ((sectionIds: string[]) => void) | null
+>(null)
+
 export const ProposeFinding = createContext<((handle: string) => void) | null>(
   null
 )
@@ -254,6 +260,7 @@ export function AgentStatementView({
   open: (ref: AgentAnswerRef) => void
 }) {
   const propose = use(ProposeFinding)
+  const proposePipeline = use(ProposePipeline)
   const prefix = KIND_PREFIX[statement.kind]
   const { nodes, linked } = withLinks(
     statement.text,
@@ -278,6 +285,17 @@ export function AgentStatementView({
         {prefix && <KindPrefix kind={statement.kind} prefix={prefix} />}
         {nodes}
       </p>
+      {statement.kind === "pipeline_offer" && statement.pipeline && (
+        <div className="flex">
+          <Button
+            size="sm"
+            disabled={proposePipeline === null}
+            onClick={() => proposePipeline?.(statement.pipeline!.section_ids)}
+          >
+            Propose pipeline
+          </Button>
+        </div>
+      )}
       {statement.finding && (
         <AgentFindingCard
           finding={statement.finding}
