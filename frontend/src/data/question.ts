@@ -88,11 +88,19 @@ export interface QuestionItem {
   on?: { sectionId?: string; pipelineId?: string; attribute?: string }
 }
 
+/** A button the person pressed: code acts on it, no model reads it. */
+export interface QuestionAction {
+  kind: "propose"
+  /** The finding's handle in the conversation (F1). */
+  finding: string
+}
+
 /** Everything a question carries. Nothing else is sent. */
 export interface Question {
   words: string
   about: QuestionItem[]
   network: string
+  action?: QuestionAction
 }
 
 function sectionItems(
@@ -224,4 +232,6 @@ export const STARTERS = {
   // What code works out around a section, and the leads it finds (Figma section 13).
   surrounds: "What surrounds this section?",
   lookFor: "What could we look for here?",
+  // Searches the journals with cite; the Agent asks for the towns first.
+  find: "Find this in the sources",
 } as const

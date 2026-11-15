@@ -116,13 +116,15 @@ describe("a question for the Agent", () => {
     expect(refKey(a)).toBe(refKey(b))
   })
 
-  it("offers only questions that read", () => {
+  it("offers questions that change no claim", () => {
+    // The search only finds: a finding reaches store by its Propose button.
     expect(Object.values(STARTERS)).toEqual([
       "What does store say about this?",
       "Why is this Unknown?",
       "What is proposed here, and why?",
       "What surrounds this section?",
       "What could we look for here?",
+      "Find this in the sources",
     ])
   })
 })

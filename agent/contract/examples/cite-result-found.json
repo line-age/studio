@@ -1,0 +1,109 @@
+{
+  "schema_version": "0.3",
+  "status": "ok",
+  "reason": "",
+  "section": {
+    "pipe_id": "11111111-2222-3333-4444-555555555555",
+    "section_id": "11111111-2222-3333-4444-555555555555",
+    "places": [
+      "Sampleton",
+      "Exampleville"
+    ],
+    "places_given": [
+      "Sampleton",
+      "Exampleville"
+    ],
+    "attributes": [
+      "Ownership",
+      "Size"
+    ],
+    "observations": [
+      {
+        "year": 1932
+      }
+    ]
+  },
+  "citations": [
+    {
+      "id": "sim_example-trade-journal_1931-03-12_12_3:40:3-24",
+      "journal": "The Example Trade Journal",
+      "issue_id": "sim_example-trade-journal_1931-03-12_12_3",
+      "date": "1931-03-12",
+      "volume": 12,
+      "number": 3,
+      "leaf": 40,
+      "printed_page": "41",
+      "printed_page_confidence": 95.0,
+      "quote": "The Example Pipe Line Co. is laying a 10-in. line from Sampleton to Exampleville.",
+      "page_text": "The Example Pipe Line Co. is laying a 10-in. line from Sampleton to Exampleville.",
+      "url": "https://example.org/details/example-trade-journal-1931-03-12/page/n40",
+      "image_url": "https://example.org/download/example-trade-journal-1931-03-12/page/n40.jpg",
+      "page_width": 3600,
+      "page_height": 5000,
+      "highlight": [
+        {
+          "x0": 0.1,
+          "y0": 0.3,
+          "x1": 0.6,
+          "y1": 0.32
+        }
+      ],
+      "places_matched": [
+        "Sampleton",
+        "Exampleville"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "Ownership:Example Pipe Line Co.:sim_example-trade-journal_1931-03-12_12_3:40:3-24",
+      "attribute": "Ownership",
+      "value": "Example Pipe Line Co.",
+      "normalized": {
+        "owner": "example pipe line"
+      },
+      "date_sense": "laying",
+      "status": "verified",
+      "flags": [],
+      "flag_reasons": {},
+      "citation_ids": [
+        "sim_example-trade-journal_1931-03-12_12_3:40:3-24"
+      ]
+    },
+    {
+      "id": "Size:10-in.:sim_example-trade-journal_1931-03-12_12_3:40:3-24",
+      "attribute": "Size",
+      "value": "10-in.",
+      "normalized": {
+        "inches": 10.0
+      },
+      "date_sense": "laying",
+      "status": "verified",
+      "flags": [],
+      "flag_reasons": {},
+      "citation_ids": [
+        "sim_example-trade-journal_1931-03-12_12_3:40:3-24"
+      ]
+    }
+  ],
+  "unknowns": [],
+  "attempts": [],
+  "searched": [
+    {
+      "attribute": "Ownership",
+      "journal": "The Example Trade Journal",
+      "searches": 9,
+      "issues_read": 104,
+      "first_issue": "1930-01-02",
+      "last_issue": "1931-12-24"
+    },
+    {
+      "attribute": "Size",
+      "journal": "The Example Trade Journal",
+      "searches": 9,
+      "issues_read": 104,
+      "first_issue": "1930-01-02",
+      "last_issue": "1931-12-24"
+    }
+  ]
+}

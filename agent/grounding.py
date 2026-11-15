@@ -104,9 +104,14 @@ def own_words_problems(draft: Draft) -> list[str]:
     """What the model wrote outside slots: no digit, quotation, id, name or number word."""
     problems = []
     for n, statement in enumerate(draft.statements, 1):
-        if statement.kind in (*FIXED, "unknown", "citation_request", "worked_out", "lead") or (
-            writes_itself(statement)
-        ):
+        if statement.kind in (
+            *FIXED,
+            "unknown",
+            "citation_request",
+            "worked_out",
+            "lead",
+            "finding",
+        ) or (writes_itself(statement)):
             continue  # code writes the whole sentence
         own = SLOT.sub(" ", statement.text)
         for word in _NEVER_SAID.findall(own):
@@ -225,6 +230,10 @@ def answer_problems(answer: Answer, read: Read) -> list[str]:
             if statement.text not in FIXED_LINES.values() or refs:
                 problems.append(f"statement {n}: a fixed line was changed")
             continue
+        if kind == "finding":
+            # Not read from store in this run: the thread's findings vouch for it.
+            problems += finding_problems(n, statement, read)
+            continue
         for ref in refs:
             if ref.type == "claim":
                 claim = read.claims.get(ref.id)
@@ -238,7 +247,7 @@ def answer_problems(answer: Answer, read: Read) -> list[str]:
                 problems.append(f"statement {n}: a citation request names a feature you read")
             elif read.features[features[0]].get("kind") not in ("section", "line"):
                 problems.append(f"statement {n}: citations are asked for a section or a pipeline")
-            elif read.accepted(features[0], statement.attribute or ""):
+            elif read.known_from_a_text(features[0], statement.attribute or ""):
                 # R14: never ask for what is already claimed.
                 problems.append(
                     f"statement {n}: store already holds an accepted {statement.attribute} "
@@ -267,6 +276,20 @@ def answer_problems(answer: Answer, read: Read) -> list[str]:
                         "(a proposal, a rejected value or the pipeline's); add a fact for each"
                     )
     return problems
+
+
+def finding_problems(n: int, statement: Any, read: Read) -> list[str]:
+    """A finding shown again is exactly the one cite found: same passage, same sentence."""
+    from cite_flow import finding_statement
+
+    record = read.findings.get(statement.finding.handle) if statement.finding else None
+    if record is None:
+        return [f"statement {n}: a finding is one cite found in this chat, by its F handle"]
+    names = {r.id: r.label for r in statement.refs if r.label}
+    expected = finding_statement(record, read, names)
+    if statement.finding != expected.finding or statement.text != expected.text:
+        return [f"statement {n}: a finding is its handle's sentence and passage, unchanged"]
+    return []
 
 
 def worked_out_problems(draft: Draft, answer: Answer, read: Read) -> list[str]:

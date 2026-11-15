@@ -17,6 +17,7 @@ KEYS = (
     "unknown_kept",
     "tools_ok",
     "fixed_line",
+    "search",
 )
 
 
@@ -43,7 +44,10 @@ def check(case: Case, world: dict[str, Any], outputs: dict[str, Any]) -> dict[st
     refs = _ref_ids(answer)
     must, must_not = case.must, case.must_not
 
-    why["no_ungrounded"] += ungrounded(answer, world, case.question["words"])
+    # After a write, the world as store holds it then; and every word the person wrote.
+    seen = outputs.get("world_after") or world
+    words = " ".join([*outputs.get("words", []), case.question["words"]])
+    why["no_ungrounded"] += ungrounded(answer, seen, words, outputs.get("cite_results"))
 
     if "first_kind" in must and kinds[:1] != [must["first_kind"]]:
         why["required"].append(f"the first statement is {kinds[:1]}, not {must['first_kind']}")
@@ -91,6 +95,16 @@ def check(case: Case, world: dict[str, Any], outputs: dict[str, Any]) -> dict[st
             why["tools_ok"].append(f"called a tool: {tools}")
         elif tool in tools:
             why["tools_ok"].append(f"called {tool}")
+
+    if "writes" in must and outputs.get("writes", 0) != must["writes"]:
+        why["search"].append(f"store took {outputs.get('writes', 0)} bundles, not {must['writes']}")
+    sent = outputs.get("cite_inputs") or []
+    for key, value in (must.get("cite_sent") or {}).items():
+        if not sent or sent[-1].get(key) != value:
+            got = sent[-1].get(key) if sent else "nothing (cite was not asked)"
+            why["search"].append(f"cite was sent {key}={got!r}, not {value!r}")
+    if must_not.get("cite") and sent:
+        why["search"].append(f"cite was asked {len(sent)} time(s)")
 
     if "fixed_line" in must:
         line = FIXED_LINES[must["fixed_line"]]

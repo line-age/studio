@@ -24,10 +24,25 @@ KEEPS = {
     "B18": ["B01", "B02", "B17"],
     "B19": ["B01", "B02", "B17", "B18"],
     "B20": ["B01", "B02", "B17", "B18", "B19"],
+    # Searching with cite: each keeps what store says (B01, B02) and the leads (B20).
+    **{b: ["B01", "B02", "B20"] for b in ("B21", "B22", "B23", "B24", "B25", "B26", "B27")},
 }
 LABELS = ("agent-draft", "person")
-MUST_KEYS = {"first_kind", "kinds", "refs", "unknown", "fixed_line", "tools", "text"}
-MUST_NOT_KEYS = {"kinds", "refs", "tools", "text"}
+# Behaviours about searching with cite: their cases always run with the fake cite.
+SEARCHING = frozenset({"B21", "B22", "B23", "B24", "B25", "B26", "B27"})
+MUST_KEYS = {
+    "first_kind",
+    "kinds",
+    "refs",
+    "unknown",
+    "fixed_line",
+    "tools",
+    "text",
+    # Searching with cite: how many bundles store took, and what reached cite last.
+    "writes",
+    "cite_sent",
+}
+MUST_NOT_KEYS = {"kinds", "refs", "tools", "text", "cite"}
 
 
 @dataclass(frozen=True)
@@ -43,6 +58,15 @@ class Case:
     keeps: str | None = None
     labeled_by: str = "agent-draft"
     note: str = ""
+    # Earlier questions on the same thread, asked before `question` (same shape).
+    turns: list[dict[str, Any]] = field(default_factory=list)
+    # The fake cite's scripts for this case's searches, in order (evals/fake_cite.py).
+    # Any case with turns or a script runs with the fake cite and a proposal client.
+    cite: list[str] = field(default_factory=list)
+
+    @property
+    def searches(self) -> bool:
+        return bool(self.turns or self.cite) or self.behaviour in SEARCHING
 
     @property
     def example_id(self) -> str:
@@ -62,10 +86,13 @@ def claim_id(world: dict[str, Any], selector: str) -> str:
     return claims[int(nth or 0)]["id"]
 
 
-def question_for(case: Case, world: dict[str, Any]) -> dict[str, Any]:
+def question_for(
+    case: Case, world: dict[str, Any], question: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """The question as Studio sends it, with the world's codes turned into store ids."""
+    question = question if question is not None else case.question
     about = []
-    for item in case.question.get("about", []):
+    for item in question.get("about", []):
         if "id" in item:  # a literal id, for a thing store no longer has
             about.append({"kind": item["kind"], "id": item["id"], "on": None})
         elif item["kind"] == "claim":
@@ -75,7 +102,10 @@ def question_for(case: Case, world: dict[str, Any]) -> dict[str, Any]:
             about.append({"kind": "claim", "id": claim_id(world, item["code"]), "on": on})
         else:
             about.append({"kind": item["kind"], "id": world["codes"][item["code"]], "on": None})
-    return {"words": case.question["words"], "about": about, "network": "gas"}
+    out = {"words": question["words"], "about": about, "network": "gas"}
+    if question.get("action"):
+        out["action"] = question["action"]
+    return out
 
 
 def _check(case: Case) -> None:
@@ -85,6 +115,11 @@ def _check(case: Case) -> None:
     assert set(case.must) <= MUST_KEYS and set(case.must_not) <= MUST_NOT_KEYS, case.id
     assert case.must or case.must_not, f"{case.id} checks nothing"
     question_for(case, world)
+    for turn in case.turns:
+        question_for(case, world, turn)
+    from evals.fake_cite import SCRIPTS
+
+    assert all(name in SCRIPTS for name in case.cite), case.id
     for selector in [*case.must.get("refs", []), *case.must_not.get("refs", [])]:
         claim_id(world, selector)
     for unknown in case.must.get("unknown", []):

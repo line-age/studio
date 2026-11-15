@@ -278,8 +278,8 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   (`starters.ts`): "What does store say about this?" on a section, a claim or a source,
   "What surrounds this section?" and "What could we look for here?" on a section,
   "Why is this Unknown?" on an Unknown claim, "What is proposed here, and why?" where a
-  proposal waits. Questions that search the sources or change a claim are not offered
-  until something can answer them. "Ask the Agent about this" under a proposal (Figma
+  proposal waits, and "Find this in the sources" on a section (cite searches the
+  journals; the Agent asks for towns first). No starter changes a claim. "Ask the Agent about this" under a proposal (Figma
   `223:11018`) asks the same and decides nothing. Choosing an item leaves the cursor in
   the chat (`finalFocus`). Tooltips are on the filter icon, the filter chips and the
   "List follows the map" button (stock shadcn Tooltip).
@@ -319,8 +319,16 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   `steps` state; folded after, "Read 4 things in store"); what a statement rests on is a
   neutral source pill that opens the claim, its state said in the sentence; a section
   the sentence names is a link in the text; a worked-out fact or a lead carries a grey
-  prefix ("Worked out", "Lead, not in store") and is never shown as a claim; "Used n
-  sources" ends it. About several attached sections it is grouped under each; the rest
+  prefix ("Inferred", with what it means on hover; "Lead, not in store") and is never
+  shown as a claim; "Used n
+  sources" ends it. What cite found is a finding card under its sentence
+  (`panels/agent-finding.tsx`, stock parts, not in Figma yet): the AI badge "Found by
+  cite, not in store", the page's own words, the passage marked on a crop of the page,
+  the reference and "Open page on Internet Archive", why it is in doubt, the places it
+  matched, and Propose, which sends the action `{kind: "propose", finding}` and is the
+  only way a finding reaches store (as a candidate). While cite searches, the answer so
+  far and cite's steps ("cite: ...") stay live; after a proposal Studio reads store
+  again (`reload` in `studio-data.tsx`). About several attached sections it is grouped under each; the rest
   are listed to open. A fixed line (a question back, a refusal, a failure) stands alone. On the sample nothing answers: a
   sent question stays in the thread (`sentQuestions`) with the line "The Agent cannot
   answer yet". Tests always run on the sample (`vite.config.ts`). An answer in the data is

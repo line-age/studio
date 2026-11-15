@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "checked": true,
+  "statements": [
+    {
+      "kind": "proposed",
+      "text": "Proposed Example Pipe Line Co. as the owner of section 06a875ca, cited to The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41. It waits for a person's decision.",
+      "refs": [
+        {
+          "type": "claim",
+          "id": "99999999-0000-4000-8000-000000000000",
+          "feature_id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+          "attribute": "owner",
+          "status": "candidate",
+          "asserter": "pipeline",
+          "label": "section 06a875ca",
+          "source": "The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41"
+        },
+        {
+          "type": "feature",
+          "id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "section 06a875ca",
+          "source": null
+        }
+      ],
+      "attribute": null,
+      "request": null,
+      "rule": null,
+      "finding": null
+    }
+  ]
+}

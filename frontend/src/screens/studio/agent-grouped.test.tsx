@@ -94,7 +94,7 @@ describe("an answer about several sections", () => {
     ).toBeInTheDocument()
     expect(
       within(answer).getByRole("region", { name: "Alder to Birch" })
-    ).toHaveTextContent("Worked out · Alder to Birch is first traced")
+    ).toHaveTextContent("Inferred · Alder to Birch is first traced")
     expect(
       within(answer).getByRole("region", { name: "Birch to Cedar" })
     ).toHaveTextContent("Example Gazette, p. 41")

@@ -31,21 +31,48 @@ HERE = Path(__file__).parent
 DATASET = "studio-agent-cases"
 
 
+def _message(question: dict[str, Any], n: int) -> HumanMessage:
+    return HumanMessage(
+        content=question["words"], id=f"q{n}", additional_kwargs={"question": question}
+    )
+
+
 def run_case(case: Case) -> dict[str, Any]:
-    """Ask one case's question of the Agent on its world. Returns what the checks read."""
+    """Ask one case's question of the Agent on its world. Returns what the checks read.
+
+    A case that searches runs its turns on one thread, with the fake cite and a proposal
+    client into the fake store; it is timed from its last question."""
+    from langgraph.checkpoint.memory import InMemorySaver
+
     from agent import build_graph
+    from evals.fake_cite import FakeCite
 
     world = load_world(case.world)
     store = FakeStore(world)
-    question = question_for(case, world)
-    message = HumanMessage(content=question["words"], additional_kwargs={"question": question})
+    cite = FakeCite(*case.cite, polls=1) if case.searches else None
     try:
-        graph = build_graph(store=store.client())
+        if case.searches:
+            graph = build_graph(
+                store=store.client(), cite=cite, writer=store.writer(), cite_poll=0.05
+            )
+            graph.checkpointer = InMemorySaver()
+        else:
+            graph = build_graph(store=store.client(), cite=None, writer=None)
+        config = {"configurable": {"thread_id": "case"}}
+        for n, turn in enumerate(case.turns, 1):
+            graph.invoke({"messages": [_message(question_for(case, world, turn), n)]}, config)
         start = time.perf_counter()
-        state = graph.invoke({"messages": [message]})
+        last = _message(question_for(case, world), len(case.turns) + 1)
+        state = graph.invoke({"messages": [last]}, config)
     except Exception as exc:  # noqa: BLE001 - a crash is a failed case, not a failed run
         return {"answer": None, "tools": [], "error": f"{type(exc).__name__}: {exc}"[:500]}
     return {
+        # What the fake cite was asked and gave, and what store took: for the checks.
+        "cite_inputs": cite.inputs if cite else [],
+        "cite_results": [r.result() for r in cite.runs.values() if r.result()] if cite else [],
+        "writes": len(store.bundles),
+        "world_after": store.world if store.bundles else None,
+        "words": [t["words"] for t in case.turns],
         # From the question in to the checked answer out, as a person waits for it.
         "seconds": round(time.perf_counter() - start, 2),
         "answer": state.get("answer"),
@@ -81,6 +108,7 @@ def _entry(case: Case) -> dict[str, Any]:
         "split": case.split,
         "labeled_by": case.labeled_by,
         "attached": len(case.question.get("about", [])),
+        "cite": case.searches,
         "repeats": [],
     }
 

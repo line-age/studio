@@ -118,7 +118,7 @@ def failure(line: str = "check_failed") -> Answer:
 
 # How a statement that is not a claim is marked when the answer is read as plain text.
 # Studio shows the same kinds as a grey prefix.
-KIND_PREFIX = {"worked_out": "Worked out: ", "lead": "Lead, not in store: "}
+KIND_PREFIX = {"worked_out": "Inferred: ", "lead": "Lead, not in store: "}
 
 
 def as_text(answer: Answer) -> str:
@@ -419,10 +419,24 @@ class Read:
         self.worked: dict[str, dict[str, Any]] = {}
         # Leads code found (leads.py), by handle: L1 -> Lead. Never a claim.
         self.leads: dict[str, dict[str, Any]] = {}
+        # What cite found earlier in this thread, by handle: F1 -> its record. Not read
+        # from store in this run: carried verbatim by code, so it may be shown again.
+        self.findings: dict[str, dict[str, Any]] = {}
 
     def merge(self, section_id: str, merged: list[str]) -> None:
         self.scope.setdefault(section_id, [])
         self.scope[section_id] += [m for m in merged if m not in self.scope[section_id]]
+
+    def known_from_a_text(self, feature_id: str, attribute: str) -> list[str]:
+        """Accepted claims a text states. For when it was built: a map that shows a line
+        says nothing of when it was built, so a status cited only to a map does not
+        count."""
+        return [
+            cid
+            for cid in self.accepted(feature_id, attribute)
+            if attribute != "status"
+            or any(c.get("role") == "states" for c in self.claims[cid].get("citations") or [])
+        ]
 
     def accepted(self, feature_id: str, attribute: str) -> list[str]:
         """Accepted claims for an attribute on a feature, counting merged traces."""
@@ -583,6 +597,15 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
         subject = feature_name(read.features[about]) if name_things and about else None
         text = unknown_line(draft.attribute, subject)
         return Statement(kind="unknown", text=text, refs=refs, attribute=draft.attribute)
+
+    if draft.kind == "finding":
+        from cite_flow import finding_statement  # cite_flow builds on this module
+
+        handles = [r.id.strip().upper() for r in draft.refs if r.type == "finding"]
+        if len(handles) != 1 or handles[0] not in read.findings:
+            raise Unfillable("a finding statement names one F handle from Cite so far")
+        names = {fid: feature_name(f) for fid, f in read.features.items()}
+        return finding_statement(read.findings[handles[0]], read, names)
 
     if draft.kind in ("worked_out", "lead"):
         # Code wrote the sentence when it worked the fact out or found the lead; the

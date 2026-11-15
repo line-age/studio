@@ -83,7 +83,7 @@ How each kind of statement is shown in an answer:
 | --- | --- | --- |
 | Claim | store, accepted | the value in a sentence, its source beside it |
 | Proposal | store, candidate | "A tool (or a person) proposed ...; nobody has decided", its source beside it |
-| Worked out | code, from the maps, the links or the traced lines | marked "Worked out", with what it rests on |
+| Worked out | code, from the maps, the links or the traced lines | marked "Inferred" (hover says what it means), with what it rests on |
 | Lead | code, by fixed rules over the above; the model only picks it | marked "Lead, not in store", with what it rests on; never written to store |
 | Unknown | store holds nothing | "Store does not say" |
 

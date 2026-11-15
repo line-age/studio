@@ -93,7 +93,7 @@ beforeEach(() => {
 })
 
 describe("asking the Agent", () => {
-  it("offers what surrounds a section and where to look, on a section", async () => {
+  it("offers what surrounds a section, where to look and a search, on a section", async () => {
     const user = await open()
     await user.click(screen.getByRole("option", { name: /North line/ }))
     const section = screen.getByRole("treeitem", { name: /Birch to Cedar/ })
@@ -101,6 +101,7 @@ describe("asking the Agent", () => {
       "What does store say about this?",
       "What surrounds this section?",
       "What could we look for here?",
+      "Find this in the sources",
       "Add to the Agent chat",
     ])
   })

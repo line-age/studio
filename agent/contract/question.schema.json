@@ -1,5 +1,26 @@
 {
   "$defs": {
+    "Action": {
+      "additionalProperties": false,
+      "description": "A button the person pressed, not words: code acts on it, no model reads it.",
+      "properties": {
+        "kind": {
+          "const": "propose",
+          "title": "Kind",
+          "type": "string"
+        },
+        "finding": {
+          "title": "Finding",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "finding"
+      ],
+      "title": "Action",
+      "type": "object"
+    },
     "QuestionItem": {
       "additionalProperties": false,
       "description": "One attached thing: its kind and store id, or where it is when it has no id.",
@@ -107,6 +128,17 @@
       "default": "gas",
       "title": "Network",
       "type": "string"
+    },
+    "action": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Action"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [

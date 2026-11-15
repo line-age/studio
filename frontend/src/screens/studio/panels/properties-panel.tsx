@@ -71,6 +71,7 @@ export function PropertiesPanel() {
 function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const selectedSectionId = useStudio((s) => s.selectedSectionId)
   const selectedAttribute = useStudio((s) => s.selectedAttribute)
+  const sectionPicked = useStudio((s) => s.sectionPicked)
   const expanded = useStudio((s) => s.expandedSectionIds)
   const selection = useStudio((s) => s.selection)
   const select = useStudio((s) => s.select)
@@ -100,13 +101,26 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   // Only the one-click filters dim: they are about the section itself.
   const filtering = criteria.status !== "all" || criteria.needsDecision
 
-  // A section picked on the map can be off screen in the tree: bring it in.
+  // Set when the tree itself changed the section in focus.
+  const pickedInTree = useRef(false)
+
+  // A section picked elsewhere (map, list, search, chat) comes to the top of
+  // the tree, open, so its claims are in view, also when it is picked again
+  // after the tree was scrolled. One picked in the tree only comes into
+  // view: it should not jump away from the pointer.
   useEffect(() => {
+    const fromTree = pickedInTree.current
+    pickedInTree.current = false
     if (!selectedSectionId) return
     treeRef.current
       ?.querySelector(`[data-section="${CSS.escape(selectedSectionId)}"]`)
-      ?.scrollIntoView({ block: "nearest" })
-  }, [selectedSectionId])
+      ?.scrollIntoView({ block: fromTree ? "nearest" : "start" })
+  }, [selectedSectionId, sectionPicked])
+  // A tick that left the section in focus as it was must not carry over to
+  // the next pick made elsewhere.
+  useEffect(() => {
+    pickedInTree.current = false
+  })
 
   const multi = groups.length > 1
   const single = groups[0].summary
@@ -127,7 +141,10 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
             groups[0].sections.length,
             "long"
           )
-  const check = (section: Section) => toggleSelected([section.id])
+  const check = (section: Section) => {
+    pickedInTree.current = true
+    toggleSelected([section.id])
+  }
 
   // Reading is not selecting: a click opens the section (or closes the one
   // being read) and marks it on the map. Only the boxes change the selection.
@@ -136,6 +153,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
       toggleExpanded(section.id)
       return
     }
+    pickedInTree.current = true
     focusSection(section.id)
     requestFit(geometryBounds(section.geometry))
   }

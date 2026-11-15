@@ -13,12 +13,20 @@ SHARED_THREAD_ID = "5d1f0c1e-7a57-4c0d-9e61-a6e17d10a9e7"
 
 MAX_QUESTION_CHARS = 4000
 
+# The most years one cite search reads (owner, 2026-11-14): about 104 weekly issues.
+CITE_WINDOW_YEARS = 2
+
 
 @dataclass(frozen=True)
 class Settings:
     model: str
     store_url: str
     store_token: str = field(repr=False)
+    # cite's Agent Server. Empty: the Agent cannot search, and says what it would ask for.
+    cite_url: str = ""
+    # A second store token, minted for the pipeline `cite@<version>`: the only one that
+    # writes, and only a finding the person pressed Propose on (plan D7).
+    cite_store_token: str = field(default="", repr=False)
 
 
 TRACING_VARIABLES = (
@@ -73,4 +81,6 @@ def load() -> Settings:
         model=os.environ.get("AGENT_MODEL", "anthropic:claude-sonnet-5-5"),
         store_url=os.environ.get("STORE_URL", "http://localhost:47110").rstrip("/"),
         store_token=os.environ.get("STORE_TOKEN", ""),
+        cite_url=os.environ.get("CITE_URL", "").rstrip("/"),
+        cite_store_token=os.environ.get("STORE_CITE_TOKEN", ""),
     )

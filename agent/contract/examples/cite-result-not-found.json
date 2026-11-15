@@ -1,0 +1,61 @@
+{
+  "schema_version": "0.3",
+  "status": "ok",
+  "reason": "",
+  "section": {
+    "pipe_id": "11111111-2222-3333-4444-555555555555",
+    "section_id": "11111111-2222-3333-4444-555555555555",
+    "places": [
+      "Sampleton",
+      "Exampleville"
+    ],
+    "places_given": [
+      "Sampleton",
+      "Exampleville"
+    ],
+    "attributes": [
+      "Ownership"
+    ],
+    "observations": [
+      {
+        "year": 1932
+      }
+    ]
+  },
+  "citations": [],
+  "claims": [],
+  "unknowns": [
+    {
+      "attribute": "Ownership",
+      "note": "No verified passage."
+    }
+  ],
+  "attempts": [
+    {
+      "claim": {
+        "attribute": "Ownership",
+        "value": "Other Gas Co."
+      },
+      "stage": "judge",
+      "reason": "the passage is about another line"
+    },
+    {
+      "claim": {
+        "attribute": "Ownership",
+        "value": "Other Gas Co."
+      },
+      "stage": "judge",
+      "reason": "reviewer unavailable (TimeoutError); try again later"
+    }
+  ],
+  "searched": [
+    {
+      "attribute": "Ownership",
+      "journal": "The Example Trade Journal",
+      "searches": 9,
+      "issues_read": 104,
+      "first_issue": "1930-01-02",
+      "last_issue": "1931-12-24"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import { act, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { Suspense } from "react"
-import { beforeEach, describe, expect, it } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { Network } from "@/data/schema"
 import { testNetwork } from "@/test/network"
@@ -126,6 +126,45 @@ describe("Studio panels", () => {
     expect(
       screen.getByRole("treeitem", { name: /Dale to Elm/ })
     ).toHaveAttribute("aria-selected", "true")
+  })
+
+  it("brings a section picked elsewhere to the top of the tree, open", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    const calls: { id: string | null; block?: string }[] = []
+    const spy = vi
+      .spyOn(Element.prototype, "scrollIntoView")
+      .mockImplementation(function (this: Element, arg) {
+        calls.push({
+          id: this.getAttribute("data-section"),
+          block: typeof arg === "object" ? arg.block : undefined,
+        })
+      })
+    try {
+      act(() => useStudio.getState().selectSection("s-3"))
+      const section = screen.getByRole("treeitem", { name: /Dale to Elm/ })
+      expect(section).toHaveAttribute("aria-expanded", "true")
+      expect(calls.at(-1)).toEqual({ id: "s-3", block: "start" })
+
+      // Picked in the tree itself: only into view, no jump.
+      calls.length = 0
+      await user.click(screen.getByRole("option", { name: /North line/ }))
+      await user.click(screen.getByRole("treeitem", { name: /Birch to Cedar/ }))
+      expect(calls.filter((c) => c.id !== null).at(-1)?.block).toBe("nearest")
+
+      // Picked again from elsewhere after the tree moved: to the top again.
+      calls.length = 0
+      act(() => useStudio.getState().selectSection("s-3"))
+      act(() => useStudio.getState().selectSection("s-3"))
+      expect(calls.filter((c) => c.id === "s-3")).toHaveLength(2)
+
+      // A lasso that catches one section opens it, as a click does.
+      act(() => useStudio.getState().select(["s-1"]))
+      expect(useStudio.getState().expandedSectionIds.has("s-1")).toBe(true)
+      expect(calls.at(-1)).toEqual({ id: "s-1", block: "start" })
+    } finally {
+      spy.mockRestore()
+    }
   })
 
   it("ticks every section of a selected pipeline, and the header box selects all or none", async () => {
