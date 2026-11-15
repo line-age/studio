@@ -25,6 +25,7 @@ import {
 import { proposedEndsFor } from "@/data/evidence"
 import type { Geometry } from "@/data/schema"
 import { sectionStatus } from "@/data/status"
+import { cn } from "@/lib/utils"
 
 import { SEARCH_INPUT_ID } from "../panels/pipelines-panel"
 import {
@@ -613,15 +614,22 @@ export function StudioMap({ token }: { token: string }) {
         />
       )}
 
-      <div className="pointer-events-none absolute inset-x-3 bottom-3 flex flex-col items-center gap-2">
-        {/* How to select several: said once something is selected, while
-            the Select tool is in hand. It never takes a click. */}
-        {tool === "select" && selected.size > 0 && (
-          <p className="flex items-center gap-1.5 rounded-lg border bg-background px-2.5 py-1 type-ui-xs whitespace-nowrap text-muted-foreground shadow-map-control">
-            <Kbd>{addKeyName()}</Kbd>
-            click a line to add it or take it off
-          </p>
-        )}
+      {/* How to select several: said while exactly one section is selected
+          and the Select tool is in hand. At the top centre, under the
+          SelectionBar when that shows; never by the tools. No border, no
+          shadow: it is not a control and takes no click. */}
+      {tool === "select" && selected.size === 1 && (
+        <p
+          className={cn(
+            "pointer-events-none absolute left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-md bg-background/80 px-1.5 py-0.5 type-ui-xs whitespace-nowrap text-muted-foreground",
+            barShown ? "top-14" : "top-3"
+          )}
+        >
+          Hold <Kbd>{addKeyName()}</Kbd> to select several
+        </p>
+      )}
+
+      <div className="pointer-events-none absolute inset-x-3 bottom-3 flex justify-center">
         <div data-tour="tools" className="pointer-events-auto">
           <ToolPalette
             value={tool}

@@ -309,9 +309,11 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   it leaves it selected. With Cmd held on a Mac, Ctrl elsewhere, a click adds a section
   or takes a selected one off (`map/click-selection.ts`; the owner, 2026-11-15). A click
   on empty map steps the selection back; with the key held it changes nothing. The key
-  does nothing in the list, the right panel or the Lasso. While something is selected
-  and the Select tool is in hand, a quiet line above the tool palette names the key
-  ("Cmd click a line to add it or take it off"); it takes no click. Every selection made on the
+  does nothing in the list, the right panel or the Lasso. While exactly one
+  section is selected and the Select tool is in hand, a quiet line at the top centre
+  of the map names the key ("Hold Cmd to select several"): under the SelectionBar
+  when that shows, never by the tools, no border or shadow (the owner, 2026-11-15);
+  it takes no click. Every selection made on the
   map shows the `SelectionBar` ("Ask the Agent") at the top centre of the map.
 - Ctrl and drag turns the map (the owner, 2026-11-13); "Reset north" in the zoom group
   turns it back. The map never tilts. On a Mac, Ctrl and click is a right click, so the
