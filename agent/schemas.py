@@ -190,6 +190,10 @@ class Ref(_Strict):
     # holds them, for Studio to show on hover. None when store holds none.
     quote: str | None = None
     url: str | None = None
+    # For a claim: what its source does for it (states, map_shows, map_omits, confirms)
+    # and, for a map, the date it is as of (EDTF). For Studio's hover card.
+    role: str | None = None
+    as_of: str | None = None
 
 
 LeadRule = Literal[

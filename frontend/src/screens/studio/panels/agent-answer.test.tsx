@@ -183,6 +183,7 @@ describe("a source pill", () => {
           ...owner,
           quote: "Invented Gas Co. owns the line to Sampleton.",
           url: "https://example.org/gazette/32/3#page=52",
+          role: "states",
         },
       ],
     }
@@ -191,8 +192,10 @@ describe("a source pill", () => {
       screen.getByRole("button", { name: /Open the claim/ })
     )
     expect(
-      await screen.findByText("Invented Gas Co. owns the line to Sampleton.")
+      await screen.findByText(/Invented Gas Co\. owns the line to Sampleton\./)
     ).toBeInTheDocument()
+    expect(screen.getByText("States it")).toBeInTheDocument()
+    expect(screen.getByText("Cited")).toBeInTheDocument()
     expect(
       screen.getByRole("link", { name: /Open the source/ })
     ).toHaveAttribute("href", "https://example.org/gazette/32/3#page=52")

@@ -96,16 +96,38 @@ function withLinks(
   return { nodes, linked }
 }
 
-const STATE_WORDS: Record<string, string> = {
-  accepted: "Accepted claim",
-  candidate: "Proposed, not decided",
-  rejected: "Rejected claim",
+/** A claim's state as Studio shows it everywhere: a coloured badge with its word. */
+const STATE_BADGE: Record<
+  string,
+  { word: string; variant: "cited" | "ai" | "destructive" }
+> = {
+  accepted: { word: "Cited", variant: "cited" },
+  candidate: { word: "Proposed", variant: "ai" },
+  rejected: { word: "Rejected", variant: "destructive" },
+}
+
+/** What the source does for the claim, in Studio's words ("Shown on", "States"). */
+function roleLine(claim: AgentAnswerRef): string | null {
+  const year = claim.as_of?.match(/^\d{4}/)?.[0]
+  switch (claim.role) {
+    case "map_shows":
+      return year ? `Shown on this map, as of ${year}` : "Shown on this map"
+    case "map_omits":
+      return year ? `Not on this map, as of ${year}` : "Not on this map"
+    case "states":
+      return "States it"
+    case "confirms":
+      return "Confirms it"
+    default:
+      return null
+  }
 }
 
 /**
  * A source a statement rests on, as AI Elements' Inline Citation: the pill
- * opens the claim it was cited for; hovering it shows the source, the passage it
- * quotes and a link to the source, without leaving the chat.
+ * opens the claim it was cited for; hovering it shows what the source does for
+ * the claim, the source, the passage it quotes, the claim's state, and a link to
+ * the source, without leaving the chat.
  */
 function SourceCitation({
   source,
@@ -116,6 +138,10 @@ function SourceCitation({
   claim: AgentAnswerRef
   open: (ref: AgentAnswerRef) => void
 }) {
+  const state = claim.status ? STATE_BADGE[claim.status] : undefined
+  const role = roleLine(claim)
+  const link =
+    "type-ui-xs-medium text-primary underline-offset-2 outline-none hover:underline focus-visible:shadow-focus-ring rounded-sm"
   return (
     <HoverCard>
       <HoverCardTrigger
@@ -139,32 +165,50 @@ function SourceCitation({
           <span className="truncate">{source}</span>
         </Badge>
       </HoverCardTrigger>
-      <HoverCardContent className="flex w-72 flex-col gap-2">
-        <div className="flex flex-col gap-0.5">
-          <span className="type-ui-sm-medium">{source}</span>
-          {claim.status && (
-            <span className="type-ui-xs text-muted-foreground">
-              {STATE_WORDS[claim.status] ?? claim.status}
-              {claim.label ? ` · ${claim.label}` : ""}
+      <HoverCardContent className="flex w-80 flex-col gap-2.5">
+        <div className="flex flex-col gap-1">
+          {role && (
+            <span className="flex items-center gap-1.5 type-ui-xs text-muted-foreground">
+              <Icon name="source" className="size-3.5" />
+              {role}
             </span>
           )}
+          <span className="type-ui-sm-medium">{source}</span>
         </div>
         {claim.quote && (
-          <blockquote className="border-l-2 border-border pl-2 type-ui-xs">
-            {claim.quote}
+          <blockquote
+            title={claim.quote}
+            className="line-clamp-6 border-l-2 border-border pl-2 type-ui-xs"
+          >
+            “{claim.quote}”
           </blockquote>
         )}
-        {claim.url && (
-          <a
-            href={claim.url}
-            target="_blank"
-            rel="noreferrer"
-            className="type-ui-xs text-primary underline-offset-2 hover:underline"
-          >
-            Open the source
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
+        {(state || claim.label) && (
+          <div className="flex items-center gap-1.5">
+            {state && <Badge variant={state.variant}>{state.word}</Badge>}
+            {claim.label && (
+              <span className="type-ui-xs text-muted-foreground">
+                {claim.label}
+              </span>
+            )}
+          </div>
         )}
+        <div className="flex items-center gap-3 border-t border-border-subtle pt-2">
+          <button type="button" onClick={() => open(claim)} className={link}>
+            Open the claim
+          </button>
+          {claim.url && (
+            <a
+              href={claim.url}
+              target="_blank"
+              rel="noreferrer"
+              className={link}
+            >
+              Open the source
+              <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          )}
+        </div>
       </HoverCardContent>
     </HoverCard>
   )
