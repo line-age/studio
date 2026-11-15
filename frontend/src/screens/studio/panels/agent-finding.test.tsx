@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import { agentAnswer } from "@/data/agent/answer"
 
+import { ProposeOutcomes } from "./agent-finding"
 import { AgentStatementView, ProposeFinding } from "./agent-statement"
 
 /*
@@ -65,6 +66,25 @@ describe("a finding", () => {
         />
       </ProposeFinding>
     )
+    expect(screen.getByRole("button", { name: "Propose" })).toBeDisabled()
+  })
+
+  it("says what came of Propose in place of the question", () => {
+    render(
+      <ProposeOutcomes
+        value={
+          new Map([["F1", { state: "proposed" as const, text: "Proposed." }]])
+        }
+      >
+        <AgentStatementView
+          statement={findings[0]}
+          name={name}
+          open={vi.fn()}
+        />
+      </ProposeOutcomes>
+    )
+    const confirmation = screen.getByLabelText("Propose to store")
+    expect(within(confirmation).getByText("Proposed")).toBeVisible()
     expect(screen.queryByRole("button", { name: "Propose" })).toBeNull()
   })
 })

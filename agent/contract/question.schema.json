@@ -2,21 +2,31 @@
   "$defs": {
     "Action": {
       "additionalProperties": false,
-      "description": "A button the person pressed, not words: code acts on it, no model reads it.",
+      "description": "A button the person pressed, not words: code acts on it, no model reads it.\n\npropose: write a finding to store as a candidate claim.\nfresh_start: drop the conversation's messages, keep what cite found.",
       "properties": {
         "kind": {
-          "const": "propose",
+          "enum": [
+            "propose",
+            "fresh_start"
+          ],
           "title": "Kind",
           "type": "string"
         },
         "finding": {
-          "title": "Finding",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finding"
         }
       },
       "required": [
-        "kind",
-        "finding"
+        "kind"
       ],
       "title": "Action",
       "type": "object"

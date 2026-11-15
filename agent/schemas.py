@@ -66,11 +66,14 @@ class QuestionItem(_Strict):
 
 
 class Action(_Strict):
-    """A button the person pressed, not words: code acts on it, no model reads it."""
+    """A button the person pressed, not words: code acts on it, no model reads it.
 
-    kind: Literal["propose"]
-    # The finding's handle in this thread (F1).
-    finding: str
+    propose: write a finding to store as a candidate claim.
+    fresh_start: drop the conversation's messages, keep what cite found."""
+
+    kind: Literal["propose", "fresh_start"]
+    # For propose: the finding's handle in this thread (F1).
+    finding: str | None = None
 
 
 class Question(_Strict):
@@ -186,6 +189,14 @@ class Ref(_Strict):
     # For a claim: its source as Studio shows it beside the statement ("Example Gazette,
     # vol. 32 no. 3, p. 41"), or None when store holds no source for it.
     source: str | None = None
+    # For a claim: the passage its citation quotes and a link to the source, as store
+    # holds them, for Studio to show on hover. None when store holds none.
+    quote: str | None = None
+    url: str | None = None
+    # For a claim: what its source does for it (states, map_shows, map_omits, confirms)
+    # and, for a map, the date it is as of (EDTF). For Studio's hover card.
+    role: str | None = None
+    as_of: str | None = None
 
 
 LeadRule = Literal[

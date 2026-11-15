@@ -4,6 +4,15 @@ import { Attachment } from "@/components/attachment"
 import { Bubble } from "@/components/bubble"
 import { Marker } from "@/components/marker"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { geometryBounds, plural, sectionLabel } from "@/data/derive"
 import { shortId } from "@/data/short-id"
 import { Icon } from "@/components/icons/icon"
@@ -24,6 +33,7 @@ import type { Question } from "@/data/question"
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
 import { AgentSources } from "./agent-sources"
+import { ProposeOutcomes, type ProposeOutcome } from "./agent-finding"
 import { AgentStatementView, ProposeFinding } from "./agent-statement"
 import { AgentSteps } from "./agent-steps"
 
@@ -176,6 +186,28 @@ function AnswerBody({
   )
 }
 
+/** From this many turns the header suggests starting fresh. */
+const LONG_CHAT_TURNS = 12
+
+/** What came of each Propose, by finding handle, from the turns that asked. */
+function outcomesOf(
+  turns: readonly AgentTurn[],
+  working: boolean
+): Map<string, ProposeOutcome> {
+  const outcomes = new Map<string, ProposeOutcome>()
+  turns.forEach((turn, i) => {
+    const handle = turn.question.action?.finding
+    if (!handle) return
+    const first = turn.answer?.statements[0]
+    if (first?.kind === "proposed")
+      outcomes.set(handle, { state: "proposed", text: first.text })
+    else if (first) outcomes.set(handle, { state: "refused", text: first.text })
+    else if (working && i === turns.length - 1)
+      outcomes.set(handle, { state: "pending" })
+  })
+  return outcomes
+}
+
 /** A search was started and nothing came back from it: it was stopped. */
 function searchLeftUnfinished(statements: readonly AgentStatement[]): boolean {
   const started = statements.findIndex(
@@ -269,6 +301,20 @@ function Conversation({
 }) {
   const agent = useAgent()
   const { network, reload } = useStudioData()
+  const [confirmClear, setConfirmClear] = useState(false)
+  // A hint, not a warning: the Agent reads no earlier turn, so a long chat does
+  // not make answers worse; it buries the current turn and loads slower.
+  const long = agent.turns.length >= LONG_CHAT_TURNS
+  // Clears the messages for everyone and keeps what cite found (code, no model).
+  const startFresh = () =>
+    void agent
+      .ask({
+        words: "Start fresh",
+        about: [],
+        network: network.name,
+        action: { kind: "fresh_start" },
+      })
+      .then(onCleared)
   const logRef = useRef<HTMLDivElement>(null)
   const last = agent.turns.at(-1)
   // After a finding is proposed, store holds a new candidate claim: read again.
@@ -312,13 +358,62 @@ function Conversation({
           <Button
             size="xs"
             variant="ghost"
-            onClick={() => void agent.clear().then(onCleared)}
+            onClick={startFresh}
+            disabled={agent.working || agent.turns.length === 0}
+            title="Clear the messages and keep what cite found"
+          >
+            Start fresh
+          </Button>
+          <Button
+            size="xs"
+            variant="ghost"
+            onClick={() => setConfirmClear(true)}
             disabled={agent.turns.length === 0 && !agent.working}
           >
             Clear chat
           </Button>
         </span>
       </div>
+      {long && (
+        <p className="px-3 pt-1 type-ui-xs text-muted-foreground" role="note">
+          Long chat: {plural(agent.turns.length, "turn")}
+          {agent.carried > 0
+            ? `, ${plural(agent.carried, "finding")} kept`
+            : ""}
+          . Start fresh clears the messages
+          {agent.carried > 0 ? " and keeps the findings" : ""}.
+        </p>
+      )}
+      <Dialog open={confirmClear} onOpenChange={setConfirmClear}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Clear the chat for everyone?</DialogTitle>
+            <DialogDescription>
+              The conversation is shared by everyone using this Studio. Clearing
+              deletes every message and what cite found
+              {agent.carried > 0
+                ? ` (${plural(agent.carried, "finding")})`
+                : ""}
+              . Nothing in store changes. To keep the findings, use Start fresh.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" size="sm" />}>
+              Cancel
+            </DialogClose>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                setConfirmClear(false)
+                void agent.clear().then(onCleared)
+              }}
+            >
+              Clear chat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div
         ref={logRef}
         role="log"
@@ -326,15 +421,17 @@ function Conversation({
         className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-3 py-4"
       >
         <ProposeFinding value={propose}>
-          {agent.turns.map((turn, i) => (
-            <Turn
-              key={turn.id}
-              turn={turn}
-              working={agent.working}
-              last={i === agent.turns.length - 1}
-              liveSteps={agent.liveSteps}
-            />
-          ))}
+          <ProposeOutcomes value={outcomesOf(agent.turns, agent.working)}>
+            {agent.turns.map((turn, i) => (
+              <Turn
+                key={turn.id}
+                turn={turn}
+                working={agent.working}
+                last={i === agent.turns.length - 1}
+                liveSteps={agent.liveSteps}
+              />
+            ))}
+          </ProposeOutcomes>
         </ProposeFinding>
         {agent.turns.length === 0 && <Marker>No conversation yet.</Marker>}
         {agent.error && (

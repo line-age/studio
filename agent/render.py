@@ -392,6 +392,12 @@ def _ref(ref_type: str, ref_id: str, read: "Read") -> Ref:
             asserter=claim.get("asserted_by_kind"),
             label=ref_label(claim["feature_id"], read),
             source=source_of(claim),
+            role=(_citation(claim) or {}).get("role") or None,
+            as_of=(_citation(claim) or {}).get("as_of_edtf") or None,
+            quote=(_citation(claim) or {}).get("quote") or None,
+            url=(_citation(claim) or {}).get("url")
+            or (_citation(claim) or {}).get("archive_url")
+            or None,
         )
     if ref_type == "link":
         link = read.links.get(ref_id)
@@ -462,7 +468,17 @@ def source_of(claim: dict[str, Any]) -> str | None:
     title = citation.get("source_title") if citation else None
     if not title:
         return None
+    # A map reading's locator is where it was traced, not a place in the map: left out.
+    if citation.get("role") in ("map_shows", "map_omits"):
+        return str(title)
     return f"{title}, {citation['locator']}" if citation.get("locator") else str(title)
+
+
+def shown_on_a_map_only(claim: dict[str, Any]) -> bool:
+    """A status store holds only because a map shows the line: it says the line was
+    drawn by then, not that it was in operation (Studio words it "Shown by ...")."""
+    roles = {c.get("role") for c in claim.get("citations") or []}
+    return claim.get("attribute_key") == "status" and roles == {"map_shows"}
 
 
 def source_line(claims: list[dict[str, Any]]) -> str:
@@ -516,6 +532,8 @@ def claim_line(claim: dict[str, Any], read: Read, name_things: bool) -> str:
     elif status == "rejected":
         of = f" for {subject}" if subject else ""
         line = f"One value{of}, {value}, was rejected as the {what}. It was given {period}."
+    elif status == "accepted" and shown_on_a_map_only(claim):
+        line = f"{subject or 'It'} is shown on a map {period}."
     elif status == "accepted":
         line = (
             f"For {subject}, the {what} is {value}, {period}."

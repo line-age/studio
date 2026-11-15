@@ -219,6 +219,7 @@ export function useAgent() {
         answers?: string | null
         answer?: unknown
         cite_job?: unknown
+        cite?: { findings?: Record<string, unknown> } | null
       }
     | undefined
   const searching = working && values?.cite_job != null
@@ -238,6 +239,8 @@ export function useAgent() {
   return {
     turns: shown,
     searching,
+    /** What cite found that the thread keeps, even after Start fresh. */
+    carried: Object.keys(values?.cite?.findings ?? {}).length,
     liveSteps: working && nowDoing.success ? nowDoing.data : [],
     ask,
     stop,

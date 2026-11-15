@@ -161,3 +161,14 @@ def test_one_section_with_a_merged_trace_is_one_thing(world):
     on_section = _claim(world, read, "s13", "status", "accepted")
     texts = [s.text for s in render(_picked(on_trace["id"], on_section["id"]), read).statements]
     assert not any(t.startswith("For ") for t in texts)
+
+
+def test_a_status_only_a_map_shows_is_said_as_shown_not_operational(world):
+    read = _read(world, "s01")
+    status = _claim(world, read, "s01", "status", "accepted")
+    answer = render(_picked(status["id"]), read)
+    [statement] = answer.statements
+    assert statement.text == "It is shown on a map by 1932."
+    [ref] = statement.refs
+    assert ref.role == "map_shows" and ref.as_of.startswith("1932")
+    assert not ref.source.endswith(", traced")

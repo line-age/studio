@@ -27,6 +27,12 @@ export const agentAnswerRef = z.object({
   label: z.string().nullable().optional(),
   /** For a claim: its source and page, shown beside the statement; null when none. */
   source: z.string().nullable().optional(),
+  /** For a claim: the quoted passage and a link to the source, shown on hover. */
+  quote: z.string().nullable().optional(),
+  url: z.string().nullable().optional(),
+  /** For a claim: what its source does for it, and a map's as-of date (EDTF). */
+  role: z.string().nullable().optional(),
+  as_of: z.string().nullable().optional(),
 })
 
 /**

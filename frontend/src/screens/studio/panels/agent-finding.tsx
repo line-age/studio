@@ -1,7 +1,27 @@
 import { Icon } from "@/components/icons/icon"
 import { Badge } from "@/components/ui/badge"
+import { createContext, use } from "react"
+
 import { Button } from "@/components/ui/button"
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item"
 import type { AgentFinding } from "@/data/agent/answer"
+
+/** What became of a Propose, by finding handle, read from the later turns. */
+export type ProposeOutcome =
+  | { state: "pending" }
+  | { state: "proposed"; text: string }
+  | { state: "refused"; text: string }
+
+export const ProposeOutcomes = createContext<
+  ReadonlyMap<string, ProposeOutcome>
+>(new Map())
 
 /*
  * What cite found in a journal, under the sentence that says so. Built from
@@ -9,7 +29,9 @@ import type { AgentFinding } from "@/data/agent/answer"
  * the page with the passage marked, the reference and a link to the page,
  * why it is in doubt, which places it matched, and Propose. It is not in
  * store: the AI badge says so in words. Propose writes it as a candidate claim,
- * which a person still has to accept; nothing else on the card writes.
+ * which a person still has to accept; nothing else on the card writes. The
+ * question and its answer are AI Elements' Confirmation (an Item): what Propose
+ * does, the button, and once pressed, what came of it.
  */
 
 /** The part of the page around the passage, with the passage marked. */
@@ -63,6 +85,79 @@ const IN_STORE = {
 function reference(f: AgentFinding): string {
   const issue = f.volume && f.number ? `, vol. ${f.volume} no. ${f.number}` : ""
   return `${f.journal}${issue}, ${f.date}, ${f.page}`
+}
+
+const WHAT = {
+  owner: "the owner",
+  diameter: "the diameter",
+  built: "the build date",
+}
+
+/** Asks before a finding is written to store, and says what came of it. */
+function ProposeConfirmation({
+  finding,
+  onPropose,
+}: {
+  finding: AgentFinding
+  onPropose?: (handle: string) => void
+}) {
+  const outcome = use(ProposeOutcomes).get(finding.handle)
+  let title: string
+  let description: string
+  let mark: "check" | "history" | null = null
+  let action = false
+  if (finding.in_store) {
+    title = `In store as ${finding.in_store === "candidate" ? "a candidate" : finding.in_store}`
+    description =
+      finding.in_store === "candidate"
+        ? "Already proposed. A person accepts or rejects it in review."
+        : `Store already holds this value, ${finding.in_store}.`
+    mark = "check"
+  } else if (outcome?.state === "proposed") {
+    title = "Proposed"
+    description =
+      "A candidate claim in store, with this citation. A person decides."
+    mark = "check"
+  } else if (outcome?.state === "refused") {
+    title = "Not proposed"
+    description = outcome.text
+  } else if (outcome?.state === "pending") {
+    title = "Proposing"
+    description = "Writing it to store as a candidate claim."
+    mark = "history"
+  } else if (!finding.proposable) {
+    title = "Not offered to propose"
+    description = finding.not_proposable ?? ""
+  } else {
+    title = `Propose this as ${WHAT[finding.attribute]}?`
+    description =
+      "Writes a candidate claim with this citation to store. A person still accepts or rejects it."
+    action = true
+  }
+  return (
+    <Item variant="outline" size="sm" aria-label="Propose to store">
+      {mark && (
+        <ItemMedia variant="icon">
+          <Icon name={mark} />
+        </ItemMedia>
+      )}
+      <ItemContent>
+        <ItemTitle>{title}</ItemTitle>
+        <ItemDescription>{description}</ItemDescription>
+      </ItemContent>
+      {action && (
+        <ItemActions>
+          <Button
+            size="sm"
+            disabled={!onPropose}
+            onClick={() => onPropose?.(finding.handle)}
+          >
+            Propose
+          </Button>
+        </ItemActions>
+      )}
+    </Item>
+  )
 }
 
 export function AgentFindingCard({
@@ -129,19 +224,7 @@ export function AgentFindingCard({
           .
         </p>
       )}
-      {finding.proposable ? (
-        onPropose && (
-          <div>
-            <Button size="xs" onClick={() => onPropose(finding.handle)}>
-              Propose
-            </Button>
-          </div>
-        )
-      ) : (
-        <p className="type-ui-xs text-muted-foreground">
-          Not offered to propose: {finding.not_proposable}
-        </p>
-      )}
+      <ProposeConfirmation finding={finding} onPropose={onPropose} />
     </div>
   )
 }
