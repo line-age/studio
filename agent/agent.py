@@ -23,6 +23,7 @@ from typing import Any
 from langchain.agents import create_agent
 from langchain.agents.structured_output import ProviderStrategy
 from langchain.chat_models import init_chat_model
+from langchain_anthropic.middleware import AnthropicPromptCachingMiddleware
 from langchain_core.messages import AIMessage, HumanMessage, RemoveMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, MessagesState, StateGraph
@@ -451,6 +452,10 @@ def build_graph(
             tools=tools,
             system_prompt=prompts.SYSTEM,
             response_format=ProviderStrategy(Draft),
+            # The system prompt and the tools are the same for every question, and each
+            # call of a loop repeats the one before: cached, they are read at a tenth of
+            # the price. A model that is not Anthropic's (a test's fake) runs uncached.
+            middleware=[AnthropicPromptCachingMiddleware(unsupported_model_behavior="ignore")],
             name="studio-agent-loop",
         )
 

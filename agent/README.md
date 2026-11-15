@@ -46,7 +46,7 @@ flowchart TD
         context --> loop
 
         subgraph loop["model loop (create_agent), effort low"]
-            model["model<br/>claude-sonnet-5-5"]
+            model["model<br/>claude-haiku-5-5"]
             tool["read_feature · read_context<br/>claims C1, worked out W1, leads L1"]
             model -->|tool call| tool
             tool --> model
