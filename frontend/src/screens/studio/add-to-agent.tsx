@@ -11,6 +11,7 @@ import {
 import type { AgentRef } from "@/data/question"
 
 import { useLeftPanel } from "./left-panel-context"
+import type { MenuChange } from "./pipeline-actions"
 import { useSelectionGroups } from "./studio-data"
 import { useStudio, type AgentAttachment } from "./studio-store"
 
@@ -64,8 +65,14 @@ export function AddToAgentMenu({
   items = [],
   refs = [],
   starters = [],
+  changes = [],
   children,
 }: {
+  /**
+   * Changes the person makes at once, at the top (Make pipeline, Change
+   * pipeline). Only where a change can be made.
+   */
+  changes?: readonly MenuChange[]
   /** Sections, by the pipeline or group they are in. */
   items?: AgentAttachment[]
   /** Finer things: a claim, a source, a proposal. */
@@ -86,6 +93,7 @@ export function AddToAgentMenu({
     askAgent(items, more)
   }
   const empty =
+    changes.length === 0 &&
     items.length === 0 &&
     refs.length === 0 &&
     starters.every((starter) => !starter.refs?.length)
@@ -98,6 +106,12 @@ export function AddToAgentMenu({
     >
       <ContextMenuTrigger render={children} />
       <ContextMenuContent finalFocus={() => !chosen.current}>
+        {changes.map((item) => (
+          <ContextMenuItem key={item.label} onClick={item.onSelect}>
+            {item.label}
+          </ContextMenuItem>
+        ))}
+        {changes.length > 0 && <ContextMenuSeparator />}
         {starters.map((starter) => (
           <ContextMenuItem
             key={starter.words}

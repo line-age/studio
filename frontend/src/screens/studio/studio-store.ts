@@ -18,6 +18,15 @@ export type LeftPanel = "pipelines" | "agent"
  */
 export type LayerId = "proposed" | "faint"
 
+/**
+ * "change": one section, moved, taken out or starting a new pipeline.
+ * "add": several sections, into a pipeline. "done": what a change came to,
+ * or why store refused it, in words.
+ */
+export type PipelineEdit =
+  | { mode: "change" | "add"; sectionIds: readonly string[] }
+  | { mode: "done"; text: string; failed: boolean }
+
 export interface FitRequest {
   bounds: Bounds
   /** Changes on every request so the map reacts even to the same bounds. */
@@ -116,6 +125,12 @@ interface StudioState {
   agentAsked: number
   /** Questions sent in this visit, each with what was attached to it. */
   sentQuestions: SentQuestion[]
+  /**
+   * The person is choosing where sections go (Change pipeline, Add to a
+   * pipeline), or reading what a change they made came to. Docked at the
+   * bottom of the right panel. Not in the URL.
+   */
+  pipelineEdit: PipelineEdit | null
 
   /** Choose a status; the one already chosen goes back to all. */
   setStatus: (status: SectionStatus | "all") => void
@@ -185,6 +200,8 @@ interface StudioState {
   sendQuestion: (sent: SentQuestion) => void
   /** Empty the composer after a question went to the Agent service. */
   clearAgentDraft: () => void
+  /** Open the dock for choosing where sections go, or close it (null). */
+  editPipeline: (edit: PipelineEdit | null) => void
 }
 
 /** A question as sent, with what the screen needs to show it again. */
@@ -328,6 +345,7 @@ export const useStudio = create<StudioState>((set) => ({
   agentDraft: null,
   agentAsked: 0,
   sentQuestions: [],
+  pipelineEdit: null,
 
   setStatus: (status) =>
     set((s) => ({ status: s.status === status ? "all" : status })),
@@ -498,6 +516,7 @@ export const useStudio = create<StudioState>((set) => ({
     })),
   clearAgentDraft: () =>
     set({ agentAttachments: [], agentRefs: [], agentDraft: null }),
+  editPipeline: (edit) => set({ pipelineEdit: edit }),
   detachFromAgent: (pipelineId) =>
     set((s) => ({
       agentAttachments: s.agentAttachments.filter(

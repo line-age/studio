@@ -3,7 +3,7 @@
     uv run python -m evals.serve_world [--world small] [--port 47191]
 
 Studio (in store mode) and the Agent both read it, so the whole chain runs on invented
-data and can be traced. GET only, on 127.0.0.1 only. The token is the fake store's.
+data and can be traced. GET only, on 127.0.0.1 only, with no token.
 """
 
 import argparse
@@ -11,17 +11,14 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import httpx
 
-from evals.fake_store import TOKEN, FakeStore, load_world
+from evals.fake_store import FakeStore, load_world
 
 
 def handler_for(store: FakeStore) -> type[BaseHTTPRequestHandler]:
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
-            request = httpx.Request(
-                "GET",
-                f"http://store{self.path}",
-                headers={"authorization": self.headers.get("authorization", "")},
-            )
+            # Reads carry no token; any sent is dropped, as store would not need it.
+            request = httpx.Request("GET", f"http://store{self.path}")
             if self.path == "/healthz":
                 response = httpx.Response(200, json={"ok": True})
             else:
@@ -49,7 +46,7 @@ def main() -> None:
     server = ThreadingHTTPServer(
         ("127.0.0.1", args.port), handler_for(FakeStore(load_world(args.world)))
     )
-    print(f"invented world {args.world!r} on http://127.0.0.1:{args.port}  token {TOKEN}")
+    print(f"invented world {args.world!r} on http://127.0.0.1:{args.port}")
     server.serve_forever()
 
 

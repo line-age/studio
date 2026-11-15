@@ -1,0 +1,68 @@
+{
+  "version": 2,
+  "checked": true,
+  "statements": [
+    {
+      "kind": "pipeline_offer",
+      "text": "Propose these 3 sections as one pipeline? Store keeps it as a proposal until a person decides it in the inbox. 1 of them is already in a pipeline; it stays there until a person moves it.",
+      "refs": [
+        {
+          "type": "feature",
+          "id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "section 06a875ca",
+          "source": null,
+          "quote": null,
+          "url": null,
+          "role": null,
+          "as_of": null
+        },
+        {
+          "type": "feature",
+          "id": "ca5d65a4-bfa9-5734-8d8a-f08fe72a8bb2",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "Sampletown lateral",
+          "source": null,
+          "quote": null,
+          "url": null,
+          "role": null,
+          "as_of": null
+        },
+        {
+          "type": "feature",
+          "id": "18dd9183-6303-5ec5-bcc6-5a448f11d365",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "section 7707ea05",
+          "source": null,
+          "quote": null,
+          "url": null,
+          "role": null,
+          "as_of": null
+        }
+      ],
+      "attribute": null,
+      "request": null,
+      "rule": null,
+      "finding": null,
+      "pipeline": {
+        "section_ids": [
+          "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+          "ca5d65a4-bfa9-5734-8d8a-f08fe72a8bb2",
+          "18dd9183-6303-5ec5-bcc6-5a448f11d365"
+        ],
+        "in_pipeline": [
+          "18dd9183-6303-5ec5-bcc6-5a448f11d365"
+        ]
+      }
+    }
+  ]
+}

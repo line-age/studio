@@ -121,6 +121,7 @@ def test_two_bad_drafts_end_with_the_fixed_line(world):
             "request": None,
             "rule": None,
             "finding": None,
+            "pipeline": None,
         }
     ]
 

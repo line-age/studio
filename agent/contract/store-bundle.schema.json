@@ -1,0 +1,752 @@
+{
+  "$defs": {
+    "BundleReviewIn": {
+      "description": "A person's decision on an existing `part_of` link, made in a bundle so that a move\n(reject the old membership, confirm the new) or a whole proposed line is one call.",
+      "properties": {
+        "link": {
+          "format": "uuid",
+          "title": "Link",
+          "type": "string"
+        },
+        "verdict": {
+          "enum": [
+            "confirm",
+            "reject"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        }
+      },
+      "required": [
+        "link",
+        "verdict"
+      ],
+      "title": "BundleReviewIn",
+      "type": "object"
+    },
+    "CitationIn": {
+      "properties": {
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref"
+        },
+        "external_key": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExternalKey"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "locator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Locator"
+        },
+        "quote": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quote"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "archive_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Archive Url"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "title": "CitationIn",
+      "type": "object"
+    },
+    "ClaimCitationIn": {
+      "properties": {
+        "citation": {
+          "title": "Citation",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "states",
+            "map_shows",
+            "map_omits",
+            "confirms"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        }
+      },
+      "required": [
+        "citation",
+        "role"
+      ],
+      "title": "ClaimCitationIn",
+      "type": "object"
+    },
+    "ClaimIn": {
+      "properties": {
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref"
+        },
+        "external_key": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExternalKey"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "feature": {
+          "title": "Feature",
+          "type": "string"
+        },
+        "attribute": {
+          "title": "Attribute",
+          "type": "string"
+        },
+        "value_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Text"
+        },
+        "value_num": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Num"
+        },
+        "value_unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Unit"
+        },
+        "value_geom": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Geom"
+        },
+        "value_feature": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Feature"
+        },
+        "valid_edtf": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Edtf"
+        },
+        "start_earliest": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Earliest"
+        },
+        "start_latest": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Latest"
+        },
+        "end_earliest": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Earliest"
+        },
+        "end_latest": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Latest"
+        },
+        "citations": {
+          "items": {
+            "$ref": "#/$defs/ClaimCitationIn"
+          },
+          "minItems": 1,
+          "title": "Citations",
+          "type": "array"
+        },
+        "asserted_by": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asserted By"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "enum": [
+                "candidate",
+                "accepted",
+                "rejected"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Id"
+        }
+      },
+      "required": [
+        "feature",
+        "attribute",
+        "citations"
+      ],
+      "title": "ClaimIn",
+      "type": "object"
+    },
+    "ExternalKey": {
+      "properties": {
+        "system": {
+          "title": "System",
+          "type": "string"
+        },
+        "key": {
+          "title": "Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "system",
+        "key"
+      ],
+      "title": "ExternalKey",
+      "type": "object"
+    },
+    "FeatureIn": {
+      "properties": {
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref"
+        },
+        "external_key": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExternalKey"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "kind": {
+          "enum": [
+            "line",
+            "section",
+            "station",
+            "node",
+            "edge"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "gas",
+            "oil",
+            "refined",
+            "electric",
+            "road",
+            "water"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        }
+      },
+      "required": [
+        "kind",
+        "network"
+      ],
+      "title": "FeatureIn",
+      "type": "object"
+    },
+    "LinkIn": {
+      "properties": {
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref"
+        },
+        "external_key": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExternalKey"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "from": {
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "title": "To",
+          "type": "string"
+        },
+        "relation": {
+          "enum": [
+            "same_as",
+            "overlaps",
+            "split_into",
+            "part_of",
+            "parallel_to"
+          ],
+          "title": "Relation",
+          "type": "string"
+        },
+        "status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "confirmed",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        },
+        "citation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Citation"
+        },
+        "asserted_by": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asserted By"
+        }
+      },
+      "required": [
+        "from",
+        "to",
+        "relation"
+      ],
+      "title": "LinkIn",
+      "type": "object"
+    },
+    "SourceIn": {
+      "properties": {
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref"
+        },
+        "external_key": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExternalKey"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "enum": [
+            "periodical",
+            "issue",
+            "map_sheet",
+            "filing",
+            "dataset",
+            "web"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent"
+        },
+        "published_edtf": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Published Edtf"
+        },
+        "as_of_edtf": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "As Of Edtf"
+        },
+        "identifier": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Identifier"
+        },
+        "annotation_uri": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Annotation Uri"
+        },
+        "lane": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lane"
+        }
+      },
+      "required": [
+        "kind",
+        "title"
+      ],
+      "title": "SourceIn",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "sources": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/SourceIn"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "citations": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CitationIn"
+      },
+      "title": "Citations",
+      "type": "array"
+    },
+    "features": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/FeatureIn"
+      },
+      "title": "Features",
+      "type": "array"
+    },
+    "claims": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ClaimIn"
+      },
+      "title": "Claims",
+      "type": "array"
+    },
+    "reviews": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/BundleReviewIn"
+      },
+      "title": "Reviews",
+      "type": "array"
+    },
+    "links": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/LinkIn"
+      },
+      "title": "Links",
+      "type": "array"
+    }
+  },
+  "title": "Bundle",
+  "type": "object"
+}

@@ -45,6 +45,7 @@ import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
+import { usePipelineChanges } from "../pipeline-actions"
 import { HidePanels } from "../panel-toggle"
 import { useSettings } from "../settings"
 import {
@@ -526,6 +527,7 @@ function PipelineList({
   const onlyInView = useStudio(listFollowsMap)
   const [descending, setDescending] = useState(false)
   const attachments = useSelectionAttachments()
+  const pipelineChanges = usePipelineChanges()
   const listRef = useRef<HTMLDivElement>(null)
   /** The row last clicked or ticked: where a Shift-click run starts. */
   const anchor = useRef<string | null>(null)
@@ -631,6 +633,9 @@ function PipelineList({
       <Fragment key={summary.id}>
         {/* On a row of the selection the menu offers all of the selection. */}
         <AddToAgentMenu
+          changes={
+            checked !== "unchecked" ? pipelineChanges([...selection]) : []
+          }
           items={
             checked !== "unchecked"
               ? attachments

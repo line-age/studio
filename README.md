@@ -111,14 +111,10 @@ reachable from this machine only; `STUDIO_BIND=0.0.0.0` opens it to the network.
 ## Real data from store
 
 Studio can read a running [store](https://github.com/line-age/store) instead of the
-sample. Start store with its own `docker compose up -d` (keep its folder named `store`),
-make a token, and put it in `frontend/.env.local`:
-
-```sh
-docker compose -f ../store/compose.yaml exec -T api \
-  lineage-store token create studio --pipeline studio@local | tail -1
-# frontend/.env.local:  STORE_TOKEN=<that token>
-```
+sample. Start store with its own `docker compose up -d` (keep its folder named `store`).
+No token is needed: while there are no users, store takes a request with none as the
+local person ("Local developer"), who can read and decide. Never expose such a store
+beyond your own machine.
 
 Then, in a container:
 

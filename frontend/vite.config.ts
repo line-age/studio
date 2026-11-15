@@ -6,8 +6,8 @@ import { defineConfig } from "vitest/config"
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  // STORE_URL and STORE_TOKEN are read here, on the server side, and never
-  // reach the bundle: only names starting with VITE_ do.
+  // STORE_URL is read here, on the server side. Store takes a request with no
+  // token as the local person while there are no users, so none is sent.
   const env = loadEnv(mode, import.meta.dirname, "")
   return {
     plugins: [react(), tailwindcss()],
@@ -18,13 +18,12 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
-        // The app asks its own origin for store; this passes it on with the
-        // token. nginx.conf does the same in the container.
+        // The app asks its own origin for store; this passes it on.
+        // nginx.conf does the same in the container.
         "/store": {
           target: env.STORE_URL || "http://localhost:47110",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/store/, ""),
-          headers: { Authorization: `Bearer ${env.STORE_TOKEN ?? ""}` },
         },
         // The Agent service (studio/agent). It takes no token; the browser never
         // holds one. Its answers stream, so nothing here may buffer them.

@@ -90,10 +90,15 @@ export interface QuestionItem {
 
 /** A button the person pressed: code acts on it, no model reads it. */
 export interface QuestionAction {
-  /** propose: write a finding to store; fresh_start: clear the messages, keep findings. */
-  kind: "propose" | "fresh_start"
+  /**
+   * propose: write a finding to store; propose_pipeline: write the sections
+   * as a proposed pipeline; fresh_start: clear the messages, keep findings.
+   */
+  kind: "propose" | "propose_pipeline" | "fresh_start"
   /** For propose: the finding's handle in the conversation (F1). */
   finding?: string
+  /** For propose_pipeline: the sections, by store id. */
+  section_ids?: string[]
 }
 
 /** Everything a question carries. Nothing else is sent. */

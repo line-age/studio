@@ -23,7 +23,6 @@ from store_client import StoreClient
 from store_writer import ProposalClient
 
 WORLDS = Path(__file__).parent / "worlds"
-TOKEN = "lgt_invented_token_for_tests"
 CITE_TOKEN = "lgt_invented_cite_token_for_tests"
 
 
@@ -70,7 +69,7 @@ class FakeStore(httpx.BaseTransport):
         self.bundles: list[dict[str, Any]] = []
 
     def client(self) -> StoreClient:
-        return StoreClient("http://store", TOKEN, transport=self)
+        return StoreClient("http://store", transport=self)
 
     def writer(self) -> ProposalClient:
         return ProposalClient("http://store", CITE_TOKEN, transport=self)
@@ -86,8 +85,11 @@ class FakeStore(httpx.BaseTransport):
             raise httpx.ConnectError("no store", request=request)
         if self.fail == "error" or (self.fail_path and request.url.path.startswith(self.fail_path)):
             return httpx.Response(500, json={"detail": "boom"})
-        if self.fail == "refused" or request.headers.get("authorization") != f"Bearer {TOKEN}":
+        if self.fail == "refused":
             return httpx.Response(401, json={"detail": "unknown token"})
+        # Reads carry no token: the proposal token must never ride on a read.
+        assert "authorization" not in request.headers, "a read carried a token"
+
         path, q = request.url.path, request.url.params
         try:
             if path == "/sections":
@@ -103,8 +105,9 @@ class FakeStore(httpx.BaseTransport):
         return httpx.Response(404, json={"detail": "Not Found"})
 
     def _bundle(self, bundle: dict[str, Any]) -> httpx.Response:
-        """Store's bundle, enough of it: sources, citations, claims, by ref; a claim from
-        a pipeline token is a candidate; an external key already seen reuses its row."""
+        """Store's bundle, enough of it: sources, citations, features, claims and links,
+        by ref; a claim from a pipeline token is a candidate and a link proposed; an
+        external key already seen reuses its row."""
         self.bundles.append(copy.deepcopy(bundle))
         ids: dict[str, str] = {}
         created: dict[str, bool] = {}
@@ -120,6 +123,23 @@ class FakeStore(httpx.BaseTransport):
         for c in bundle.get("citations", []):
             ids[c["ref"]] = row_id(c)
             citations[c["ref"]] = c
+        for f in bundle.get("features", []):
+            fid = row_id(f)
+            ids[f["ref"]] = fid
+            created[f["ref"]] = fid not in self.world["features"]
+            self.world["features"].setdefault(
+                fid,
+                {
+                    "id": fid,
+                    "kind": f["kind"],
+                    "network": f["network"],
+                    "label": f.get("label"),
+                    "created_at": "2026-01-02T00:00:00+00:00",
+                    "external_keys": [f["external_key"]],
+                    "claims": [],
+                    "links": [],
+                },
+            )
         for claim in bundle.get("claims", []):
             feature = self.world["features"].get(claim["feature"])
             if feature is None:
@@ -164,6 +184,30 @@ class FakeStore(httpx.BaseTransport):
                     "reviews": [],
                 }
             )
+        for link in bundle.get("links", []):
+            lid = row_id(link)
+            ids[link["ref"]] = lid
+            ends = [ids.get(link[e], link[e]) for e in ("from", "to")]
+            if any(e not in self.world["features"] for e in ends):
+                return _unprocessable("no such feature")
+            known = any(r["id"] == lid for r in self.world["links"])
+            created[link["ref"]] = not known
+            if known:
+                continue
+            row = {
+                "id": lid,
+                "from_feature_id": ends[0],
+                "to_feature_id": ends[1],
+                "relation": link["relation"],
+                "status": "proposed",  # a pipeline token's link stays proposed
+                "score": link.get("score"),
+                "asserted_by": None,
+                "citation_id": None,
+                "created_at": "2026-01-02T00:00:00+00:00",
+            }
+            self.world["links"].append(row)
+            for end in ends:
+                self.world["features"][end]["links"].append(copy.deepcopy(row))
         return httpx.Response(200, json={"ids": ids, "created": created})
 
     def _limit(self, q: httpx.QueryParams) -> int:

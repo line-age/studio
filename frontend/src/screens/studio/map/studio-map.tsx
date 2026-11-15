@@ -31,6 +31,7 @@ import {
   useAskAgent,
   useSelectionAttachments,
 } from "../add-to-agent"
+import { usePipelineChanges } from "../pipeline-actions"
 import { useLeftPanel } from "../left-panel-context"
 import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
@@ -120,6 +121,7 @@ export function StudioMap({ token }: { token: string }) {
   const setCamera = useCamera((s) => s.setCamera)
 
   const selection = useSelectionAttachments()
+  const pipelineChanges = usePipelineChanges()
   const boxRef = useRef<HTMLDivElement>(null)
   /** The last move asked for, so a resize right after can redo it. */
   const lastFit = useRef<{
@@ -406,7 +408,10 @@ export function StudioMap({ token }: { token: string }) {
   return (
     <div ref={boxRef} className="absolute inset-0">
       {/* Right click on the map offers what is selected to the Agent. */}
-      <AddToAgentMenu items={selection}>
+      <AddToAgentMenu
+        items={selection}
+        changes={pipelineChanges([...selected])}
+      >
         <div className="absolute inset-0">
           {/* On a Mac, Ctrl and click is a right click: it turns the map
               here, so it must not open the menu as well. */}

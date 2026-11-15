@@ -35,8 +35,12 @@ StatementKind = Literal[
     "searched",
     # A search needs place names from the person first; the request is kept until then.
     "ask_places",
-    # A finding the person proposed is in store now, as a candidate claim.
+    # A finding the person proposed is in store now, as a candidate claim; or a pipeline
+    # the person proposed is, as a new line with proposed part_of links.
     "proposed",
+    # The person asked to make the attached sections one pipeline: code's offer, shown
+    # as a Confirmation. Nothing is written until the person presses it (propose_pipeline).
+    "pipeline_offer",
 ]
 # Kinds whose text is written by code, never by the model, and which carry no reference.
 FIXED_KINDS: frozenset[str] = frozenset({"refusal", "greeting", "failure"})
@@ -69,11 +73,15 @@ class Action(_Strict):
     """A button the person pressed, not words: code acts on it, no model reads it.
 
     propose: write a finding to store as a candidate claim.
+    propose_pipeline: write a new pipeline (a line) with a proposed part_of link for each
+    of `section_ids`; a person decides it.
     fresh_start: drop the conversation's messages, keep what cite found."""
 
-    kind: Literal["propose", "fresh_start"]
+    kind: Literal["propose", "propose_pipeline", "fresh_start"]
     # For propose: the finding's handle in this thread (F1).
     finding: str | None = None
+    # For propose_pipeline: the sections, as the offer listed them.
+    section_ids: list[str] | None = None
 
 
 class Question(_Strict):
@@ -279,6 +287,15 @@ class Finding(_Strict):
     not_proposable: str | None = None
 
 
+class PipelineOffer(_Strict):
+    """What a pipeline_offer would propose: Studio sends `section_ids` back, unchanged, in
+    the action propose_pipeline. `in_pipeline`: those already confirmed in a pipeline;
+    they are proposed too, and stay where they are until a person moves them."""
+
+    section_ids: list[str]
+    in_pipeline: list[str] = Field(default_factory=list)
+
+
 class Statement(_Strict):
     kind: StatementKind
     text: str
@@ -291,6 +308,8 @@ class Statement(_Strict):
     rule: LeadRule | None = None
     # For kind finding: the passage, with everything Studio shows and Propose writes.
     finding: Finding | None = None
+    # For kind pipeline_offer: the sections the Confirmation would propose.
+    pipeline: PipelineOffer | None = None
 
 
 class Answer(_Strict):

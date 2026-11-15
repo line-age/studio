@@ -20,7 +20,7 @@ from dotenv import dotenv_values
 
 from settings import ROOT, tracing_environment
 
-QA_STORE = {"STORE_URL": "http://127.0.0.1:47191", "STORE_TOKEN": "lgt_invented_token_for_tests"}
+QA_STORE = {"STORE_URL": "http://127.0.0.1:47191"}
 
 
 def write_qa_env() -> None:
@@ -71,7 +71,7 @@ def main() -> None:
     if real:
         args.remove("--real")
         if not (ROOT / ".env.real").exists():
-            sys.exit("--real needs .env.real (STORE_URL, STORE_TOKEN and the model key).")
+            sys.exit("--real needs .env.real (STORE_URL and the model key).")
         env_file = ".env.real"
         args = ["--config", str(write_real_config()), *args]
     if "--port" not in args:

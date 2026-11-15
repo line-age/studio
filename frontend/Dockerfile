@@ -27,10 +27,8 @@ RUN pnpm build
 
 # Serve it. Runs as a non-root user and listens on 8080.
 FROM nginxinc/nginx-unprivileged:stable-alpine
-# Where /store is passed on to, and the token it is passed with. Both are read
-# when the container starts; the token is in neither the image nor the bundle.
-ENV STORE_URL=http://api:8000 \
-    STORE_TOKEN=""
+# Where /store is passed on to, read when the container starts.
+ENV STORE_URL=http://api:8000
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 8080

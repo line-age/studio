@@ -163,6 +163,8 @@ const section = z.object({
    * pipeline, whatever is proposed for it.
    */
   pipelineId: z.string().min(1).nullable(),
+  /** Store's id of the confirmed membership, where the data has one. */
+  membershipId: z.string().min(1).optional(),
   proposedMemberships: z.array(proposedMembership).default([]),
   /** The editions that show this section. */
   editionIds: z.array(z.string().min(1)).min(1),

@@ -56,6 +56,9 @@ def run_case(case: Case) -> dict[str, Any]:
                 store=store.client(), cite=cite, writer=store.writer(), cite_poll=0.05
             )
             graph.checkpointer = InMemorySaver()
+        elif case.acts:
+            graph = build_graph(store=store.client(), cite=None, writer=store.writer())
+            graph.checkpointer = InMemorySaver()
         else:
             graph = build_graph(store=store.client(), cite=None, writer=None)
         config = {"configurable": {"thread_id": "case"}}
