@@ -12,7 +12,7 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
 <img alt="shadcn/ui base-nova" src="https://img.shields.io/badge/shadcn%2Fui-base--nova-000000?style=flat-square&logo=shadcnui&logoColor=white">
 <img alt="Mapbox GL JS 3" src="https://img.shields.io/badge/Mapbox_GL_JS-3-000000?style=flat-square&logo=mapbox&logoColor=white">
 
-[Quick start](#quick-start) · [Docker](#run-in-docker) · [Real data](#real-data-from-store) · [Keys](#keys) · [Develop](#develop) · [Not there yet](#not-there-yet)
+[Quick start](#quick-start) · [Docker](#run-in-docker) · [Real data](#real-data-from-store) · [The Agent](#the-agent) · [Keys](#keys) · [Develop](#develop) · [Not there yet](#not-there-yet)
 
 <img src="docs/screenshots/studio.jpg" alt="The list grouped by pipeline, the map with one pipeline selected, and on the right its own name, owner and operator above its sections" width="100%">
 
@@ -20,18 +20,21 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
 
 > [!NOTE]
 > **Status: early.** One screen so far. It runs on an invented sample network, or on a
-> local [store](https://github.com/line-age/store). Nothing can be edited. On store's
-> data the Agent answers from store, searches the journals with cite when asked, and can
-> propose what cite found as a candidate claim, only when you press Propose.
+> local [store](https://github.com/line-age/store). A person can put sections into
+> pipelines (on the sample, kept in memory until reload). On store's data they can
+> also decide what tools proposed; the Agent answers from store, searches the journals
+> with cite when asked, and proposes a finding or a pipeline only when you press its
+> button. There is no sign-in yet: every change is made as store's local person.
 
 ## In this repo
 
-| Path                 | What                                                                      |
-| -------------------- | ------------------------------------------------------------------------- |
-| `frontend/`          | The app: React 19, TypeScript, Vite, Tailwind v4, shadcn/ui, Mapbox GL JS |
-| `compose.yaml`       | Builds the app and serves it with nginx, on the sample                    |
-| `compose.store.yaml` | The same, reading a local store                                           |
-| `docs/screenshots/`  | The images on this page                                                   |
+| Path                 | What                                                                       |
+| -------------------- | -------------------------------------------------------------------------- |
+| `frontend/`          | The app: React 19, TypeScript, Vite, Tailwind v4, shadcn/ui, Mapbox GL JS  |
+| `agent/`             | The Agent service behind the chat: Python, LangChain and LangGraph, Claude |
+| `compose.yaml`       | Builds the app and serves it with nginx, on the sample                     |
+| `compose.store.yaml` | The same, reading a local store                                            |
+| `docs/screenshots/`  | The images on this page                                                    |
 
 ## What the screen has
 
@@ -69,12 +72,23 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
   right panel lists the selected sections by pipeline, each with its required claims
   cited ("2/3 cited"). Click a section to read its claims and their sources; that does
   not change the selection, and the map draws the section being read heavier.
+- **Pipelines.** Right-click a selection. Several sections: Make pipeline, or Add to a
+  pipeline. One section: Change pipeline, to move it, take it out or start a new
+  pipeline from it. The last two open a dock at the bottom of the right panel. On
+  store's data nothing shows as done until store says so, and if store refuses, the
+  dock says why; on the sample a change lasts until the page is reloaded.
 - **Agent panel.** Takes a selection as attachments to a message. On store's data the
   Agent (`agent/`) answers from what store holds. Asked to find something in the
   sources, it asks for the towns along the line, has cite search the journals, and shows
   each finding with the page's own words, the passage marked on the page, a link to it,
   and why it may be in doubt. Propose on a finding writes it to store as a candidate
-  claim for a person to decide; nothing in the chat writes from words.
+  claim; asked to make sections one pipeline, it offers a proposed pipeline, written
+  only on its button. Nothing in the chat writes from words alone.
+- **Inbox.** The Agent panel also lists what tools proposed and nobody has decided:
+  proposed pipelines (decided whole), proposed ends, and candidate claims, cite's
+  findings among them. Accept or reject each; the decision is the person's and goes to
+  store on the button. No model is involved. A proposed cut is shown but cannot be
+  decided yet.
 - **Panel button.** Hides both side panels; the same button on the map brings them back.
 - **Help.** A ten-step tour of the screen starts on a first visit; Help in the top bar
   has the same pages, a list of the words, and runs the tour again.
@@ -125,19 +139,21 @@ docker compose -f compose.yaml -f compose.store.yaml --env-file frontend/.env.lo
 
 or with the dev server: add `VITE_DATA_SOURCE=store` to `frontend/.env.local` and run
 `pnpm dev`. Store's address is `STORE_URL` (default `http://localhost:47110` for the dev
-server, `http://api:8000` in the container).
+server, `http://api:8000` in the container). To open one area only, for a demo or a
+network too large to load whole, set `VITE_STORE_BBOX=minx,miny,maxx,maxy` (WGS 84).
 
-The browser never holds the token. The app asks its own origin at `/store`, and the dev
-server or nginx passes the request on with the token added. If store cannot be reached,
-refuses the token or answers in a form the app does not understand, the screen says
-which; it never falls back to the sample.
+The app asks its own origin at `/store`, and the dev server or nginx passes the request
+on. If store cannot be reached, refuses a request or answers in a form the app does not
+understand, the screen says which; it never falls back to the sample.
 
-Store has no pipelines yet, only sections. So Studio opens grouped by edition, with the
-sections under the map edition that first shows each one; grouped by pipeline they are
-one row, "No pipeline". A pipeline is a `line` in store; once a person has confirmed a
-section part of one, it has its own row with its name, owner and operator, and a
-`part_of` link that is only proposed shows as a proposal. An attribute store has no
-accepted claim for is Unknown.
+A fresh store has no pipelines, only sections. So Studio opens grouped by edition, with
+the sections under the map edition that first shows each one; grouped by pipeline they
+are one row, "No pipeline", until someone makes pipelines from the right-click menu. A
+pipeline is a `line` in store; once a person has confirmed a section part of one, it has
+its own row with its name, owner and operator, and a `part_of` link that is only
+proposed shows as a proposal. An attribute store has no accepted claim for is Unknown.
+Every change carries a key made when the button is pressed, so a retry never makes a
+second row.
 
 Each source says what it does for a claim: a map is "Shown on" or "Not on", a text
 "States". A map comes with its edition and the date it is as of, and a status that
@@ -145,13 +161,37 @@ rests on a map reads "Shown by" that date, never "Operational". Where a later ma
 longer shows a section, or part of one, store proposes an end or a cut. Studio shows
 it as a proposal on Last seen or on Geometry, with the tool and its score, and draws
 the line traced as gone on the map while you read it. Last seen stays Unknown until a
-person confirms the end in store, which Studio cannot do yet. Loading asks store once
-per section, so a large network takes a while to appear.
+person accepts the end in the Agent's inbox. Loading asks store once per section, so a
+large network takes a while to appear.
 
 <img src="docs/screenshots/evidence.jpg" alt="A section whose Last seen is Unknown, with one proposal: a tool proposes that it ends, because the next map edition no longer shows it. The line traced as gone is dashed on the map." width="100%">
 
 Real data stays on your machine: never in this repository, its tests or its
 screenshots.
+
+## The Agent
+
+The chat is answered by a separate service in `agent/`, on store's data only. Run it
+beside store, then the dev server:
+
+```sh
+cd agent
+cp .env.example .env   # ANTHROPIC_API_KEY; STORE_URL; optional CITE_URL, STORE_CITE_TOKEN
+uv sync
+uv run python serve.py # port 47190
+```
+
+The dev server passes `/agent` on to `AGENT_URL` (default `http://127.0.0.1:47190`).
+The model is Claude Haiku 5.5 by default (`AGENT_MODEL`). The Agent reads store with no
+token. Its one kind of write, a proposal on the person's button, uses
+`STORE_CITE_TOKEN`, a pipeline token minted for `cite@<version>`, so what it writes
+stays a candidate or a proposed link. Without `CITE_URL` it cannot search the journals
+and says what it would have asked for. Tracing to LangSmith is off unless
+`AGENT_TRACING=true`; leave it off on real data.
+
+The service has no sign-in: keep its port on `127.0.0.1`. How it answers, the checks
+every answer passes and its evals are in [`agent/README.md`](agent/README.md) and
+[`agent/AGENTS.md`](agent/AGENTS.md).
 
 ## Data
 
@@ -173,18 +213,24 @@ code, see [`frontend/docs/fixtures.md`](frontend/docs/fixtures.md).
 ## Develop
 
 ```sh
-pnpm check   # tokens, types, lint, format, tests
+cd frontend
+pnpm check          # tokens, types, lint, format, tests
 pnpm build
+
+cd ../agent
+uv run pytest -q    # offline: no key, no network
 ```
 
-| Path                             | What                                                                   |
-| -------------------------------- | ---------------------------------------------------------------------- |
-| `frontend/src/screens/studio/`   | The Studio screen: panels, map, store                                  |
-| `frontend/src/components/`       | Lineage parts any screen can use                                       |
-| `frontend/src/components/ui/`    | shadcn components, added by the CLI                                    |
-| `frontend/src/data/`             | Schema, loader and derived values                                      |
-| `frontend/src/data/store/`       | Reading the Lineage store and turning its answers into the same schema |
-| `frontend/src/styles/tokens.css` | Theme generated from the Figma variables                               |
+| Path                             | What                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------- |
+| `frontend/src/screens/studio/`   | The Studio screen: panels, map, store                                     |
+| `frontend/src/components/`       | Lineage parts any screen can use                                          |
+| `frontend/src/components/ui/`    | shadcn components, added by the CLI                                       |
+| `frontend/src/data/`             | Schema, loader, derived values and the changes a person can make          |
+| `frontend/src/data/store/`       | Reading store into the same schema, and writing to it (`write.ts`)        |
+| `frontend/src/styles/tokens.css` | Theme generated from the Figma variables                                  |
+| `agent/contract/`                | JSON schemas for what Studio and the Agent send each other, with examples |
+| `agent/evals/`                   | Scenario evals for the Agent, against a fake store and a fake cite        |
 
 The design lives in Figma and the code follows it. Rules for working in this repo,
 for people and for coding agents, are in [`frontend/AGENTS.md`](frontend/AGENTS.md);
@@ -192,11 +238,12 @@ more detail on running and tokens is in [`frontend/README.md`](frontend/README.m
 
 ## Not there yet
 
-- Writing to store, except a finding proposed from the chat (a candidate claim).
-- Deciding on a proposed end or cut, and a list of the lines traced as gone that match
-  no section.
-- Placing sections in pipelines, and deciding on a proposed one.
-- Editing, and accepting or rejecting what the Agent proposes.
+- Sign-in and people: every change is made as store's local person, so never expose
+  Studio, store or the Agent beyond your own machine.
+- Deciding on a proposed cut, and a list of the lines traced as gone that match no
+  section.
+- Typing a claim's value by hand.
+- Keeping a change on the invented sample: it is held in memory only.
 - The Agent on the invented sample: there, a question is kept in the chat with a line
   saying the Agent cannot answer; it answers on store's data only.
 - The chat in the Docker image: it has no `/agent` path yet, so the chat answers under
