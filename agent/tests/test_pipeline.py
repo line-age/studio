@@ -201,3 +201,48 @@ def test_a_finding_bundle_is_a_bundle_store_takes():
         chat.ask("Propose F1", action={"kind": "propose", "finding": "F1"})
         [bundle] = chat.writer.bundles
         jsonschema.validate(bundle, _closed(BUNDLE_SCHEMA))
+
+
+# Words that ask for a pipeline, a decision or a change (B29) ---------------------------
+
+
+def test_line_is_a_pipeline_and_questions_are_not_offers():
+    import pipeline_flow as pf
+
+    assert pf.asks_for_pipeline("Join these into a single line please")
+    assert pf.asks_for_pipeline("Put these two in a pipeline together")
+    assert not pf.asks_for_pipeline("Is this section in a pipeline?")
+    assert not pf.asks_for_pipeline("Did they add a line to the town in 1931?")
+
+
+def test_deciding_or_changing_store_is_a_persons():
+    import pipeline_flow as pf
+
+    for words in (
+        "Great, now confirm it for me",
+        "Please accept these",
+        "Reject it",
+        "Add this section to this pipeline",
+        "Move it to the other pipeline",
+        "Take it out of the pipeline",
+    ):
+        assert pf.asks_to_decide(words), words
+    for words in (
+        "Can you confirm who built it?",
+        "Could you confirm whether it ended?",
+        "Why was this rejected?",
+        "Who confirmed this owner?",
+        "Is this section in the right pipeline?",
+    ):
+        assert not pf.asks_to_decide(words), words
+
+
+def test_a_name_in_the_words_is_said_to_need_a_source():
+    import pipeline_flow as pf
+
+    sections = [
+        {"id": f"00000000-0000-4000-8000-00000000000{i}", "kind": "section"} for i in (1, 2)
+    ]
+    assert pf.NAMED.search("Make these one pipeline and call it the Example line")
+    assert pf.LINES["no_name"] in pf.offer(sections, named=True).text
+    assert pf.LINES["no_name"] not in pf.offer(sections).text

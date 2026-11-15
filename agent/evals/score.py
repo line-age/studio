@@ -266,17 +266,19 @@ def _slots(line: str) -> str:
 
 
 # Proposing a pipeline: code's lines, the offer with or without its "already in a
-# pipeline" part.
+# pipeline" part and its "no name" part.
 _PIPELINE_LINES = [
     re.compile("^" + _slots(line) + "$")
     for key, line in PIPELINE_LINES.items()
-    if key not in ("offer", "offer_placed")
+    if key not in ("offer", "offer_placed", "no_name")
 ] + [
     re.compile(
         "^"
         + _slots(PIPELINE_LINES["offer"])
         + "(?:"
         + _slots(PIPELINE_LINES["offer_placed"])
+        + ")?(?:"
+        + _slots(PIPELINE_LINES["no_name"])
         + ")?$"
     )
 ]

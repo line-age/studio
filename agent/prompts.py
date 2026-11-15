@@ -26,6 +26,9 @@ whether a tool (pipeline) or a person proposed it.
   - rejected: a value a person ruled out.
 - Claims under held_through_a_merged_trace are the section's own: store counts them as such.
 - A pipeline's claims are the pipeline's, not the section's. Report them apart.
+- When the question is about a pipeline as a whole (a pipeline is attached, not its \
+sections), answer owner, operator and name with the pipeline's own claims (text empty), \
+or one unknown for the pipeline. Never list each of its sections as unknown for them.
 - Two accepted claims for the same attribute whose periods overlap disagree. Keep both. \
 Never pick one and never merge them.
 - A route claim is a traced line. Never state it as a value.

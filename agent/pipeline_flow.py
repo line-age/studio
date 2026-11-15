@@ -21,11 +21,32 @@ from schemas import PipelineOffer, Ref, Statement
 MAX_SECTIONS = 200
 
 # "Make these one pipeline", "group them into a pipeline", "join these sections into a
-# single pipeline". A verb that makes, then "pipeline" with an article before it; a
-# question about a pipeline ("is it in a pipeline?") has no such verb.
+# single line". A verb that makes, then "pipeline" (or "line", store's word for one)
+# with an article before it; a question about a pipeline ("is it in a pipeline?") has no
+# such verb.
 WORDS = re.compile(
     r"\b(make|form|group|join|combine|put|turn|merge|propose)\b[^.?!]*\b(one|a|single|same|new)\s+"
-    r"(?:new\s+)?pipeline\b",
+    r"(?:new\s+)?(?:pipe)?line\b",
+    re.IGNORECASE,
+)
+
+# A name for it in the same words: "call it the Northfield line", "named Example trunk".
+NAMED = re.compile(r"\b(call(?:ed)?|name(?:d)?)\b\s+(?:it\s+)?\S", re.IGNORECASE)
+
+# Asked to decide or change store itself: "confirm it", "now accept these", "add this
+# section to this pipeline", "move it to the other pipeline", "take it out of the
+# pipeline". Only a person does that, in Studio; the Agent says where.
+DECIDE = re.compile(
+    r"^\W*(?:(?:great|ok(?:ay)?|good|thanks|now|then|and|so|please|can\s+you|could\s+you|"
+    r"would\s+you|will\s+you|go\s+ahead\s+and|just)\W+)*"
+    # "confirm who built it" asks to check, not to decide.
+    r"(?:confirm|accept|approve|reject|decline)\b"
+    r"(?!\s+(?:who|what|when|where|whether|if|how|which|why)\b)",
+    re.IGNORECASE,
+)
+CHANGE = re.compile(
+    r"\b(add|move|put|take|remove|drop)\b[^.?!]*\b(to|into|in|out\s+of|from)\s+"
+    r"(?:this|that|the|its|another|the\s+other|a\s+different)\s+(?:pipe)?line\b",
     re.IGNORECASE,
 )
 
@@ -46,7 +67,18 @@ LINES = {
     "proposed": "Proposed a pipeline of {n} sections. Decide it in the inbox.",
     "already": "A pipeline of these {n} sections is already proposed. Decide it in the inbox.",
     "write_failed": "Store did not take the proposal, so nothing was written.",
+    "no_name": (" It has no name: store keeps a pipeline's name only once a source gives one."),
+    "person_decides": (
+        "Only a person decides or changes what store holds. Proposals are decided in the "
+        "inbox above the chat; a section goes into or out of a pipeline with Change "
+        "pipeline in its right-click menu."
+    ),
 }
+
+
+def asks_to_decide(words: str) -> bool:
+    """Words that ask the Agent to decide or change store, which only a person does."""
+    return bool(DECIDE.search(words) or CHANGE.search(words))
 
 
 def asks_for_pipeline(words: str) -> bool:
@@ -90,7 +122,7 @@ def _refs(sections: list[dict[str, Any]]) -> list[Ref]:
     return [Ref(type="feature", id=s["id"], label=feature_name(s)) for s in sections]
 
 
-def offer(sections: list[dict[str, Any]]) -> Statement:
+def offer(sections: list[dict[str, Any]], named: bool = False) -> Statement:
     placed = [s["id"] for s in sections if confirmed_pipeline(s)]
     text = LINES["offer"].format(n=len(sections))
     if placed:
@@ -102,6 +134,8 @@ def offer(sections: list[dict[str, Any]]) -> Statement:
             stay="stays" if one else "stay",
             object="it" if one else "them",
         )
+    if named:
+        text += LINES["no_name"]
     return Statement(
         kind="pipeline_offer",
         text=text,

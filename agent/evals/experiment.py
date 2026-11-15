@@ -194,6 +194,8 @@ def run_langsmith(cases: list[Case], repeat: int, name: str) -> dict[str, Any]:
                 "answer": _text(outputs),
                 "tools": outputs.get("tools", []),
                 "blocked": outputs.get("blocked", []),
+                # As run_local records it: without it the speed gates read a crash.
+                "seconds": outputs.get("seconds"),
             }
         )
     return out

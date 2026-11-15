@@ -477,6 +477,10 @@ def build_graph(
         if pipeline_flow.asks_for_pipeline(question.words):
             # Making a pipeline is a button, never words: code offers it (plan 005).
             return _pipeline_offer(question, message, taken, seen)
+        if pipeline_flow.asks_to_decide(question.words):
+            # Deciding and changing store is a person's, in Studio (R12): code says where.
+            line = Statement(kind="refusal", text=pipeline_flow.LINES["person_decides"])
+            return _finish(Answer(statements=[line]), message, [], seen)
         if cite_state.get("findings") and _PROPOSE_WORDS.search(question.words):
             # A go-ahead is a button, never words (plan D6).
             line = Statement(kind="refusal", text=cite_flow.CITE_LINES["propose_words"])
@@ -643,7 +647,15 @@ def build_graph(
             )
         steps.add_done(read_words(len(got), 0))
         return _finish(
-            Answer(statements=[pipeline_flow.offer(got)]), message, [], seen, steps=steps
+            Answer(
+                statements=[
+                    pipeline_flow.offer(got, named=bool(pipeline_flow.NAMED.search(question.words)))
+                ]
+            ),
+            message,
+            [],
+            seen,
+            steps=steps,
         )
 
     def _with_search(state, draft, rendered, read, message, tools, seen, blocked, steps):
