@@ -25,6 +25,7 @@ from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage, HumanMessage, RemoveMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, MessagesState, StateGraph
+from langgraph.graph.message import REMOVE_ALL_MESSAGES
 
 import cite_flow
 import cite_input
@@ -858,7 +859,7 @@ def build_graph(
         )
         seen = len(state["messages"])
         question = _question(message)
-        handle = question.action.finding.strip().upper()
+        handle = (question.action.finding or "").strip().upper()
         record = ((state.get("cite") or {}).get("findings") or {}).get(handle)
 
         def say(kind: str, text: str, refs: list[Ref] | None = None) -> dict:
@@ -915,6 +916,21 @@ def build_graph(
         )
         return say("proposed", text, refs)
 
+    def fresh_start(state: AgentState) -> dict:
+        """The person pressed Start fresh: every message goes, what cite found stays (its
+        findings by handle, earlier searches, a request waiting for towns), so Propose and
+        steering still work. No model, nothing written to store."""
+        return {
+            "messages": [RemoveMessage(id=REMOVE_ALL_MESSAGES)],
+            "answer": None,
+            "answers": None,
+            "tools": [],
+            "blocked": [],
+            "steps": [],
+            "seen": 0,
+            "cite_job": None,
+        }
+
     def _route_in(state: AgentState) -> str:
         message = next(
             (m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None
@@ -923,7 +939,9 @@ def build_graph(
             question = _question(message) if message is not None else None
         except ValueError:
             return "read"
-        return "propose" if question is not None and question.action else "read"
+        if question is None or question.action is None:
+            return "read"
+        return "fresh_start" if question.action.kind == "fresh_start" else "propose"
 
     builder = StateGraph(AgentState)
 
@@ -993,7 +1011,7 @@ def build_graph(
     builder.add_node("cite_wait", cite_wait)
     builder.add_node("cite_report", cite_report)
     builder.add_edge(START, "ingress")
-    builder.add_conditional_edges("ingress", _route_in, ["read", "propose"])
+    builder.add_conditional_edges("ingress", _route_in, ["read", "propose", "fresh_start"])
     builder.add_edge("read", "answer")
     builder.add_conditional_edges(
         "answer", lambda s: "cite_start" if s.get("cite_job") else END, ["cite_start", END]
@@ -1004,5 +1022,7 @@ def build_graph(
     builder.add_conditional_edges("cite_wait", _searching, ["cite_wait", "cite_report"])
     builder.add_edge("cite_report", END)
     builder.add_edge("propose", END)
+    builder.add_node("fresh_start", fresh_start)
+    builder.add_edge("fresh_start", END)
     # A search is followed one pass at a time, so its run takes many steps.
     return builder.compile(name="studio-agent").with_config(recursion_limit=1000)

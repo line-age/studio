@@ -350,3 +350,15 @@ def test_a_value_store_already_holds_is_found_in_store_and_not_offered_to_propos
     finding = next(s for s in out["answer"]["statements"] if s["kind"] == "finding")
     assert finding["text"].startswith("Found, already in store as a candidate:")
     assert finding["finding"]["proposable"] is False
+
+
+def test_start_fresh_drops_the_messages_and_keeps_what_cite_found(world):
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01, places=["Sampleton"]))
+    chat.ask("Find the owner, through Sampleton.", [s01])
+    out = chat.ask("Start fresh", action={"kind": "fresh_start"})
+    assert out["messages"] == [] and out["answer"] is None and out["seen"] == 0
+    assert "F1" in out["cite"]["findings"] and out["cite"]["runs"]
+    # The kept finding can still be proposed after a fresh start.
+    proposed = chat.ask("Propose F1", action={"kind": "propose", "finding": "F1"})
+    assert proposed["answer"]["statements"][0]["kind"] == "proposed"

@@ -90,9 +90,10 @@ export interface QuestionItem {
 
 /** A button the person pressed: code acts on it, no model reads it. */
 export interface QuestionAction {
-  kind: "propose"
-  /** The finding's handle in the conversation (F1). */
-  finding: string
+  /** propose: write a finding to store; fresh_start: clear the messages, keep findings. */
+  kind: "propose" | "fresh_start"
+  /** For propose: the finding's handle in the conversation (F1). */
+  finding?: string
 }
 
 /** Everything a question carries. Nothing else is sent. */

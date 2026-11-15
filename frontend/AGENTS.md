@@ -310,7 +310,10 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   in force and the network; `buildQuestion` makes it, and nothing else leaves the
   screen. On store's data the Agent service (`studio/agent`) answers it through this
   app's `/agent` path (`src/data/agent/`, `panels/agent-conversation.tsx`): one shared
-  thread, kept by the service, shown again after a reload, with Stop and "Clear chat".
+  thread, kept by the service, shown again after a reload, with Stop, "Start fresh" (the
+  action `fresh_start`: the messages go, what cite found stays, so Propose and steering
+  still work) and "Clear chat" (asks first: it clears the chat for everyone). From 12 turns
+  a quiet line suggests starting fresh; no colour, since the Agent reads no earlier turn.
   Only an answer the service checked is shown. Its contract is
   `agent/contract/`, whose examples the tests read. An answer is shown as Figma
   section 13 (`260:10851`) has it, each kind of thing in its own look

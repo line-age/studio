@@ -66,11 +66,14 @@ class QuestionItem(_Strict):
 
 
 class Action(_Strict):
-    """A button the person pressed, not words: code acts on it, no model reads it."""
+    """A button the person pressed, not words: code acts on it, no model reads it.
 
-    kind: Literal["propose"]
-    # The finding's handle in this thread (F1).
-    finding: str
+    propose: write a finding to store as a candidate claim.
+    fresh_start: drop the conversation's messages, keep what cite found."""
+
+    kind: Literal["propose", "fresh_start"]
+    # For propose: the finding's handle in this thread (F1).
+    finding: str | None = None
 
 
 class Question(_Strict):
