@@ -4,6 +4,8 @@
  * add one here when a feature lands, and give its area a `data-tour` name.
  */
 
+import { addKeyName } from "../map/click-selection"
+
 export interface HelpStep {
   id: string
   title: string
@@ -53,7 +55,7 @@ export const HELP_STEPS: readonly HelpStep[] = [
   {
     id: "select",
     title: "Selecting",
-    body: "Click a line to select it; click it again to take it off. Tick rows in the list, or draw a loop with the Lasso, to select several. A selection can span pipelines.",
+    body: `Click a line to select it alone. Hold ${addKeyName()} and click to add another, or to take a selected one off. Tick rows in the list, or draw a loop with the Lasso, to select several at once. A selection can span pipelines.`,
     targets: ["tools", "map"],
   },
   {

@@ -305,9 +305,12 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   `223:11018`) asks the same and decides nothing. Choosing an item leaves the cursor in
   the chat (`finalFocus`). Tooltips are on the filter icon, the filter chips and the
   "List follows the map" button (stock shadcn Tooltip).
-- On the map a click adds a section to the selection and a click on a selected one takes
-  it off; a click on empty map steps the selection back. Every selection made on the map
-  shows the `SelectionBar` ("Ask the Agent") at the top centre of the map.
+- On the map a click selects one section, replacing the selection; a second click on
+  it leaves it selected. With Cmd held on a Mac, Ctrl elsewhere, a click adds a section
+  or takes a selected one off (`map/click-selection.ts`; the owner, 2026-11-15). A click
+  on empty map steps the selection back; with the key held it changes nothing. The key
+  does nothing in the list, the right panel or the Lasso. Every selection made on the
+  map shows the `SelectionBar` ("Ask the Agent") at the top centre of the map.
 - Ctrl and drag turns the map (the owner, 2026-11-13); "Reset north" in the zoom group
   turns it back. The map never tilts. On a Mac, Ctrl and click is a right click, so the
   map swallows it and the menu does not open. The turn is not in the URL.

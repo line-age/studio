@@ -237,6 +237,8 @@ Where code knowingly differs from the Figma frame:
 - Zooming the map to a clicked pipeline does not narrow the "in view" list; the list
   follows only when the person moves the map, opens a search hit or goes home.
 - Build date pickers run up to the current year.
+- On the map a click selects one section; Cmd on a Mac, Ctrl elsewhere, held with the
+  click adds a section or takes a selected one off (the owner, 2026-11-15).
 - These were asked for by the owner on 2026-11-12 ahead of Figma. Figma needs updating.
 - Section status and navigation are designed: Studio page, section 7 (`153:4044`). List
   with status counts `153:3446`, the same with no pipelines `153:3712`, filters on

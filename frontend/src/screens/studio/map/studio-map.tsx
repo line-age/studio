@@ -40,6 +40,7 @@ import { HELP_STEPS } from "../help/steps"
 import { useCamera, useStudio } from "../studio-store"
 import { linesInLoop, type Point } from "./lasso"
 import { readMapColors } from "./map-colors"
+import { holdsAddKey, mapClick } from "./click-selection"
 import { FollowMapToggle } from "./follow-map-toggle"
 import { statusesDrawn } from "./line-style"
 import { MapKey } from "./map-key"
@@ -357,22 +358,28 @@ export function StudioMap({ token }: { token: string }) {
 
   const onClick = (event: MapMouseEvent) => {
     if (skipClick.current || tool === "lasso") return
-    setBar(null)
     const properties = event.features?.[0]?.properties
-    if (properties?.id) {
-      // Each click adds a section to the selection; a click on a selected
-      // one takes it off. The first one opens as the only selection.
-      const id = String(properties.id)
-      if (selected.size === 0) selectSection(id)
-      else toggleSelected([id])
-      // Every selection made on the map offers the Agent.
-      const selection = useStudio.getState().selection
-      // Of several, the one just added is the one opened on the right.
-      if (selection.size > 1 && selection.has(id)) focusSection(id)
-      if (selection.size > 0) setBar(selection)
-    } else {
+    const id = properties?.id ? String(properties.id) : null
+    // A click selects one section. With Cmd (Ctrl off a Mac) held it adds
+    // one, or takes a selected one off.
+    const action = mapClick({
+      onSection: id !== null,
+      addKey: holdsAddKey(event.originalEvent),
+      empty: selected.size === 0,
+    })
+    if (action === "nothing") return
+    setBar(null)
+    if (action === "step-back" || id === null) {
       stepBack(groups.flatMap((g) => g.summary.sections.map((s) => s.id)))
+      return
     }
+    if (action === "select-one") selectSection(id)
+    else toggleSelected([id])
+    // Every selection made on the map offers the Agent.
+    const selection = useStudio.getState().selection
+    // Of several, the one just added is the one opened on the right.
+    if (selection.size > 1 && selection.has(id)) focusSection(id)
+    if (selection.size > 0) setBar(selection)
   }
 
   const onMouseMove = (event: MapMouseEvent) => {

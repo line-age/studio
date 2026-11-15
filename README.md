@@ -64,7 +64,8 @@ Traced pipeline sections on a map, with the claims recorded about each one and t
   focus are in the address bar, so a copied link opens the same view.
 - **Settings.** Which attributes must be cited, and which statuses are drawn solid. Kept
   in the browser.
-- **Selection.** Tick rows, click lines or draw a lasso loop. It can span pipelines. The
+- **Selection.** Click a line to select it alone; hold Cmd (Ctrl off a Mac) and click
+  to add or take off. Tick rows or draw a lasso loop for several. It can span pipelines. The
   right panel lists the selected sections by pipeline, each with its required claims
   cited ("2/3 cited"). Click a section to read its claims and their sources; that does
   not change the selection, and the map draws the section being read heavier.
