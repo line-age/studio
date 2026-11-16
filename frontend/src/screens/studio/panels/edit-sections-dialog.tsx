@@ -23,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input"
 import {
   editableAttributes,
+  listWords,
   sectionLabel,
   type SectionEdit,
 } from "@/data/derive"
@@ -69,11 +70,6 @@ function groupFields(
     { label: "Dates", attrs: dates },
     { label: "Other", attrs: rest },
   ].filter((group) => group.attrs.length > 0)
-}
-
-function listWords(items: string[]): string {
-  if (items.length <= 1) return items[0] ?? ""
-  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`
 }
 
 export function EditSectionsDialog({

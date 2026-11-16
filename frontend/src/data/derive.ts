@@ -1205,3 +1205,9 @@ export function formatCount(n: number): string {
 export function plural(n: number, one: string, many = `${one}s`): string {
   return `${formatCount(n)} ${n === 1 ? one : many}`
 }
+
+/** "a, b and c": how a short list of names reads in a sentence. */
+export function listWords(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? ""
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`
+}

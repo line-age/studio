@@ -2,13 +2,30 @@ import { Suspense, useState } from "react"
 
 import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, expect, it } from "vitest"
+import { toast } from "sonner"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import type { Network, Section } from "@/data/schema"
 import { testNetwork } from "@/test/network"
 
 import { StudioDataProvider } from "../studio-data"
 import { EditSectionsDialog } from "./edit-sections-dialog"
+
+vi.mock("sonner", () => ({
+  toast: Object.assign(vi.fn(), { error: vi.fn() }),
+}))
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+  vi.unstubAllGlobals()
+  vi.clearAllMocks()
+})
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  })
 
 /* Invented sections only, from the shared test fixture; never real store data. */
 
@@ -137,5 +154,21 @@ describe("EditSectionsDialog", () => {
       screen.getByText("Last seen cannot be before First seen.")
     ).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled()
+  })
+
+  describe("on the store", () => {
+    it("blocks clearing Diameter rather than saving a clear the store cannot keep", async () => {
+      const fetchMock = vi.fn()
+      vi.stubGlobal("fetch", fetchMock)
+      vi.stubEnv("VITE_DATA_SOURCE", "store")
+      const user = await renderDialog(testNetwork(), ["s-1"])
+      await user.clear(screen.getByLabelText("Diameter"))
+      await user.click(screen.getByRole("button", { name: "Save" }))
+      expect(toast.error).toHaveBeenCalledWith(
+        "Studio cannot clear Diameter on the store yet."
+      )
+      expect(toast).not.toHaveBeenCalled()
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
   })
 })
