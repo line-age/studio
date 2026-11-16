@@ -196,7 +196,7 @@ describe("EditSectionsDialog", () => {
       await user.type(diameter, "14 in")
       await user.click(screen.getByRole("button", { name: "Save" }))
       expect(toast).toHaveBeenCalledTimes(1)
-      expect(toast.mock.calls[0][1]).toBeUndefined()
+      expect(vi.mocked(toast).mock.calls[0][1]).toBeUndefined()
     })
 
     it("disables a field store cannot keep, with a Not editable yet hint", async () => {
