@@ -192,7 +192,7 @@ function EditSectionsForm({
         bulk
           ? `Updated ${listWords(changedAttributes)} on ${active.length} sections.`
           : `Updated ${listWords(changedAttributes)} on ${sectionLabel(active[0])}.`,
-        { action: { label: "Undo", onClick: undo } }
+        undo ? { action: { label: "Undo", onClick: undo } } : undefined
       )
       onDone()
     } catch (error) {

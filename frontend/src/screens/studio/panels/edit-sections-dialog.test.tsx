@@ -170,5 +170,20 @@ describe("EditSectionsDialog", () => {
       expect(toast).not.toHaveBeenCalled()
       expect(fetchMock).not.toHaveBeenCalled()
     })
+
+    it("does not offer Undo on a store save", async () => {
+      const fetchMock = vi.fn(() =>
+        Promise.resolve(json({ ids: {}, created: {} }))
+      )
+      vi.stubGlobal("fetch", fetchMock)
+      vi.stubEnv("VITE_DATA_SOURCE", "store")
+      const user = await renderDialog(testNetwork(), ["s-1"])
+      const diameter = screen.getByLabelText("Diameter")
+      await user.clear(diameter)
+      await user.type(diameter, "14 in")
+      await user.click(screen.getByRole("button", { name: "Save" }))
+      expect(toast).toHaveBeenCalledTimes(1)
+      expect(toast.mock.calls[0][1]).toBeUndefined()
+    })
   })
 })

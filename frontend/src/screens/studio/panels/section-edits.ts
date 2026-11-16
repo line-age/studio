@@ -12,19 +12,21 @@ export type { SectionEdit }
  * Saves an Edit: on store data, writes the edits store can keep first, then
  * only on success applies the edit to what is on screen; on fixture data
  * (no store to write to) the edit is kept in this browser only, as before.
- * Either way, a person's edit always overrides what was there (team
- * decision, 2026-11-15); the returned function undoes it. Store has no way
- * to clear a claim it holds, so clearing an attribute store keeps is
- * refused rather than silently kept local only.
+ * A person's edit always overrides what was there (team decision,
+ * 2026-11-15). Store has no way to clear a claim it holds, so clearing an
+ * attribute store keeps is refused rather than silently kept local only;
+ * for the same reason, Undo cannot revert a store write, so none is
+ * offered there (the simpler of the two honest options).
  */
 export function useSaveSectionEdits(): (
   sectionIds: readonly string[],
   edits: readonly SectionEdit[],
   note: string
-) => Promise<() => void> {
+) => Promise<(() => void) | undefined> {
   const updateNetwork = useUpdateNetwork()
   return async (sectionIds, edits, note) => {
-    if (dataSource() === "store") {
+    const onStore = dataSource() === "store"
+    if (onStore) {
       const cleared = edits.filter(
         (edit) => edit.value === null && attributeStoreKey(edit.attribute) !== null
       )
@@ -54,6 +56,7 @@ export function useSaveSectionEdits(): (
       previous = network
       return applySectionEdits(network, sectionIds, edits, note)
     })
+    if (onStore) return undefined
     return () => {
       if (previous) updateNetwork(() => previous!)
     }
