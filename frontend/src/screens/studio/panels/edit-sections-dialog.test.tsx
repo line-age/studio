@@ -79,6 +79,7 @@ describe("EditSectionsDialog", () => {
       "placeholder",
       "Mixed"
     )
+    expect(screen.getAllByText("Mixed").length).toBeGreaterThan(0)
     expect(
       screen.getByRole("button", { name: "Update 2 sections" })
     ).toBeInTheDocument()
