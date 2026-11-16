@@ -295,16 +295,38 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   (`panels/pipeline-dock.tsx`, `209:8268`: Move to a pipeline, Not in a pipeline or New
   pipeline, then Change); on several, "Make pipeline" (at once; the new pipeline has no
   name until a source gives one) and "Add to a pipeline" (the dock). The dock then says
-  what the change came to, or why store refused it. Below them,
-  "Add to the Agent chat" everywhere, and above it the starter questions that only read
-  (`starters.ts`): "What does store say about this?" on a section, a claim or a source,
-  "What surrounds this section?" and "What could we look for here?" on a section,
+  what the change came to, or why store refused it. On a section row, below the
+  changes, "Edit" opens the Edit sections window on that row alone; where the row is
+  ticked as part of a bigger selection, a muted "N sections selected" line and "Edit
+  selected (N)" open it on the whole ticked selection instead, never silently on more
+  than the menu says (`add-to-agent.tsx`'s `EditTarget`). A section row no longer offers
+  the starter questions below: just "Ask", which asks the same as elsewhere but opens
+  with nothing pre-filled. On a claim or a source the starter questions that only read
+  still show (`starters.ts`): "What does store say about this?" on a claim or a source,
   "Why is this Unknown?" on an Unknown claim, "What is proposed here, and why?" where a
-  proposal waits, and "Find this in the sources" on a section (cite searches the
-  journals; the Agent asks for towns first). No starter changes a claim. "Ask the Agent about this" under a proposal (Figma
-  `223:11018`) asks the same and decides nothing. Choosing an item leaves the cursor in
-  the chat (`finalFocus`). Tooltips are on the filter icon, the filter chips and the
-  "List follows the map" button (stock shadcn Tooltip).
+  proposal waits. No starter changes a claim. "Ask the Agent about this" under a proposal (Figma
+  `223:11018`) asks the same and decides nothing. Below any starters, "Add to the Agent
+  chat" (claims, sources, the map) or "Ask" (section rows). Choosing an item leaves the
+  cursor in the chat (`finalFocus`). Tooltips are on the filter icon, the filter chips
+  and the "List follows the map" button (stock shadcn Tooltip).
+- Edit and Edit selected open the Edit sections window (`panels/edit-sections-dialog.tsx`;
+  needs a Figma design). One section's own fields prefill as they read now; several
+  sections show a field as Mixed (placeholder, not a value) where they disagree, and
+  typing into it sets the same value on every section still in the edit. A section can
+  be left out of a bulk edit (a crossed-out chip) and added back. A field changed from
+  what it opened with gets a small dot and a Reset that puts the old value back, and the
+  footer lists what will change ("Will update Diameter on Alder to Birch" / "Will update
+  Diameter on 3 sections"). Saving shows an Undo toast. A date field
+  (`panels/date-field.tsx`: day, month or year, with "Originally: …" under it while the
+  typed value still reads as the text the claim opened with, and the Last-before-First
+  error under Last seen) is disabled with a short note on real store, since store cannot
+  yet take a date write from Studio — the simpler of the two options the owner allowed,
+  over blocking Save; building the store write for dates is a later round. Status is
+  left out of this window for now. Saving a person's edit on the fixture, or on store
+  for a field store does take (everything but dates), writes it as an accepted claim
+  at once: a person's edit needs no citation to be believed. An agent's claim is never
+  changed this way; it stays a candidate until a review accepts or rejects it, same as
+  before.
 - On the map a click selects one section, replacing the selection; a second click on
   it leaves it selected. With Cmd held on a Mac, Ctrl elsewhere, a click adds a section
   or takes a selected one off (`map/click-selection.ts`; the owner, 2026-11-15). A click
