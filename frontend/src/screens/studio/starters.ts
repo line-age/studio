@@ -11,16 +11,6 @@ import type { Starter } from "./add-to-agent"
  * changes a claim: a finding reaches store only by its Propose button.
  */
 
-/** On a section: what store says, what surrounds it, where to look, a search. */
-export function sectionStarters(): Starter[] {
-  return [
-    { words: STARTERS.say },
-    { words: STARTERS.surrounds },
-    { words: STARTERS.lookFor },
-    { words: STARTERS.find },
-  ]
-}
-
 /** On a claim: what store says; why it is Unknown; what is proposed. */
 export function claimStarters(
   claim: Claim,
