@@ -16,6 +16,7 @@ export function TreeItem({
   expanded,
   selected = false,
   checked = selected,
+  menuTarget = false,
   onToggle,
   onCheck,
   checkLabel,
@@ -30,6 +31,8 @@ export function TreeItem({
   selected?: boolean
   /** Ticked: part of the selection. Several rows can be. */
   checked?: boolean
+  /** What an open right-click menu acts on; shown while it is open. */
+  menuTarget?: boolean
   onToggle: () => void
   /** Makes the box clickable on its own. */
   onCheck?: () => void
@@ -41,7 +44,7 @@ export function TreeItem({
       data-selected={selected || undefined}
       className={cn(
         "flex h-9 cursor-default items-center gap-2 border-b border-border-subtle px-3 transition-colors duration-100 select-none [contain-intrinsic-size:auto_36px] [content-visibility:auto] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid",
-        selected ? "bg-selected" : "hover:bg-muted",
+        selected ? "bg-selected" : menuTarget ? "bg-accent" : "hover:bg-muted",
         className
       )}
       {...props}
