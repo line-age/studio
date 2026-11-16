@@ -6,20 +6,13 @@ import { DateField } from "./date-field"
 describe("DateField", () => {
   it("shows the claim's text in the trigger", () => {
     render(
-      <DateField
-        id="d"
-        value="March 1929"
-        isMixed={false}
-        onChange={vi.fn()}
-      />
+      <DateField id="d" value="March 1929" isMixed={false} onChange={vi.fn()} />
     )
     expect(screen.getByRole("button")).toHaveTextContent("March 1929")
   })
 
   it("shows Mixed, in place of the text, when the sections disagree", () => {
-    render(
-      <DateField id="d" value="1929" isMixed={true} onChange={vi.fn()} />
-    )
+    render(<DateField id="d" value="1929" isMixed={true} onChange={vi.fn()} />)
     expect(screen.getByRole("button")).toHaveTextContent("Mixed")
     expect(screen.queryByText("1929")).not.toBeInTheDocument()
   })
@@ -61,9 +54,7 @@ describe("DateField", () => {
     rerender(
       <DateField id="d" value="March 1929" isMixed={false} onChange={vi.fn()} />
     )
-    expect(
-      screen.queryByText(/^Originally:/)
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Originally:/)).not.toBeInTheDocument()
   })
 
   it("shows the Last-before-First error under the field", () => {

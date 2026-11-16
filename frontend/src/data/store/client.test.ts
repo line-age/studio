@@ -8,7 +8,12 @@ import {
   storeRows,
 } from "@/test/store-payloads"
 
-import { StoreError, fetchFeature, fetchSectionRows, postBundle } from "./client"
+import {
+  StoreError,
+  fetchFeature,
+  fetchSectionRows,
+  postBundle,
+} from "./client"
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -17,9 +22,9 @@ const json = (body: unknown, status = 200) =>
   })
 
 function answer(handler: (path: string) => Response | Promise<Response>) {
-  const fetchMock = vi.fn((input: RequestInfo | URL, _init?: RequestInit) =>
-    Promise.resolve(handler(String(input)))
-  )
+  const fetchMock = vi.fn<
+    (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
+  >((input) => Promise.resolve(handler(String(input))))
   vi.stubGlobal("fetch", fetchMock)
   return fetchMock
 }

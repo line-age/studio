@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { parseQuantity, persistableEdits, saveEditsToStore } from "./write-edits"
+import {
+  parseQuantity,
+  persistableEdits,
+  saveEditsToStore,
+} from "./write-edits"
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -38,9 +42,9 @@ describe("parseQuantity", () => {
 
 describe("saveEditsToStore", () => {
   it("writes one claim per section per writable attribute, citing a Studio edit source", async () => {
-    const fetchMock = vi.fn((_input: RequestInfo | URL, _init?: RequestInit) =>
-      Promise.resolve(json({ ids: {}, created: {} }))
-    )
+    const fetchMock = vi.fn<
+      (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
+    >(() => Promise.resolve(json({ ids: {}, created: {} })))
     vi.stubGlobal("fetch", fetchMock)
     await saveEditsToStore(
       [
@@ -90,9 +94,9 @@ describe("saveEditsToStore", () => {
   })
 
   it("writes a text claim, with no value_num, for a non-quantity attribute", async () => {
-    const fetchMock = vi.fn((_input: RequestInfo | URL, _init?: RequestInit) =>
-      Promise.resolve(json({ ids: {}, created: {} }))
-    )
+    const fetchMock = vi.fn<
+      (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
+    >(() => Promise.resolve(json({ ids: {}, created: {} })))
     vi.stubGlobal("fetch", fetchMock)
     await saveEditsToStore(
       [{ sectionId: "s-1", attribute: "Status", value: "Done" }],

@@ -26,8 +26,8 @@ function Harness({ initial }: { initial: Section[] }) {
 }
 
 async function renderDialog(network: Network, sectionIds: string[]) {
-  const sections = sectionIds.map(
-    (id) => network.sections.find((s) => s.id === id)!
+  const sections = sectionIds.map((id) =>
+    network.sections.find((s) => s.id === id)!
   )
   await act(async () => {
     render(
@@ -72,7 +72,9 @@ describe("EditSectionsDialog", () => {
     const diameter = screen.getByLabelText("Diameter")
     await user.clear(diameter)
     await user.type(diameter, "14 in")
-    expect(screen.getByRole("button", { name: "Reset Diameter" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Reset Diameter" })
+    ).toBeInTheDocument()
     expect(
       screen.getByText("Will update Diameter on Alder to Birch")
     ).toBeInTheDocument()
@@ -134,8 +136,6 @@ describe("EditSectionsDialog", () => {
     expect(
       screen.getByText("Last seen cannot be before First seen.")
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: "Save" })
-    ).toBeDisabled()
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled()
   })
 })

@@ -73,7 +73,9 @@ describe("the Edit items on a section row", () => {
     )
     await openMenu()
     expect(
-      await screen.findAllByRole("menuitem").then((items) => items.map((i) => i.textContent))
+      await screen
+        .findAllByRole("menuitem")
+        .then((items) => items.map((i) => i.textContent))
     ).toEqual(["Edit", "Ask"])
     expect(screen.queryByText(/sections selected/)).not.toBeInTheDocument()
   })
@@ -92,10 +94,14 @@ describe("the Edit items on a section row", () => {
     const user = await openMenu()
     expect(screen.getByText("2 sections selected")).toBeInTheDocument()
     expect(
-      await screen.findAllByRole("menuitem").then((items) => items.map((i) => i.textContent))
+      await screen
+        .findAllByRole("menuitem")
+        .then((items) => items.map((i) => i.textContent))
     ).toEqual(["Edit", "Edit selected (2)", "Ask"])
 
-    await user.click(screen.getByRole("menuitem", { name: "Edit selected (2)" }))
+    await user.click(
+      screen.getByRole("menuitem", { name: "Edit selected (2)" })
+    )
     expect(onEditAll).toHaveBeenCalled()
     expect(onEditOne).not.toHaveBeenCalled()
   })

@@ -507,9 +507,9 @@ describe("applySectionEdits", () => {
     expect(claim.madeAt).toBe(new Date().toISOString().slice(0, 10))
     // Only the named section changed.
     expect(
-      next.sections.find((s) => s.id === "s-3")!.claims.find(
-        (c) => c.attribute === "Diameter"
-      )!.value
+      next.sections
+        .find((s) => s.id === "s-3")!
+        .claims.find((c) => c.attribute === "Diameter")!.value
     ).toBe("6 in")
   })
 
