@@ -38,7 +38,7 @@ describe("parseQuantity", () => {
 
 describe("saveEditsToStore", () => {
   it("writes one claim per section per writable attribute, citing a Studio edit source", async () => {
-    const fetchMock = vi.fn(() =>
+    const fetchMock = vi.fn((_input: RequestInfo | URL, _init?: RequestInit) =>
       Promise.resolve(json({ ids: {}, created: {} }))
     )
     vi.stubGlobal("fetch", fetchMock)
@@ -90,7 +90,7 @@ describe("saveEditsToStore", () => {
   })
 
   it("writes a text claim, with no value_num, for a non-quantity attribute", async () => {
-    const fetchMock = vi.fn(() =>
+    const fetchMock = vi.fn((_input: RequestInfo | URL, _init?: RequestInit) =>
       Promise.resolve(json({ ids: {}, created: {} }))
     )
     vi.stubGlobal("fetch", fetchMock)

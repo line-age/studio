@@ -17,7 +17,7 @@ const json = (body: unknown, status = 200) =>
   })
 
 function answer(handler: (path: string) => Response | Promise<Response>) {
-  const fetchMock = vi.fn((input: RequestInfo | URL) =>
+  const fetchMock = vi.fn((input: RequestInfo | URL, _init?: RequestInit) =>
     Promise.resolve(handler(String(input)))
   )
   vi.stubGlobal("fetch", fetchMock)
