@@ -42,7 +42,7 @@ export function CitationDetails({
   const noQuote = noQuoteWords(citation)
   const supports = supportsWords(supportsCountFor(section, citation))
   return (
-    <div className="flex flex-col">
+    <div className="flex min-w-0 flex-col">
       <div className="flex items-start gap-2 border-b border-border-subtle px-3 py-2">
         <Icon
           name={iconFor(citation)}

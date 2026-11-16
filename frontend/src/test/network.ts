@@ -253,6 +253,17 @@ export function citationPopupNetwork(): Network {
               },
             ],
           },
+          {
+            attribute: "Length",
+            value: "1000 ft",
+            citations: [
+              {
+                source:
+                  "Invented Review of Regional Gas Distribution Infrastructure and Historical Pipeline Route Surveys for the Elm to Fir Corridor, Volume I, 1931 Edition",
+                role: "states",
+              },
+            ],
+          },
           unknown("Owner"),
         ],
       },

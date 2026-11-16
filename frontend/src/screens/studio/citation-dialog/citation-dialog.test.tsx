@@ -62,7 +62,7 @@ describe("the citation pop-up", () => {
     const dialog = screen.getByRole("dialog", {
       name: "Diameter of Elm to Fir",
     })
-    expect(within(dialog).getByText("2 of 2")).toBeInTheDocument()
+    expect(within(dialog).getByText("2 of 3")).toBeInTheDocument()
   })
 
   it("disables Previous on the first cited claim, enables Next", async () => {
@@ -88,7 +88,29 @@ describe("the citation pop-up", () => {
     expect(hasDialogNamed("Geometry of Elm to Fir")).toBe(true)
     await user.keyboard("{ArrowRight}")
     expect(hasDialogNamed("Diameter of Elm to Fir")).toBe(true)
+    await user.click(screen.getByRole("button", { name: "Next claim" }))
+    expect(hasDialogNamed("Length of Elm to Fir")).toBe(true)
     expect(screen.getByRole("button", { name: "Next claim" })).toBeDisabled()
+  })
+
+  it("ignores ArrowRight and ArrowLeft while focus is in the source list", async () => {
+    const { user } = await openCitation("Geometry", /Invented trunk map, 1931/)
+    const dialog = screen.getByRole("dialog", {
+      name: "Geometry of Elm to Fir",
+    })
+    const sources = within(dialog).getByRole("list", { name: "Sources" })
+    const sourceButton = within(sources).getByRole("button", {
+      name: /Invented trunk map, 1931/,
+    })
+    sourceButton.focus()
+    await user.keyboard("{ArrowRight}")
+    expect(
+      screen.queryByRole("dialog", { name: "Geometry of Elm to Fir" })
+    ).toBeInTheDocument()
+    await user.keyboard("{ArrowLeft}")
+    expect(
+      screen.queryByRole("dialog", { name: "Geometry of Elm to Fir" })
+    ).toBeInTheDocument()
   })
 
   it("closes on Esc and returns focus to the row that opened it", async () => {
@@ -147,6 +169,36 @@ describe("the citation pop-up", () => {
     const dialog = screen.getByRole("dialog")
     expect(within(dialog).getByText("Quote")).toBeInTheDocument()
     expect(within(dialog).getByText('"12 IN."')).toBeInTheDocument()
+  })
+
+  it("truncates a long source title instead of stretching the dialog", async () => {
+    await openCitation("Length", /Invented Review of Regional Gas/)
+    const dialog = screen.getByRole("dialog")
+    const sources = within(dialog).getByRole("list", { name: "Sources" })
+    const row = within(sources).getByText(/Invented Review of Regional Gas/)
+    expect(row.className).toContain("truncate")
+    expect(row.className).toContain("min-w-0")
+    // Every ancestor up to DialogContent's own grid must carry min-w-0, or
+    // whichever one lacks it refuses to shrink below its text's full width
+    // and the dialog's header/footer buttons are pushed off-screen (Figma
+    // `315:359` keeps titles inside the dialog; frame 7, `362:13676`, shows
+    // the truncated case). DialogContent itself is a CSS grid, so each
+    // direct child (header row, content row, footer row) is a grid item
+    // that needs the same min-w-0 floor removed as a flex item would.
+    expect(sources.className).toContain("min-w-0")
+    const column = dialog.querySelector(".max-h-80")
+    expect(column).not.toBeNull()
+    expect(column!.className).toContain("min-w-0")
+    const contentRow = column!.parentElement!
+    expect(contentRow.className).toContain("min-w-0")
+    const header = screen
+      .getByRole("button", { name: "Previous claim" })
+      .closest("[data-slot='dialog-header']")!
+    expect(header.className).toContain("min-w-0")
+    const footer = screen
+      .getByRole("button", { name: "Done" })
+      .closest("[data-slot='dialog-footer']")!
+    expect(footer.className).toContain("min-w-0")
   })
 
   it("gives every icon button an accessible name", async () => {

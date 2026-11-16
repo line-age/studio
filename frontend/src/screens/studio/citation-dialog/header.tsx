@@ -24,7 +24,7 @@ export function CitationHeader({
   const at = cited.findIndex((c) => c.attribute === claim.attribute)
 
   return (
-    <DialogHeader className="flex-row items-start justify-between gap-3">
+    <DialogHeader className="min-w-0 flex-row items-start justify-between gap-3">
       <div className="flex min-w-0 flex-col gap-0.5">
         <span className="type-ui-sm-medium break-words">
           {claim.attribute}

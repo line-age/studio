@@ -30,7 +30,7 @@ export function SourceList({
     <ul
       aria-label="Sources"
       data-citation-source-list
-      className="flex flex-col"
+      className="flex min-w-0 flex-col"
     >
       {groups.map((group) => {
         const firstIndex = citations.indexOf(group.citations[0])

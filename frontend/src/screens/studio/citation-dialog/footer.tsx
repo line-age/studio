@@ -22,7 +22,7 @@ export function CitationFooter({
   const href = citation.url ?? citation.archiveUrl
 
   return (
-    <DialogFooter>
+    <DialogFooter className="min-w-0">
       {href !== undefined && (
         <Button
           variant="outline"

@@ -73,9 +73,9 @@ export function CitationDialog() {
               The sources cited for this claim.
             </DialogDescription>
             <CitationHeader section={section} claim={claim} />
-            <div className="-mx-4 flex border-y border-border-subtle">
+            <div className="-mx-4 flex min-w-0 border-y border-border-subtle">
               <SourceViewer citation={citation} />
-              <div className="flex max-h-80 flex-1 flex-col overflow-y-auto border-l border-border-subtle">
+              <div className="flex max-h-80 min-w-0 flex-1 flex-col overflow-y-auto border-l border-border-subtle">
                 <SourceList
                   citations={claim.citations}
                   selectedIndex={opened?.citationIndex ?? 0}
