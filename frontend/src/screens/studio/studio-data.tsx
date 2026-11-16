@@ -69,6 +69,13 @@ interface StudioData {
   statesOf: StatesLookup
   summaryById: Map<string, PipelineSummary>
   sectionById: Map<string, Section>
+  /**
+   * Applies an edit to the loaded network, in this browser. Store, or the
+   * fixture file, is never written back to from here; a store write happens
+   * first, through write-edits.ts, and only once it succeeds does the edit
+   * reach the network this way, so what is shown matches what was saved.
+   */
+  updateNetwork: (updater: (network: Network) => Network) => void
 }
 
 const StudioDataContext = createContext<StudioData | null>(null)
@@ -104,6 +111,12 @@ export function StudioDataProvider({
     },
     [source, loaded, fetched, reload]
   )
+  const updateNetwork = useCallback(
+    (updater: (network: Network) => Network) => {
+      setEdited({ from: fetched, to: updater(loaded) })
+    },
+    [fetched, loaded]
+  )
   const rule = useSettings((s) => s.requiredAttributes)
   const chosen = useStudio((s) => s.list)
 
@@ -132,8 +145,19 @@ export function StudioDataProvider({
       statesOf,
       summaryById: new Map(summaries.map((s) => [s.id, s])),
       sectionById: new Map(loaded.sections.map((s) => [s.id, s])),
+      updateNetwork,
     }
-  }, [loaded, rule, chosen, editionYears, statesOf, reload, source, change])
+  }, [
+    loaded,
+    rule,
+    chosen,
+    editionYears,
+    statesOf,
+    reload,
+    source,
+    change,
+    updateNetwork,
+  ])
 
   return <StudioDataContext value={value}>{children}</StudioDataContext>
 }
@@ -144,6 +168,13 @@ export function useStudioData(): StudioData {
     throw new Error("useStudioData must be used inside StudioDataProvider")
   }
   return value
+}
+
+/** Applies a person's edit to the loaded network; see StudioData.updateNetwork. */
+export function useUpdateNetwork(): (
+  updater: (network: Network) => Network
+) => void {
+  return useStudioData().updateNetwork
 }
 
 /**

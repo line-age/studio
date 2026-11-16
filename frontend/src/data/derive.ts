@@ -13,6 +13,7 @@ import {
   groupStatus,
   missingRequired,
   needsDecision,
+  ON_PIPELINE,
   sectionStatus,
   statusCounts,
   unknownByAttribute,
@@ -56,6 +57,86 @@ export function citedClaims(section: Section): Claim[] {
 /** What a pipeline goes by in words: its name, or its code when it has none. */
 export function pipelineLabel(pipeline: Pipeline): string {
   return pipeline.name ?? pipeline.code
+}
+
+/**
+ * The attributes Edit can touch: every one of the given sections' own claims
+ * (never Name, Owner or Operator, which are the pipeline's), in the order
+ * they first appear. The same list the properties panel lists as claim rows.
+ */
+export function editableAttributes(sections: readonly Section[]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const section of sections) {
+    for (const claim of section.claims) {
+      if (ON_PIPELINE.includes(claim.attribute)) continue
+      if (!seen.has(claim.attribute)) {
+        seen.add(claim.attribute)
+        out.push(claim.attribute)
+      }
+    }
+  }
+  return out
+}
+
+/** One field Edit writes: a section's claim, set to a new value or to Unknown. */
+export interface SectionEdit {
+  attribute: string
+  /** null clears the claim to Unknown. */
+  value: string | null
+}
+
+/**
+ * A person's edit, applied to the sections it names: each attribute's claim
+ * becomes a fresh one, with the new value and, unless it is cleared to
+ * Unknown, one citation (the invariant in schema.ts needs at least one). A
+ * person's edit always overrides what was there, so the old claim is simply
+ * replaced, not kept alongside it.
+ */
+export function applySectionEdits(
+  network: Network,
+  sectionIds: readonly string[],
+  edits: readonly SectionEdit[],
+  note: string
+): Network {
+  const targets = new Set(sectionIds)
+  const madeAt = new Date().toISOString().slice(0, 10)
+  const nextClaims = (section: Section): Claim[] => {
+    let claims = section.claims
+    for (const edit of edits) {
+      const value = edit.value
+      const citations =
+        value === null
+          ? []
+          : [
+              {
+                source: "Studio edit",
+                ...(note.trim() ? { quote: note.trim() } : {}),
+              },
+            ]
+      const claim: Claim = {
+        attribute: edit.attribute,
+        value,
+        citations,
+        proposals: [],
+        madeAt,
+      }
+      const at = claims.findIndex((c) => c.attribute === edit.attribute)
+      claims =
+        at === -1
+          ? [...claims, claim]
+          : claims.map((c, i) => (i === at ? claim : c))
+    }
+    return claims
+  }
+  return {
+    ...network,
+    sections: network.sections.map((section) =>
+      targets.has(section.id)
+        ? { ...section, claims: nextClaims(section) }
+        : section
+    ),
+  }
 }
 
 /**

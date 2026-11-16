@@ -5,7 +5,9 @@ import { testNetwork } from "@/test/network"
 import { parseNetwork } from "./schema"
 import {
   NO_CRITERIA,
+  applySectionEdits,
   citedClaims,
+  editableAttributes,
   firstEdition,
   groupSelection,
   groupsLabel,
@@ -456,5 +458,99 @@ describe("citedClaims", () => {
       "Diameter",
       "Build date",
     ])
+  })
+})
+
+describe("editableAttributes", () => {
+  it("lists a section's own claim attributes, in the order they first appear", () => {
+    const [s1] = testNetwork().sections
+    expect(editableAttributes([s1])).toEqual(["Diameter", "Build date"])
+  })
+
+  it("never offers Name, Owner or Operator: the pipeline's, not the section's", () => {
+    const [s1] = testNetwork().sections
+    const withPipelineFields = {
+      ...s1,
+      claims: [
+        { attribute: "Owner", value: "A", citations: [], proposals: [] },
+        ...s1.claims,
+      ],
+    }
+    expect(editableAttributes([withPipelineFields])).toEqual([
+      "Diameter",
+      "Build date",
+    ])
+  })
+
+  it("merges several sections' attributes without repeating one", () => {
+    const [s1, , s3] = testNetwork().sections
+    expect(editableAttributes([s1, s3])).toEqual(["Diameter", "Build date"])
+  })
+})
+
+describe("applySectionEdits", () => {
+  it("replaces the named sections' claim with a fresh one, citing the note", () => {
+    const network = testNetwork()
+    const next = applySectionEdits(
+      network,
+      ["s-1"],
+      [{ attribute: "Diameter", value: "14 in" }],
+      "Checked against the 1937 sheet"
+    )
+    const claim = next.sections
+      .find((s) => s.id === "s-1")!
+      .claims.find((c) => c.attribute === "Diameter")!
+    expect(claim.value).toBe("14 in")
+    expect(claim.citations).toEqual([
+      { source: "Studio edit", quote: "Checked against the 1937 sheet" },
+    ])
+    expect(claim.madeAt).toBe(new Date().toISOString().slice(0, 10))
+    // Only the named section changed.
+    expect(
+      next.sections.find((s) => s.id === "s-3")!.claims.find(
+        (c) => c.attribute === "Diameter"
+      )!.value
+    ).toBe("6 in")
+  })
+
+  it("clears a claim to Unknown, with no citation, when the edit's value is null", () => {
+    const next = applySectionEdits(
+      testNetwork(),
+      ["s-1"],
+      [{ attribute: "Diameter", value: null }],
+      ""
+    )
+    const claim = next.sections
+      .find((s) => s.id === "s-1")!
+      .claims.find((c) => c.attribute === "Diameter")!
+    expect(claim.value).toBeNull()
+    expect(claim.citations).toEqual([])
+  })
+
+  it("adds a claim for an attribute the section had none of yet", () => {
+    const next = applySectionEdits(
+      testNetwork(),
+      ["s-1"],
+      [{ attribute: "Status", value: "Done" }],
+      ""
+    )
+    const claim = next.sections
+      .find((s) => s.id === "s-1")!
+      .claims.find((c) => c.attribute === "Status")!
+    expect(claim.value).toBe("Done")
+  })
+
+  it("applies the same edit to every named section", () => {
+    const next = applySectionEdits(
+      testNetwork(),
+      ["s-1", "s-3"],
+      [{ attribute: "Diameter", value: "10 in" }],
+      ""
+    )
+    expect(
+      next.sections
+        .filter((s) => ["s-1", "s-3"].includes(s.id))
+        .map((s) => s.claims.find((c) => c.attribute === "Diameter")!.value)
+    ).toEqual(["10 in", "10 in"])
   })
 })
