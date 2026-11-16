@@ -7,6 +7,7 @@ import {
   confidenceWords,
   editionWords,
   featureIdentity,
+  findEmbeddedDate,
   formatAsOf,
   formatMadeAt,
   formatValid,
@@ -21,6 +22,7 @@ import {
   supportsCountFor,
   supportsWords,
   viewerKindFor,
+  words,
 } from "./evidence"
 import { needsDecision } from "./status"
 
@@ -266,5 +268,51 @@ describe("when a claim was made, and how sure a citation is", () => {
   it("words a confidence as recorded, out of 1", () => {
     expect(confidenceWords(0.8)).toBe("0.8 of 1")
     expect(confidenceWords(1)).toBe("1 of 1")
+  })
+})
+
+describe("findEmbeddedDate", () => {
+  it("reads the words format exactly, day, month or year alone", () => {
+    expect(findEmbeddedDate("15 March 1929")).toEqual({
+      date: { day: 15, month: 3, year: 1929 },
+      remainder: "",
+    })
+    expect(findEmbeddedDate("March 1929")).toEqual({
+      date: { month: 3, year: 1929 },
+      remainder: "",
+    })
+    expect(findEmbeddedDate("1929")).toEqual({
+      date: { year: 1929 },
+      remainder: "",
+    })
+  })
+
+  it("picks out the first year it finds in text that is not only a date", () => {
+    expect(findEmbeddedDate("1929 edition")).toEqual({
+      date: { year: 1929 },
+      remainder: "edition",
+    })
+    expect(findEmbeddedDate("as shown, 1931 sheet")).toEqual({
+      date: { year: 1931 },
+      remainder: "as shown, sheet",
+    })
+  })
+
+  it("says null when no year can be found at all", () => {
+    expect(findEmbeddedDate("Mixed")).toBeNull()
+    expect(findEmbeddedDate("")).toBeNull()
+  })
+
+  it("round-trips through words for every precision", () => {
+    expect(findEmbeddedDate(words({ year: 1929 }))?.date).toEqual({
+      year: 1929,
+    })
+    expect(findEmbeddedDate(words({ year: 1929, month: 3 }))?.date).toEqual({
+      year: 1929,
+      month: 3,
+    })
+    expect(
+      findEmbeddedDate(words({ year: 1929, month: 3, day: 15 }))?.date
+    ).toEqual({ year: 1929, month: 3, day: 15 })
   })
 })

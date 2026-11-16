@@ -18,7 +18,7 @@ export const OWNER_ROW = "Owner"
 export const LAST_SEEN_ATTRIBUTE = "Last seen"
 export const GEOMETRY_ATTRIBUTE = "Geometry"
 
-const MONTHS = [
+export const MONTHS = [
   "January",
   "February",
   "March",
@@ -33,7 +33,7 @@ const MONTHS = [
   "December",
 ]
 
-interface DateParts {
+export interface DateParts {
   year: number
   month?: number
   day?: number
@@ -51,10 +51,57 @@ function parseDate(text: string): DateParts | null {
   return { year, month, day }
 }
 
-function words({ year, month, day }: DateParts): string {
+/** "1929", "March 1929" or "15 March 1929", the words a date reads as. */
+export function words({ year, month, day }: DateParts): string {
   if (month === undefined) return String(year)
   const named = `${MONTHS[month - 1]} ${year}`
   return day === undefined ? named : `${day} ${named}`
+}
+
+const MONTH_NAME = new RegExp(`(${MONTHS.join("|")})`)
+
+/**
+ * A claim value that embeds a date, read by a person rather than a form: the
+ * words format exactly ("March 1929"), or failing that the first year found
+ * ("1929 edition" reads as 1929). Anything in the text besides the date comes
+ * back as `remainder`, trimmed of the stray punctuation left behind. `null`
+ * when no date can be found at all.
+ */
+export function findEmbeddedDate(
+  text: string
+): { date: DateParts; remainder: string } | null {
+  const exactDay = new RegExp(`^(\\d{1,2}) ${MONTH_NAME.source} (\\d{4})$`)
+  const dayMatch = exactDay.exec(text.trim())
+  if (dayMatch) {
+    return {
+      date: {
+        day: Number(dayMatch[1]),
+        month: MONTHS.indexOf(dayMatch[2]) + 1,
+        year: Number(dayMatch[3]),
+      },
+      remainder: "",
+    }
+  }
+  const exactMonth = new RegExp(`^${MONTH_NAME.source} (\\d{4})$`)
+  const monthMatch = exactMonth.exec(text.trim())
+  if (monthMatch) {
+    return {
+      date: {
+        month: MONTHS.indexOf(monthMatch[1]) + 1,
+        year: Number(monthMatch[2]),
+      },
+      remainder: "",
+    }
+  }
+  const yearToken = /\b(1[89]\d{2}|20\d{2})\b/.exec(text)
+  if (!yearToken) return null
+  const remainder = text
+    .slice(0, yearToken.index)
+    .concat(text.slice(yearToken.index + yearToken[0].length))
+    .replace(/^[\s,.-]+|[\s,.-]+$/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim()
+  return { date: { year: Number(yearToken[0]) }, remainder }
 }
 
 /** The year a date falls in, or null when it has none Studio can read. */
