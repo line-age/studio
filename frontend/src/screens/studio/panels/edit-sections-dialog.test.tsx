@@ -197,5 +197,15 @@ describe("EditSectionsDialog", () => {
       expect(toast).toHaveBeenCalledTimes(1)
       expect(toast.mock.calls[0][1]).toBeUndefined()
     })
+
+    it("disables a field store cannot keep, with a Not editable yet hint", async () => {
+      vi.stubEnv("VITE_DATA_SOURCE", "store")
+      await renderDialog(testNetwork(), ["s-1"])
+      expect(screen.getByLabelText("Build date")).toBeDisabled()
+      expect(screen.getByText("Not editable yet")).toBeInTheDocument()
+      expect(
+        screen.queryByText("Studio cannot save dates to store yet.")
+      ).not.toBeInTheDocument()
+    })
   })
 })

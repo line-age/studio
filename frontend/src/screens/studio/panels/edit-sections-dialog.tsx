@@ -250,8 +250,6 @@ function EditSectionsForm({
         )}
         {groups.map((group, groupIndex) => {
           const groupKey = (attribute: string) => attributeStoreKey(attribute)
-          const allDisabled =
-            storeMode && group.attrs.every((a) => groupKey(a) === null)
           return (
             <div
               key={group.label}
@@ -261,11 +259,6 @@ function EditSectionsForm({
               )}
             >
               <GroupLabel className="h-auto">{group.label}</GroupLabel>
-              {allDisabled && (
-                <Hint className="-mt-1">
-                  Studio cannot save {group.label.toLowerCase()} to store yet.
-                </Hint>
-              )}
               <div className="flex flex-col gap-2.5">
                 {group.attrs.map((attribute) => {
                   const isMixed = shared.get(attribute) === MIXED
@@ -348,7 +341,7 @@ function EditSectionsForm({
                           </InputGroup>
                         )}
                       </div>
-                      {!changed && disabled && !allDisabled && (
+                      {!changed && disabled && (
                         <Hint className="pl-[7.5rem] type-ui-xs">
                           Not editable yet
                         </Hint>
