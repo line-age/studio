@@ -18,6 +18,7 @@ import {
   datedValue,
   doneLabel,
   pipelineClaims,
+  pipelineClaimsProgress,
   pipelineLabel,
   formatCount,
   geometryBounds,
@@ -87,6 +88,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const select = useStudio((s) => s.select)
   const focusSection = useStudio((s) => s.focusSection)
   const toggleSelected = useStudio((s) => s.toggleSelected)
+  const offerAgent = useStudio((s) => s.offerAgent)
   const selectAttribute = useStudio((s) => s.selectAttribute)
   const toggleExpanded = useStudio((s) => s.toggleExpanded)
   const requestFit = useStudio((s) => s.requestFit)
@@ -156,9 +158,11 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
             groups[0].sections.length,
             "long"
           )
+  // A box changes the selection, so it offers the Agent, as on the map.
   const check = (section: Section) => {
     pickedInTree.current = true
     toggleSelected([section.id])
+    offerAgent()
   }
 
   // Reading is not selecting: a click opens the section (or closes the one
@@ -231,11 +235,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
             trailing={
               single.kind === "proposed"
                 ? "Proposed, not confirmed"
-                : plural(
-                    single.pipeline.claims.filter((c) => c.value !== null)
-                      .length,
-                    "claim"
-                  )
+                : pipelineClaimsProgress(single.pipeline)
             }
           />
           {pipelineClaims(single.pipeline).map((claim, index, all) => {
@@ -275,9 +275,10 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
         trailing={`${formatCount(checkedCount)} of ${formatCount(allIds.length)} selected`}
         selection={checkedCount === allIds.length ? "checked" : "indeterminate"}
         selectionLabel="Select all sections"
-        onSelectionChange={() =>
+        onSelectionChange={() => {
           select(checkedCount === allIds.length ? [] : allIds)
-        }
+          offerAgent()
+        }}
       />
       <div
         ref={treeRef}

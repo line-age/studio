@@ -521,6 +521,7 @@ function PipelineList({
   const select = useStudio((s) => s.select)
   const selectPipeline = useStudio((s) => s.selectPipeline)
   const addToSelection = useStudio((s) => s.addToSelection)
+  const offerAgent = useStudio((s) => s.offerAgent)
   const toggleSelected = useStudio((s) => s.toggleSelected)
   const requestFit = useStudio((s) => s.requestFit)
   const selection = useStudio((s) => s.selection)
@@ -585,6 +586,7 @@ function PipelineList({
     if (shift && from !== -1 && to !== -1) {
       const run = rows.slice(Math.min(from, to), Math.max(from, to) + 1)
       addToSelection(run.flatMap((row) => idsOf(row.summary)))
+      offerAgent()
       return
     }
     anchor.current = summary.id
@@ -598,7 +600,15 @@ function PipelineList({
     }
     if (summary.pipeline) selectPipeline(summary.id, idsOf(summary))
     else select(idsOf(summary))
+    offerAgent()
     requestFit(summary.bounds)
+  }
+  // The box, Space and Ctrl or Cmd with a click add the row to the selection
+  // or take it off, and leave the map where it is.
+  const toggleRow = (summary: PipelineSummary) => {
+    anchor.current = summary.id
+    toggleSelected(idsOf(summary))
+    offerAgent()
   }
   const allShown =
     rows.length > 0 &&
@@ -658,10 +668,7 @@ function PipelineList({
             selected={checked !== "unchecked"}
             checked={checked}
             checkLabel={`Select ${summary.name}`}
-            onCheck={() => {
-              anchor.current = summary.id
-              toggleSelected(idsOf(summary))
-            }}
+            onCheck={() => toggleRow(summary)}
             className={cn(hit && hit === activeHit && "bg-muted")}
             name={name}
             cells={
@@ -743,14 +750,17 @@ function PipelineList({
                 )}
               </>
             }
-            onClick={(event) => open(event.shiftKey)}
+            onClick={(event) =>
+              (event.ctrlKey || event.metaKey) && !hit
+                ? toggleRow(summary)
+                : open(event.shiftKey)
+            }
             onKeyDown={(event) => {
               if (event.target !== event.currentTarget) return
               // Space ticks the box; Enter selects just this row.
               if (event.key === " ") {
                 event.preventDefault()
-                anchor.current = summary.id
-                toggleSelected(idsOf(summary))
+                toggleRow(summary)
               } else if (isActivate(event)) {
                 event.preventDefault()
                 open()
@@ -847,11 +857,12 @@ function PipelineList({
               : "indeterminate"
         }
         selectionLabel="Select everything shown"
-        onSelectionChange={() =>
+        onSelectionChange={() => {
           select(
             groups.length === 0 ? rows.flatMap((row) => idsOf(row.summary)) : []
           )
-        }
+          offerAgent()
+        }}
       />
       <div
         ref={listRef}
@@ -874,7 +885,12 @@ function PipelineList({
         )}
         {proposed.map(renderRow)}
         {list === "pipelines" && loose.length > 0 && (
-          <ListGroupHeader count={formatCount(loose.length)}>
+          // Counts sections, as the rows under it do, not the rows.
+          <ListGroupHeader
+            count={formatCount(
+              loose.reduce((n, row) => n + row.summary.sections.length, 0)
+            )}
+          >
             Not in a pipeline
           </ListGroupHeader>
         )}

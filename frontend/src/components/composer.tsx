@@ -14,6 +14,7 @@ export function Composer({
   onSend,
   onAttach,
   attachments,
+  picker,
   inputRef,
   draft,
   className,
@@ -21,7 +22,10 @@ export function Composer({
   placeholder: string
   /** Returns false when the message was not taken; the words stay in the box. */
   onSend?: (message: string) => boolean | void
+  /** The attach button, and "#" typed at the start of a word. */
   onAttach?: () => void
+  /** What attach opens, shown above the message while it is open. */
+  picker?: ReactNode
   /** Attachment chips for the message being written, shown above it. */
   attachments?: ReactNode
   /** The message box, for moving the cursor into it. */
@@ -62,6 +66,7 @@ export function Composer({
           {attachments}
         </div>
       )}
+      {picker}
       <label htmlFor={id} className="sr-only">
         Message to the Agent
       </label>
@@ -76,6 +81,17 @@ export function Composer({
         // Enter sends, Shift+Enter starts a new line. Not while an input
         // method is still composing a character.
         onKeyDown={(event) => {
+          // "#" at the start of a word picks a section to attach, as the
+          // placeholder says. Elsewhere it is just a character.
+          if (event.key === "#" && onAttach) {
+            const box = event.currentTarget
+            const before = box.value.slice(0, box.selectionStart)
+            if (before === "" || /\s$/.test(before)) {
+              event.preventDefault()
+              onAttach()
+              return
+            }
+          }
           if (
             event.key !== "Enter" ||
             event.shiftKey ||

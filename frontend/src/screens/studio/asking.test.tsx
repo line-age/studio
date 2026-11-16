@@ -107,6 +107,63 @@ describe("asking the Agent", () => {
     ])
   })
 
+  it("picks a section to attach with # or the attach button", async () => {
+    const user = await open()
+    await user.click(screen.getByRole("button", { name: /^Agent/ }))
+    await user.click(message())
+    await user.keyboard("#")
+    // "#" opened the picker and did not go into the message.
+    expect(screen.getByLabelText("Message to the Agent")).toHaveValue("")
+    const find = within(agent()).getByRole("combobox", {
+      name: "Find a section or pipeline to attach",
+    })
+    await user.type(find, "Birch")
+    await user.click(
+      await screen.findByRole("option", { name: /Birch to Cedar/ })
+    )
+    expect(useStudio.getState().agentAttachments).toEqual([
+      { pipelineId: "p-1", sectionIds: ["s-2"] },
+    ])
+    expect(within(agent()).queryByRole("combobox")).toBeNull()
+
+    // Inside a word "#" is just a character.
+    await user.type(message(), "pipe#")
+    expect(message()).toHaveValue("pipe#")
+
+    await user.click(
+      within(agent()).getByRole("button", { name: "Attach a section" })
+    )
+    expect(within(agent()).getByRole("combobox")).toBeInTheDocument()
+  })
+
+  it("offers the Agent for a selection made in the list", async () => {
+    const user = await open()
+    await user.click(screen.getByRole("option", { name: /North line/ }))
+    const { selection, agentBar } = useStudio.getState()
+    expect(selection.size).toBeGreaterThan(0)
+    expect(agentBar).toBe(selection)
+  })
+
+  it("offers the Agent for a selection made with the boxes", async () => {
+    const user = await open()
+    // A section's box in the properties panel.
+    await user.click(screen.getByRole("option", { name: /North line/ }))
+    await user.click(
+      screen.getByRole("checkbox", { name: "Select Birch to Cedar" })
+    )
+    let { selection, agentBar } = useStudio.getState()
+    expect([...selection]).toEqual(["s-1"])
+    expect(agentBar).toBe(selection)
+    // A row's box in the list.
+    useStudio.getState().dismissAgentBar()
+    await user.click(
+      screen.getByRole("checkbox", { name: "Select South line" })
+    )
+    ;({ selection, agentBar } = useStudio.getState())
+    expect(selection.has("s-3")).toBe(true)
+    expect(agentBar).toBe(selection)
+  })
+
   it("offers questions that only read on a claim, by what the claim is", async () => {
     const user = await open()
     const claims = await openSection(user)

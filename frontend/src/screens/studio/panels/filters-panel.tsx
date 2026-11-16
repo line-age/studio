@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select"
 import {
   addedSpan,
+  attributeNames,
   buildYearSpan,
   companiesOf,
   diameterOf,
@@ -42,7 +43,7 @@ import {
   membershipOf,
   optionCounts,
   plural,
-  unknownCounts,
+  unknownAttributesOf,
 } from "@/data/derive"
 import { STATUSES, STATUS_LABEL } from "@/data/status"
 import { cn } from "@/lib/utils"
@@ -361,11 +362,22 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
     () => optionCounts(summaries, criteria, "diameters", diameterOf),
     [summaries, criteria]
   )
-  const attributes = useMemo(
-    () =>
-      [...unknownCounts(summaries)].map(([name, count]) => ({ name, count })),
-    [summaries]
-  )
+  // Like every other group: counted after the other filters, so a count
+  // never promises sections the list would not show. In the order sections
+  // list their attributes.
+  const attributes = useMemo(() => {
+    const found = optionCounts(
+      summaries,
+      criteria,
+      "unknownIn",
+      unknownAttributesOf
+    )
+    const count = new Map(found.map((o) => [o.name, o.count]))
+    return attributeNames(summaries).map((name) => ({
+      name,
+      count: count.get(name) ?? 0,
+    }))
+  }, [summaries, criteria])
   const editionYears = useMemo(
     () =>
       [...new Set(network.editions.map((e) => e.year))].sort((a, b) => a - b),
