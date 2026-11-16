@@ -28,7 +28,8 @@ export function useSaveSectionEdits(): (
     const onStore = dataSource() === "store"
     if (onStore) {
       const cleared = edits.filter(
-        (edit) => edit.value === null && attributeStoreKey(edit.attribute) !== null
+        (edit) =>
+          edit.value === null && attributeStoreKey(edit.attribute) !== null
       )
       if (cleared.length > 0) {
         throw new Error(
