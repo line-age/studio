@@ -19,7 +19,7 @@ import {
 } from "@/test/store-payloads"
 
 import { StoreError } from "./client"
-import { toNetwork } from "./to-network"
+import { attributeStoreKey, toNetwork } from "./to-network"
 
 const network = toNetwork("Gas network", storeRows(), storeFeatures(), {
   links: storeLinks(),
@@ -392,5 +392,23 @@ describe("toNetwork", () => {
       ["No pipeline", 3],
     ])
     expect(groups.every((g) => g.unassigned)).toBe(true)
+  })
+})
+
+describe("attributeStoreKey", () => {
+  it("names store's claim key for an attribute that can be written", () => {
+    expect(attributeStoreKey("Diameter")).toBe("diameter")
+    expect(attributeStoreKey("Status")).toBe("status")
+    expect(attributeStoreKey("Geometry")).toBe("route")
+  })
+
+  it("says null for an attribute store has no claim slot for yet", () => {
+    expect(attributeStoreKey("First seen")).toBeNull()
+    expect(attributeStoreKey("Last seen")).toBeNull()
+    expect(attributeStoreKey("Build date")).toBeNull()
+  })
+
+  it("says null for an attribute store does not know at all", () => {
+    expect(attributeStoreKey("Not a real attribute")).toBeNull()
   })
 })

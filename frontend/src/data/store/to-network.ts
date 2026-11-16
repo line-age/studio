@@ -88,6 +88,14 @@ const ATTRIBUTES: { attribute: string; key: string | null }[] = [
   { attribute: "Geometry", key: "route" },
 ]
 
+const ATTRIBUTE_KEYS = new Map(ATTRIBUTES.map((a) => [a.attribute, a.key]))
+
+/** Store's attribute_key for a section attribute Studio shows; null when the
+ * attribute is narrative or computed and has no claim of its own to write. */
+export function attributeStoreKey(attribute: string): string | null {
+  return ATTRIBUTE_KEYS.get(attribute) ?? null
+}
+
 const isRole = (role: string): role is Role =>
   (citationRoles as readonly string[]).includes(role)
 

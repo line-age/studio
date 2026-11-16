@@ -8,7 +8,7 @@ import {
   storeRows,
 } from "@/test/store-payloads"
 
-import { StoreError, fetchFeature, fetchSectionRows } from "./client"
+import { StoreError, fetchFeature, fetchSectionRows, postBundle } from "./client"
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -118,5 +118,59 @@ describe("store client", () => {
       .map(([path]) => String(path))
       .find((path) => path.startsWith("/store/sections"))!
     expect(new URLSearchParams(asked.split("?")[1]).get("bbox")).toBe("1,2,3,4")
+  })
+})
+
+describe("postBundle", () => {
+  const bundle = {
+    sources: [{ ref: "s", kind: "dataset", title: "Studio edit" }],
+    citations: [{ ref: "c", source: "s" }],
+    claims: [
+      {
+        feature: "section-1",
+        attribute: "diameter",
+        value_num: 12,
+        value_unit: "in",
+        citations: [{ citation: "c", role: "confirms" }],
+      },
+    ],
+  }
+
+  it("posts to this app's own /bundles path, never store itself", async () => {
+    const fetchMock = answer(() =>
+      json({ ids: { c: "cid-1" }, created: { c: true } })
+    )
+    await postBundle(bundle)
+    expect(fetchMock.mock.calls[0][0]).toBe("/store/bundles")
+    const init = fetchMock.mock.calls[0][1] as RequestInit
+    expect(init.method).toBe("POST")
+    expect(JSON.parse(init.body as string)).toEqual(bundle)
+  })
+
+  it("returns the ids and created flags store answers with", async () => {
+    answer(() => json({ ids: { c: "cid-1" }, created: { c: true } }))
+    expect(await postBundle(bundle)).toEqual({
+      ids: { c: "cid-1" },
+      created: { c: true },
+    })
+  })
+
+  it("tells a store that cannot be reached from one that refuses", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.reject(new TypeError("Failed to fetch")))
+    )
+    expect(await kindOf(() => postBundle(bundle))).toBe("unreachable")
+    answer(() => json({}, 503))
+    expect(await kindOf(() => postBundle(bundle))).toBe("unreachable")
+    answer(() => json({ detail: "send a bearer token" }, 403))
+    expect(await kindOf(() => postBundle(bundle))).toBe("refused")
+  })
+
+  it("says when an answer is not what it understands", async () => {
+    answer(() => new Response("<!doctype html>", { status: 200 }))
+    expect(await kindOf(() => postBundle(bundle))).toBe("unreadable")
+    answer(() => json({ ids: {} }))
+    expect(await kindOf(() => postBundle(bundle))).toBe("unreadable")
   })
 })
