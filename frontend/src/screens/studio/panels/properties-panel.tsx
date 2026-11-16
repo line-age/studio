@@ -1,4 +1,10 @@
-import { Fragment, useEffect, useRef, type KeyboardEvent } from "react"
+import {
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react"
 
 import { AttributeRow } from "@/components/attribute-row"
 import { Hint } from "@/components/hint"
@@ -40,12 +46,12 @@ import { usePipelineChanges } from "../pipeline-actions"
 import {
   claimStarters,
   pipelineRowStarters,
-  sectionStarters,
   sectionClaimStarters,
 } from "../starters"
 import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { ClaimDetail } from "./claim-detail"
+import { EditSectionsDialog } from "./edit-sections-dialog"
 import { PipelineDock } from "./pipeline-dock"
 import { useStudio } from "../studio-store"
 
@@ -88,7 +94,11 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const attachments = useSelectionAttachments()
   const criteria = useCriteria()
   const rule = useSettings((s) => s.requiredAttributes)
-  const { network } = useStudioData()
+  const { network, sectionById } = useStudioData()
+  const [menuTargetIds, setMenuTargetIds] = useState<ReadonlySet<string>>(
+    new Set()
+  )
+  const [editTarget, setEditTarget] = useState<Section[]>([])
   const setList = useStudio((s) => s.setList)
   const selectPipeline = useStudio((s) => s.selectPipeline)
   const pipelineById = new Map(network.pipelines.map((p) => [p.id, p]))
@@ -290,15 +300,22 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
             {group.summary.sections.map((section) => {
               const open = expanded.has(section.id)
               const selected = section.id === selectedSectionId
+              // Right click on a ticked row acts on the whole selection;
+              // on an unticked row, on that row alone.
+              const targetIds = isChecked(section.id) ? selection : null
+              const targetSections = targetIds
+                ? [...targetIds]
+                    .map((id) => sectionById.get(id))
+                    .filter((s): s is Section => s !== undefined)
+                : [section]
               return (
                 <Fragment key={section.id}>
-                  {/* Right click on a ticked row offers the whole selection. */}
                   <AddToAgentMenu
                     changes={pipelineChanges(
                       isChecked(section.id) ? [...selection] : [section.id]
                     )}
                     items={
-                      isChecked(section.id)
+                      targetIds
                         ? attachments
                         : [
                             {
@@ -307,7 +324,19 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                             },
                           ]
                     }
-                    starters={sectionStarters()}
+                    edit={{
+                      name: sectionLabel(section),
+                      onEditOne: () => setEditTarget([section]),
+                      count: targetSections.length,
+                      onEditAll: () => setEditTarget(targetSections),
+                    }}
+                    onOpenChange={(open) =>
+                      setMenuTargetIds(
+                        open
+                          ? new Set(targetSections.map((s) => s.id))
+                          : new Set()
+                      )
+                    }
                   >
                     <TreeItem
                       role="treeitem"
@@ -332,6 +361,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                       expanded={open}
                       selected={selected}
                       checked={isChecked(section.id)}
+                      menuTarget={menuTargetIds.has(section.id)}
                       onCheck={() => check(section)}
                       checkLabel={`Select ${sectionLabel(section)}`}
                       trailing={citedLabel(section, rule)}
@@ -491,6 +521,13 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
       <PanelFooter>
         <span className="truncate">{selectionSize(groups)}</span>
       </PanelFooter>
+      <EditSectionsDialog
+        open={editTarget.length > 0}
+        onOpenChange={(open) => {
+          if (!open) setEditTarget([])
+        }}
+        sections={editTarget}
+      />
     </>
   )
 }

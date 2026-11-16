@@ -4,7 +4,9 @@ import { Icon } from "@/components/icons/icon"
 import {
   ContextMenu,
   ContextMenuContent,
+  ContextMenuGroup,
   ContextMenuItem,
+  ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
@@ -61,11 +63,29 @@ export interface Starter {
  * offer it does not open at all: a menu whose one item is off says nothing.
  * It stays mounted, switched off, so what it wraps (the map) is not rebuilt.
  */
+
+/**
+ * What a right-click on a section row offers to edit: "Edit" always acts on
+ * just the row clicked. A second "Edit selected (N)" item, naming how many
+ * `onEditAll` reaches, only appears when the row is ticked as part of a
+ * larger selection — so a click never silently changes more than it says.
+ */
+export interface EditTarget {
+  /** The clicked row's own name, for the muted header above "Edit". */
+  name: string
+  onEditOne: () => void
+  /** How many sections are selected; 1 hides the bulk item entirely. */
+  count: number
+  onEditAll: () => void
+}
+
 export function AddToAgentMenu({
   items = [],
   refs = [],
   starters = [],
   changes = [],
+  edit,
+  onOpenChange,
   children,
 }: {
   /**
@@ -82,6 +102,14 @@ export function AddToAgentMenu({
    * the same things and puts its words in the message box.
    */
   starters?: readonly Starter[]
+  /**
+   * Section rows only: puts "Edit …" first, above "Add to Agent chat", both
+   * naming the same target, with a muted line at the top naming it too. Not
+   * offered with `starters` (section rows drop those three questions).
+   */
+  edit?: EditTarget
+  /** So the row(s) this menu acts on can be highlighted while it is open. */
+  onOpenChange?: (open: boolean) => void
   children: ReactElement
 }) {
   const askAgent = useAskAgent()
@@ -94,14 +122,19 @@ export function AddToAgentMenu({
   }
   const empty =
     changes.length === 0 &&
+    !edit &&
     items.length === 0 &&
     refs.length === 0 &&
     starters.every((starter) => !starter.refs?.length)
+  // Section rows (edit present) say plain "Ask"; claims, sources and the map
+  // keep their own, unrelated "Add to the Agent chat" wording.
+  const askLabel = edit ? "Ask" : "Add to the Agent chat"
   return (
     <ContextMenu
       disabled={empty}
       onOpenChange={(open) => {
         if (open) chosen.current = false
+        onOpenChange?.(open)
       }}
     >
       <ContextMenuTrigger render={children} />
@@ -112,6 +145,20 @@ export function AddToAgentMenu({
           </ContextMenuItem>
         ))}
         {changes.length > 0 && <ContextMenuSeparator />}
+        {edit && (
+          <ContextMenuGroup>
+            {edit.count > 1 && (
+              <ContextMenuLabel>{`${edit.count} sections selected`}</ContextMenuLabel>
+            )}
+            <ContextMenuItem onClick={edit.onEditOne}>Edit</ContextMenuItem>
+            {edit.count > 1 && (
+              <ContextMenuItem onClick={edit.onEditAll}>
+                {`Edit selected (${edit.count})`}
+              </ContextMenuItem>
+            )}
+            <ContextMenuSeparator />
+          </ContextMenuGroup>
+        )}
         {starters.map((starter) => (
           <ContextMenuItem
             key={starter.words}
@@ -129,7 +176,7 @@ export function AddToAgentMenu({
         {starters.length > 0 && <ContextMenuSeparator />}
         <ContextMenuItem onClick={() => ask(items, { refs })}>
           <Icon name="ask" />
-          Add to the Agent chat
+          {askLabel}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

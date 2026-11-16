@@ -199,6 +199,89 @@ export async function fetchLinks(relation: string): Promise<StoreLink[]> {
   return links
 }
 
+/** One bundle write: everything one source supports, in one transaction
+ * (store's model/shapes.py Bundle). A claim never goes without its citation. */
+export interface BundleRequest {
+  sources?: {
+    ref: string
+    kind: string
+    title: string
+    external_key?: { system: string; key: string }
+  }[]
+  citations?: { ref: string; source: string; quote?: string }[]
+  claims?: {
+    ref?: string
+    feature: string
+    attribute: string
+    value_text?: string
+    value_num?: number
+    value_unit?: string | null
+    citations: { citation: string; role: string }[]
+  }[]
+}
+
+const bundleResult = z.object({
+  ids: z.record(z.string(), z.string()),
+  created: z.record(z.string(), z.boolean()),
+})
+
+export type BundleResult = z.infer<typeof bundleResult>
+
+/** Writes a bundle to store. Throws StoreError on anything but 2xx. */
+export async function postBundle(bundle: BundleRequest): Promise<BundleResult> {
+  let response: Response
+  try {
+    response = await fetch(`${BASE}/bundles`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(bundle),
+    })
+  } catch {
+    throw new StoreError("unreachable", `No answer from ${BASE}/bundles.`)
+  }
+  if (response.status === 401 || response.status === 403) {
+    throw new StoreError(
+      "refused",
+      `/bundles answered ${response.status}. Check STORE_TOKEN.`
+    )
+  }
+  if ([502, 503, 504].includes(response.status)) {
+    throw new StoreError(
+      "unreachable",
+      `/bundles answered ${response.status}. Is store running, and is STORE_URL right?`
+    )
+  }
+  if (!response.ok) {
+    let detail = ""
+    try {
+      detail = await response.text()
+    } catch {
+      // No body to read; the status itself is detail enough.
+    }
+    throw new StoreError(
+      "unreadable",
+      `/bundles answered ${response.status}.${detail ? ` ${detail}` : ""}`
+    )
+  }
+  let json: unknown
+  try {
+    json = await response.json()
+  } catch {
+    throw new StoreError("unreadable", "/bundles did not answer with JSON.")
+  }
+  const result = bundleResult.safeParse(json)
+  if (!result.success) {
+    throw new StoreError(
+      "unreadable",
+      `/bundles\n${z.prettifyError(result.error)}`
+    )
+  }
+  return result.data
+}
+
 export function fetchFeature(id: string): Promise<StoreFeature> {
   return get(`/features/${encodeURIComponent(id)}`, feature)
 }

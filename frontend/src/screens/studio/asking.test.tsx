@@ -93,7 +93,7 @@ beforeEach(() => {
 })
 
 describe("asking the Agent", () => {
-  it("offers what surrounds a section, where to look and a search, on a section", async () => {
+  it("offers Edit, then Edit selected, then Ask, on a section row", async () => {
     const user = await open()
     await user.click(screen.getByRole("option", { name: /North line/ }))
     const section = screen.getByRole("treeitem", { name: /Birch to Cedar/ })
@@ -101,11 +101,9 @@ describe("asking the Agent", () => {
     expect(await menu(user, section)).toEqual([
       "Make pipeline",
       "Add to a pipeline",
-      "What does store say about this?",
-      "What surrounds this section?",
-      "What could we look for here?",
-      "Find this in the sources",
-      "Add to the Agent chat",
+      "Edit",
+      "Edit selected (2)",
+      "Ask",
     ])
   })
 
