@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input"
 import {
   editableAttributes,
   listWords,
+  plural,
   sectionLabel,
   type SectionEdit,
 } from "@/data/derive"
@@ -189,9 +190,7 @@ function EditSectionsForm({
     try {
       const undo = await save(targetIds, edits, note)
       toast(
-        bulk
-          ? `Updated ${listWords(changedAttributes)} on ${active.length} sections.`
-          : `Updated ${listWords(changedAttributes)} on ${sectionLabel(active[0])}.`,
+        `Updated ${listWords(changedAttributes)} on ${plural(active.length, "section")}.`,
         undo ? { action: { label: "Undo", onClick: undo } } : undefined
       )
       onDone()
@@ -382,12 +381,12 @@ function EditSectionsForm({
           className="min-h-5 min-w-0 flex-1 self-center truncate type-ui-sm text-muted-foreground"
           title={
             changedAttributes.length > 0
-              ? `Will update ${listWords(changedAttributes)} on ${active.length === 1 ? sectionLabel(active[0]) : `${active.length} sections`}`
+              ? `Will update ${listWords(changedAttributes)} on ${plural(active.length, "section")}`
               : undefined
           }
         >
           {changedAttributes.length > 0
-            ? `Will update ${listWords(changedAttributes)} on ${active.length === 1 ? sectionLabel(active[0]) : `${active.length} sections`}`
+            ? `Will update ${listWords(changedAttributes)} on ${plural(active.length, "section")}`
             : "No changes yet"}
         </span>
         <DialogClose render={<Button type="button" variant="outline" />}>

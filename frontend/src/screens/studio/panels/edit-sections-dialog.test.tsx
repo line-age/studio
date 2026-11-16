@@ -93,7 +93,7 @@ describe("EditSectionsDialog", () => {
       screen.getByRole("button", { name: "Reset Diameter" })
     ).toBeInTheDocument()
     expect(
-      screen.getByText("Will update Diameter on Alder to Birch")
+      screen.getByText("Will update Diameter on 1 section")
     ).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "Reset Diameter" }))
@@ -102,6 +102,18 @@ describe("EditSectionsDialog", () => {
       screen.queryByRole("button", { name: "Reset Diameter" })
     ).not.toBeInTheDocument()
     expect(screen.getByText("No changes yet")).toBeInTheDocument()
+  })
+
+  it("says how many sections it updated, by count, even for one", async () => {
+    const user = await renderDialog(testNetwork(), ["s-1"])
+    const diameter = screen.getByLabelText("Diameter")
+    await user.clear(diameter)
+    await user.type(diameter, "14 in")
+    await user.click(screen.getByRole("button", { name: "Save" }))
+    expect(toast).toHaveBeenCalledWith(
+      "Updated Diameter on 1 section.",
+      expect.anything()
+    )
   })
 
   it("leaves a section out of the bulk edit, and can add it back", async () => {
