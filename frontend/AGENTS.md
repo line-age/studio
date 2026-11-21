@@ -177,7 +177,9 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   is not read yet. A failure says so in that panel only, with Try again. After a write
   the network is read again and kept details stay shown until read again. The sample
   holds every section's detail already. `to-network.ts` words the list's values and
-  the detail through the same functions; a test checks they agree.
+  the detail through the same functions; a test checks they agree on answers store itself
+  recorded (`src/test/store-recorded.json`, invented data; re-record with store's
+  `test_record_answers_for_studio` after a change to its reads).
 - A claim a section has through a confirmed link (store's scope: a line traced as gone
   a person matched to it, the section it was split from) is its history, never a
   merge: each citation of it carries `inheritedFrom`, and the claim detail says where
