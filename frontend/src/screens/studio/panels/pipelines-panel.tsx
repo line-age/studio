@@ -40,6 +40,7 @@ import {
   PROPOSED_END_LABEL,
   tracerNames,
   SCOPE,
+  type Scope,
 } from "@/data/derive"
 import { STATUS_LABEL } from "@/data/status"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
@@ -69,6 +70,20 @@ import { listColumns } from "./list-columns"
 import { ScopeSwitch } from "./scope-switch"
 
 export const SEARCH_INPUT_ID = "pipeline-search"
+
+/**
+ * What a search widened past the filters looks through. It stays inside what
+ * the switch shows (the owner, 2026-11-21), so it says that and never "the
+ * whole network" where it is not.
+ */
+const SEARCH_PAST: Record<Scope, { chip: string; all: string }> = {
+  all: { chip: "Whole network", all: "the whole network" },
+  pipelines: { chip: "Every pipeline", all: "every pipeline" },
+  unplaced: {
+    chip: "Every unplaced section",
+    all: "every unplaced section",
+  },
+}
 
 export function PipelinesPanel() {
   const { summaries, scoped, scope, network } = useStudioData()
@@ -166,8 +181,8 @@ export function PipelinesPanel() {
   const chips: { label: string; hint: string; remove: () => void }[] = []
   if (searching && whole) {
     chips.push({
-      label: "Whole network",
-      hint: "The search looks through every section of the network, not only what the filters leave.",
+      label: SEARCH_PAST[scope].chip,
+      hint: `The search looks through ${SEARCH_PAST[scope].all}, not only what the filters leave.`,
       remove: () => setWhole(false),
     })
   } else {
@@ -488,11 +503,13 @@ export function PipelinesPanel() {
         <div className="flex shrink-0 items-center justify-between gap-2 border-t px-3 py-1.5">
           <Hint>
             {whole
-              ? "Searching the whole network."
+              ? `Searching ${SEARCH_PAST[scope].all}.`
               : `${formatCount(outside)} more ${outside === 1 ? "matches" : "match"} outside the filters.`}
           </Hint>
           <Button variant="ghost" size="xs" onClick={() => setWhole(!whole)}>
-            {whole ? "Search inside the filters" : "Search the whole network"}
+            {whole
+              ? "Search inside the filters"
+              : `Search ${SEARCH_PAST[scope].all}`}
           </Button>
         </div>
       )}
@@ -888,8 +905,10 @@ function PipelineList({
             </span>
           </span>
         }
+        // Speaks for the rows shown only. A section the switch hides stays
+        // selected whatever this box does.
         selection={
-          groups.length === 0
+          checkedOf.size === 0
             ? "unchecked"
             : allShown
               ? "checked"
@@ -897,9 +916,12 @@ function PipelineList({
         }
         selectionLabel="Select everything shown"
         onSelectionChange={() => {
-          select(
-            groups.length === 0 ? rows.flatMap((row) => idsOf(row.summary)) : []
-          )
+          const shown = rows.flatMap((row) => idsOf(row.summary))
+          if (checkedOf.size === 0) addToSelection(shown)
+          else {
+            const off = new Set(shown)
+            select([...selection].filter((id) => !off.has(id)))
+          }
           offerAgent()
         }}
       />

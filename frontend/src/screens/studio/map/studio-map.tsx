@@ -14,17 +14,9 @@ import { MapControl } from "@/components/map-control"
 import { ToolPalette } from "@/components/tool-palette"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
-import {
-  hasCriteria,
-  isPlaced,
-  sectionMatches,
-  unionBounds,
-  type Bounds,
-} from "@/data/derive"
+import { unionBounds, type Bounds } from "@/data/derive"
 import { useSectionDetail } from "@/data/detail-store"
 import { proposedEndsFor } from "@/data/evidence"
-import type { Geometry } from "@/data/schema"
-import { sectionStatus } from "@/data/status"
 import { cn } from "@/lib/utils"
 
 import { SEARCH_INPUT_ID } from "../panels/pipelines-panel"
@@ -39,6 +31,7 @@ import { readMapColors } from "./map-colors"
 import { addKeyName, holdsAddKey, mapClick } from "./click-selection"
 import { FollowMapToggle } from "./follow-map-toggle"
 import { DOTTED_EXTRA, LINE_WEIGHT, statusesDrawn } from "./line-style"
+import { sectionFeatures, type SectionFeature } from "./section-features"
 import { MapKey } from "./map-key"
 import { AgentBar } from "./selection-bar"
 
@@ -53,11 +46,7 @@ const REFIT_WINDOW = 800
 const DOTTED = [0.1, 2.4]
 const DASHED = [4, 3]
 
-type Feature = {
-  type: "Feature"
-  geometry: Geometry
-  properties: { id: string; [key: string]: string | boolean }
-}
+type Feature = SectionFeature
 
 const collection = (features: Feature[]) => ({
   type: "FeatureCollection" as const,
@@ -165,37 +154,11 @@ export function StudioMap({ token }: { token: string }) {
     return () => observer.disconnect()
   }, [])
 
-  // Every section the switch shows, sorted by the filters: the ones that pass
-  // are drawn by their status, heavy when in a pipeline; the rest only faint,
-  // and only when the map key says so. What the switch leaves out is in
-  // neither: not drawn, not clickable, and still selected if it was.
+  // The sections the switch shows, sorted by the filters. What the switch
+  // leaves out is in neither source: see sectionFeatures.
   const [current, faint] = useMemo(() => {
-    const filtering = hasCriteria(criteria)
-    const passing: Feature[] = []
-    const rest: Feature[] = []
-    for (const summary of summaries) {
-      for (const section of summary.sections) {
-        if (!filtering || sectionMatches(section, criteria)) {
-          passing.push({
-            type: "Feature",
-            geometry: section.geometry,
-            properties: {
-              id: section.id,
-              pipelineId: summary.id,
-              status: sectionStatus(section, criteria.rule),
-              placed: isPlaced(section),
-            },
-          })
-        } else {
-          rest.push({
-            type: "Feature",
-            geometry: section.geometry,
-            properties: { id: section.id },
-          })
-        }
-      }
-    }
-    return [collection(passing), collection(rest)]
+    const features = sectionFeatures(summaries, criteria)
+    return [collection(features.drawn), collection(features.faint)]
   }, [summaries, criteria])
 
   // The lines traced as gone behind the proposal being read: an end on Last

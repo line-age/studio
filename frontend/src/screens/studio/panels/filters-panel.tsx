@@ -346,8 +346,23 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
 
   // How many sections each group has to choose among: what passes every
   // filter but its own. A choice that leaves all of them narrows nothing.
-  const among = (without: Parameters<typeof passingWithout>[2]) =>
-    passingWithout(summaries, criteria, without)
+  // Counted once for what is shown, not on every redraw.
+  const totals = useMemo(() => {
+    const keys = [
+      "firstSeenEditions",
+      "tracers",
+      "states",
+      "proposedEnd",
+      "companies",
+      "diameters",
+      "unknownIn",
+      "changedOnly",
+    ] as const
+    return Object.fromEntries(
+      keys.map((key) => [key, passingWithout(summaries, criteria, key)])
+    ) as Record<(typeof keys)[number], number>
+  }, [summaries, criteria])
+  const among = (key: keyof typeof totals) => totals[key]
   const editionLabel = (id: string) =>
     network.editions.find((e) => e.id === id)?.label ?? id
   const editions = useMemo(() => {

@@ -398,6 +398,54 @@ describe("Studio panels", () => {
     }
   })
 
+  it("lets the header box speak for the rows shown, never for hidden ones", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    const all = () =>
+      screen.getByRole("checkbox", { name: "Select everything shown" })
+    // North line is selected, then hidden by the switch.
+    await user.click(
+      screen.getByRole("checkbox", { name: "Select North line" })
+    )
+    await user.click(screen.getByRole("tab", { name: "Unplaced" }))
+    // Nothing shown is selected: the box is empty, not half ticked.
+    expect(all()).toHaveAttribute("aria-checked", "false")
+    // Ticking it adds what is shown and keeps the hidden pipeline.
+    await user.click(all())
+    expect([...useStudio.getState().selection].sort()).toEqual([
+      "s-1",
+      "s-2",
+      "s-4",
+    ])
+    expect(all()).toHaveAttribute("aria-checked", "true")
+    // Clearing it takes off only what is shown.
+    await user.click(all())
+    expect([...useStudio.getState().selection].sort()).toEqual(["s-1", "s-2"])
+  })
+
+  it("says a widened search stays inside what the switch shows", async () => {
+    const user = userEvent.setup()
+    act(() => {
+      useStudio.getState().setScope("pipelines")
+      // Only North line has a section with this diameter.
+      useStudio.getState().setDiameters(["12 in"])
+    })
+    await renderPanels()
+    await user.type(
+      screen.getByRole("combobox", { name: "Search name or code" }),
+      "south"
+    )
+    const widen = await screen.findByRole("button", {
+      name: "Search every pipeline",
+    })
+    await user.click(widen)
+    expect(screen.getByText("Searching every pipeline.")).toBeVisible()
+    expect(
+      screen.getByRole("group", { name: "Filters in force" })
+    ).toHaveTextContent("Every pipeline")
+    expect(screen.queryByText(/whole network/i)).toBeNull()
+  })
+
   it("says what a pipeline is when the data has none", async () => {
     const user = userEvent.setup()
     const network = testNetwork()
