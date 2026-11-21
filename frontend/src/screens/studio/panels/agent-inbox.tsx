@@ -5,7 +5,12 @@ import { Icon } from "@/components/icons/icon"
 import { ProposalCard } from "@/components/proposal-card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { detailOf, requestDetails, useDetails } from "@/data/detail-store"
+import { ownDetail, type DetailLookup } from "@/data/detail"
+import {
+  requestDetails,
+  useDetailLookup,
+  useDetails,
+} from "@/data/detail-store"
 import {
   Collapsible,
   CollapsibleContent,
@@ -17,7 +22,7 @@ import {
   type PipelineDecision,
   type ProposalAt,
 } from "@/data/changes"
-import { pipelineLabel, sectionLabel } from "@/data/derive"
+import { pipelineLabel, sectionLabel, sectionStats } from "@/data/derive"
 import { citationLine, proposedEndWords } from "@/data/evidence"
 import type {
   Claim,
@@ -68,33 +73,28 @@ export function inboxCount(network: Network): number {
       (n, p) => n + p.claims.reduce((m, c) => m + c.proposals.length, 0),
       0
     ) +
-    network.sections.reduce(
-      (n, s) =>
-        n +
-        s.proposedEnds.length +
-        s.values.reduce((m, v) => m + v.proposals, 0),
-      0
-    )
+    network.sections.reduce((n, s) => n + sectionStats(s).proposals, 0)
   )
 }
 
 /**
  * Everything waiting for a person, pipelines first. A section's ends and
- * candidates come with its detail: a section not read yet is left out.
+ * candidates come with its detail: a section without one in `details` is
+ * left out. On store's data pass only current details, never one read before
+ * the last write, which may hold what was decided since.
  */
-export function inboxItems(network: Network): Item[] {
+export function inboxItems(
+  network: Network,
+  details: DetailLookup = ownDetail
+): Item[] {
   const items: Item[] = proposedPipelines(network).map((decision) => ({
     kind: "pipeline",
     key: `pipeline:${decision.pipeline.id}`,
     decision,
   }))
-  // A detail read before the last write may still hold what was decided
-  // since: only what the network, read after it, still has waiting is shown.
   for (const section of network.sections) {
-    const open = new Set(section.proposedEnds.map((e) => e.id))
-    for (const end of detailOf(section)?.proposedEnds ?? [])
-      if (open.has(end.id))
-        items.push({ kind: "end", key: `end:${end.id}`, section, end })
+    for (const end of details(section)?.proposedEnds ?? [])
+      items.push({ kind: "end", key: `end:${end.id}`, section, end })
   }
   const claimsOf = (
     owner: "section" | "pipeline",
@@ -127,11 +127,7 @@ export function inboxItems(network: Network): Item[] {
       "section",
       section.id,
       sectionLabel(section),
-      (detailOf(section)?.claims ?? []).filter(
-        (c) =>
-          (section.values.find((v) => v.attribute === c.attribute)?.proposals ??
-            0) > 0
-      )
+      details(section)?.claims ?? []
     )
   return items
 }
@@ -142,19 +138,21 @@ export function AgentInbox() {
   const total = inboxCount(network)
   // A section's proposals come with its detail: read when the inbox opens.
   const waiting = useMemo(() => waitingSections(network), [network])
-  const read = useDetails((s) => s.entries)
+  const entries = useDetails((s) => s.entries)
   const generation = useDetails((s) => s.generation)
+  const current = useDetailLookup(true)
   const [open, setOpen] = useState(false)
   useEffect(() => {
     if (open) requestDetails(waiting.map((s) => s.id))
   }, [open, waiting, generation])
-  const items = useMemo(
-    () => inboxItems(network),
-    // `read` changes as details arrive.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [network, read]
-  )
-  const pending = waiting.filter((s) => detailOf(s) === null).length
+  const items = useMemo(() => inboxItems(network, current), [network, current])
+  // Store's sections only: the sample's hold their own detail.
+  const unread = waiting.filter((s) => current(s) === null)
+  const failed = unread.filter((s) => {
+    const e = entries[s.id]
+    return e?.status === "failed" && e.generation === generation
+  })
+  const pending = unread.length - failed.length
   if (total === 0) return null
   const count = `${total} ${total === 1 ? "proposal" : "proposals"} waiting`
   return (
@@ -183,6 +181,29 @@ export function AgentInbox() {
           >
             <Skeleton className="h-3 w-3/4" />
             <Skeleton className="h-16 w-full" />
+          </div>
+        )}
+        {failed.length > 0 && (
+          <div
+            role="alert"
+            className="flex items-center gap-2 px-3 pt-3 type-ui-xs text-muted-foreground"
+          >
+            <span className="flex-1">
+              Could not read the proposals of{" "}
+              {failed.length === 1 ? "1 section" : `${failed.length} sections`}.
+            </span>
+            <Button
+              size="xs"
+              variant="outline"
+              onClick={() =>
+                requestDetails(
+                  failed.map((s) => s.id),
+                  { again: true }
+                )
+              }
+            >
+              Try again
+            </Button>
           </div>
         )}
         <ul aria-label="Proposals waiting" className="flex flex-col gap-4 p-3">
@@ -367,19 +388,25 @@ function Decide({
     sending.current = true
     setBusy(true)
     setError(null)
+    const done = () => {
+      sending.current = false
+      setBusy(false)
+    }
     try {
-      await change(c, key.current)
+      // Shown again: the card goes with the new data. Not shown again: the
+      // screen says so, and the buttons come back.
+      if (!(await change(c, key.current))) done()
     } catch (e) {
       if (e instanceof WriteError && e.kind === "decided") {
         // Someone else decided it since this list was read: read it again,
         // so it is gone here too, and say why.
         toast(e.message)
-        reload()
+        await reload()
+        done()
         return
       }
       setError(e instanceof Error ? e.message : String(e))
-      sending.current = false
-      setBusy(false)
+      done()
     }
   }
   return (

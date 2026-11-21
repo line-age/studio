@@ -18,6 +18,7 @@ import {
 import { buildQuestion, refKey, refWords, type AgentRef } from "@/data/question"
 import type { ThreadItem } from "@/data/schema"
 
+import { ensureDetails, useDetailLookup } from "@/data/detail-store"
 import { dataSource } from "@/data/load-network"
 
 import { HidePanels } from "../panel-toggle"
@@ -72,7 +73,8 @@ function useOpenRef(): (ref: AgentRef) => void {
 function Reference({ value }: { value: AgentRef }) {
   const { network } = useStudioData()
   const open = useOpenRef()
-  const { title, meta } = refWords(value, network)
+  const details = useDetailLookup()
+  const { title, meta } = refWords(value, network, details)
   return (
     <button
       type="button"
@@ -231,6 +233,7 @@ function AttachmentChips({
   onRemoveRef?: (key: string) => void
 }) {
   const { network, summaryById, sectionById, everySection } = useStudioData()
+  const details = useDetailLookup()
   const groupById = new Map(everySection.map((g) => [g.id, g]))
   const chips = items.map((item) => {
     const summary =
@@ -299,7 +302,7 @@ function AttachmentChips({
       {chips}
       {refs.map((ref) => {
         const key = refKey(ref)
-        const { title, meta } = refWords(ref, network)
+        const { title, meta } = refWords(ref, network, details)
         return (
           <Attachment
             key={key}
@@ -358,28 +361,50 @@ export function AgentPanel() {
           const s = useStudio.getState()
           const attachments = s.agentAttachments
           const refs = s.agentRefs
-          const question = buildQuestion({
-            words,
-            sections: attachments,
-            refs,
-            network,
-          })
           if (agent) {
             if (agent.working) {
               setHeld("working")
               return false
             }
             setHeld(null)
-            // If it never gets an answer, the words and what was attached
-            // come back to the box.
-            void agent.ask(question, () => {
-              // Never over words the person has typed since.
-              if (messageRef.current?.value.trim()) return
-              useStudio.getState().askAgent(attachments, { refs, words })
+            // A claim, a source or a proposal goes by its id: the sections
+            // they are on are read first, if they are not yet.
+            const sectionIds = [
+              ...new Set(
+                refs.flatMap((ref) =>
+                  ref.kind === "claim"
+                    ? ref.owner === "section"
+                      ? [ref.ownerId]
+                      : []
+                    : [ref.sectionId]
+                )
+              ),
+            ]
+            void ensureDetails(sectionIds).then((details) => {
+              const question = buildQuestion({
+                words,
+                sections: attachments,
+                refs,
+                network,
+                details,
+              })
+              // If it never gets an answer, the words and what was attached
+              // come back to the box.
+              void agent.ask(question, () => {
+                // Never over words the person has typed since.
+                if (messageRef.current?.value.trim()) return
+                useStudio.getState().askAgent(attachments, { refs, words })
+              })
             })
             s.clearAgentDraft()
             return
           }
+          const question = buildQuestion({
+            words,
+            sections: attachments,
+            refs,
+            network,
+          })
           // On store's data only the service answers: while it is down or
           // starting nothing would show the question, so it is not taken.
           if (fromStore) {

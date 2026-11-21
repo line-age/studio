@@ -1,5 +1,6 @@
 import type { AgentRef } from "@/data/question"
 import { membershipRefs, proposalRefs, STARTERS } from "@/data/question"
+import type { DetailLookup } from "@/data/detail"
 import type { Claim, Section } from "@/data/schema"
 
 import type { Starter } from "./add-to-agent"
@@ -28,9 +29,10 @@ export function claimStarters(
 /** On a section's claim, with the proposals that wait on it. */
 export function sectionClaimStarters(
   section: Section,
-  claim: Pick<Claim, "attribute" | "value">
+  claim: Pick<Claim, "attribute" | "value">,
+  details?: DetailLookup
 ): Starter[] {
-  return claimStarters(claim, proposalRefs(section, claim.attribute))
+  return claimStarters(claim, proposalRefs(section, claim.attribute, details))
 }
 
 /** On a section's Pipeline row: what store says, and any pipeline proposed. */

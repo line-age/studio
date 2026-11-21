@@ -2,7 +2,6 @@ import { formatValid } from "./evidence"
 import { withClaims } from "./schema"
 import type {
   Claim,
-  ClaimValue,
   Edition,
   Geometry,
   Network,
@@ -133,30 +132,13 @@ export function applySectionEdits(
   return {
     ...network,
     sections: network.sections.map((section) =>
-      !targets.has(section.id)
-        ? section
-        : section.claims
-          ? withClaims(section, nextClaims(section.claims))
-          : // On store's data the claims are the section's detail. The edit
-            // is written to store first and the network read again; until
-            // then only the values show it.
-            { ...section, values: editedValues(section.values, edits) }
+      // Only the sample's sections hold their claims; on store's data an
+      // edit is written to store and the network read again instead.
+      targets.has(section.id) && section.claims
+        ? withClaims(section, nextClaims(section.claims))
+        : section
     ),
   }
-}
-
-function editedValues(
-  values: readonly ClaimValue[],
-  edits: readonly SectionEdit[]
-): ClaimValue[] {
-  let out = [...values]
-  for (const edit of edits) {
-    const value = { attribute: edit.attribute, value: edit.value, proposals: 0 }
-    const at = out.findIndex((v) => v.attribute === edit.attribute)
-    out =
-      at === -1 ? [...out, value] : out.map((v, i) => (i === at ? value : v))
-  }
-  return out
 }
 
 /**

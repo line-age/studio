@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { detailOf, useDetails } from "@/data/detail-store"
-import { loadFromStore } from "@/data/load-network"
+import {
+  lookupIn,
+  requestDetails,
+  setDetailReader,
+  useDetails,
+} from "@/data/detail-store"
+import { detailReaderOf, loadFromStore } from "@/data/load-network"
 import {
   storeFeatures,
   storeLinks,
@@ -39,7 +44,10 @@ const kindOf = async (run: () => Promise<unknown>) => {
   return "no error"
 }
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  setDetailReader(null)
+})
 
 describe("store client", () => {
   it("asks this app's own /store path, never store itself", async () => {
@@ -150,7 +158,11 @@ describe("store client", () => {
     const fetchMock = answerWithNetwork()
     const network = await loadFromStore("gas", null)
     fetchMock.mockClear()
-    const { requestDetails } = await import("@/data/detail-store")
+    // The screen installs the reader of the network it shows; loading does not.
+    expect(useDetails.getState().entries).toEqual({})
+    const reader = detailReaderOf(network)!
+    expect(reader.of).toBe("gas|")
+    setDetailReader(reader.read, reader.of)
     requestDetails(network.sections.map((s) => s.id))
     await vi.waitFor(() =>
       expect(
@@ -162,7 +174,9 @@ describe("store client", () => {
     // One request for the three sections, one for the lines traced as gone.
     expect(fetchMock).toHaveBeenCalledTimes(2)
     const [a] = network.sections
-    expect(detailOf(a)?.claims.map((c) => c.attribute)).toContain("Geometry")
+    expect(
+      lookupIn(useDetails.getState())(a)?.claims.map((c) => c.attribute)
+    ).toContain("Geometry")
     expect(JSON.stringify(useDetails.getState())).not.toContain("A. Tracer")
   })
 

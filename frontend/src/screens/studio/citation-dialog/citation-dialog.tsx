@@ -42,6 +42,7 @@ export function CitationDialog() {
 
   useEffect(() => {
     if (!isOpen || !claims) return
+    // Narrowed here; the handler below runs later.
     const steps = claims
     // Capture phase, not onKeyDown on the dialog or a bubble listener on
     // document: Base UI's DialogPopup stops propagation of arrow keys at the
@@ -88,7 +89,7 @@ export function CitationDialog() {
                   selectedIndex={opened?.citationIndex ?? 0}
                   onSelect={selectCitation}
                 />
-                <CitationDetails citation={citation} section={section} />
+                <CitationDetails citation={citation} claims={claims ?? []} />
               </div>
             </div>
             <CitationFooter section={section} citation={citation} />

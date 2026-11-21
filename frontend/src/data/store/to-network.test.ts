@@ -22,7 +22,9 @@ import {
 import { claimValues } from "@/data/schema"
 
 import { StoreError } from "./client"
-import { attributeStoreKey, toDetail, toNetwork, toSummary } from "./to-network"
+import { toNetwork } from "@/test/full-network"
+
+import { attributeStoreKey, toDetail, toSummary } from "./to-network"
 
 const network = toNetwork("Gas network", storeRows(), storeFeatures(), {
   links: storeLinks(),

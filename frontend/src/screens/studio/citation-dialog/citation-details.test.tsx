@@ -26,7 +26,9 @@ const scanNoQuote: Citation = {
 
 describe("CitationDetails", () => {
   it("shows the source, role, edition, where, identifier and confidence", () => {
-    render(<CitationDetails citation={scanNoQuote} section={section([])} />)
+    render(
+      <CitationDetails citation={scanNoQuote} claims={section([]).claims!} />
+    )
     expect(screen.getByText("Invented trunk map, 1931")).toBeInTheDocument()
     expect(screen.getByText("Shown on")).toBeInTheDocument()
     expect(
@@ -38,7 +40,9 @@ describe("CitationDetails", () => {
   })
 
   it("says a scan with no quote has none, and shows no Quote row", () => {
-    render(<CitationDetails citation={scanNoQuote} section={section([])} />)
+    render(
+      <CitationDetails citation={scanNoQuote} claims={section([]).claims!} />
+    )
     expect(screen.getByText("No quote, scanned map")).toBeInTheDocument()
     expect(screen.queryByText("Quote")).not.toBeInTheDocument()
   })
@@ -47,7 +51,7 @@ describe("CitationDetails", () => {
     render(
       <CitationDetails
         citation={{ source: "Invented Gas Review, 1931", quote: '"12 IN."' }}
-        section={section([])}
+        claims={section([]).claims!}
       />
     )
     expect(screen.getByText("Quote")).toBeInTheDocument()
@@ -70,14 +74,19 @@ describe("CitationDetails", () => {
         proposals: [],
       },
     ]
-    render(<CitationDetails citation={shared} section={section(claims)} />)
+    render(
+      <CitationDetails citation={shared} claims={section(claims).claims!} />
+    )
     expect(screen.getByText("Supports 2 claims")).toBeInTheDocument()
   })
 
   it("truncates a long title and shows the full title on focus", async () => {
     const longTitle = "A".repeat(120)
     const { container } = render(
-      <CitationDetails citation={{ source: longTitle }} section={section([])} />
+      <CitationDetails
+        citation={{ source: longTitle }}
+        claims={section([]).claims!}
+      />
     )
     const trigger = screen.getByText(longTitle)
     expect(trigger).toHaveClass("truncate")

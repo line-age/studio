@@ -9,7 +9,7 @@ import { StatusLabel } from "@/components/status-label"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useSectionDetail } from "@/data/detail-store"
+import { useDetailLookup, useSectionDetail } from "@/data/detail-store"
 import { shortId } from "@/data/short-id"
 import { pipelineLabel, sectionLabel } from "@/data/derive"
 import {
@@ -60,6 +60,7 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
   const ends = proposedEndsFor(section, claim.attribute)
   const waiting = claim.proposals.length + ends.length
   const inherited = claim.citations.flatMap((c) => c.inheritedFrom ?? [])
+  const details = useDetailLookup()
   return (
     <section
       aria-label={`${claim.attribute} of ${sectionLabel(section)}`}
@@ -121,7 +122,9 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
             {ends.map((end) => (
               <Hint key={end.id}>{proposedEndWords(end)}</Hint>
             ))}
-            <AskAboutProposals refs={proposalRefs(section, claim.attribute)} />
+            <AskAboutProposals
+              refs={proposalRefs(section, claim.attribute, details)}
+            />
           </div>
         )}
         <ListGroupHeader count={claim.citations.length}>
@@ -312,7 +315,18 @@ function OpenedClaim({
         ) : (
           <span className="type-ui-sm-medium break-words">{value.value}</span>
         )}
-        {status === "failed" ? (
+        {status === "ready" ? (
+          // Read, but this claim is not in it: the list and store disagree
+          // after a write. Read it again rather than pulse for ever.
+          <div role="alert" className="flex items-center gap-2">
+            <span className="flex-1 type-ui-xs text-muted-foreground">
+              No sources read for this claim.
+            </span>
+            <Button variant="outline" size="xs" onClick={retry}>
+              Read again
+            </Button>
+          </div>
+        ) : status === "failed" ? (
           <div role="alert" className="flex items-center gap-2">
             <span className="flex-1 type-ui-xs text-muted-foreground">
               Could not read the sources of this claim.

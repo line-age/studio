@@ -1,4 +1,4 @@
-import { claimsOf } from "./detail-store"
+import { claimsWith, ownDetail, type DetailLookup } from "./detail"
 import {
   withClaims,
   type Claim,
@@ -108,7 +108,11 @@ export function proposedPipelines(network: Network): PipelineDecision[] {
   return [...ids].flatMap((id) => pipelineDecision(network, id) ?? [])
 }
 
-function claimAt(network: Network, at: ProposalAt): Claim | undefined {
+function claimAt(
+  network: Network,
+  at: ProposalAt,
+  details: DetailLookup
+): Claim | undefined {
   if (at.owner === "pipeline") {
     return network.pipelines
       .find((p) => p.id === at.ownerId)
@@ -116,7 +120,7 @@ function claimAt(network: Network, at: ProposalAt): Claim | undefined {
   }
   const section = network.sections.find((s) => s.id === at.ownerId)
   return section
-    ? claimsOf(section).find((c) => c.attribute === at.attribute)
+    ? claimsWith(details, section).find((c) => c.attribute === at.attribute)
     : undefined
 }
 
@@ -255,7 +259,9 @@ export class MissingIdError extends Error {
 export async function sendChange(
   network: Network,
   change: Change,
-  key: string
+  key: string,
+  /** Sections' details, for a candidate named by place and not by id. */
+  details: DetailLookup = ownDetail
 ): Promise<void> {
   switch (change.kind) {
     case "place": {
@@ -291,7 +297,7 @@ export async function sendChange(
     case "decide-claim": {
       const id =
         change.at.id ??
-        claimAt(network, change.at)?.proposals[change.at.index]?.id
+        claimAt(network, change.at, details)?.proposals[change.at.index]?.id
       if (!id) throw new MissingIdError("claim")
       await reviewClaim(id, change.verdict === "confirm" ? "accept" : "reject")
       return

@@ -1,4 +1,3 @@
-import { claimsOf } from "./detail-store"
 import { shortId } from "./short-id"
 import type {
   Citation,
@@ -219,13 +218,6 @@ export function proposedEndsFor(
     : section.proposedEnds.filter((end) => end.kind === kind)
 }
 
-/** Every proposal waiting on one claim: candidate values, ends and cuts. */
-export function proposalCount(section: Section, claim: Claim): number {
-  return (
-    claim.proposals.length + proposedEndsFor(section, claim.attribute).length
-  )
-}
-
 /** A proposed membership in words: which pipeline, by which tool, how sure. */
 export function proposedMembershipWords(
   proposed: { score: number; proposer?: string },
@@ -312,9 +304,12 @@ export function noQuoteWords(citation: Citation): string | undefined {
  * and Last seen claims included): the route and status claims a map sheet
  * both shows and dates often share the very same citation.
  */
-export function supportsCountFor(section: Section, citation: Citation): number {
+export function supportsCountFor(
+  claims: readonly Claim[],
+  citation: Citation
+): number {
   const key = citationKey(citation)
-  return claimsOf(section).filter((claim) =>
+  return claims.filter((claim) =>
     claim.citations.some((c) => citationKey(c) === key)
   ).length
 }

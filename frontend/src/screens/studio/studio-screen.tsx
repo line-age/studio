@@ -77,24 +77,30 @@ export function StudioScreen() {
   const [linked] = useState(() => applyUrl(window.location.search))
   const [network, setNetwork] = useState(firstLoad)
   // Read store again, as after a write, keeping the screen as it is until the
-  // new data is in. Only the latest read is shown; an older one that answers
-  // late is dropped. If it fails, what is on screen stays and says so.
-  const reads = useRef(0)
+  // new data is in. Only the latest read is shown: a newer one stops an older
+  // one. If it fails, what is on screen stays and says so until dismissed.
+  // Resolves true once the new data is in, false when it is not.
+  const reading = useRef<AbortController | null>(null)
   const reload = useMemo(() => {
-    const again = () => {
-      const turn = ++reads.current
-      const next = loadNetwork()
-      next.then(
-        () => {
-          if (turn === reads.current) startTransition(() => setNetwork(next))
-        },
-        () => {
-          if (turn !== reads.current) return
-          toast.error("Done in store. Studio could not read it again.", {
-            action: { label: "Try again", onClick: again },
-          })
-        }
-      )
+    const again = async (): Promise<boolean> => {
+      reading.current?.abort()
+      const mine = new AbortController()
+      reading.current = mine
+      const next = loadNetwork(mine.signal)
+      try {
+        await next
+      } catch {
+        if (mine.signal.aborted) return false
+        toast.error("Done in store. Studio could not read it again.", {
+          duration: Infinity,
+          closeButton: true,
+          action: { label: "Try again", onClick: () => void again() },
+        })
+        return false
+      }
+      if (mine.signal.aborted) return false
+      startTransition(() => setNetwork(next))
+      return true
     }
     return again
   }, [])

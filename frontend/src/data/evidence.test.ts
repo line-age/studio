@@ -14,7 +14,6 @@ import {
   groupBySource,
   noQuoteWords,
   passagesWords,
-  proposalCount,
   proposedEndsFor,
   proposedEndWords,
   roleWords,
@@ -152,8 +151,6 @@ describe("a proposed end or cut", () => {
       "e-2",
     ])
     expect(proposedEndsFor(withEnds, "Owner")).toEqual([])
-    const lastSeen = withEnds.claims.find((c) => c.attribute === "Last seen")!
-    expect(proposalCount(withEnds, lastSeen)).toBe(1)
     expect(needsDecision(section)).toBe(false)
     expect(needsDecision(withEnds)).toBe(true)
   })
@@ -224,7 +221,7 @@ describe("a citation pop-up's sources", () => {
         },
       ],
     }
-    expect(supportsCountFor(withShared, shared)).toBe(3)
+    expect(supportsCountFor(withShared.claims, shared)).toBe(3)
     expect(supportsWords(3)).toBe("Supports 3 claims")
     expect(supportsWords(1)).toBeUndefined()
 
@@ -247,7 +244,7 @@ describe("a citation pop-up's sources", () => {
         },
       ],
     }
-    expect(supportsCountFor(samePlace, noId)).toBe(2)
+    expect(supportsCountFor(samePlace.claims, noId)).toBe(2)
   })
 
   it("gives a section with no name its own identity line", () => {

@@ -424,6 +424,17 @@ export const networkSchema = z
     })
   })
 
+/**
+ * A section's detail as store gives it when the section is opened: its claims
+ * with their citations and proposals, and its proposed ends in full.
+ */
+export const sectionDetailSchema = z.object({
+  claims: z.array(claim),
+  proposedEnds: z.array(proposedEnd),
+})
+
+export type SectionDetail = z.infer<typeof sectionDetailSchema>
+
 export type Network = z.infer<typeof networkSchema>
 export type Edition = Network["editions"][number]
 export type Pipeline = Network["pipelines"][number]

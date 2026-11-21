@@ -2,6 +2,7 @@ import {
   createContext,
   use,
   useCallback,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -23,7 +24,12 @@ import {
   type SectionCriteria,
   type SelectionGroup,
 } from "@/data/derive"
-import { dataSource, type DataSource } from "@/data/load-network"
+import { lookupIn, setDetailReader, useDetails } from "@/data/detail-store"
+import {
+  dataSource,
+  detailReaderOf,
+  type DataSource,
+} from "@/data/load-network"
 import type { Network, Section } from "@/data/schema"
 import { actionKey } from "@/data/store/write"
 import { statesBySection, type StatesLookup } from "@/data/us-states"
@@ -39,8 +45,12 @@ import { listFollowsMap, useStudio } from "./studio-store"
 
 interface StudioData {
   network: Network
-  /** Read the network again, as after the Agent proposed a claim. */
-  reload: () => void
+  /**
+   * Read the network again, as after the Agent proposed a claim. Resolves
+   * true once the new data is in, false when it could not be read (the
+   * screen says so).
+   */
+  reload: () => Promise<boolean>
   /** Where the network comes from: the sample, or store. */
   source: DataSource
   /**
@@ -48,9 +58,11 @@ interface StudioData {
    * network read again once store says it is done; on the sample it is made
    * in memory. Throws a WriteError (in words) when store refuses it. `key`
    * is the action's key, made when the person pressed it: a retry passes the
-   * same one, so nothing is made twice.
+   * same one, so nothing is made twice. Resolves true when what is shown
+   * reflects the change, false when it was made but store could not be read
+   * again.
    */
-  change: (change: Change, key?: string) => Promise<void>
+  change: (change: Change, key?: string) => Promise<boolean>
   /** How the list is grouped: by pipeline, or by edition. */
   list: ListKind
   /** Every row of the list, whatever the filters say. */
@@ -80,7 +92,7 @@ interface StudioData {
 
 const StudioDataContext = createContext<StudioData | null>(null)
 
-const noReload = () => undefined
+const noReload = () => Promise.resolve(true)
 
 export function StudioDataProvider({
   network,
@@ -90,11 +102,18 @@ export function StudioDataProvider({
 }: {
   /** A promise from loadNetwork(). Suspends until it settles. */
   network: Promise<Network>
-  reload?: () => void
+  reload?: () => Promise<boolean>
   source?: DataSource
   children: ReactNode
 }) {
   const fetched = use(network)
+  // The detail reader is the shown network's own, installed as it is shown:
+  // a read that lost to a newer one never installs anything. Before the
+  // children's effects, which ask for details.
+  useLayoutEffect(() => {
+    const reader = detailReaderOf(fetched)
+    setDetailReader(reader?.read ?? null, reader?.of ?? "")
+  }, [fetched])
   // The sample, as changed in memory since it was loaded.
   const [edited, setEdited] = useState<{ from: Network; to: Network } | null>(
     null
@@ -103,11 +122,11 @@ export function StudioDataProvider({
   const change = useCallback(
     async (change: Change, key = actionKey()) => {
       if (source === "store") {
-        await sendChange(loaded, change, key)
-        reload()
-        return
+        await sendChange(loaded, change, key, lookupIn(useDetails.getState()))
+        return reload()
       }
       setEdited({ from: fetched, to: applyChange(loaded, change, key) })
+      return true
     },
     [source, loaded, fetched, reload]
   )

@@ -1,11 +1,14 @@
-import { setDetailReader, type DetailReader } from "./detail-store"
-import { FixtureError, parseNetwork, type Network } from "./schema"
+import { z } from "zod"
+
+import type { DetailReader } from "./detail-store"
 import {
-  fetchFeatures,
-  fetchLinks,
-  fetchSectionRows,
-  type StoreLink,
-} from "./store/client"
+  FixtureError,
+  parseNetwork,
+  sectionDetailSchema,
+  type Network,
+  type SectionDetail,
+} from "./schema"
+import { fetchFeatures, fetchLinks, fetchSectionRows } from "./store/client"
 import { removalIdsOf, toDetail, toSummary } from "./store/to-network"
 
 /*
@@ -52,8 +55,26 @@ export function storeArea(): string | null {
     : null
 }
 
-export function loadNetwork(): Promise<Network> {
-  return dataSource() === "store" ? loadFromStore() : loadFixture()
+/**
+ * The network, and how to read a section's detail: on store's data a reader
+ * goes with the network it was made for (`detailReaderOf`). Nothing is set up
+ * here: the screen installs the reader of the network it shows, so an older
+ * read that answers late can change nothing. `signal` stops a read no longer
+ * wanted.
+ */
+export function loadNetwork(signal?: AbortSignal): Promise<Network> {
+  return dataSource() === "store"
+    ? loadFromStore(storeNetwork(), storeArea(), signal)
+    : loadFixture()
+}
+
+const readers = new WeakMap<Network, { read: DetailReader; of: string }>()
+
+/** The reader for this network's details, and which network it reads; none on the sample. */
+export function detailReaderOf(
+  network: Network
+): { read: DetailReader; of: string } | null {
+  return readers.get(network) ?? null
 }
 
 /**
@@ -65,32 +86,24 @@ export function loadNetwork(): Promise<Network> {
  */
 export async function loadFromStore(
   network = storeNetwork(),
-  area = storeArea()
+  area = storeArea(),
+  signal?: AbortSignal
 ): Promise<Network> {
   const stop = new AbortController()
-  const all = <T>(work: Promise<T>[]) =>
-    Promise.all(
-      work.map((p) =>
-        p.catch((error: unknown) => {
-          stop.abort()
-          throw error
-        })
-      )
-    )
-  const [rows, sameAs, overlaps, partOf] = await all<unknown>([
-    fetchSectionRows(network, area, stop.signal),
-    fetchLinks("same_as", network, stop.signal),
-    fetchLinks("overlaps", network, stop.signal),
-    fetchLinks("part_of", network, stop.signal),
-  ]).then(
-    (answers) =>
-      answers as [
-        Awaited<ReturnType<typeof fetchSectionRows>>,
-        StoreLink[],
-        StoreLink[],
-        StoreLink[],
-      ]
-  )
+  signal?.addEventListener("abort", () => stop.abort(), { once: true })
+  let answers
+  try {
+    answers = await Promise.all([
+      fetchSectionRows(network, area, stop.signal),
+      fetchLinks("same_as", network, stop.signal),
+      fetchLinks("overlaps", network, stop.signal),
+      fetchLinks("part_of", network, stop.signal),
+    ])
+  } catch (error) {
+    stop.abort()
+    throw error
+  }
+  const [rows, sameAs, overlaps, partOf] = answers
   // A line is named on a section's row once the section is confirmed part of
   // it, or is at the other end of a part_of link from a section.
   const sections = new Set(rows.map((row) => row.section_id))
@@ -106,7 +119,8 @@ export async function loadFromStore(
       ),
     ]),
   ]
-  const lines = lineIds.length > 0 ? await fetchFeatures(lineIds) : []
+  const lines =
+    lineIds.length > 0 ? await fetchFeatures(lineIds, stop.signal) : []
   const name = network.charAt(0).toLocaleUpperCase() + network.slice(1)
   // The name says so when this is one area and not the whole network.
   const title = area === null ? `${name} network` : `${name} network, one area`
@@ -114,27 +128,49 @@ export async function loadFromStore(
     links: [...sameAs, ...overlaps, ...partOf],
     lines,
   })
-  setDetailReader(storeDetailReader(summary))
+  readers.set(summary, {
+    read: storeDetailReader(summary),
+    of: `${network}|${area ?? ""}`,
+  })
   return summary
 }
 
-/** Reads sections' details from store, with the lines traced as gone their ends point at. */
-export function storeDetailReader(network: Network): DetailReader {
+/**
+ * Reads sections' details from store, with the lines traced as gone their
+ * ends point at. Each detail is checked against the schema; one that does not
+ * fit fails alone, saying why.
+ */
+function storeDetailReader(network: Network): DetailReader {
   const byId = new Map(network.sections.map((s) => [s.id, s]))
-  return async (ids) => {
-    const features = await fetchFeatures(ids)
+  return async (ids, signal) => {
+    const features = await fetchFeatures(ids, signal)
     const light = features.flatMap((f) => byId.get(f.id) ?? [])
     const removalIds = removalIdsOf(light)
     const removals =
-      removalIds.length > 0 ? await fetchFeatures(removalIds) : []
-    return new Map(
-      features.flatMap((feature) => {
-        const section = byId.get(feature.id)
-        return section
-          ? [[feature.id, toDetail(feature, section, removals)]]
-          : []
-      })
-    )
+      removalIds.length > 0 ? await fetchFeatures(removalIds, signal) : []
+    const answer = new Map<string, SectionDetail | { error: string }>()
+    for (const feature of features) {
+      const section = byId.get(feature.id)
+      if (!section) continue
+      try {
+        const parsed = sectionDetailSchema.safeParse(
+          toDetail(feature, section, removals)
+        )
+        answer.set(
+          feature.id,
+          parsed.success
+            ? parsed.data
+            : {
+                error: `Store answered in a form Studio does not understand. ${z.prettifyError(parsed.error)}`,
+              }
+        )
+      } catch (error) {
+        answer.set(feature.id, {
+          error: error instanceof Error ? error.message : String(error),
+        })
+      }
+    }
+    return answer
   }
 }
 
@@ -157,6 +193,5 @@ export async function loadFixture(url = fixtureUrl()): Promise<Network> {
   } catch {
     throw new FixtureError(`${url} is not valid JSON.`)
   }
-  setDetailReader(null)
   return parseNetwork(json)
 }

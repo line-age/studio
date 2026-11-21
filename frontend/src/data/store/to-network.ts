@@ -102,8 +102,11 @@ interface ProposedEnd {
   citations: Citation[]
 }
 
-/** What a section shows once it is opened: its claims, and its proposed ends in full. */
-export interface SectionDetail {
+/**
+ * What a section shows once it is opened: its claims, and its proposed ends
+ * in full. The loader checks it against schema.ts's `sectionDetailSchema`.
+ */
+interface Detail {
   claims: Claim[]
   proposedEnds: ProposedEnd[]
 }
@@ -330,8 +333,7 @@ const PIPELINE_ATTRIBUTES: { attribute: string; key: string }[] = [
 /** The name of whoever proposed a link, when that is a tool; never a person's. */
 const toolName = (link: StoreLink): string | undefined =>
   link.asserted_by_name &&
-  link.asserted_by_kind !== undefined &&
-  link.asserted_by_kind !== null &&
+  link.asserted_by_kind != null &&
   link.asserted_by_kind !== "person"
     ? link.asserted_by_name
     : undefined
@@ -572,19 +574,12 @@ export function toDetail(
   feature: StoreFeature,
   section: Pick<Section, "proposedEnds">,
   removals: readonly StoreFeature[] = []
-): SectionDetail {
+): Detail {
   // In scope: the section's own claims and those it has through confirmed
-  // links, which stay the other feature's.
-  const inScope = [
-    ...feature.claims.map((claim) => ({ claim, from: null })),
-    ...feature.inherited_claims.map((claim) => ({
-      claim,
-      from: claim.inherited_from ?? null,
-    })),
-  ]
-  const fromOf = new Map(inScope.map((x) => [x.claim, x.from]))
+  // links, which stay the other feature's (store names it on each).
+  const inScope = [...feature.claims, ...feature.inherited_claims]
   const cite = (claim: StoreClaim) =>
-    claim.citations.map((x) => toCitation(x, fromOf.get(claim)))
+    claim.citations.map((x) => toCitation(x, claim.inherited_from))
 
   // The route is the section's own: the newest accepted one.
   const route = acceptedOf(feature.claims, "route")[0]
@@ -594,20 +589,22 @@ export function toDetail(
   const shownYears = shown.map((c) => sheetYear(c)!)
   // A line traced as gone that a person matched to the section: the map
   // that leaves it out.
-  const goneCitations = inScope
-    .filter(
-      ({ claim, from }) =>
-        from !== null &&
-        claim.attribute_key === "status" &&
-        claim.status === "accepted" &&
-        claim.value_text === "decommissioned"
-    )
-    .flatMap(({ claim }) =>
-      claim.citations
-        .filter((c) => c.role === "map_omits" && sheetYear(c) !== null)
-        .map((c) => ({ c, from: fromOf.get(claim) }))
-    )
-  const goneYears = goneCitations.map(({ c }) => sheetYear(c)!)
+  const gone = inScope.filter(
+    (claim) =>
+      claim.inherited_from &&
+      claim.attribute_key === "status" &&
+      claim.status === "accepted" &&
+      claim.value_text === "decommissioned"
+  )
+  const goneCitations = gone.flatMap((claim) =>
+    cite({
+      ...claim,
+      citations: claim.citations.filter(
+        (c) => c.role === "map_omits" && sheetYear(c) !== null
+      ),
+    })
+  )
+  const goneYears = goneCitations.flatMap((c) => yearOf(c.asOf) ?? [])
   const goneYear = goneYears.length > 0 ? Math.min(...goneYears) : null
 
   const claims: Claim[] = ATTRIBUTES.map(({ attribute, key }) => {
@@ -634,12 +631,7 @@ export function toDetail(
         attribute,
         value,
         citations:
-          value === null || !last
-            ? []
-            : [
-                toCitation(last),
-                ...goneCitations.map(({ c, from }) => toCitation(c, from)),
-              ],
+          value === null || !last ? [] : [toCitation(last), ...goneCitations],
         proposals: [],
       }
     }
@@ -647,17 +639,15 @@ export function toDetail(
       return { attribute, value: null, citations: [], proposals: [] }
     }
     const stated = newest(
-      inScope
-        .map(({ claim }) => claim)
-        .filter(
-          (c) =>
-            c.attribute_key === key &&
-            c.status === "accepted" &&
-            c.citations.length > 0
-        )
+      inScope.filter(
+        (c) =>
+          c.attribute_key === key &&
+          c.status === "accepted" &&
+          c.citations.length > 0
+      )
     )
     const statedOf = new Map(
-      stated.map((c) => [statedFromClaim(c, fromOf.get(c) !== null), c])
+      stated.map((c) => [statedFromClaim(c, Boolean(c.inherited_from)), c])
     )
     const { value, shown: behind, only } = rowOf(key, [...statedOf.keys()])
     return {
@@ -708,40 +698,6 @@ export function removalIdsOf(
       sections.flatMap((s) => s.proposedEnds.map((e) => e.otherSectionId))
     ),
   ]
-}
-
-/**
- * The whole network with every section's detail in it, as the sample has it:
- * for tests, and for comparing the two layers.
- */
-export function toNetwork(
-  name: string,
-  rows: readonly StoreSectionRow[],
-  features: readonly StoreFeature[],
-  {
-    links = [],
-    lines = [],
-    removals = [],
-  }: StoreExtras & {
-    removals?: readonly StoreFeature[]
-  } = {}
-): Network {
-  const summary = toSummary(name, rows, { links, lines })
-  const featureById = new Map(features.map((f) => [f.id, f]))
-  return parsed({
-    ...summary,
-    sections: summary.sections.map((section) => {
-      const feature = featureById.get(section.id)
-      if (!feature) return section
-      const detail = toDetail(feature, section, removals)
-      // The values stay the list's: a test compares them with the claims.
-      return {
-        ...section,
-        claims: detail.claims,
-        proposedEnds: detail.proposedEnds,
-      }
-    }),
-  })
 }
 
 function parsed(input: InputNetwork): Network {

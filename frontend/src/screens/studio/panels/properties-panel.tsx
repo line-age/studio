@@ -33,7 +33,7 @@ import {
 } from "@/data/derive"
 import { OWNER_ROW, PIPELINE_ROW, proposedEndsFor } from "@/data/evidence"
 import { ON_PIPELINE, sectionStatus } from "@/data/status"
-import { useSectionDetail } from "@/data/detail-store"
+import { useDetailLookup, useSectionDetail } from "@/data/detail-store"
 import type { Geometry, Section } from "@/data/schema"
 import { Button } from "@/components/ui/button"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
@@ -510,6 +510,7 @@ function SectionClaimRows({
   onLeft: () => void
 }) {
   const { status, detail, retry } = useSectionDetail(section)
+  const lookup = useDetailLookup()
   return (
     <>
       {section.values
@@ -539,7 +540,7 @@ function SectionClaimRows({
                   attribute: value.attribute,
                 },
               ]}
-              starters={sectionClaimStarters(section, value)}
+              starters={sectionClaimStarters(section, value, lookup)}
             >
               <AttributeRow
                 role="treeitem"
