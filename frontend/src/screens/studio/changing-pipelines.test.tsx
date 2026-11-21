@@ -18,6 +18,18 @@ vi.mock("@/data/load-network", async (original) => ({
   loadNetwork: () => Promise.resolve(testNetwork()),
 }))
 vi.mock("./map/map-area", () => ({ MapArea: () => null }))
+// The real change, counted: a decision pressed twice must be made once.
+const applied = vi.hoisted(() => ({ count: 0 }))
+vi.mock("@/data/changes", async (original) => {
+  const real = await original<typeof import("@/data/changes")>()
+  return {
+    ...real,
+    applyChange: (...args: Parameters<typeof real.applyChange>) => {
+      applied.count += 1
+      return real.applyChange(...args)
+    },
+  }
+})
 
 beforeEach(() => {
   localStorage.clear()
@@ -68,6 +80,25 @@ describe("deciding proposals in the Agent", () => {
       within(item as HTMLElement).getByRole("button", { name: "Accept" })
     )
     expect(inbox.queryByText("Diameter of Birch to Cedar")).toBeNull()
+  })
+})
+
+describe("a decision pressed twice", () => {
+  it("is made once", async () => {
+    const user = await open()
+    await user.click(screen.getByRole("button", { name: /Agent/ }))
+    const inbox = within(agent())
+    await user.click(inbox.getByRole("button", { name: /proposals? waiting/ }))
+    const item = inbox.getByText("Diameter of Birch to Cedar").closest("li")!
+    const accept = within(item as HTMLElement).getByRole("button", {
+      name: "Accept",
+    })
+    applied.count = 0
+    await act(async () => {
+      accept.click()
+      accept.click()
+    })
+    expect(applied.count).toBe(1)
   })
 })
 

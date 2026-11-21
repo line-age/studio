@@ -350,13 +350,19 @@ function Decide({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const key = useRef(actionKey())
+  // State disables the buttons on the next render; a second press in the
+  // same moment must not send a second decision.
+  const sending = useRef(false)
   const send = async (c: Change) => {
+    if (sending.current) return
+    sending.current = true
     setBusy(true)
     setError(null)
     try {
       await change(c, key.current)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
+      sending.current = false
       setBusy(false)
     }
   }
