@@ -331,14 +331,14 @@ describe("Studio panels", () => {
   it("has one switch, and the title, column, rows and count follow it", async () => {
     const user = userEvent.setup()
     await renderPanels()
-    const tabs = within(screen.getByRole("tablist", { name: "Show" }))
-    expect(tabs.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+    const tabs = within(screen.getByRole("group", { name: "Show" }))
+    expect(tabs.getAllByRole("button").map((tab) => tab.textContent)).toEqual([
       "All",
       "Pipelines",
       "Unplaced",
     ])
-    expect(tabs.getByRole("tab", { name: "All" })).toHaveAttribute(
-      "aria-selected",
+    expect(tabs.getByRole("button", { name: "All" })).toHaveAttribute(
+      "aria-pressed",
       "true"
     )
     expect(screen.getByRole("heading", { name: "Network" })).toBeVisible()
@@ -347,7 +347,7 @@ describe("Studio panels", () => {
     expect(screen.queryByRole("combobox", { name: "Group by" })).toBeNull()
     expect(screen.queryByRole("combobox", { name: /[Ee]dition/ })).toBeNull()
 
-    await user.click(tabs.getByRole("tab", { name: "Pipelines" }))
+    await user.click(tabs.getByRole("button", { name: "Pipelines" }))
     expect(useStudio.getState().scope).toBe("pipelines")
     expect(screen.getByRole("heading", { name: "Pipelines" })).toBeVisible()
     // What is counted is said: the pipelines, and the sections its rows
@@ -365,7 +365,7 @@ describe("Studio panels", () => {
     ])
     expect(pipelines).not.toHaveTextContent("Not in a pipeline")
 
-    await user.click(tabs.getByRole("tab", { name: "Unplaced" }))
+    await user.click(tabs.getByRole("button", { name: "Unplaced" }))
     expect(screen.getByRole("heading", { name: "Unplaced" })).toBeVisible()
     expect(screen.getByText("1 section")).toBeVisible()
     const unplaced = screen.getByRole("listbox", { name: "Unplaced" })
@@ -381,7 +381,7 @@ describe("Studio panels", () => {
   it("keeps the selection through the switch, hidden sections among it", async () => {
     const user = userEvent.setup()
     await renderPanels()
-    const tabs = within(screen.getByRole("tablist", { name: "Show" }))
+    const tabs = within(screen.getByRole("group", { name: "Show" }))
     const list = screen.getByRole("listbox", { name: "Network" })
     await user.click(
       within(list).getByRole("checkbox", { name: "Select North line" })
@@ -392,7 +392,7 @@ describe("Studio panels", () => {
     const picked = ["s-1", "s-2", "s-4"]
     expect([...useStudio.getState().selection].sort()).toEqual(picked)
     for (const tab of ["Unplaced", "Pipelines", "All"]) {
-      await user.click(tabs.getByRole("tab", { name: tab }))
+      await user.click(tabs.getByRole("button", { name: tab }))
       expect([...useStudio.getState().selection].sort()).toEqual(picked)
       // The right panel still counts every one of them.
       expect(screen.getByText(/^3 sections/)).toBeVisible()
@@ -408,7 +408,7 @@ describe("Studio panels", () => {
     await user.click(
       screen.getByRole("checkbox", { name: "Select North line" })
     )
-    await user.click(screen.getByRole("tab", { name: "Unplaced" }))
+    await user.click(screen.getByRole("button", { name: "Unplaced" }))
     // Nothing shown is selected: the box is empty, not half ticked.
     expect(all()).toHaveAttribute("aria-checked", "false")
     // Ticking it adds what is shown and keeps the hidden pipeline.
@@ -496,6 +496,14 @@ describe("Studio panels", () => {
     expect(
       screen.getByText("From is more than to, so no section can match.")
     ).toBeVisible()
+    // Both boxes are marked, and point at what says why.
+    for (const name of ["Length from, km", "Length to, km"]) {
+      const box = screen.getByRole("spinbutton", { name })
+      expect(box).toHaveAttribute("aria-invalid", "true")
+      expect(box).toHaveAccessibleDescription(
+        "From is more than to, so no section can match."
+      )
+    }
   })
 
   it("says what a pipeline is when the data has none", async () => {
@@ -510,7 +518,7 @@ describe("Studio panels", () => {
         proposedMemberships: [],
       })),
     })
-    await user.click(screen.getByRole("tab", { name: "Pipelines" }))
+    await user.click(screen.getByRole("button", { name: "Pipelines" }))
     const list = screen.getByRole("listbox", { name: "Pipelines" })
     expect(within(list).queryAllByRole("option")).toHaveLength(0)
     expect(list).toHaveTextContent("No pipelines yet.")
@@ -696,7 +704,7 @@ describe("Studio panels", () => {
     expect(chips()).toHaveTextContent("First shown by the 1931 edition")
     expect(screen.getByText("2 sections")).toBeVisible()
 
-    await user.click(screen.getByRole("tab", { name: "Pipelines" }))
+    await user.click(screen.getByRole("button", { name: "Pipelines" }))
     // Paused: no chip, every pipeline listed, the filter button not lit.
     expect(chips()).toBeNull()
     expect(screen.getByText("2 pipelines · 5 sections")).toBeVisible()
@@ -712,7 +720,7 @@ describe("Studio panels", () => {
 
     // Kept, and in force again on the way back.
     expect(useStudio.getState().firstSeenEditions).toEqual(["ed-1931"])
-    await user.click(screen.getByRole("tab", { name: "All" }))
+    await user.click(screen.getByRole("button", { name: "All" }))
     expect(chips()).toHaveTextContent("First shown by the 1931 edition")
   })
 
@@ -779,7 +787,7 @@ describe("Studio panels", () => {
       screen.getByRole("group", { name: "Filters in force" })
     ).toHaveTextContent("Traced by Ann Example")
     // Paused on Pipelines, like the other filters about a section.
-    await user.click(screen.getByRole("tab", { name: "Pipelines" }))
+    await user.click(screen.getByRole("button", { name: "Pipelines" }))
     expect(screen.queryByRole("group", { name: "Filters in force" })).toBeNull()
   })
 

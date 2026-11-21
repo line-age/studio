@@ -387,7 +387,7 @@ describe("frozen: the switch and each filter", () => {
       const user = userEvent.setup()
       await renderPanels()
       turnOn(filter)
-      await user.click(screen.getByRole("tab", { name: "Pipelines" }))
+      await user.click(screen.getByRole("button", { name: "Pipelines" }))
       if (filter.aboutSection) {
         // Kept, not in force, not shown.
         expect(chips()).toBeNull()
@@ -400,7 +400,7 @@ describe("frozen: the switch and each filter", () => {
         expect(chips()).toHaveTextContent(filter.chip)
       }
       for (const tab of ["Unplaced", "All"]) {
-        await user.click(screen.getByRole("tab", { name: tab }))
+        await user.click(screen.getByRole("button", { name: tab }))
         expect(chips()).toHaveTextContent(filter.chip)
       }
     }
@@ -447,7 +447,7 @@ describe("frozen: the Filters panel", () => {
     const groups: Record<string, (string | undefined)[]> = {}
     await renderPanels()
     for (const tab of ["All", "Pipelines", "Unplaced"]) {
-      await user.click(screen.getByRole("tab", { name: tab }))
+      await user.click(screen.getByRole("button", { name: tab }))
       await user.click(screen.getByRole("button", { name: /^Filters/ }))
       groups[tab] = screen
         .getAllByRole("region")

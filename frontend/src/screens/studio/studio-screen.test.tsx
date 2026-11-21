@@ -107,8 +107,8 @@ describe("a shared link", () => {
     await renderScreen()
     const s = useStudio.getState()
     expect(screen.getByRole("listbox", { name: "Pipelines" })).toBeVisible()
-    expect(screen.getByRole("tab", { name: "Pipelines" })).toHaveAttribute(
-      "aria-selected",
+    expect(screen.getByRole("button", { name: "Pipelines" })).toHaveAttribute(
+      "aria-pressed",
       "true"
     )
     expect(s.onlyInView).toBe(false)

@@ -229,7 +229,7 @@ describe("reviewing", () => {
     const user = await open()
     // Unplaced: every section in no pipeline, under the edition that first
     // shows it.
-    await user.click(screen.getByRole("tab", { name: "Unplaced" }))
+    await user.click(screen.getByRole("button", { name: "Unplaced" }))
     const sections = screen.getByRole("listbox", { name: "Unplaced" })
     expect(
       screen.getByRole("combobox", { name: "Search name or code" })
@@ -270,7 +270,7 @@ describe("reviewing", () => {
     await user.click(screen.getByRole("option", { name: /North line/ }))
     const selected = [...useStudio.getState().selection]
 
-    await user.click(screen.getByRole("tab", { name: "Unplaced" }))
+    await user.click(screen.getByRole("button", { name: "Unplaced" }))
     // The title, the column and the rows follow; the selection does not.
     expect(screen.getByRole("heading", { name: "Unplaced" })).toBeVisible()
     expect(rows()).toEqual([expect.stringContaining("1937 edition")])
