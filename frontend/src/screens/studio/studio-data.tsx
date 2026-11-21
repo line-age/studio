@@ -352,7 +352,7 @@ export function useSearchHits(): { hits: SearchHit[]; outside: number } {
   const { summaries } = useStudioData()
   const visible = useVisiblePipelines()
   const query = useStudio((s) => s.query)
-  const whole = useStudio((s) => s.searchWholeEdition)
+  const whole = useStudio((s) => s.searchPastFilters)
   const view = useStudio((s) => s.view)
   return useMemo(() => {
     const all = search(summaries, query)

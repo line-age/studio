@@ -262,3 +262,16 @@ describe("the new filters", () => {
     expect(rows.map((r) => [r.id, r.sections.length])).toEqual([["p-1", 2]])
   })
 })
+
+describe("checks on values read from outside", () => {
+  it("knows a scope, a kind of end and a status, and nothing else", async () => {
+    const { isScope, isProposedEndKind } = await import("./derive")
+    const { isSectionStatus } = await import("./status")
+    expect(["all", "pipelines", "unplaced"].every(isScope)).toBe(true)
+    expect([undefined, "", "tables", "All"].some(isScope)).toBe(false)
+    expect(isProposedEndKind("cut")).toBe(true)
+    expect(isProposedEndKind("sideways")).toBe(false)
+    expect(isSectionStatus("done")).toBe(true)
+    expect(isSectionStatus("all")).toBe(false)
+  })
+})

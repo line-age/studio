@@ -149,6 +149,10 @@ export function applySectionEdits(
 export const SCOPES = ["all", "pipelines", "unplaced"] as const
 export type Scope = (typeof SCOPES)[number]
 
+/** Whether a value read from outside (a link, a control) is a scope. */
+export const isScope = (value: unknown): value is Scope =>
+  SCOPES.some((scope) => scope === value)
+
 /** Each scope in words: on the switch, as the panel's title, as the column. */
 export const SCOPE: Record<
   Scope,
@@ -698,6 +702,10 @@ export function tracerNames(
   }
   return names
 }
+
+/** Whether a value read from outside is a kind of proposed end. */
+export const isProposedEndKind = (value: unknown): value is ProposedEndKind =>
+  PROPOSED_ENDS.some((kind) => kind === value)
 
 /** The kinds of proposed end waiting on a section, each once. */
 export function proposedEndKinds(section: Section): ProposedEndKind[] {

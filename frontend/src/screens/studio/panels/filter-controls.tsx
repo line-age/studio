@@ -152,6 +152,8 @@ export function MultiPick({
   name?: (option: string) => string
 }) {
   const anchor = useComboboxAnchor()
+  // The control takes an array of its own; one per new value, not per render.
+  const chosen = useMemo(() => [...value], [value])
   const names = useMemo(() => options.map((o) => o.name), [options])
   const countOf = useMemo(
     () => new Map(options.map((o) => [o.name, o.count])),
@@ -164,7 +166,7 @@ export function MultiPick({
       limit={50}
       items={names}
       itemToStringLabel={name}
-      value={value as string[]}
+      value={chosen}
       onValueChange={(next) => onChange(next)}
     >
       <ComboboxChips ref={anchor} className="w-full">

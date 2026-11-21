@@ -44,7 +44,7 @@ export function useFilterChips(widened: boolean): Chip[] {
   const { scope, network } = useStudioData()
   const parts = useStudio(useShallow(filterState))
   const takeOff = useStudio((s) => s.takeOff)
-  const setWhole = useStudio((s) => s.setSearchWholeEdition)
+  const setWhole = useStudio((s) => s.setSearchPastFilters)
   // The words a chip needs for what the state holds by id.
   const words = useMemo<FilterWords>(() => {
     const editions = new Map(network.editions.map((e) => [e.id, e.label]))

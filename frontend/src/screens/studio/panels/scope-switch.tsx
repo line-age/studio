@@ -1,5 +1,5 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SCOPE, SCOPES, type Scope } from "@/data/derive"
+import { isScope, SCOPE, SCOPES } from "@/data/derive"
 
 import { useStudio } from "../studio-store"
 
@@ -12,7 +12,12 @@ export function ScopeSwitch() {
   const scope = useStudio((s) => s.scope)
   const setScope = useStudio((s) => s.setScope)
   return (
-    <Tabs value={scope} onValueChange={(next) => setScope(next as Scope)}>
+    <Tabs
+      value={scope}
+      onValueChange={(next) => {
+        if (isScope(next)) setScope(next)
+      }}
+    >
       <TabsList aria-label="Show" className="w-full">
         {SCOPES.map((value) => (
           <TabsTrigger key={value} value={value}>

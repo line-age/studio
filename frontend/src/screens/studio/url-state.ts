@@ -1,8 +1,8 @@
 import { z } from "zod"
 
 import {
+  isScope,
   PROPOSED_ENDS,
-  SCOPES,
   type ProposedEndKind,
   type Scope,
 } from "@/data/derive"
@@ -156,7 +156,7 @@ export function fromSearchParams(params: URLSearchParams): UrlView {
   view.section = params.get("sel") || null
   view.pipeline = params.get("p") || null
   const scope = params.get("sc")
-  view.scope = SCOPES.includes(scope as Scope) ? (scope as Scope) : "all"
+  view.scope = isScope(scope) ? scope : "all"
 
   const built = params.get("b")?.split("-")
   if (built?.length === 2) {

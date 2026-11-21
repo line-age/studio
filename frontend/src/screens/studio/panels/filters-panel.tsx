@@ -9,8 +9,8 @@ import { YearPicker } from "@/components/year-picker"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { plural, PROPOSED_END_LABEL } from "@/data/derive"
-import { STATUSES, STATUS_LABEL } from "@/data/status"
+import { isProposedEndKind, plural, PROPOSED_END_LABEL } from "@/data/derive"
+import { isSectionStatus, STATUSES, STATUS_LABEL } from "@/data/status"
 
 import { HidePanels } from "../panel-toggle"
 import { filtersApplied, useStudio } from "../studio-store"
@@ -136,7 +136,10 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
             <RadioGroup
               aria-label="Status"
               value={s.status}
-              onValueChange={(value) => s.setStatus(value as typeof s.status)}
+              onValueChange={(value) => {
+                if (value === "all" || isSectionStatus(value))
+                  s.setStatus(value)
+              }}
               className="gap-0.5"
             >
               {(["all", ...STATUSES] as const).map((x) => (
@@ -272,10 +275,10 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
               options={ends}
               value={s.proposedEnd}
               onChange={(next) =>
-                s.setProposedEnd(next as typeof s.proposedEnd)
+                s.setProposedEnd(next.filter(isProposedEndKind))
               }
               name={(kind) =>
-                PROPOSED_END_LABEL[kind as keyof typeof PROPOSED_END_LABEL]
+                isProposedEndKind(kind) ? PROPOSED_END_LABEL[kind] : kind
               }
             />
           </Group>

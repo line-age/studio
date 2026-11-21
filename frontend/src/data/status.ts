@@ -22,6 +22,10 @@ export const STATUSES = [
 
 export type SectionStatus = (typeof STATUSES)[number]
 
+/** Whether a value read from outside is a status. */
+export const isSectionStatus = (value: unknown): value is SectionStatus =>
+  STATUSES.some((status) => status === value)
+
 export const STATUS_LABEL: Record<SectionStatus, string> = {
   "not-started": "Not started",
   "in-progress": "In progress",

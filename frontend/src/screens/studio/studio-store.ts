@@ -104,8 +104,8 @@ export interface StudioState {
   states: readonly string[]
   layers: Record<LayerId, boolean>
   query: string
-  /** Search past the filters, through the whole network. */
-  searchWholeEdition: boolean
+  /** Search past the filters, through everything the switch shows. */
+  searchPastFilters: boolean
   /**
    * What the switch above the list shows: every section, only those in a
    * pipeline, or only those in none. The list, the map and the filters
@@ -181,7 +181,7 @@ export interface StudioState {
   /** Turn one filter off, by its key in `FILTERS`. */
   takeOff: (filterKey: string) => void
   setQuery: (query: string) => void
-  setSearchWholeEdition: (on: boolean) => void
+  setSearchPastFilters: (on: boolean) => void
   setScope: (scope: Scope) => void
   /** Bring the pipelines into the list, where the switch leaves them out. */
   showPipelines: () => void
@@ -373,7 +373,7 @@ export const useStudio = create<StudioState>((set) => ({
   states: [],
   layers: readLayers(),
   query: "",
-  searchWholeEdition: false,
+  searchPastFilters: false,
   scope: "all",
   selectedPipelineId: null,
   selection: new Set(),
@@ -435,9 +435,9 @@ export const useStudio = create<StudioState>((set) => ({
   setQuery: (query) =>
     set((s) => ({
       query,
-      searchWholeEdition: query.trim() === "" ? false : s.searchWholeEdition,
+      searchPastFilters: query.trim() === "" ? false : s.searchPastFilters,
     })),
-  setSearchWholeEdition: (searchWholeEdition) => set({ searchWholeEdition }),
+  setSearchPastFilters: (searchPastFilters) => set({ searchPastFilters }),
   // The selection stays as it is: the switch changes what is shown.
   setScope: (scope) => set({ scope }),
   showPipelines: () =>
