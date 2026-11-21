@@ -1,0 +1,12 @@
+# Given to store's own Compose after its file, never on its own:
+#
+#   docker compose -f ../store/compose.yaml -f dev/fake-github/store.override.yaml up -d
+#
+# Store then checks a person's token against the fake GitHub, which takes any token as
+# Local developer in the team local/dev. Store's repo is not changed; both settings
+# exist in its config. For one machine only.
+services:
+  api:
+    environment:
+      LINEAGE_GITHUB_API: http://fake-github:8000
+      LINEAGE_GITHUB_TEAMS: local/dev

@@ -6,11 +6,19 @@ import { storybookTest } from "@storybook/addon-vitest/vitest-plugin"
 import { playwright } from "@vitest/browser-playwright"
 import { defineConfig } from "vitest/config"
 
+// Any token is taken by the fake GitHub; this one names itself in store's logs.
+const LOCAL_DEV_TOKEN = "local-dev"
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  // STORE_URL is read here, on the server side. Store takes a request with no
-  // token as the local person while there are no users, so none is sent.
+  // STORE_URL is read here, on the server side. Store refuses a request with no
+  // token. STUDIO_AUTH=local sends a fixed one, which a local store pointed at the
+  // fake GitHub (dev/fake-github) takes as the person "Local developer".
   const env = loadEnv(mode, import.meta.dirname, "")
+  const localToken =
+    env.STUDIO_AUTH === "local"
+      ? { Authorization: `Bearer ${LOCAL_DEV_TOKEN}` }
+      : undefined
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
@@ -26,6 +34,7 @@ export default defineConfig(({ mode }) => {
           target: env.STORE_URL || "http://localhost:47110",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/store/, ""),
+          headers: localToken,
         },
         // The Agent service (studio/agent). It takes no token; the browser never
         // holds one. Its answers stream, so nothing here may buffer them.

@@ -1,6 +1,8 @@
 # Lineage Studio on real data from a local store. Start store first (its own
 # `docker compose up -d` in a folder named `store`), put a token for it in
 # frontend/.env.local as STORE_TOKEN, then from this directory:
+# (A store started with dev/fake-github takes STORE_TOKEN=local-dev as the person
+# "Local developer"; tools/gas-stack.sh does all of this and sets it.)
 #
 #   docker compose -f compose.yaml -f compose.store.yaml \
 #     --env-file frontend/.env.local up --build
