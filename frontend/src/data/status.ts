@@ -56,7 +56,7 @@ const noCounts = (): StatusCounts => ({
 export function missingRequired(section: Section, rule: StatusRule): string[] {
   return rule.filter(
     (attribute) =>
-      !section.claims.some(
+      !section.values.some(
         (claim) => claim.attribute === attribute && claim.value !== null
       )
   )
@@ -79,7 +79,7 @@ export function needsDecision(section: Section): boolean {
   return (
     section.proposedEnds.length > 0 ||
     section.proposedMemberships.length > 0 ||
-    section.claims.some((claim) => claim.proposals.length > 0)
+    section.values.some((claim) => claim.proposals > 0)
   )
 }
 

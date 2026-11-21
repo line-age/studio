@@ -1,4 +1,11 @@
-import type { Citation, CitationRole, ProposedEnd, Section } from "./schema"
+import { shortId } from "./short-id"
+import type {
+  Citation,
+  CitationRole,
+  Claim,
+  ProposedEnd,
+  Section,
+} from "./schema"
 
 /*
  * How evidence is put into words: what a source does for a claim, the dates a
@@ -211,16 +218,6 @@ export function proposedEndsFor(
     : section.proposedEnds.filter((end) => end.kind === kind)
 }
 
-/** Every proposal waiting on one claim: candidate values, ends and cuts. */
-export function proposalCount(
-  section: Section,
-  claim: Section["claims"][number]
-): number {
-  return (
-    claim.proposals.length + proposedEndsFor(section, claim.attribute).length
-  )
-}
-
 /** A proposed membership in words: which pipeline, by which tool, how sure. */
 export function proposedMembershipWords(
   proposed: { score: number; proposer?: string },
@@ -307,9 +304,12 @@ export function noQuoteWords(citation: Citation): string | undefined {
  * and Last seen claims included): the route and status claims a map sheet
  * both shows and dates often share the very same citation.
  */
-export function supportsCountFor(section: Section, citation: Citation): number {
+export function supportsCountFor(
+  claims: readonly Claim[],
+  citation: Citation
+): number {
   const key = citationKey(citation)
-  return section.claims.filter((claim) =>
+  return claims.filter((claim) =>
     claim.citations.some((c) => citationKey(c) === key)
   ).length
 }
@@ -346,4 +346,19 @@ export function proposedEndWords(end: ProposedEnd): string {
       : "A line traced as gone runs along part of it: one part would end, the other carry on.",
     score,
   ].join(" ")
+}
+
+/**
+ * Where a cited claim comes from when it is another feature's, which the
+ * section has through a confirmed link: a line traced as gone that a person
+ * matched to it, or the section it was split from. Its history: the two stay
+ * separate records.
+ */
+export function inheritedWords(featureIds: readonly string[]): string {
+  const codes = [...new Set(featureIds)].map(shortId)
+  const which =
+    codes.length === 1
+      ? codes[0]
+      : `${codes.slice(0, -1).join(", ")} and ${codes.at(-1)}`
+  return `From ${which}, which a person linked to this section: its history. Each stays its own record.`
 }

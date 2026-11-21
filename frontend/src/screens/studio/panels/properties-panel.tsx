@@ -31,14 +31,11 @@ import {
   unionBounds,
   type SelectionGroup,
 } from "@/data/derive"
-import {
-  OWNER_ROW,
-  PIPELINE_ROW,
-  proposalCount,
-  proposedEndsFor,
-} from "@/data/evidence"
+import { OWNER_ROW, PIPELINE_ROW, proposedEndsFor } from "@/data/evidence"
 import { ON_PIPELINE, sectionStatus } from "@/data/status"
-import type { Section } from "@/data/schema"
+import { useDetailLookup, useSectionDetail } from "@/data/detail-store"
+import type { Geometry, Section } from "@/data/schema"
+import { Button } from "@/components/ui/button"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
@@ -445,70 +442,28 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                           </>
                         )
                       })()}
-                      {section.claims
-                        // Never a section's own: they are on the pipeline.
-                        .filter((c) => !ON_PIPELINE.includes(c.attribute))
-                        .map((claim) => {
-                          const chosen =
-                            selected && claim.attribute === selectedAttribute
-                          const choose = () => {
-                            selectAttribute(section.id, claim.attribute, true)
-                            // A proposed end or cut is drawn on the map: bring
-                            // the section and the line traced as gone into view.
-                            const ends = proposedEndsFor(
-                              section,
-                              claim.attribute
+                      <SectionClaimRows
+                        section={section}
+                        selected={selected}
+                        selectedAttribute={selectedAttribute}
+                        onChoose={(attribute, ends) => {
+                          selectAttribute(section.id, attribute, true)
+                          // A proposed end or cut is drawn on the map: bring
+                          // the section and the line traced as gone into view.
+                          const both = unionBounds([
+                            geometryBounds(section.geometry),
+                            ...ends.map((g) => geometryBounds(g)),
+                          ])
+                          if (ends.length > 0 && both) requestFit(both)
+                        }}
+                        onLeft={() =>
+                          treeRef.current
+                            ?.querySelector<HTMLElement>(
+                              `[data-section="${CSS.escape(section.id)}"]`
                             )
-                            const both = unionBounds([
-                              geometryBounds(section.geometry),
-                              ...ends.map((end) =>
-                                geometryBounds(end.geometry)
-                              ),
-                            ])
-                            if (ends.length > 0 && both) requestFit(both)
-                          }
-                          return (
-                            <AddToAgentMenu
-                              key={claim.attribute}
-                              refs={[
-                                {
-                                  kind: "claim",
-                                  owner: "section",
-                                  ownerId: section.id,
-                                  attribute: claim.attribute,
-                                },
-                              ]}
-                              starters={sectionClaimStarters(section, claim)}
-                            >
-                              <AttributeRow
-                                role="treeitem"
-                                aria-level={2}
-                                aria-selected={chosen}
-                                data-roving
-                                tabIndex={-1}
-                                label={claim.attribute}
-                                value={claim.value}
-                                sources={claim.citations.length}
-                                proposals={proposalCount(section, claim)}
-                                selected={chosen}
-                                onClick={choose}
-                                onKeyDown={(event) => {
-                                  if (isActivate(event)) {
-                                    event.preventDefault()
-                                    choose()
-                                  } else if (event.key === "ArrowLeft") {
-                                    event.preventDefault()
-                                    treeRef.current
-                                      ?.querySelector<HTMLElement>(
-                                        `[data-section="${CSS.escape(section.id)}"]`
-                                      )
-                                      ?.focus()
-                                  }
-                                }}
-                              />
-                            </AddToAgentMenu>
-                          )
-                        })}
+                            ?.focus()
+                        }
+                      />
                     </div>
                   )}
                 </Fragment>
@@ -529,6 +484,108 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
         }}
         sections={editTarget}
       />
+    </>
+  )
+}
+
+/**
+ * The claim rows of one opened section. Values and the proposals waiting are
+ * there at once; the number of sources comes with the section's detail, which
+ * is read when the section is opened. Until then its place pulses. If it
+ * cannot be read, this section says so and offers to try again; nothing else
+ * on the screen changes.
+ */
+function SectionClaimRows({
+  section,
+  selected,
+  selectedAttribute,
+  onChoose,
+  onLeft,
+}: {
+  section: Section
+  selected: boolean
+  selectedAttribute: string | null
+  /** A row was chosen; `ends` are the lines traced as gone it brings into view. */
+  onChoose: (attribute: string, ends: Geometry[]) => void
+  onLeft: () => void
+}) {
+  const { status, detail, retry } = useSectionDetail(section)
+  const lookup = useDetailLookup()
+  return (
+    <>
+      {section.values
+        // Never a section's own: they are on the pipeline.
+        .filter((c) => !ON_PIPELINE.includes(c.attribute))
+        .map((value) => {
+          const claim = detail?.claims.find(
+            (c) => c.attribute === value.attribute
+          )
+          const chosen = selected && value.attribute === selectedAttribute
+          const choose = () =>
+            onChoose(
+              value.attribute,
+              proposedEndsFor(
+                detail ? { ...section, ...detail } : section,
+                value.attribute
+              ).flatMap((end) => end.geometry ?? [])
+            )
+          return (
+            <AddToAgentMenu
+              key={value.attribute}
+              refs={[
+                {
+                  kind: "claim",
+                  owner: "section",
+                  ownerId: section.id,
+                  attribute: value.attribute,
+                },
+              ]}
+              starters={sectionClaimStarters(section, value, lookup)}
+            >
+              <AttributeRow
+                role="treeitem"
+                aria-level={2}
+                aria-selected={chosen}
+                data-roving
+                tabIndex={-1}
+                label={value.attribute}
+                value={value.value}
+                sources={claim?.citations.length ?? 0}
+                sourcesLoading={status === "loading"}
+                proposals={
+                  value.proposals +
+                  proposedEndsFor(section, value.attribute).length
+                }
+                selected={chosen}
+                onClick={choose}
+                onKeyDown={(event) => {
+                  if (isActivate(event)) {
+                    event.preventDefault()
+                    choose()
+                  } else if (event.key === "ArrowLeft") {
+                    event.preventDefault()
+                    onLeft()
+                  }
+                }}
+              />
+            </AddToAgentMenu>
+          )
+        })}
+      {status === "failed" && (
+        <div
+          role="alert"
+          className="flex items-center gap-2 border-b border-border-subtle py-1.5 pr-3 pl-12.5"
+        >
+          <span className="flex-1 type-ui-xs text-muted-foreground">
+            {detail
+              ? "Could not read this section again."
+              : "Could not read this section's sources."}
+          </span>
+          <Button variant="outline" size="xs" onClick={retry}>
+            Try again
+          </Button>
+        </div>
+      )}
     </>
   )
 }

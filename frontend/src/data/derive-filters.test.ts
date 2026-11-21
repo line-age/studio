@@ -13,7 +13,7 @@ import {
   summarise,
   type SectionCriteria,
 } from "./derive"
-import type { Section } from "./schema"
+import { withClaims, type Section } from "./schema"
 
 /*
  * The filters added with the two-level Filters view (2026-11-13): where a
@@ -72,18 +72,15 @@ describe("the new filters", () => {
   })
 
   it("counts a section's own Owner as its company", () => {
-    const owned: Section = {
-      ...section("s-4"),
-      claims: [
-        ...section("s-4").claims,
-        {
-          attribute: "Owner",
-          value: "Invented Pipe Co.",
-          citations: [{ source: "Invented Gas Review, 1937", role: "states" }],
-          proposals: [],
-        } as unknown as Section["claims"][number],
-      ],
-    }
+    const owned: Section = withClaims(section("s-4"), [
+      ...section("s-4").claims!,
+      {
+        attribute: "Owner",
+        value: "Invented Pipe Co.",
+        citations: [{ source: "Invented Gas Review, 1937", role: "states" }],
+        proposals: [],
+      },
+    ])
     expect(companiesOf(owned, new Map())).toEqual(["Invented Pipe Co."])
   })
 

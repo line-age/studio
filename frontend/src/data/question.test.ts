@@ -128,3 +128,29 @@ describe("a question for the Agent", () => {
     ])
   })
 })
+
+describe("proposals before a section's detail is read", () => {
+  it("are offered from the list's count, and sent without an id until read", () => {
+    const network = evidenceNetwork()
+    const withDetail = network.sections.find((s) => s.id === "s-2")!
+    // As store's list gives it: values, no claims.
+    const listed = { ...withDetail, claims: undefined }
+    const refs = proposalRefs(listed, "Diameter")
+    expect(refs).toEqual(proposalRefs(withDetail, "Diameter"))
+    expect(refs.length).toBeGreaterThan(0)
+    const question = buildQuestion({
+      words: "What is proposed here, and why?",
+      sections: [],
+      refs,
+      network: {
+        ...network,
+        sections: network.sections.map((s) => (s.id === "s-2" ? listed : s)),
+      },
+    })
+    expect(question.about[0]).toEqual({
+      kind: "claim",
+      id: null,
+      on: { sectionId: "s-2", attribute: "Diameter" },
+    })
+  })
+})

@@ -1,8 +1,16 @@
-import { useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { toast } from "sonner"
 
 import { Icon } from "@/components/icons/icon"
 import { ProposalCard } from "@/components/proposal-card"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ownDetail, type DetailLookup } from "@/data/detail"
+import {
+  requestDetails,
+  useDetailLookup,
+  useDetails,
+} from "@/data/detail-store"
 import {
   Collapsible,
   CollapsibleContent,
@@ -14,10 +22,16 @@ import {
   type PipelineDecision,
   type ProposalAt,
 } from "@/data/changes"
-import { pipelineLabel, sectionLabel } from "@/data/derive"
+import { pipelineLabel, sectionLabel, sectionStats } from "@/data/derive"
 import { citationLine, proposedEndWords } from "@/data/evidence"
-import type { Network, Proposal, ProposedEnd, Section } from "@/data/schema"
-import { actionKey } from "@/data/store/write"
+import type {
+  Claim,
+  Network,
+  Proposal,
+  ProposedEnd,
+  Section,
+} from "@/data/schema"
+import { actionKey, WriteError } from "@/data/store/write"
 
 import { useStudioData } from "../studio-data"
 
@@ -44,29 +58,62 @@ type Item =
       proposal: Proposal
     }
 
-/** Everything waiting for a person, pipelines first. */
-export function inboxItems(network: Network): Item[] {
+/** The sections with something waiting on them: an end, a cut, a candidate. */
+export function waitingSections(network: Network): Section[] {
+  return network.sections.filter(
+    (s) => s.proposedEnds.length > 0 || s.values.some((v) => v.proposals > 0)
+  )
+}
+
+/** How many proposals wait, from what the list holds: no section's detail needed. */
+export function inboxCount(network: Network): number {
+  return (
+    proposedPipelines(network).length +
+    network.pipelines.reduce(
+      (n, p) => n + p.claims.reduce((m, c) => m + c.proposals.length, 0),
+      0
+    ) +
+    network.sections.reduce((n, s) => n + sectionStats(s).proposals, 0)
+  )
+}
+
+/**
+ * Everything waiting for a person, pipelines first. A section's ends and
+ * candidates come with its detail: a section without one in `details` is
+ * left out. On store's data pass only current details, never one read before
+ * the last write, which may hold what was decided since.
+ */
+export function inboxItems(
+  network: Network,
+  details: DetailLookup = ownDetail
+): Item[] {
   const items: Item[] = proposedPipelines(network).map((decision) => ({
     kind: "pipeline",
     key: `pipeline:${decision.pipeline.id}`,
     decision,
   }))
   for (const section of network.sections) {
-    for (const end of section.proposedEnds)
+    for (const end of details(section)?.proposedEnds ?? [])
       items.push({ kind: "end", key: `end:${end.id}`, section, end })
   }
   const claimsOf = (
     owner: "section" | "pipeline",
     id: string,
     name: string,
-    claims: Section["claims"]
+    claims: readonly Claim[]
   ) => {
     for (const claim of claims)
       claim.proposals.forEach((proposal, index) =>
         items.push({
           kind: "claim",
-          key: `claim:${owner}:${id}:${claim.attribute}:${index}`,
-          at: { owner, ownerId: id, attribute: claim.attribute, index },
+          key: `claim:${owner}:${id}:${claim.attribute}:${proposal.id ?? index}`,
+          at: {
+            owner,
+            ownerId: id,
+            attribute: claim.attribute,
+            index,
+            ...(proposal.id ? { id: proposal.id } : {}),
+          },
           name,
           now: claim.value,
           proposal,
@@ -76,18 +123,44 @@ export function inboxItems(network: Network): Item[] {
   for (const pipeline of network.pipelines)
     claimsOf("pipeline", pipeline.id, pipelineLabel(pipeline), pipeline.claims)
   for (const section of network.sections)
-    claimsOf("section", section.id, sectionLabel(section), section.claims)
+    claimsOf(
+      "section",
+      section.id,
+      sectionLabel(section),
+      details(section)?.claims ?? []
+    )
   return items
 }
 
 export function AgentInbox() {
   const { network } = useStudioData()
   const [shown, setShown] = useState(PAGE)
-  const items = inboxItems(network)
-  if (items.length === 0) return null
-  const count = `${items.length} ${items.length === 1 ? "proposal" : "proposals"} waiting`
+  const total = inboxCount(network)
+  // A section's proposals come with its detail: read when the inbox opens.
+  const waiting = useMemo(() => waitingSections(network), [network])
+  const entries = useDetails((s) => s.entries)
+  const generation = useDetails((s) => s.generation)
+  const current = useDetailLookup(true)
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    if (open) requestDetails(waiting.map((s) => s.id))
+  }, [open, waiting, generation])
+  const items = useMemo(() => inboxItems(network, current), [network, current])
+  // Store's sections only: the sample's hold their own detail.
+  const unread = waiting.filter((s) => current(s) === null)
+  const failed = unread.filter((s) => {
+    const e = entries[s.id]
+    return e?.status === "failed" && e.generation === generation
+  })
+  const pending = unread.length - failed.length
+  if (total === 0) return null
+  const count = `${total} ${total === 1 ? "proposal" : "proposals"} waiting`
   return (
-    <Collapsible className="flex min-h-0 shrink-0 flex-col border-b">
+    <Collapsible
+      className="flex min-h-0 shrink-0 flex-col border-b"
+      open={open}
+      onOpenChange={setOpen}
+    >
       <CollapsibleTrigger
         render={
           <button
@@ -101,6 +174,38 @@ export function AgentInbox() {
         <span className="type-ui-xs text-muted-foreground">Decide</span>
       </CollapsibleTrigger>
       <CollapsibleContent className="max-h-[50vh] overflow-y-auto overscroll-contain">
+        {pending > 0 && (
+          <div
+            aria-label="Reading proposals"
+            className="flex flex-col gap-2 px-3 pt-3"
+          >
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        )}
+        {failed.length > 0 && (
+          <div
+            role="alert"
+            className="flex items-center gap-2 px-3 pt-3 type-ui-xs text-muted-foreground"
+          >
+            <span className="flex-1">
+              Could not read the proposals of{" "}
+              {failed.length === 1 ? "1 section" : `${failed.length} sections`}.
+            </span>
+            <Button
+              size="xs"
+              variant="outline"
+              onClick={() =>
+                requestDetails(
+                  failed.map((s) => s.id),
+                  { again: true }
+                )
+              }
+            >
+              Try again
+            </Button>
+          </div>
+        )}
         <ul aria-label="Proposals waiting" className="flex flex-col gap-4 p-3">
           {items.slice(0, shown).map((item) => (
             <li key={item.key} className="flex flex-col gap-2">
@@ -271,18 +376,37 @@ function Decide({
   confirm: { label: string; change: Change } | null
   reject: { label: string; change: Change }
 }) {
-  const { change } = useStudioData()
+  const { change, reload } = useStudioData()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const key = useRef(actionKey())
+  // State disables the buttons on the next render; a second press in the
+  // same moment must not send a second decision.
+  const sending = useRef(false)
   const send = async (c: Change) => {
+    if (sending.current) return
+    sending.current = true
     setBusy(true)
     setError(null)
-    try {
-      await change(c, key.current)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+    const done = () => {
+      sending.current = false
       setBusy(false)
+    }
+    try {
+      // Shown again: the card goes with the new data. Not shown again: the
+      // screen says so, and the buttons come back.
+      if (!(await change(c, key.current))) done()
+    } catch (e) {
+      if (e instanceof WriteError && e.kind === "decided") {
+        // Someone else decided it since this list was read: read it again,
+        // so it is gone here too, and say why.
+        toast(e.message)
+        await reload()
+        done()
+        return
+      }
+      setError(e instanceof Error ? e.message : String(e))
+      done()
     }
   }
   return (

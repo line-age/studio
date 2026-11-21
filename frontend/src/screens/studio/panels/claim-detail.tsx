@@ -8,11 +8,15 @@ import { ProposalCard } from "@/components/proposal-card"
 import { StatusLabel } from "@/components/status-label"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useDetailLookup, useSectionDetail } from "@/data/detail-store"
+import { shortId } from "@/data/short-id"
 import { pipelineLabel, sectionLabel } from "@/data/derive"
 import {
   citationLine,
   formatMadeAt,
   formatValid,
+  inheritedWords,
   PIPELINE_ROW,
   proposedEndsFor,
   proposedMembershipWords,
@@ -55,6 +59,8 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
   const openCitation = useStudio((s) => s.openCitation)
   const ends = proposedEndsFor(section, claim.attribute)
   const waiting = claim.proposals.length + ends.length
+  const inherited = claim.citations.flatMap((c) => c.inheritedFrom ?? [])
+  const details = useDetailLookup()
   return (
     <section
       aria-label={`${claim.attribute} of ${sectionLabel(section)}`}
@@ -116,12 +122,17 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
             {ends.map((end) => (
               <Hint key={end.id}>{proposedEndWords(end)}</Hint>
             ))}
-            <AskAboutProposals refs={proposalRefs(section, claim.attribute)} />
+            <AskAboutProposals
+              refs={proposalRefs(section, claim.attribute, details)}
+            />
           </div>
         )}
         <ListGroupHeader count={claim.citations.length}>
           Sources
         </ListGroupHeader>
+        {inherited.length > 0 && (
+          <Hint className="px-3 py-2">{inheritedWords(inherited)}</Hint>
+        )}
         {claim.citations.length === 0 ? (
           <Hint className="px-3 py-3">
             {ends.some((end) => end.kind === "end")
@@ -145,7 +156,13 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
               >
                 <Citation
                   source={citation.source}
-                  role={roleWords(citation.role)}
+                  role={[
+                    roleWords(citation.role),
+                    citation.inheritedFrom &&
+                      `from ${shortId(citation.inheritedFrom)}`,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
                   onClick={() =>
                     openCitation(section.id, claim.attribute, index)
                   }
@@ -243,13 +260,88 @@ export function ClaimDetail() {
   if (section && attribute === PIPELINE_ROW) {
     return <PipelineDetail key={`${section.id}:pipeline`} section={section} />
   }
-  const claim = section?.claims.find((c) => c.attribute === attribute)
-  if (!section || !claim) return null
-  return (
-    <Detail
-      key={`${section.id}:${claim.attribute}`}
+  return section && attribute !== null ? (
+    <OpenedClaim
+      key={`${section.id}:${attribute}`}
       section={section}
-      claim={claim}
+      attribute={attribute}
     />
+  ) : null
+}
+
+/** A claim once its section's detail is read; until then, its value and a pulse. */
+function OpenedClaim({
+  section,
+  attribute,
+}: {
+  section: Section
+  attribute: string
+}) {
+  const { status, detail, retry } = useSectionDetail(section)
+  const close = useStudio((s) => s.closeAttribute)
+  const value = section.values.find((c) => c.attribute === attribute)
+  const claim = detail?.claims.find((c) => c.attribute === attribute)
+  if (detail && claim) {
+    return (
+      <Detail
+        section={{ ...section, proposedEnds: detail.proposedEnds }}
+        claim={claim}
+      />
+    )
+  }
+  if (!value) return null
+  return (
+    <section
+      aria-label={`${attribute} of ${sectionLabel(section)}`}
+      aria-busy={status === "loading"}
+      className="flex shrink-0 flex-col border-t bg-background"
+    >
+      <PanelHeader
+        title={attribute}
+        meta={[section.name, section.code].filter(Boolean).join(" · ")}
+      >
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Close the claim"
+          onClick={close}
+        >
+          <Icon name="close" className="size-3.5" />
+        </Button>
+      </PanelHeader>
+      <div className="flex flex-col gap-2 px-3 pb-3">
+        {value.value === null ? (
+          <StatusLabel status="unknown" size="sm" />
+        ) : (
+          <span className="type-ui-sm-medium break-words">{value.value}</span>
+        )}
+        {status === "ready" ? (
+          // Read, but this claim is not in it: the list and store disagree
+          // after a write. Read it again rather than pulse for ever.
+          <div role="alert" className="flex items-center gap-2">
+            <span className="flex-1 type-ui-xs text-muted-foreground">
+              No sources read for this claim.
+            </span>
+            <Button variant="outline" size="xs" onClick={retry}>
+              Read again
+            </Button>
+          </div>
+        ) : status === "failed" ? (
+          <div role="alert" className="flex items-center gap-2">
+            <span className="flex-1 type-ui-xs text-muted-foreground">
+              Could not read the sources of this claim.
+            </span>
+            <Button variant="outline" size="xs" onClick={retry}>
+              Try again
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1.5" aria-label="Reading sources">
+            <Skeleton className="h-3 w-2/3" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        )}
+      </div>
+    </section>
   )
 }

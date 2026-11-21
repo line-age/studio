@@ -67,6 +67,13 @@ const citation = z.object({
   sourceId: z.string().min(1).optional(),
   /** The source's kind, as store names it: "map_sheet", a web page, a text document. */
   sourceKind: z.string().min(1).optional(),
+  /**
+   * Set when the claim cited is another feature's, which the section has
+   * through a confirmed link (a line traced as gone that a person matched to
+   * it, the section it was split from): that feature's id. The section stays
+   * its own record; this is its history.
+   */
+  inheritedFrom: z.string().min(1).optional(),
 })
 
 const proposal = z.object({
@@ -90,8 +97,11 @@ const proposedEnd = z.object({
   score: z.number().min(0).max(1),
   /** The tool that proposed it. Never a person's name. */
   proposer: z.string().min(1).optional(),
-  /** The route of the line traced as gone. */
-  geometry,
+  /**
+   * The route of the line traced as gone. On store's data it comes with the
+   * section's detail, when the section is opened.
+   */
+  geometry: geometry.optional(),
   /** The map that last shows the line, and the one that leaves it out. */
   citations: z.array(citation).default([]),
 })
@@ -128,6 +138,19 @@ const claim = z
       })
     }
   })
+
+/**
+ * What one claim row of a section says, without its sources: the value (null
+ * is Unknown) and how many candidate values wait on it. The list, the counts,
+ * the filters and the map read this; the claims themselves, with their
+ * citations, are the section's detail. Both are worded by the same function,
+ * so they never disagree.
+ */
+const claimValue = z.object({
+  attribute: z.string().min(1),
+  value: z.string().min(1).nullable(),
+  proposals: z.number().int().min(0),
+})
 
 const edition = z.object({
   id: z.string().min(1),
@@ -177,11 +200,56 @@ const section = z.object({
   /** The editions that show this section. */
   editionIds: z.array(z.string().min(1)).min(1),
   geometry,
-  claims: z.array(claim),
+  /**
+   * One row per attribute: its value and the proposals waiting. Computed from
+   * `claims` when the data has them (the sample); given by store's list.
+   */
+  values: z.array(claimValue).optional(),
+  /**
+   * The claims with their citations and proposals. The sample has them; on
+   * store's data they are the section's detail, read when it is opened
+   * (src/data/detail-store.ts), and absent here.
+   */
+  claims: z.array(claim).optional(),
   proposedEnds: z.array(proposedEnd).default([]),
   changedSinceReview: z.boolean().default(false),
   /** The day the section's record was added to Lineage, "2026-11-12". */
   addedAt: z.iso.date().optional(),
+})
+
+/** One value per claim row, as the list shows it. */
+export function claimValues(
+  claims: readonly {
+    attribute: string
+    value: string | null
+    proposals: readonly unknown[]
+  }[]
+): ClaimValue[] {
+  return claims.map((c) => ({
+    attribute: c.attribute,
+    value: c.value,
+    proposals: c.proposals.length,
+  }))
+}
+
+/** A section with new claims, and the values the list shows of them. */
+export function withClaims<
+  T extends { claims?: Claim[]; values: ClaimValue[] },
+>(owner: T, claims: Claim[]): T {
+  return { ...owner, claims, values: claimValues(claims) }
+}
+
+const sectionWithValues = section.transform((s, ctx) => {
+  if (s.values !== undefined) return { ...s, values: s.values }
+  if (s.claims === undefined) {
+    ctx.addIssue({
+      code: "custom",
+      message: "A section needs its claims, or the values of its claims.",
+      path: ["claims"],
+    })
+    return z.NEVER
+  }
+  return { ...s, values: claimValues(s.claims) }
 })
 
 const proposedPath = z.object({
@@ -278,7 +346,7 @@ export const networkSchema = z
     name: z.string().min(1),
     editions: z.array(edition).min(1),
     pipelines: z.array(pipeline),
-    sections: z.array(section),
+    sections: z.array(sectionWithValues),
     proposedPaths: z.array(proposedPath).default([]),
     notes: z.array(note).default([]),
     agentThread: z.array(threadItem).default([]),
@@ -356,11 +424,23 @@ export const networkSchema = z
     })
   })
 
+/**
+ * A section's detail as store gives it when the section is opened: its claims
+ * with their citations and proposals, and its proposed ends in full.
+ */
+export const sectionDetailSchema = z.object({
+  claims: z.array(claim),
+  proposedEnds: z.array(proposedEnd),
+})
+
+export type SectionDetail = z.infer<typeof sectionDetailSchema>
+
 export type Network = z.infer<typeof networkSchema>
 export type Edition = Network["editions"][number]
 export type Pipeline = Network["pipelines"][number]
 export type Section = Network["sections"][number]
-export type Claim = Section["claims"][number]
+export type Claim = NonNullable<Section["claims"]>[number]
+export type ClaimValue = z.infer<typeof claimValue>
 export type Citation = Claim["citations"][number]
 export type Proposal = Claim["proposals"][number]
 export type ProposedEnd = Section["proposedEnds"][number]

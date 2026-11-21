@@ -9,12 +9,13 @@ import {
 import {
   confidenceWords,
   editionWords,
+  inheritedWords,
   noQuoteWords,
   roleWords,
   supportsCountFor,
   supportsWords,
 } from "@/data/evidence"
-import type { Citation, Section } from "@/data/schema"
+import type { Citation, Claim } from "@/data/schema"
 
 /** Which icon leads the selected citation's details. Mirrors `SourceList`. */
 function iconFor(citation: Citation): IconName {
@@ -32,15 +33,16 @@ function iconFor(citation: Citation): IconName {
  */
 export function CitationDetails({
   citation,
-  section,
+  claims,
 }: {
   citation: Citation
-  section: Section
+  /** The section's claims, from its detail: how many this citation backs. */
+  claims: readonly Claim[]
 }) {
   const role = roleWords(citation.role)
   const edition = editionWords(citation)
   const noQuote = noQuoteWords(citation)
-  const supports = supportsWords(supportsCountFor(section, citation))
+  const supports = supportsWords(supportsCountFor(claims, citation))
   return (
     <div className="flex min-w-0 flex-col">
       <div className="flex items-start gap-2 border-b border-border-subtle px-3 py-2">
@@ -86,6 +88,11 @@ export function CitationDetails({
           </Field>
         )}
       </dl>
+      {citation.inheritedFrom !== undefined && (
+        <Hint className="px-3 py-1.5">
+          {inheritedWords([citation.inheritedFrom])}
+        </Hint>
+      )}
       {citation.quote === undefined && noQuote !== undefined && (
         <Hint className="px-3 py-1.5">{noQuote}</Hint>
       )}

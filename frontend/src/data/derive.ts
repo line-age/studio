@@ -1,4 +1,5 @@
 import { formatValid } from "./evidence"
+import { withClaims } from "./schema"
 import type {
   Claim,
   Edition,
@@ -50,8 +51,8 @@ export function sectionLabel(section: Section): string {
 }
 
 /** A section's claims that carry at least one citation, in claim order. */
-export function citedClaims(section: Section): Claim[] {
-  return section.claims.filter((claim) => claim.citations.length > 0)
+export function citedClaims(claims: readonly Claim[]): Claim[] {
+  return claims.filter((claim) => claim.citations.length > 0)
 }
 
 /** What a pipeline goes by in words: its name, or its code when it has none. */
@@ -68,7 +69,7 @@ export function editableAttributes(sections: readonly Section[]): string[] {
   const seen = new Set<string>()
   const out: string[] = []
   for (const section of sections) {
-    for (const claim of section.claims) {
+    for (const claim of section.values) {
       if (ON_PIPELINE.includes(claim.attribute)) continue
       if (!seen.has(claim.attribute)) {
         seen.add(claim.attribute)
@@ -101,8 +102,7 @@ export function applySectionEdits(
 ): Network {
   const targets = new Set(sectionIds)
   const madeAt = new Date().toISOString().slice(0, 10)
-  const nextClaims = (section: Section): Claim[] => {
-    let claims = section.claims
+  const nextClaims = (claims: Claim[]): Claim[] => {
     for (const edit of edits) {
       const value = edit.value
       const citations =
@@ -132,8 +132,10 @@ export function applySectionEdits(
   return {
     ...network,
     sections: network.sections.map((section) =>
-      targets.has(section.id)
-        ? { ...section, claims: nextClaims(section) }
+      // Only the sample's sections hold their claims; on store's data an
+      // edit is written to store and the network read again instead.
+      targets.has(section.id) && section.claims
+        ? withClaims(section, nextClaims(section.claims))
         : section
     ),
   }
@@ -364,12 +366,12 @@ export function groupsLabel(groups: { unassigned: boolean }[]): string {
 export function sectionStats(section: Section): Stats {
   let cited = 0
   let proposals = 0
-  for (const claim of section.claims) {
+  for (const claim of section.values) {
     if (claim.value !== null) cited += 1
-    proposals += claim.proposals.length
+    proposals += claim.proposals
   }
   proposals += section.proposedEnds.length
-  const total = section.claims.length
+  const total = section.values.length
   return { total, cited, unknown: total - cited, proposals }
 }
 
@@ -725,7 +727,7 @@ export const NO_CRITERIA: SectionCriteria = {
 }
 
 const valueOf = (section: Section, attribute: string) =>
-  section.claims.find((claim) => claim.attribute === attribute)?.value ?? null
+  section.values.find((claim) => claim.attribute === attribute)?.value ?? null
 
 /**
  * The companies a section is cited as owned by: its pipeline's owners over
@@ -793,7 +795,7 @@ export function sectionMatches(
   if (criteria.needsDecision && !needsDecision(section)) return false
   if (
     unknownIn.length > 0 &&
-    !section.claims.some(
+    !section.values.some(
       (claim) => claim.value === null && unknownIn.includes(claim.attribute)
     )
   ) {
@@ -904,7 +906,7 @@ export function matchesUnknownIn(
 export function unknownAttributesOf(section: Section): readonly string[] {
   return [
     ...new Set(
-      section.claims.flatMap((c) => (c.value === null ? c.attribute : []))
+      section.values.flatMap((c) => (c.value === null ? c.attribute : []))
     ),
   ]
 }
@@ -921,7 +923,7 @@ export function unknownCounts(
   for (const summary of summaries) {
     for (const section of summary.sections) {
       const unknown = new Set(
-        section.claims.flatMap((c) => (c.value === null ? c.attribute : []))
+        section.values.flatMap((c) => (c.value === null ? c.attribute : []))
       )
       for (const name of unknown) counts.set(name, (counts.get(name) ?? 0) + 1)
     }
@@ -977,7 +979,7 @@ export function attributeNames(summaries: PipelineSummary[]): string[] {
   const names = new Set<string>()
   for (const summary of summaries) {
     for (const section of summary.sections) {
-      for (const claim of section.claims) names.add(claim.attribute)
+      for (const claim of section.values) names.add(claim.attribute)
     }
   }
   return [...names]
@@ -1114,7 +1116,7 @@ export function search(
       const sections: SectionMatch[] = []
       const attributes = new Set<string>()
       for (const section of summary.sections) {
-        const unknown = section.claims
+        const unknown = section.values
           .filter(
             (claim) =>
               claim.value === null &&
@@ -1172,7 +1174,7 @@ export function search(
     const claims = new Map<string, Extract<SearchMatch, { kind: "claim" }>>()
     let firstClaimSection: string | null = null
     for (const section of summary.sections) {
-      for (const claim of section.claims) {
+      for (const claim of section.values) {
         if (claim.value === null || !fold(claim.value).includes(needle)) {
           continue
         }
@@ -1195,7 +1197,7 @@ export function search(
     const sections: SectionMatch[] = []
     for (const section of summary.sections) {
       const byName = named(section, needle)
-      const claim = section.claims.find(
+      const claim = section.values.find(
         (c) => c.value !== null && fold(c.value).includes(needle)
       )
       if (!byName && !claim) continue

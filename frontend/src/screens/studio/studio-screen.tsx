@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react"
 
+import { toast } from "sonner"
+
 import { ErrorBoundary } from "@/components/error-boundary"
 import { Hint } from "@/components/hint"
 import { LoadBar } from "@/components/load-bar"
@@ -24,7 +26,7 @@ import {
   unionBounds,
 } from "@/data/derive"
 import { fixtureUrl, loadNetwork } from "@/data/load-network"
-import { FixtureError } from "@/data/schema"
+import { FixtureError, type Network } from "@/data/schema"
 import { StoreError } from "@/data/store/client"
 
 import { CitationDialog } from "./citation-dialog/citation-dialog"
@@ -49,6 +51,21 @@ import { useStudio, type LeftPanel } from "./studio-store"
 import { TopBar, type Crumb } from "./top-bar"
 import { applyUrl, followView, type UrlView } from "./url-state"
 
+/**
+ * The first read of the network, started once however often React runs the
+ * initialiser (StrictMode runs it twice in development).
+ */
+let started: Promise<Network> | null = null
+function firstLoad(): Promise<Network> {
+  started ??= loadNetwork()
+  const load = started
+  // The next screen mounted (a test, a remount) reads again.
+  queueMicrotask(() => {
+    started = null
+  })
+  return load
+}
+
 /*
  * Studio: the map desk. Top bar, rail, one left panel (the list or the
  * Agent), the map, and the properties of what is selected. One
@@ -58,12 +75,35 @@ import { applyUrl, followView, type UrlView } from "./url-state"
 export function StudioScreen() {
   // The view in the URL is applied once, before anything draws.
   const [linked] = useState(() => applyUrl(window.location.search))
-  const [network, setNetwork] = useState(() => loadNetwork())
-  // Read store again, keeping the screen as it is until the new data is in.
-  const reload = useMemo(
-    () => () => startTransition(() => setNetwork(loadNetwork())),
-    []
-  )
+  const [network, setNetwork] = useState(firstLoad)
+  // Read store again, as after a write, keeping the screen as it is until the
+  // new data is in. Only the latest read is shown: a newer one stops an older
+  // one. If it fails, what is on screen stays and says so until dismissed.
+  // Resolves true once the new data is in, false when it is not.
+  const reading = useRef<AbortController | null>(null)
+  const reload = useMemo(() => {
+    const again = async (): Promise<boolean> => {
+      reading.current?.abort()
+      const mine = new AbortController()
+      reading.current = mine
+      const next = loadNetwork(mine.signal)
+      try {
+        await next
+      } catch {
+        if (mine.signal.aborted) return false
+        toast.error("Done in store. Studio could not read it again.", {
+          duration: Infinity,
+          closeButton: true,
+          action: { label: "Try again", onClick: () => void again() },
+        })
+        return false
+      }
+      if (mine.signal.aborted) return false
+      startTransition(() => setNetwork(next))
+      return true
+    }
+    return again
+  }, [])
   const [loading, setLoading] = useState(true)
   const [panel, setPanel] = useState<LeftPanel>("pipelines")
   const [leftOpen, setLeftOpen] = useState(true)
@@ -383,7 +423,7 @@ function useLinkedView(linked: UrlView) {
       const sections = network.sections
       const companies = new Set([...owners.values()].flat())
       const attributes = new Set(
-        sections.flatMap((x) => x.claims.map((claim) => claim.attribute))
+        sections.flatMap((x) => x.values.map((claim) => claim.attribute))
       )
       // An old link's edition became "first seen up to that year"; one the
       // data does not have asks for nothing.

@@ -14,13 +14,16 @@ import { useStudio } from "../studio-store"
  */
 export function CitationHeader({
   section,
+  claims,
   claim,
 }: {
   section: Section
+  /** The section's claims, from its detail. */
+  claims: readonly Claim[]
   claim: Claim
 }) {
   const stepClaim = useStudio((s) => s.stepClaim)
-  const cited = citedClaims(section)
+  const cited = citedClaims(claims)
   const at = cited.findIndex((c) => c.attribute === claim.attribute)
 
   return (
@@ -40,7 +43,7 @@ export function CitationHeader({
           size="icon-sm"
           aria-label="Previous claim"
           disabled={at <= 0}
-          onClick={() => stepClaim(section.claims, -1)}
+          onClick={() => stepClaim(claims, -1)}
         >
           <ChevronLeftIcon className="size-3.5" />
         </Button>
@@ -52,7 +55,7 @@ export function CitationHeader({
           size="icon-sm"
           aria-label="Next claim"
           disabled={at === -1 || at >= cited.length - 1}
-          onClick={() => stepClaim(section.claims, 1)}
+          onClick={() => stepClaim(claims, 1)}
         >
           <ChevronRightIcon className="size-3.5" />
         </Button>

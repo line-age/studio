@@ -20,6 +20,7 @@ import {
   unionBounds,
   type Bounds,
 } from "@/data/derive"
+import { useSectionDetail } from "@/data/detail-store"
 import { proposedEndsFor } from "@/data/evidence"
 import type { Geometry } from "@/data/schema"
 import { sectionStatus } from "@/data/status"
@@ -195,12 +196,24 @@ export function StudioMap({ token }: { token: string }) {
 
   // The lines traced as gone behind the proposal being read: an end on Last
   // seen, a cut on Geometry. Drawn only while that claim is open.
-  const readingEnds = useMemo(() => {
-    const section = network.sections.find((s) => s.id === readingId)
-    return section && readingAttribute
-      ? proposedEndsFor(section, readingAttribute)
-      : []
-  }, [network, readingId, readingAttribute])
+  const readingSection = useMemo(
+    () => network.sections.find((s) => s.id === readingId),
+    [network, readingId]
+  )
+  // Their routes come with the section's detail, read when it was opened.
+  const readingDetail = useSectionDetail(readingSection).detail
+  const readingEnds = useMemo(
+    () =>
+      readingSection && readingAttribute && readingDetail
+        ? proposedEndsFor(
+            { ...readingSection, proposedEnds: readingDetail.proposedEnds },
+            readingAttribute
+          ).flatMap((end) =>
+            end.geometry ? [{ ...end, geometry: end.geometry }] : []
+          )
+        : [],
+    [readingSection, readingAttribute, readingDetail]
+  )
 
   const proposed = useMemo(
     () =>
