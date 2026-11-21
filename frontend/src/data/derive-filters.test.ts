@@ -59,6 +59,16 @@ describe("the new filters", () => {
     ])
   })
 
+  it("puts a section under the same edition as the list when two share a year", () => {
+    // The network lists A before B, both 1947; the section names B first.
+    const years = new Map([
+      ["ed-a", 1947],
+      ["ed-b", 1947],
+    ])
+    const twice = { ...section("s-1"), editionIds: ["ed-b", "ed-a"] }
+    expect(firstSeenEditionId(twice, years)).toBe("ed-a")
+  })
+
   it("measures a section along its line, in km", () => {
     // One degree of longitude at 10 degrees north is about 109.5 km.
     expect(lengthKm(section("s-1"))).toBeCloseTo(109.5, 0)

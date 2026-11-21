@@ -77,6 +77,8 @@ interface StudioData {
   everySection: PipelineSummary[]
   /** Every pipeline with a confirmed section, whatever the switch says. */
   pipelines: PipelineSummary[]
+  /** Whether the switch shows a section: in the list, on the map. */
+  shows: (sectionId: string) => boolean
   /**
    * The sections the switch shows, once each, grouped the same way. The
    * counts, the filters and the map speak through this.
@@ -157,15 +159,29 @@ export function StudioDataProvider({
 
   const value = useMemo<StudioData>(() => {
     const everySection = editionRows(loaded, rule)
-    const scoped =
+    const summaries = summarise(loaded, rule, scope)
+    // What the switch shows. On Pipelines that is every section a row of the
+    // list holds: a proposed pipeline is listed there, so its sections are
+    // drawn and counted too (thin: they are not placed yet), and a row one
+    // can click always has something on the map.
+    const shown =
       scope === "all"
+        ? null
+        : new Set(
+            scope === "pipelines"
+              ? summaries.flatMap((row) => row.sections.map((s) => s.id))
+              : loaded.sections
+                  .filter((section) => inScope(section, scope))
+                  .map((s) => s.id)
+          )
+    const scoped =
+      shown === null
         ? everySection
         : editionRows(
             loaded,
             rule,
-            loaded.sections.filter((section) => inScope(section, scope))
+            loaded.sections.filter((section) => shown.has(section.id))
           )
-    const summaries = summarise(loaded, rule, scope)
     const pipelines = (
       scope === "unplaced" ? summarise(loaded, rule, "pipelines") : summaries
     ).filter((row) => row.kind === "pipeline")
@@ -179,6 +195,7 @@ export function StudioDataProvider({
       everySection,
       pipelines,
       scoped,
+      shows: (sectionId: string) => shown === null || shown.has(sectionId),
       owners: ownersBySection(loaded),
       editionYears,
       statesOf,
@@ -269,8 +286,40 @@ export function useSelectionGroups(): SelectionGroup[] {
       groups.push(group)
       group.sections.forEach((s) => held.add(s.id))
     }
-    return [...groups, ...groupSelection(everySection, left(selection))]
+    // An edition can have sections the filters pass and sections they leave
+    // out, both selected: one group for it, not two with one id.
+    for (const extra of groupSelection(everySection, left(selection))) {
+      const at = groups.findIndex((g) => g.summary.id === extra.summary.id)
+      if (at === -1) {
+        groups.push(extra)
+        continue
+      }
+      const sections = [...groups[at].sections, ...extra.sections]
+      groups[at] = {
+        summary: extra.summary,
+        sections,
+        whole: sections.length === extra.summary.sections.length,
+      }
+    }
+    return groups
   }, [rows, pipelines, everySection, selection])
+}
+
+/**
+ * Brings a section into what is shown before it is opened from somewhere
+ * that is not the list or the map (a reference in an answer, a link): where
+ * the switch hides it, the switch goes to All. Otherwise it would be selected
+ * with nothing in the list and no line on the map.
+ */
+export function useRevealSection(): (sectionId: string) => void {
+  const { shows } = useStudioData()
+  const setScope = useStudio((s) => s.setScope)
+  return useCallback(
+    (sectionId: string) => {
+      if (!shows(sectionId)) setScope("all")
+    },
+    [shows, setScope]
+  )
 }
 
 /** What a section has to satisfy: the status chosen and the filters. */

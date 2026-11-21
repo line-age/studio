@@ -115,9 +115,10 @@ describe("Counts and the map view", () => {
     // Sections of what the switch shows, whatever the rows are.
     const total = await allCount()
     expect(screen.getByText(`2 of ${total} in view`)).toBeInTheDocument()
-    // On Pipelines the whole is the sections in a pipeline.
+    // On Pipelines the whole is what its rows hold: the pipelines' sections
+    // and the one proposed for a pipeline.
     act(() => useStudio.getState().setScope("pipelines"))
-    expect(screen.getByText(`2 of ${total - 1} in view`)).toBeInTheDocument()
+    expect(screen.getByText(`2 of ${total} in view`)).toBeInTheDocument()
   })
 
   it("counts the whole network in the header when the list does not follow", async () => {

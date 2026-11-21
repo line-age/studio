@@ -37,6 +37,7 @@ import {
   summaryProgress,
   type PipelineSummary,
   type SearchHit,
+  narrowRows,
   PROPOSED_END_LABEL,
   tracerNames,
   SCOPE,
@@ -171,9 +172,13 @@ export function PipelinesPanel() {
   }, [scoped, criteria, view])
 
   const searching = query.trim().length > 0
-  const pipelineCount = summaries.filter(
-    (row) => row.kind === "pipeline"
-  ).length
+  // The pipelines the filters leave, as the section count beside it.
+  const pipelineCount = useMemo(
+    () =>
+      narrowRows(summaries, criteria).filter((row) => row.kind === "pipeline")
+        .length,
+    [summaries, criteria]
+  )
   const activeIndex = Math.min(active, Math.max(hits.length - 1, 0))
 
   // The filters in force, each with the way to take it off. A search stays
@@ -570,7 +575,8 @@ function PipelineList({
   total: number
   search: ListSearch | null
 }) {
-  const { scope } = useStudioData()
+  const { scope, network } = useStudioData()
+  const hasSections = network.sections.length > 0
   const rule = useSettings((s) => s.requiredAttributes)
   const groups = useSelectionGroups()
   const select = useStudio((s) => s.select)
@@ -967,7 +973,7 @@ function PipelineList({
               {total === 0
                 ? scope === "pipelines"
                   ? NO_PIPELINES
-                  : scope === "unplaced"
+                  : scope === "unplaced" && hasSections
                     ? "Every section is in a pipeline."
                     : "This network has no sections."
                 : onlyInView

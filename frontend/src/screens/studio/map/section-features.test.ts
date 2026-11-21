@@ -43,6 +43,18 @@ describe("what the map is given to draw", () => {
     expect(unplaced.faint).toEqual([])
   })
 
+  it("draws a section given to it thin when it is only proposed for a pipeline", () => {
+    // On Pipelines the screen also gives the map the sections of a proposed
+    // pipeline's row: drawn, and thin, since nothing is confirmed.
+    const { drawn } = sectionFeatures(
+      editionRows(network, NO_CRITERIA.rule, network.sections),
+      NO_CRITERIA
+    )
+    expect(
+      drawn.find((f) => f.properties.id === "s-4")?.properties.placed
+    ).toBe(false)
+  })
+
   it("makes faint only what the filters leave out of what the switch shows", () => {
     const { drawn, faint } = sectionFeatures(scoped("pipelines"), {
       ...NO_CRITERIA,

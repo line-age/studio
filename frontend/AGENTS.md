@@ -251,7 +251,8 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   never rows ("2 pipelines · 42 sections" on Pipelines), and holds no counts by status.
   `summarise(network, rule, scope)` builds the rows; `editionRows` builds edition rows
   of any set of sections. In `studio-data.tsx`, `scoped` is the sections the switch
-  shows, once each, and the counts, the filters, the search and the map read it;
+  shows, once each (on Pipelines that is every section a row holds, so a proposed
+  pipeline's sections are drawn and counted there too, thin), and the counts, the filters, the search and the map read it;
   `everySection` is the whole network whatever the switch says, and only the selection
   reads it. Switching never changes the selection: a section the switch hides stays
   selected and counted in the right panel, under its pipeline or its edition
@@ -260,7 +261,10 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   covers them all. A group handed to the Agent goes as its section ids, never "all":
   its row is not in every list. Only a pipeline row sets `selectedPipelineId` and `p`.
   Something that leads to a pipeline (a link with `p`, "On the pipeline", a reference
-  in an answer) calls `showPipelines`, which moves the switch off Unplaced.
+  in an answer) calls `showPipelines`, which moves the switch off Unplaced. Something
+  that opens one section from outside the list and the map (a reference in an answer,
+  a link with `sel`) calls `useRevealSection`, which moves the switch to All when it
+  hides that section.
 - A group's row follows the filters and, while the list follows the map, the view
   (`narrowRows`, the owner, 2026-11-13): it counts and selects only the sections that
   pass, so "1929 edition" with the State filter is that edition in that state. A

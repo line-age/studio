@@ -135,6 +135,15 @@ describe("a shared link", () => {
     expect(window.location.search).toBe("?v=0")
   })
 
+  it("shows a linked section the link's own switch would hide", async () => {
+    // s-2 is in a pipeline; the link is on Unplaced and names it.
+    window.history.replaceState(null, "", "/?sc=unplaced&sel=s-2")
+    await renderScreen()
+    expect([...useStudio.getState().selection]).toEqual(["s-2"])
+    expect(useStudio.getState().scope).toBe("all")
+    expect(screen.getByRole("listbox", { name: "Network" })).toBeVisible()
+  })
+
   it("ignores what the data does not have, and a broken link", async () => {
     window.history.replaceState(
       null,

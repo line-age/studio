@@ -657,6 +657,13 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
               />
               <span className="type-ui-sm text-muted-foreground">km</span>
             </div>
+            {s.lengthFrom !== null &&
+              s.lengthTo !== null &&
+              s.lengthFrom > s.lengthTo && (
+                <Hint role="status">
+                  From is more than to, so no section can match.
+                </Hint>
+              )}
           </Group>
         )}
 

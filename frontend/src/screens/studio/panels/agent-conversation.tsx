@@ -30,7 +30,7 @@ import {
 } from "@/data/agent/use-agent"
 import type { Question } from "@/data/question"
 
-import { useStudioData } from "../studio-data"
+import { useRevealSection, useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
 import { AgentSources } from "./agent-sources"
 import { ProposeOutcomes, type ProposeOutcome } from "./agent-finding"
@@ -54,6 +54,7 @@ function useOpenAgentRef(): (ref: AgentAnswerRef) => void {
   const selectSection = useStudio((s) => s.selectSection)
   const selectPipeline = useStudio((s) => s.selectPipeline)
   const showPipelines = useStudio((s) => s.showPipelines)
+  const reveal = useRevealSection()
   const requestFit = useStudio((s) => s.requestFit)
   return (ref) => {
     const featureId = ref.type === "feature" ? ref.id : ref.feature_id
@@ -72,6 +73,7 @@ function useOpenAgentRef(): (ref: AgentAnswerRef) => void {
     }
     const section = network.sections.find((s) => s.id === featureId)
     if (!section) return
+    reveal(section.id)
     const label = ref.attribute ? ATTRIBUTE_LABEL[ref.attribute] : undefined
     if (label) selectAttribute(section.id, label)
     else selectSection(section.id)

@@ -803,11 +803,13 @@ export function firstSeenEditionId(
   section: Section,
   editionYears: SectionCriteria["editionYears"]
 ): string | null {
+  // In the order the network lists its editions, as `firstEdition` does, so
+  // two editions of one year never put a section under different ones in
+  // the list and in the filter.
   let first: string | null = null
   let year = Infinity
-  for (const id of section.editionIds) {
-    const y = editionYears?.get(id)
-    if (y !== undefined && y < year) {
+  for (const [id, y] of editionYears ?? []) {
+    if (y < year && section.editionIds.includes(id)) {
       year = y
       first = id
     }

@@ -414,7 +414,7 @@ function Loaded({ linked }: { linked: UrlView }) {
  * bar in step with the view.
  */
 function useLinkedView(linked: UrlView) {
-  const { network, sectionById, owners } = useStudioData()
+  const { network, sectionById, owners, shows } = useStudioData()
   const checked = useRef(false)
   useEffect(() => {
     if (!checked.current) {
@@ -453,6 +453,8 @@ function useLinkedView(linked: UrlView) {
         )
         if (!linked.camera) s.requestFit(pipeline.bounds)
       } else if (section) {
+        // A link names its section whatever the switch in it says.
+        if (!shows(section.id)) s.setScope("all")
         s.selectSection(section.id)
         // A link with the map's place shows that place; else the section.
         if (!linked.camera) s.requestFit(geometryBounds(section.geometry))
