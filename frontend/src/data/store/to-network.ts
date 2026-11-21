@@ -181,6 +181,8 @@ interface Stated {
   createdAt: string | null
   /** The earliest date of a map sheet cited as showing the line. */
   shownAsOf: string | null
+  /** Another feature's claim the section has through a confirmed link. */
+  inherited: boolean
 }
 
 /** Code-unit order, as store sorts these dates ("1929" before "1929-08"). */
@@ -197,9 +199,11 @@ const statedFromRow = (key: string, c: StoreAccepted): Stated => ({
   valid: c.valid_edtf ?? null,
   createdAt: c.created_at ?? null,
   shownAsOf: c.shown_as_of ?? null,
+  inherited: Boolean(c.inherited_from),
 })
 
-const statedFromClaim = (c: StoreClaim): Stated => ({
+const statedFromClaim = (c: StoreClaim, inherited = false): Stated => ({
+  inherited,
   ...(c.id ? { id: c.id } : {}),
   key: c.attribute_key,
   text: c.value_text ?? null,
@@ -246,7 +250,14 @@ const wordsFor = (key: string) => (key === "status" ? statusWords : valueOf)
  */
 function rowOf(key: string, stated: readonly Stated[]) {
   const words = wordsFor(key)
-  const shown = stated.filter((c) => words(c) !== null)
+  // The section's own claims first, then those from its history; newest
+  // first within each. The route is the section's own only: a line traced
+  // as gone has a route of its own, which is not this section's.
+  const ordered = [
+    ...stated.filter((c) => !c.inherited),
+    ...(key === "route" ? [] : stated.filter((c) => c.inherited)),
+  ]
+  const shown = ordered.filter((c) => words(c) !== null)
   const values = [...new Set(shown.map((c) => words(c)!))]
   return {
     value: values.length > 0 ? values.join("; ") : null,
@@ -645,7 +656,9 @@ export function toDetail(
             c.citations.length > 0
         )
     )
-    const statedOf = new Map(stated.map((c) => [statedFromClaim(c), c]))
+    const statedOf = new Map(
+      stated.map((c) => [statedFromClaim(c, fromOf.get(c) !== null), c])
+    )
     const { value, shown: behind, only } = rowOf(key, [...statedOf.keys()])
     return {
       ...(only?.id ? { id: only.id } : {}),

@@ -435,6 +435,10 @@ describe("the list and the detail", () => {
     expect(
       claim(ID_C, "Last seen").citations.map((c) => c.inheritedFrom ?? null)
     ).toEqual([null, ID_Z])
+    // The route is C's own: the line traced as gone has its own, not C's.
+    expect(
+      claim(ID_C, "Geometry").citations.map((c) => c.inheritedFrom ?? null)
+    ).toEqual([null])
     // C stays C: one section, its own id and route.
     expect(network.sections.filter((s) => s.id === ID_Z)).toEqual([])
   })
