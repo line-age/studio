@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
 import {
   hasCriteria,
+  isPlaced,
   sectionMatches,
   unionBounds,
   type Bounds,
@@ -37,7 +38,7 @@ import { linesInLoop, type Point } from "./lasso"
 import { readMapColors } from "./map-colors"
 import { addKeyName, holdsAddKey, mapClick } from "./click-selection"
 import { FollowMapToggle } from "./follow-map-toggle"
-import { statusesDrawn } from "./line-style"
+import { DOTTED_EXTRA, LINE_WEIGHT, statusesDrawn } from "./line-style"
 import { MapKey } from "./map-key"
 import { AgentBar } from "./selection-bar"
 
@@ -55,7 +56,7 @@ const DASHED = [4, 3]
 type Feature = {
   type: "Feature"
   geometry: Geometry
-  properties: Record<string, string>
+  properties: { id: string; [key: string]: string | boolean }
 }
 
 const collection = (features: Feature[]) => ({
@@ -75,7 +76,7 @@ function toBounds(map: MapRef): Bounds | null {
 }
 
 export function StudioMap({ token }: { token: string }) {
-  const { network, everySection: summaries } = useStudioData()
+  const { network, everySection, scoped: summaries } = useStudioData()
   const { openPanel } = useLeftPanel()
   const mapRef = useRef<MapRef>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -164,8 +165,10 @@ export function StudioMap({ token }: { token: string }) {
     return () => observer.disconnect()
   }, [])
 
-  // Every section, sorted by the filters: the ones that pass are drawn by
-  // their status; the rest only faint, and only when the map key says so.
+  // Every section the switch shows, sorted by the filters: the ones that pass
+  // are drawn by their status, heavy when in a pipeline; the rest only faint,
+  // and only when the map key says so. What the switch leaves out is in
+  // neither: not drawn, not clickable, and still selected if it was.
   const [current, faint] = useMemo(() => {
     const filtering = hasCriteria(criteria)
     const passing: Feature[] = []
@@ -180,6 +183,7 @@ export function StudioMap({ token }: { token: string }) {
               id: section.id,
               pipelineId: summary.id,
               status: sectionStatus(section, criteria.rule),
+              placed: isPlaced(section),
             },
           })
         } else {
@@ -233,8 +237,9 @@ export function StudioMap({ token }: { token: string }) {
   )
 
   const initialBounds = useMemo(
-    () => unionBounds(summaries.flatMap((s) => (s.bounds ? [s.bounds] : []))),
-    [summaries]
+    () =>
+      unionBounds(everySection.flatMap((s) => (s.bounds ? [s.bounds] : []))),
+    [everySection]
   )
 
   // Where the map opens: the place a link gave, else a section a link
@@ -520,7 +525,12 @@ export function StudioMap({ token }: { token: string }) {
                       colors.selected,
                       colors.line,
                     ],
-                    "line-width": 2,
+                    "line-width": [
+                      "case",
+                      ["get", "placed"],
+                      LINE_WEIGHT.placed,
+                      LINE_WEIGHT.unplaced,
+                    ],
                   }}
                 />
                 <Layer
@@ -538,7 +548,12 @@ export function StudioMap({ token }: { token: string }) {
                       colors.selected,
                       colors.line,
                     ],
-                    "line-width": 2.5,
+                    "line-width": [
+                      "case",
+                      ["get", "placed"],
+                      LINE_WEIGHT.placed + DOTTED_EXTRA,
+                      LINE_WEIGHT.unplaced + DOTTED_EXTRA,
+                    ],
                     "line-dasharray": DOTTED,
                   }}
                 />

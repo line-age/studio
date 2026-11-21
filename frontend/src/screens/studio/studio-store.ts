@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-import type { Bounds, ListKind, Membership } from "@/data/derive"
+import type { Bounds, ProposedEndKind, Scope } from "@/data/derive"
 import { refKey, type AgentRef, type Question } from "@/data/question"
 import type { Claim } from "@/data/schema"
 import type { SectionStatus } from "@/data/status"
@@ -80,11 +80,13 @@ interface StudioState {
   /** Keep pipelines with a section added to Lineage in this range of days. */
   addedFrom: string | null
   addedTo: string | null
-  /** Keep sections that stand this way with pipelines. */
-  memberships: readonly Membership[]
-  /** Keep sections first seen on an edition of these years. */
-  firstSeenFrom: number | null
-  firstSeenTo: number | null
+  /** Keep sections one of these editions (by id) is the first to show. */
+  firstSeenEditions: readonly string[]
+  /** Keep sections this long, in km. */
+  lengthFrom: number | null
+  lengthTo: number | null
+  /** Keep sections with a proposed end of one of these kinds waiting. */
+  proposedEnd: readonly ProposedEndKind[]
   /** Keep sections changed since a person last reviewed them. */
   changedOnly: boolean
   /** Keep sections whose cited diameter is one of these. */
@@ -96,10 +98,11 @@ interface StudioState {
   /** Search past the filters, through the whole network. */
   searchWholeEdition: boolean
   /**
-   * How the list is grouped: by pipeline, or by edition. null until the
-   * person chooses: the data then decides (`defaultList`).
+   * What the switch above the list shows: every section, only those in a
+   * pipeline, or only those in none. The list, the map and the filters
+   * offered follow it; the selection does not.
    */
-  list: ListKind | null
+  scope: Scope
   /**
    * The pipeline picked as a whole in the list; null once the
    * selection is changed any other way. Kept so a link can name it.
@@ -157,8 +160,9 @@ interface StudioState {
   setCompanies: (companies: readonly string[]) => void
   setBuilt: (from: number | null, to: number | null) => void
   setAdded: (from: string | null, to: string | null) => void
-  setMemberships: (memberships: readonly Membership[]) => void
-  setFirstSeen: (from: number | null, to: number | null) => void
+  setFirstSeenEditions: (editions: readonly string[]) => void
+  setLength: (from: number | null, to: number | null) => void
+  setProposedEnd: (kinds: readonly ProposedEndKind[]) => void
   setChangedOnly: (on: boolean) => void
   setDiameters: (diameters: readonly string[]) => void
   setStates: (states: readonly string[]) => void
@@ -166,7 +170,9 @@ interface StudioState {
   clearFilters: () => void
   setQuery: (query: string) => void
   setSearchWholeEdition: (on: boolean) => void
-  setList: (list: ListKind) => void
+  setScope: (scope: Scope) => void
+  /** Bring the pipelines into the list, where the switch leaves them out. */
+  showPipelines: () => void
   /** Select exactly these sections; none clears the selection. */
   select: (sectionIds: readonly string[]) => void
   /** Select a pipeline as a whole: these are its sections. */
@@ -333,12 +339,27 @@ export const filtersApplied = (s: StudioState) =>
   s.builtTo !== null ||
   s.addedFrom !== null ||
   s.addedTo !== null ||
-  s.memberships.length > 0 ||
-  s.firstSeenFrom !== null ||
-  s.firstSeenTo !== null ||
   s.changedOnly ||
   s.diameters.length > 0 ||
-  s.states.length > 0
+  sectionFiltersApplied(s)
+
+/**
+ * The filters that are about a section on its own: which edition first shows
+ * it, where it runs, how long it is, what end is proposed for it. They are
+ * offered on All and on Unplaced. On Pipelines they are kept and ask for
+ * nothing until the switch goes back (`sectionFiltersPaused`).
+ */
+export const sectionFiltersOn = (s: StudioState) =>
+  s.firstSeenEditions.length > 0 ||
+  s.states.length > 0 ||
+  s.lengthFrom !== null ||
+  s.lengthTo !== null ||
+  s.proposedEnd.length > 0
+
+export const sectionFiltersPaused = (s: StudioState) => s.scope === "pipelines"
+
+const sectionFiltersApplied = (s: StudioState) =>
+  !sectionFiltersPaused(s) && sectionFiltersOn(s)
 
 /**
  * The list holds only what is in the map view right now: the person wants it,
@@ -357,16 +378,17 @@ export const useStudio = create<StudioState>((set) => ({
   builtTo: null,
   addedFrom: null,
   addedTo: null,
-  memberships: [],
-  firstSeenFrom: null,
-  firstSeenTo: null,
+  firstSeenEditions: [],
+  lengthFrom: null,
+  lengthTo: null,
+  proposedEnd: [],
   changedOnly: false,
   diameters: [],
   states: [],
   layers: readLayers(),
   query: "",
   searchWholeEdition: false,
-  list: null,
+  scope: "all",
   selectedPipelineId: null,
   selection: new Set(),
   agentBar: null,
@@ -412,9 +434,9 @@ export const useStudio = create<StudioState>((set) => ({
   setCompanies: (companies) => set({ companies }),
   setBuilt: (builtFrom, builtTo) => set({ builtFrom, builtTo }),
   setAdded: (addedFrom, addedTo) => set({ addedFrom, addedTo }),
-  setMemberships: (memberships) => set({ memberships }),
-  setFirstSeen: (firstSeenFrom, firstSeenTo) =>
-    set({ firstSeenFrom, firstSeenTo }),
+  setFirstSeenEditions: (firstSeenEditions) => set({ firstSeenEditions }),
+  setLength: (lengthFrom, lengthTo) => set({ lengthFrom, lengthTo }),
+  setProposedEnd: (proposedEnd) => set({ proposedEnd }),
   setChangedOnly: (changedOnly) => set({ changedOnly }),
   setDiameters: (diameters) => set({ diameters }),
   setStates: (states) => set({ states }),
@@ -429,9 +451,10 @@ export const useStudio = create<StudioState>((set) => ({
       builtTo: null,
       addedFrom: null,
       addedTo: null,
-      memberships: [],
-      firstSeenFrom: null,
-      firstSeenTo: null,
+      firstSeenEditions: [],
+      lengthFrom: null,
+      lengthTo: null,
+      proposedEnd: [],
       changedOnly: false,
       diameters: [],
       states: [],
@@ -443,7 +466,10 @@ export const useStudio = create<StudioState>((set) => ({
       searchWholeEdition: query.trim() === "" ? false : s.searchWholeEdition,
     })),
   setSearchWholeEdition: (searchWholeEdition) => set({ searchWholeEdition }),
-  setList: (list) => set({ list }),
+  // The selection stays as it is: the switch changes what is shown.
+  setScope: (scope) => set({ scope }),
+  showPipelines: () =>
+    set((s) => (s.scope === "unplaced" ? { scope: "all" } : {})),
   select: (sectionIds) =>
     set((s) => {
       const settled = selected(sectionIds)

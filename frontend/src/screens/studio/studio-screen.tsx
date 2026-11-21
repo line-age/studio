@@ -269,7 +269,7 @@ function Frame({
           aria-label="Panels"
           className="flex w-rail shrink-0 flex-col gap-1 border-r bg-muted py-2"
         >
-          {/* One list of the whole network; Group by, in it, says by what. */}
+          {/* One list of the network; the switch in it says how much of it. */}
           <RailItem
             icon="line"
             label="Network"
@@ -425,21 +425,16 @@ function useLinkedView(linked: UrlView) {
       const attributes = new Set(
         sections.flatMap((x) => x.values.map((claim) => claim.attribute))
       )
-      // An old link's edition became "first seen up to that year"; one the
-      // data does not have asks for nothing.
-      const params = new URLSearchParams(window.location.search)
-      const edition = params.get("e")
-      const noSuchEdition =
-        edition !== null &&
-        !params.has("f") &&
-        !network.editions.some((e) => e.id === edition)
       useStudio.setState({
-        ...(noSuchEdition && { firstSeenTo: null }),
+        // An edition the data does not have asks for nothing.
+        firstSeenEditions: s.firstSeenEditions.filter((id) =>
+          network.editions.some((e) => e.id === id)
+        ),
         companies: s.companies.filter((name) => companies.has(name)),
         unknownIn: s.unknownIn.filter((name) => attributes.has(name)),
       })
       const section = linked.section ? sectionById.get(linked.section) : null
-      // A link that names a pipeline opens the list by pipeline, on it.
+      // A link that names a pipeline opens on it, with the pipelines listed.
       const pipeline = linked.pipeline
         ? summarise(
             network,
@@ -448,7 +443,7 @@ function useLinkedView(linked: UrlView) {
           ).find((row) => row.pipeline && row.id === linked.pipeline)
         : undefined
       if (pipeline) {
-        s.setList("pipelines")
+        s.showPipelines()
         s.selectPipeline(
           pipeline.id,
           pipeline.sections.map((x) => x.id)

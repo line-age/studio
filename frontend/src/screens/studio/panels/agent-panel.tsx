@@ -46,14 +46,14 @@ function useOpenRef(): (ref: AgentRef) => void {
   const { network } = useStudioData()
   const selectAttribute = useStudio((s) => s.selectAttribute)
   const selectPipeline = useStudio((s) => s.selectPipeline)
-  const setList = useStudio((s) => s.setList)
+  const showPipelines = useStudio((s) => s.showPipelines)
   const requestFit = useStudio((s) => s.requestFit)
   return (ref) => {
     if (ref.kind === "claim" && ref.owner === "pipeline") {
       const members = network.sections.filter(
         (s) => s.pipelineId === ref.ownerId
       )
-      setList("pipelines")
+      showPipelines()
       selectPipeline(
         ref.ownerId,
         members.map((s) => s.id)

@@ -13,7 +13,8 @@ table; selects sections across pipelines by row boxes, clicks on the map or a La
 shows the selection's claims grouped in the right panel, and one claim in full with
 its sources (what each does for the claim, and a map's edition and date) and any
 proposal, among them an end or a cut that store proposes for a section; hands a selection to the Agent
-chat as references; groups the one list by edition or by pipeline; keeps the view in the
+chat as references; shows all of the network, only its pipelines or only the sections
+in none, by one switch above the list; keeps the view in the
 URL; walks a first-time visitor through the screen with a Help tour, and explains each
 area and the words in a Help dialog; lets a person ask the Agent about a section, a
 claim, a source or a proposal with questions that only read, keeps a sent question in
@@ -168,7 +169,7 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   wait), which is what store's list gives and what the sample's claims are reduced to
   by `claimValues`. Never `claims` for a count or a filter.
 - On store's data a section's claims, citations and proposed ends in full are its
-  detail (`src/data/detail-store.ts`; plan `2026-11-21-001`). Opening Studio reads the
+  detail (`src/data/detail-store.ts`; plan `2026-11-21-001-feat-studio-store-light-loading`). Opening Studio reads the
   sections' rows, the links of the network and its lines: a handful of requests, none
   per section. A section's detail is read when something needs it
   (`useSectionDetail`: the opened section, its claim, the citation pop-up, the Agent's
@@ -231,25 +232,34 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   decided in the Agent's inbox; a proposed cut has no button anywhere (store would take a
   confirm with its default cut). Last seen stays Unknown until a person confirms the link in store; then it is
   cited to both maps (Figma `213:8036`).
-- One list, one rail item ("Network"), grouped by the "Group by" select
-  (`panels/group-by-select.tsx`; Figma section 12, `237:10367`; the owner, 2026-11-13).
-  The groupings are Edition and Pipeline only; State, Status and Company are filters.
-  By pipeline: "Pipelines", then "Proposed pipelines" (no section confirmed, only
-  proposed; the row shows the best score bare, all scores on hover), then "Not in a
-  pipeline" with one row, "No pipeline" (`NO_PIPELINE_ID`): in none and proposed for
-  none. By edition: one row per edition with the sections it is the first to show.
-  Every grouping holds every section of the network; rows are groups only, sections
-  are on the right. The title, the column head and the listbox name come from
-  `GROUPING`; the header counts sections, never rows, and holds no counts by status.
-  `summarise(network, rule, list)` builds either (`ListKind` is still `"pipelines" |
-"sections"`, "sections" meaning by edition); `everySection` in `studio-data.tsx` is
-  always the edition rows, and the counts, the filters and the map read it however the
-  list is grouped. The list opens by pipeline when the data has any (`defaultList`);
-  the choice is `list` in the store and `l` in the URL. Changing it clears nothing. A
-  row's `kind` is `pipeline`, `proposed`, `first-seen` or `group`: do not write
-  "pipeline" into a string that covers them all. A group handed to the Agent goes as
-  its section ids, never "all": its id means nothing under another grouping. Only a
-  pipeline row sets `selectedPipelineId` and `p`.
+- One list, one rail item ("Network"), with a three-way switch above it: All, Pipelines,
+  Unplaced (`panels/scope-switch.tsx`, stock shadcn Tabs; Figma section 18, `403:14721`;
+  the owner, 2026-11-21; plan `2026-11-21-001-feat-studio-scope-switch-and-filters`).
+  One is always on and Studio opens on All. The switch (`scope` in the store, `sc` in
+  the URL, `Scope` and `inScope` in `derive.ts`) sets three things in one move: the rows
+  of the list, the lines on the map and the filters offered. A section is placed once a
+  person confirmed it part of a pipeline (`isPlaced`); one only proposed for a pipeline
+  is unplaced. Pipelines: "Pipelines", then "Proposed pipelines" (no section confirmed,
+  only proposed; the row shows the best score bare, all scores on hover). Unplaced: one
+  row per edition with the sections in no pipeline that it is the first to show. All:
+  the pipelines, the proposed ones, then "Not in a pipeline" with those edition rows.
+  With no pipelines in the data the Pipelines list says what a pipeline is and how one
+  gets made; it is never blank and never a stand-in row. There is no Group by: sections
+  in a pipeline are not listed by edition. Rows are groups only, sections are on the
+  right. The title and the column head come from `SCOPE`; the header counts sections,
+  never rows ("2 pipelines · 42 sections" on Pipelines), and holds no counts by status.
+  `summarise(network, rule, scope)` builds the rows; `editionRows` builds edition rows
+  of any set of sections. In `studio-data.tsx`, `scoped` is the sections the switch
+  shows, once each, and the counts, the filters, the search and the map read it;
+  `everySection` is the whole network whatever the switch says, and only the selection
+  reads it. Switching never changes the selection: a section the switch hides stays
+  selected and counted in the right panel, under its pipeline or its edition
+  (`useSelectionGroups`), and is drawn again when the switch goes back. A row's `kind`
+  is `pipeline`, `proposed` or `first-seen`: do not write "pipeline" into a string that
+  covers them all. A group handed to the Agent goes as its section ids, never "all":
+  its row is not in every list. Only a pipeline row sets `selectedPipelineId` and `p`.
+  Something that leads to a pipeline (a link with `p`, "On the pipeline", a reference
+  in an answer) calls `showPipelines`, which moves the switch off Unplaced.
 - A group's row follows the filters and, while the list follows the map, the view
   (`narrowRows`, the owner, 2026-11-13): it counts and selects only the sections that
   pass, so "1929 edition" with the State filter is that edition in that state. A
@@ -257,8 +267,9 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   the right. The selection's groups follow the filters but not the view, so a pan
   never changes what is selected.
 - The table has one Status column: the split by status as a bar, then the word for
-  the whole (a status never shows as colour alone). Grouped by edition it has no Code
-  and no progress column: an edition has neither.
+  the whole (a status never shows as colour alone). On Unplaced it has no Code and no
+  progress column: an edition has neither. On All, where pipelines and editions are
+  listed together, an edition's row leaves those two cells empty.
 - A pipeline's own claims are name, owner and operator (`ON_PIPELINE`), never a
   section's. The right panel shows them above its sections when one pipeline is
   selected (`pipelineClaims`, `datedValue`: "Alder Gas Co., by 1931"; an owner that
@@ -276,25 +287,45 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   not found stays Unknown (the owner, 2026-11-13).
 - Settings (`settings.ts`) are kept in the browser: the required attributes and solid or
   dotted per status. The map and its key read the line style from `map/line-style.ts`.
-- The view is in the URL (`url-state.ts`): grouping, status, filters, search, list
+- The view is in the URL (`url-state.ts`): the switch, status, filters, search, list
   follows map, map position, one section. Not layout, the map key's eyes or Settings.
-  An old link with `e=ed-<year>` opens as First seen up to that year. Add a field
-  there when adding a filter. No test or screenshot uses a real name in a URL.
+  What an older link carried and the screen no longer has is read past, never an
+  error: the grouping (`l`), the Pipeline filter (`pm`), the First seen range (`f`) and
+  the edition in force (`e`). Such a link opens on All. Add a field there when adding
+  a filter. No test or screenshot uses a real name in a URL; a person is named in a
+  URL by store's id, never by name.
 - Filters are the second level of the list panel (the owner, 2026-11-13): the button
   beside the search opens every filter on one screen in place of the list, at the
   list's own width (a table folds while they are open and comes back on Back), with
-  Back, Clear all and a live "Show n sections". Status is one of the filters. Every
-  group always shows; with nothing to offer it says so in one line, never hidden. The
-  list itself shows only the filters that are on, as chips; counts by status are in
+  Back, Clear all and a live "Show n sections". Status is one of the filters and always
+  shows. Any other group shows only while it is on, or while it can narrow what the
+  switch shows: one of its choices would leave some sections and not all of them
+  (`canNarrow`, `passingWithout`, `rangeNarrows`; the owner, 2026-11-21). So on data
+  with no diameters, owners or build dates those filters are left out, and come back
+  by themselves once claims exist. "Needs your decision" and "Changed since review"
+  follow the same rule inside Status. The filters about a section on its own are
+  First shown by (a search with a dropdown of editions, several tickable, each with
+  its count; `fe`), State (`st`), Length (from and to in km, measured along the route
+  as traced, `lengthKm`; `len`) and Proposed end (the whole section, or part of it:
+  `proposedEnds[].kind`; `pe`). They are offered on All and on Unplaced. On Pipelines
+  they are not offered and not in force, their chips are not shown, and their values
+  are kept and in force again when the switch goes back (`sectionFiltersPaused`).
+  There is no Pipeline filter: the switch does that. Traced by is not built: the
+  tracer is not in what Studio reads at open (see the plan's unresolved question).
+  Every filter reads `section.values` and what the list gives; none reads a section's
+  detail. The list itself shows only the filters that are on, as chips; counts by status are in
   Filters only. The filter button shows how many are on. The map key and "List follows
   the map" are map controls, not filters. There is no Filters or Editions panel in the
   rail.
 - The map key (`map/map-key.tsx`, Figma `239:10993`) replaces the layers popover and
-  the legend: Solid and Dotted (the statuses drawn so, from Settings), Dashed (proposed
+  the legend: Solid and Dotted (the statuses drawn so, from Settings), Heavy and Thin
+  (in a pipeline, in none; the two weights are `LINE_WEIGHT` in `map/line-style.ts`,
+  and colour is never used for this), Dashed (proposed
   by a tool, with an eye), Faint (sections the filters leave out, with an eye, off
   until asked for), Blue (selected), and a link that opens Settings
   (`useSettingsOpen`). The two eyes are kept in this browser (`studio.map-key`). The
-  map sorts sections by the filters one by one; a faint line cannot be clicked.
+  map sorts sections by the filters one by one; a faint line cannot be clicked. What
+  the switch leaves out is not faint: it is not drawn at all and cannot be clicked.
 - A section's states (State filter) come from its line and the Census outlines in
   `us-atlas` (`src/data/us-states.ts`), worked out when first asked. Where a line lies
   is not a claim and needs no citation. Company counts a section's own Owner claim as
@@ -452,7 +483,7 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   invented behaviour. The "Scanned map" eye and the draw tools other than Select and
   Lasso are hidden the same way. The right-click menu does not open when it has
   nothing to offer.
-- The counts in Filters are the whole network after the other filters; they never
+- The counts in Filters are what the switch shows after the other filters; they never
   follow the map.
   Only the list follows it (`listFollowsMap`), and its header says "n of m in view".
   While the list is a table (`tableOpen`) it holds everything and the follow button

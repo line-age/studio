@@ -96,7 +96,8 @@ describe("map controls", () => {
 
     await user.click(toggle)
     expect(toggle).toHaveAttribute("aria-pressed", "false")
-    expect(screen.getByRole("status")).toHaveTextContent("3")
+    // The two pipelines, the proposed one and the edition of what is in none.
+    expect(screen.getByRole("status")).toHaveTextContent("4")
 
     await user.click(toggle)
     expect(screen.getByRole("status")).toHaveTextContent("1")

@@ -21,7 +21,8 @@ import {
   companiesOf,
   companyCounts,
   datedValue,
-  defaultList,
+  editionRows,
+  inScope,
   ownersBySection,
   pipelineClaims,
   summaryProgress,
@@ -38,14 +39,13 @@ import {
   search,
   sectionStats,
   filterCounts,
-  NO_PIPELINE_ID,
   summarise,
   visiblePipelines,
 } from "./derive"
 
 const network = testNetwork()
-const summaries = summarise(network)
-const sectionGroups = summarise(network, undefined, "sections")
+const summaries = summarise(network, undefined, "pipelines")
+const sectionGroups = editionRows(network)
 const owners = ownersBySection(network)
 
 describe("sectionStats", () => {
@@ -100,9 +100,49 @@ describe("summarise", () => {
     })
   })
 
-  it("opens on the pipelines, or on the sections when there are none", () => {
-    expect(defaultList(network)).toBe("pipelines")
-    expect(defaultList({ ...network, pipelines: [] })).toBe("sections")
+  it("shows what the switch says: all, the placed or the unplaced", () => {
+    const ids = (scope: Parameters<typeof inScope>[1]) =>
+      network.sections.filter((s) => inScope(s, scope)).map((s) => s.id)
+    expect(ids("all")).toEqual(["s-1", "s-2", "s-3", "s-4", "s-5"])
+    expect(ids("pipelines")).toEqual(["s-1", "s-2", "s-3", "s-5"])
+    // Proposed for a pipeline is not in one: s-4 is unplaced.
+    expect(ids("unplaced")).toEqual(["s-4"])
+  })
+
+  it("lists the rows the switch asks for", () => {
+    const rows = (scope: Parameters<typeof inScope>[1]) =>
+      summarise(network, undefined, scope).map((r) => [r.kind, r.id])
+    expect(rows("pipelines")).toEqual([
+      ["pipeline", "p-1"],
+      ["pipeline", "p-2"],
+      ["proposed", "p-3"],
+    ])
+    expect(rows("unplaced")).toEqual([
+      ["first-seen", firstSeenGroupId("ed-1937")],
+    ])
+    expect(rows("all")).toEqual([...rows("pipelines"), ...rows("unplaced")])
+    // The unplaced rows hold only sections in no pipeline.
+    expect(
+      summarise(network, undefined, "all")
+        .filter((r) => r.unassigned)
+        .flatMap((r) => r.sections.map((x) => x.id))
+    ).toEqual(["s-4"])
+    // With no pipelines the Pipelines list is empty, never a stand-in row.
+    expect(
+      summarise(
+        {
+          ...network,
+          pipelines: [],
+          sections: network.sections.map((x) => ({
+            ...x,
+            pipelineId: null,
+            proposedMemberships: [],
+          })),
+        },
+        undefined,
+        "pipelines"
+      )
+    ).toEqual([])
   })
 
   it("lists a pipeline's claims, one row per period, Unknown where none", () => {
@@ -431,12 +471,15 @@ describe("sections in no pipeline", () => {
     expect(firstEdition(network, network.sections[1])?.id).toBe("ed-1937")
   })
 
-  const looseGroups = () => summarise(loose, undefined, "sections")
+  const looseGroups = () => editionRows(loose)
 
-  it("puts them in one row when the list is by pipeline", () => {
-    expect(
-      summarise(loose).map((g) => [g.id, g.kind, g.name, g.sections.length])
-    ).toEqual([[NO_PIPELINE_ID, "group", "No pipeline", 5]])
+  it("lists them by edition, and no pipeline at all", () => {
+    expect(summarise(loose, undefined, "pipelines")).toEqual([])
+    expect(summarise(loose).map((g) => [g.kind, g.sections.length])).toEqual([
+      ["first-seen", 2],
+      ["first-seen", 3],
+    ])
+    expect(summarise(loose, undefined, "unplaced")).toEqual(summarise(loose))
     expect(summarise(loose)[0].unassigned).toBe(true)
   })
 

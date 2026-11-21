@@ -16,11 +16,12 @@ import { formatCount } from "@/data/derive"
 import { useSettings, useSettingsOpen } from "../settings"
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
-import { legendText, styleName } from "./line-style"
+import { legendText, LINE_WEIGHT, styleName } from "./line-style"
 
 /**
  * The map key, behind one button among the map controls: how each line is
- * drawn and what that means. Two of the lines can be hidden, each with its
+ * drawn and what that means: solid or dotted for status, heavy or thin for
+ * in a pipeline or in none. Two of the lines can be hidden, each with its
  * eye; the eyes belong to the map and do not filter the list. How a status
  * is drawn is chosen in Settings, which the link at the bottom opens.
  */
@@ -67,6 +68,16 @@ export function MapKey() {
               name={styleName("dotted")}
               meta={legendText(lineStyle, "dotted")}
               lineKey={<LineKey kind="dotted" />}
+            />
+            <LayerRow
+              name="Heavy"
+              meta="In a pipeline"
+              lineKey={<LineKey kind="solid" weight={LINE_WEIGHT.placed} />}
+            />
+            <LayerRow
+              name="Thin"
+              meta="Not in a pipeline"
+              lineKey={<LineKey kind="solid" weight={LINE_WEIGHT.unplaced} />}
             />
             <LayerRow
               name="Dashed"

@@ -1,10 +1,10 @@
 import { z } from "zod"
 
 import {
-  LIST_KINDS,
-  MEMBERSHIPS,
-  type ListKind,
-  type Membership,
+  PROPOSED_ENDS,
+  SCOPES,
+  type ProposedEndKind,
+  type Scope,
 } from "@/data/derive"
 import { STATUSES, type SectionStatus } from "@/data/status"
 
@@ -12,11 +12,14 @@ import { useCamera, useStudio } from "./studio-store"
 
 /*
  * The view in the address bar, so a link shows another person the same set:
- * the grouping, the status, the filters, the search, whether the list follows
+ * the switch (All, Pipelines, Unplaced), the status, the filters, the search, whether the list follows
  * the map, where the map is, and the one section in focus. Not the layout:
  * panel widths, layer switches and Settings stay with each person.
  *
- * Keys are short. A value that cannot be read is dropped, never thrown.
+ * Keys are short. A value that cannot be read is dropped, never thrown. So
+ * is what an older link carried and the screen no longer has: the grouping
+ * (`l`), the Pipeline filter (`pm`), the First seen range (`f`) and the
+ * edition in force (`e`). Such a link opens on All.
  */
 
 export interface UrlView {
@@ -29,9 +32,11 @@ export interface UrlView {
   addedFrom: string | null
   addedTo: string | null
   unknownIn: string[]
-  memberships: Membership[]
-  firstSeenFrom: number | null
-  firstSeenTo: number | null
+  /** Edition ids. */
+  firstSeenEditions: string[]
+  lengthFrom: number | null
+  lengthTo: number | null
+  proposedEnd: ProposedEndKind[]
   changedOnly: boolean
   diameters: string[]
   states: string[]
@@ -40,8 +45,8 @@ export interface UrlView {
   camera: { lng: number; lat: number; zoom: number } | null
   /** The one section in focus. A selection of several is not carried. */
   section: string | null
-  /** How the list is grouped; null leaves it to the data. */
-  list: ListKind | null
+  /** What the switch above the list shows. */
+  scope: Scope
   /** The pipeline selected as a whole. */
   pipeline: string | null
 }
@@ -56,16 +61,17 @@ export const DEFAULT_VIEW: UrlView = {
   addedFrom: null,
   addedTo: null,
   unknownIn: [],
-  memberships: [],
-  firstSeenFrom: null,
-  firstSeenTo: null,
+  firstSeenEditions: [],
+  lengthFrom: null,
+  lengthTo: null,
+  proposedEnd: [],
   changedOnly: false,
   diameters: [],
   states: [],
   followMap: true,
   camera: null,
   section: null,
-  list: null,
+  scope: "all",
   pipeline: null,
 }
 
@@ -85,10 +91,11 @@ export function toSearchParams(view: UrlView): URLSearchParams {
     params.set("a", `${view.addedFrom ?? ""}~${view.addedTo ?? ""}`)
   }
   for (const attribute of view.unknownIn) params.append("u", attribute)
-  for (const m of view.memberships) params.append("pm", m)
-  if (view.firstSeenFrom !== null || view.firstSeenTo !== null) {
-    params.set("f", `${view.firstSeenFrom ?? ""}-${view.firstSeenTo ?? ""}`)
+  for (const id of view.firstSeenEditions) params.append("fe", id)
+  if (view.lengthFrom !== null || view.lengthTo !== null) {
+    params.set("len", `${view.lengthFrom ?? ""}-${view.lengthTo ?? ""}`)
   }
+  for (const kind of view.proposedEnd) params.append("pe", kind)
   if (view.changedOnly) params.set("ch", "1")
   for (const d of view.diameters) params.append("d", d)
   for (const state of view.states) params.append("st", state)
@@ -97,7 +104,7 @@ export function toSearchParams(view: UrlView): URLSearchParams {
     const { lng, lat, zoom } = view.camera
     params.set("m", [round(lng, 4), round(lat, 4), round(zoom, 2)].join(","))
   }
-  if (view.list) params.set("l", view.list)
+  if (view.scope !== "all") params.set("sc", view.scope)
   if (view.pipeline) params.set("p", view.pipeline)
   else if (view.section) params.set("sel", view.section)
   return params
@@ -105,6 +112,7 @@ export function toSearchParams(view: UrlView): URLSearchParams {
 
 const status = z.enum(STATUSES)
 const year = z.coerce.number().int().min(1000).max(9999)
+const km = z.coerce.number().min(0).max(100000)
 const day = z.iso.date()
 const camera = z.tuple([
   z.coerce.number().min(-180).max(180),
@@ -126,30 +134,23 @@ export function fromSearchParams(params: URLSearchParams): UrlView {
   view.query = params.get("q") ?? ""
   view.companies = [...new Set(params.getAll("co").filter(Boolean))]
   view.unknownIn = [...new Set(params.getAll("u").filter(Boolean))]
-  view.memberships = [
-    ...new Set(
-      params
-        .getAll("pm")
-        .filter((m): m is Membership => MEMBERSHIPS.includes(m as Membership))
-    ),
-  ]
+  view.firstSeenEditions = [...new Set(params.getAll("fe").filter(Boolean))]
+  view.proposedEnd = PROPOSED_ENDS.filter((kind) =>
+    params.getAll("pe").includes(kind)
+  )
+  const length = params.get("len")?.split("-")
+  if (length?.length === 2) {
+    view.lengthFrom = read(km, length[0])
+    view.lengthTo = read(km, length[1])
+  }
   view.changedOnly = params.get("ch") === "1"
   view.diameters = [...new Set(params.getAll("d").filter(Boolean))]
   view.states = [...new Set(params.getAll("st").filter(Boolean))]
-  const seen = params.get("f")?.split("-")
-  if (seen?.length === 2) {
-    view.firstSeenFrom = read(year, seen[0])
-    view.firstSeenTo = read(year, seen[1])
-  } else {
-    // A link from when an edition was in force ("e=ed-1937") showed the
-    // network as of that year: what was first seen up to then.
-    view.firstSeenTo = read(year, params.get("e")?.match(/\d{4}$/)?.[0])
-  }
   view.followMap = params.get("v") !== "0"
   view.section = params.get("sel") || null
   view.pipeline = params.get("p") || null
-  const list = params.get("l")
-  view.list = LIST_KINDS.includes(list as ListKind) ? (list as ListKind) : null
+  const scope = params.get("sc")
+  view.scope = SCOPES.includes(scope as Scope) ? (scope as Scope) : "all"
 
   const built = params.get("b")?.split("-")
   if (built?.length === 2) {
@@ -183,9 +184,10 @@ export function currentView(): UrlView {
     addedFrom: s.addedFrom,
     addedTo: s.addedTo,
     unknownIn: [...s.unknownIn],
-    memberships: [...s.memberships],
-    firstSeenFrom: s.firstSeenFrom,
-    firstSeenTo: s.firstSeenTo,
+    firstSeenEditions: [...s.firstSeenEditions],
+    lengthFrom: s.lengthFrom,
+    lengthTo: s.lengthTo,
+    proposedEnd: [...s.proposedEnd],
     changedOnly: s.changedOnly,
     diameters: [...s.diameters],
     states: [...s.states],
@@ -195,7 +197,7 @@ export function currentView(): UrlView {
         ? { lng: center[0], lat: center[1], zoom }
         : null,
     section: s.selection.size === 1 ? s.selectedSectionId : null,
-    list: s.list,
+    scope: s.scope,
     pipeline: s.selectedPipelineId,
   }
 }
@@ -217,14 +219,15 @@ export function applyUrl(search: string): UrlView {
     addedFrom: view.addedFrom,
     addedTo: view.addedTo,
     unknownIn: view.unknownIn,
-    memberships: view.memberships,
-    firstSeenFrom: view.firstSeenFrom,
-    firstSeenTo: view.firstSeenTo,
+    firstSeenEditions: view.firstSeenEditions,
+    lengthFrom: view.lengthFrom,
+    lengthTo: view.lengthTo,
+    proposedEnd: view.proposedEnd,
     changedOnly: view.changedOnly,
     diameters: view.diameters,
     states: view.states,
     onlyInView: view.followMap,
-    list: view.list,
+    scope: view.scope,
   })
   if (view.camera) {
     useCamera.setState({

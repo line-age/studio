@@ -35,7 +35,7 @@ async function open() {
 }
 
 const list = () =>
-  screen.getByRole("listbox", { name: /^(Pipelines|Editions)$/ })
+  screen.getByRole("listbox", { name: /^(Network|Pipelines|Unplaced)$/ })
 const rows = () =>
   within(list())
     .getAllByRole("option")
@@ -67,6 +67,8 @@ describe("reviewing", () => {
       expect.stringContaining("North line"),
       expect.stringContaining("South line"),
       expect.stringContaining("P-003"),
+      // s-4 is in no pipeline yet, and proposed for P-003.
+      expect.stringContaining("1937 edition"),
     ])
 
     await user.click(screen.getByRole("option", { name: /North line/ }))
@@ -143,6 +145,8 @@ describe("reviewing", () => {
       expect.stringContaining("North line"),
       expect.stringContaining("South line"),
       expect.stringContaining("P-003"),
+      // s-4 is in no pipeline yet, and proposed for P-003.
+      expect.stringContaining("1937 edition"),
     ])
 
     await user.click(screen.getByRole("option", { name: /North line/ }))
@@ -193,6 +197,7 @@ describe("reviewing", () => {
     expect(rows()).toEqual([
       expect.stringContaining("North line"),
       expect.stringContaining("P-003"),
+      expect.stringContaining("1937 edition"),
     ])
 
     await user.click(screen.getByRole("option", { name: /North line/ }))
@@ -222,10 +227,10 @@ describe("reviewing", () => {
 
   it("works through the sections in no pipeline, one by one", async () => {
     const user = await open()
-    // Grouped by edition, every section is under the one that first shows it.
-    await user.click(screen.getByRole("combobox", { name: "Group by" }))
-    await user.click(await screen.findByRole("option", { name: "Edition" }))
-    const sections = screen.getByRole("listbox", { name: "Editions" })
+    // Unplaced: every section in no pipeline, under the edition that first
+    // shows it.
+    await user.click(screen.getByRole("tab", { name: "Unplaced" }))
+    const sections = screen.getByRole("listbox", { name: "Unplaced" })
     expect(
       screen.getByRole("combobox", { name: "Search name or code" })
     ).toBeVisible()
@@ -235,7 +240,7 @@ describe("reviewing", () => {
     )
     const section = screen.getByRole("treeitem", { name: /Unnamed section/ })
     expect(section).toHaveTextContent("0/2")
-    await user.click(section)
+    // The group's only section: it is open to its claims already.
     // In no pipeline, one proposed: the Pipeline row says so; no Owner row.
     const pipeline = rowOf("Unnamed section", "Pipeline")
     expect(pipeline).toHaveTextContent("Not yet P-003's")
@@ -256,26 +261,24 @@ describe("reviewing", () => {
           (button) => button.getAttribute("aria-label") ?? button.textContent
         )
     ).toEqual(["Close the claim", "ProposedAsk the Agent about this"])
-    expect(window.location.search).toContain("l=sections")
+    expect(window.location.search).toContain("sc=unplaced")
   })
 
-  it("groups the same sections another way, and keeps what was selected", async () => {
+  it("looks at only the unplaced sections, and keeps what was selected", async () => {
     const user = await open()
-    expect(screen.getByRole("heading", { name: "Pipelines" })).toBeVisible()
+    expect(screen.getByRole("heading", { name: "Network" })).toBeVisible()
     await user.click(screen.getByRole("option", { name: /North line/ }))
     const selected = [...useStudio.getState().selection]
 
-    await user.click(screen.getByRole("combobox", { name: "Group by" }))
-    await user.click(await screen.findByRole("option", { name: "Edition" }))
-    // The title, the column and the rows follow; nothing else changes.
-    expect(screen.getByRole("heading", { name: "Editions" })).toBeVisible()
-    expect(rows()).toEqual([
-      expect.stringContaining("1931 edition"),
-      expect.stringContaining("1937 edition"),
-    ])
+    await user.click(screen.getByRole("tab", { name: "Unplaced" }))
+    // The title, the column and the rows follow; the selection does not.
+    expect(screen.getByRole("heading", { name: "Unplaced" })).toBeVisible()
+    expect(rows()).toEqual([expect.stringContaining("1937 edition")])
     expect([...useStudio.getState().selection]).toEqual(selected)
-    expect(window.location.search).toContain("l=sections")
-    // There is no edition to choose: the whole network is always shown.
+    expect(window.location.search).toContain("sc=unplaced")
+    // The pipeline's sections are still read on the right, though hidden.
+    expect(screen.getByRole("heading", { name: "North line" })).toBeVisible()
+    // There is no edition to choose: no edition is in force.
     expect(screen.queryByRole("combobox", { name: /Edition/ })).toBeNull()
   })
 
@@ -305,26 +308,24 @@ describe("reviewing", () => {
     ).toHaveFocus()
   })
 
-  it("hands an edition to the Agent as its sections, which outlast a regrouping", async () => {
+  it("hands an edition to the Agent as its sections, which outlast the switch", async () => {
     const user = await open()
-    await user.click(screen.getByRole("combobox", { name: "Group by" }))
-    await user.click(await screen.findByRole("option", { name: "Edition" }))
     await user.pointer({
       keys: "[MouseRight]",
-      target: screen.getByRole("option", { name: /1931 edition/ }),
+      target: screen.getByRole("option", { name: /1937 edition/ }),
     })
     await user.click(
       await screen.findByRole("menuitem", { name: "Add to the Agent chat" })
     )
     // A group is only a way of listing: never "all" of it.
     expect(useStudio.getState().agentAttachments).toEqual([
-      { pipelineId: "unassigned:ed-1931", sectionIds: ["s-1", "s-5"] },
+      { pipelineId: "unassigned:ed-1937", sectionIds: ["s-4"] },
     ])
     const agent = screen.getByRole("complementary", { name: "agent" })
-    expect(within(agent).getByText("2 sections")).toBeVisible()
-    // Grouped by pipeline the same two sections are still attached.
-    act(() => useStudio.getState().setList("pipelines"))
-    expect(within(agent).getByText("2 sections")).toBeVisible()
+    expect(within(agent).getByText("Unnamed section")).toBeVisible()
+    // On Pipelines, where the edition has no row, it is still attached.
+    act(() => useStudio.getState().setScope("pipelines"))
+    expect(within(agent).getByText("Unnamed section")).toBeVisible()
   })
 
   it("loosens the rule and sees the work counted again", async () => {

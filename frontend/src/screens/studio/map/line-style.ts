@@ -7,6 +7,17 @@ import type { LineStyle } from "../settings"
  * in Settings. The map and its key both read it from here, so they agree.
  */
 
+/**
+ * How heavy a section's line is says whether it is in a pipeline: heavy when
+ * a person confirmed it part of one, thin when it is in none. Colour is not
+ * used for this, and solid and dotted keep saying status. The two weights,
+ * in map pixels; change them here and the map and its key follow.
+ */
+export const LINE_WEIGHT = { placed: 3.5, unplaced: 1.5 } as const
+
+/** A dotted line is drawn a little heavier than a solid one, to read as well. */
+export const DOTTED_EXTRA = 0.5
+
 /** The statuses drawn in this style, in their usual order. */
 export function statusesDrawn(
   lineStyle: Record<SectionStatus, LineStyle>,

@@ -98,52 +98,58 @@ describe("the search shortcut", () => {
 })
 
 describe("a shared link", () => {
-  it("opens on the same grouping, status, filters and section", async () => {
+  it("opens on the same switch, status, filters and section", async () => {
     window.history.replaceState(
       null,
       "",
-      "/?l=sections&s=not-started&u=Diameter&v=0&sel=s-2"
+      "/?s=not-started&u=Diameter&fe=ed-1937&v=0&sc=pipelines&sel=s-2"
     )
     await renderScreen()
     const s = useStudio.getState()
-    expect(screen.getByRole("listbox", { name: "Editions" })).toBeVisible()
+    expect(screen.getByRole("listbox", { name: "Pipelines" })).toBeVisible()
+    expect(screen.getByRole("tab", { name: "Pipelines" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
     expect(s.onlyInView).toBe(false)
     expect([...s.selection]).toEqual(["s-2"])
     const inForce = screen.getByRole("group", { name: "Filters in force" })
     expect(inForce).toHaveTextContent("Not started")
     expect(inForce).toHaveTextContent("Unknown diameter")
-    // The address stays as it was: nothing was lost on the way in.
+    // The address stays as it was: nothing was lost on the way in, the
+    // edition filter that waits on Pipelines among it.
+    expect(s.firstSeenEditions).toEqual(["ed-1937"])
     expect(window.location.search).toBe(
-      "?l=sections&s=not-started&u=Diameter&v=0&sel=s-2"
+      "?s=not-started&u=Diameter&fe=ed-1937&v=0&sc=pipelines&sel=s-2"
     )
   })
 
-  it("opens an old link that names an edition as first seen up to it", async () => {
-    window.history.replaceState(null, "", "/?e=ed-1931")
+  it("opens an older link on All, without the grouping or edition it named", async () => {
+    window.history.replaceState(null, "", "/?l=sections&e=ed-1931&pm=in")
     await renderScreen()
-    expect(useStudio.getState().firstSeenTo).toBe(1931)
-    expect(
-      screen.getByRole("group", { name: "Filters in force" })
-    ).toHaveTextContent("First seen 1931 or earlier")
-    // The next change writes the address without the edition.
+    expect(useStudio.getState().scope).toBe("all")
+    expect(screen.getByRole("listbox", { name: "Network" })).toBeVisible()
+    expect(screen.queryByRole("group", { name: "Filters in force" })).toBeNull()
+    // The next change writes the address without them.
     act(() => useStudio.getState().setOnlyInView(false))
-    expect(window.location.search).toBe("?f=-1931&v=0")
+    expect(window.location.search).toBe("?v=0")
   })
 
   it("ignores what the data does not have, and a broken link", async () => {
     window.history.replaceState(
       null,
       "",
-      "/?e=ed-1800&s=finished&co=Nobody+Ltd&u=Colour&sel=s-999&m=x"
+      "/?fe=ed-1800&s=finished&co=Nobody+Ltd&u=Colour&sel=s-999&m=x"
     )
     await renderScreen()
     const s = useStudio.getState()
     expect(s.status).toBe("all")
     expect(s.companies).toEqual([])
     expect(s.unknownIn).toEqual([])
+    expect(s.firstSeenEditions).toEqual([])
     expect(s.selection.size).toBe(0)
     expect(screen.queryByRole("group", { name: "Filters in force" })).toBeNull()
-    expect(screen.getByRole("listbox", { name: "Pipelines" })).toBeVisible()
+    expect(screen.getByRole("listbox", { name: "Network" })).toBeVisible()
   })
 })
 

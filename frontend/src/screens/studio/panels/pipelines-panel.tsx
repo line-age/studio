@@ -37,8 +37,8 @@ import {
   summaryProgress,
   type PipelineSummary,
   type SearchHit,
-  GROUPING,
-  MEMBERSHIP_LABEL,
+  PROPOSED_END_LABEL,
+  SCOPE,
 } from "@/data/derive"
 import { STATUS_LABEL } from "@/data/status"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
@@ -59,17 +59,18 @@ import { usePanelWidth } from "../panel-width-context"
 import {
   filtersApplied,
   listFollowsMap,
+  sectionFiltersPaused,
   useCamera,
   useStudio,
 } from "../studio-store"
 import { FiltersPanel } from "./filters-panel"
-import { GroupBySelect } from "./group-by-select"
 import { listColumns } from "./list-columns"
+import { ScopeSwitch } from "./scope-switch"
 
 export const SEARCH_INPUT_ID = "pipeline-search"
 
 export function PipelinesPanel() {
-  const { summaries, everySection, list } = useStudioData()
+  const { summaries, scoped, scope, network } = useStudioData()
   const visible = useVisiblePipelines()
   const { hits, outside } = useSearchHits()
   const whole = useStudio((s) => s.searchWholeEdition)
@@ -93,11 +94,16 @@ export function PipelinesPanel() {
   const setCompanies = useStudio((s) => s.setCompanies)
   const setBuilt = useStudio((s) => s.setBuilt)
   const setAdded = useStudio((s) => s.setAdded)
-  const memberships = useStudio((s) => s.memberships)
-  const setMemberships = useStudio((s) => s.setMemberships)
-  const firstSeenFrom = useStudio((s) => s.firstSeenFrom)
-  const firstSeenTo = useStudio((s) => s.firstSeenTo)
-  const setFirstSeen = useStudio((s) => s.setFirstSeen)
+  // On Pipelines the filters about a section on its own are paused: kept,
+  // not in force, and not shown as chips.
+  const paused = useStudio(sectionFiltersPaused)
+  const firstSeenEditions = useStudio((s) => s.firstSeenEditions)
+  const setFirstSeenEditions = useStudio((s) => s.setFirstSeenEditions)
+  const lengthFrom = useStudio((s) => s.lengthFrom)
+  const lengthTo = useStudio((s) => s.lengthTo)
+  const setLength = useStudio((s) => s.setLength)
+  const proposedEnd = useStudio((s) => s.proposedEnd)
+  const setProposedEnd = useStudio((s) => s.setProposedEnd)
   const changedOnly = useStudio((s) => s.changedOnly)
   const setChangedOnly = useStudio((s) => s.setChangedOnly)
   const diameters = useStudio((s) => s.diameters)
@@ -141,12 +147,15 @@ export function PipelinesPanel() {
     const pick = (counts: ReturnType<typeof filterCounts>) =>
       criteria.status === "all" ? counts.all : counts.status[criteria.status]
     return {
-      inView: pick(filterCounts(everySection, criteria, view)),
-      all: pick(filterCounts(everySection, criteria)),
+      inView: pick(filterCounts(scoped, criteria, view)),
+      all: pick(filterCounts(scoped, criteria)),
     }
-  }, [everySection, criteria, view])
+  }, [scoped, criteria, view])
 
   const searching = query.trim().length > 0
+  const pipelineCount = summaries.filter(
+    (row) => row.kind === "pipeline"
+  ).length
   const activeIndex = Math.min(active, Math.max(hits.length - 1, 0))
 
   // The filters in force, each with the way to take it off. A search stays
@@ -216,32 +225,45 @@ export function PipelinesPanel() {
         remove: () => setChangedOnly(false),
       })
     }
-    if (memberships.length > 0) {
-      chips.push({
-        label: memberships.map((m) => MEMBERSHIP_LABEL[m]).join(" or "),
-        hint: "Only sections that stand this way with pipelines.",
-        remove: () => setMemberships([]),
-      })
-    }
-    if (firstSeenFrom !== null || firstSeenTo !== null) {
+    if (!paused && firstSeenEditions.length > 0) {
+      const labels = firstSeenEditions.map(
+        (id) => network.editions.find((e) => e.id === id)?.label ?? id
+      )
       chips.push({
         label:
-          firstSeenFrom !== null && firstSeenTo !== null
-            ? firstSeenFrom === firstSeenTo
-              ? `First seen ${firstSeenFrom}`
-              : `First seen ${firstSeenFrom} to ${firstSeenTo}`
-            : firstSeenFrom !== null
-              ? `First seen ${firstSeenFrom} or later`
-              : `First seen ${firstSeenTo} or earlier`,
-        hint: "Only sections a map of these years first shows.",
-        remove: () => setFirstSeen(null, null),
+          labels.length === 1
+            ? `First shown by the ${labels[0]}`
+            : `First shown by ${plural(labels.length, "edition")}`,
+        hint: `Only sections first shown by the ${labels.join(", the ")}.`,
+        remove: () => setFirstSeenEditions([]),
       })
     }
-    if (states.length > 0) {
+    if (!paused && states.length > 0) {
       chips.push({
         label: states.length === 1 ? states[0] : plural(states.length, "state"),
         hint: `Only sections that run through ${states.join(", ")}.`,
         remove: () => setStates([]),
+      })
+    }
+    if (!paused && (lengthFrom !== null || lengthTo !== null)) {
+      chips.push({
+        label:
+          lengthFrom !== null && lengthTo !== null
+            ? `${formatCount(lengthFrom)} to ${formatCount(lengthTo)} km`
+            : lengthFrom !== null
+              ? `${formatCount(lengthFrom)} km or longer`
+              : `${formatCount(lengthTo ?? 0)} km or shorter`,
+        hint: "Only sections whose line is this long, measured along the route as traced.",
+        remove: () => setLength(null, null),
+      })
+    }
+    if (!paused && proposedEnd.length > 0) {
+      chips.push({
+        label: `Proposed end: ${proposedEnd
+          .map((kind) => PROPOSED_END_LABEL[kind].toLocaleLowerCase())
+          .join(" or ")}`,
+        hint: "Only sections a tool proposes an end for.",
+        remove: () => setProposedEnd([]),
       })
     }
     if (diameters.length > 0) {
@@ -286,15 +308,16 @@ export function PipelinesPanel() {
   return (
     <>
       <PanelHeader
-        title={GROUPING[list].title}
-        // Sections, however the list is grouped: a row count would change
-        // with the grouping while the same sections are shown.
+        title={SCOPE[scope].title}
+        // Sections, whatever the rows are; on Pipelines, the pipelines too.
         meta={
           searching
             ? `${formatCount(hits.length)} match`
             : onlyInView && shown.inView < shown.all
               ? `${formatCount(shown.inView)} of ${formatCount(shown.all)} in view`
-              : plural(shown.all, "section")
+              : scope === "pipelines"
+                ? `${plural(pipelineCount, "pipeline")} · ${plural(shown.all, "section")}`
+                : plural(shown.all, "section")
         }
       >
         {panelWidth && (
@@ -313,9 +336,9 @@ export function PipelinesPanel() {
       </PanelHeader>
 
       <div className="flex shrink-0 flex-col gap-2 border-b px-3 pb-2.5">
-        {/* One area of the Help tour: the grouping, the search, the filters. */}
+        {/* One area of the Help tour: the switch, the search, the filters. */}
         <div data-tour="list-tools" className="flex flex-col gap-2">
-          <GroupBySelect />
+          <ScopeSwitch />
           <div className="flex items-center gap-1.5">
             <div className="relative min-w-0 flex-1">
               <Icon
@@ -501,9 +524,9 @@ interface ListSearch {
 }
 
 /**
- * The list, grouped one of two ways. By pipeline: the pipelines, the
- * proposed ones, then the sections in no pipeline as one row. By edition:
- * every section under the edition that first shows it. A search narrows the
+ * The list, as the switch has it. The pipelines, then the proposed ones,
+ * then the sections in no pipeline under the edition that first shows each.
+ * On Pipelines only the first two; on Unplaced only the last. A search narrows the
  * same list to its hits and lists the sections it found under each one.
  */
 function PipelineList({
@@ -515,7 +538,7 @@ function PipelineList({
   total: number
   search: ListSearch | null
 }) {
-  const { list } = useStudioData()
+  const { scope } = useStudioData()
   const rule = useSettings((s) => s.requiredAttributes)
   const groups = useSelectionGroups()
   const select = useStudio((s) => s.select)
@@ -613,9 +636,10 @@ function PipelineList({
   const allShown =
     rows.length > 0 &&
     rows.every((row) => checkedOf.get(row.summary.id) === "checked")
-  const column = GROUPING[list].by
-  // Only a pipeline has a code; an edition does not.
-  const hasCodes = list === "pipelines"
+  const column = SCOPE[scope].column
+  // Only a pipeline has a code and a progress; an edition has neither, and
+  // leaves those columns empty where pipelines are listed with it.
+  const hasCodes = scope !== "unplaced"
   // "Done" is about pipelines; a group in no pipeline shows its size there.
   const panelWidth = usePanelWidth()
   const columns = listColumns(panelWidth?.width ?? 0, rule)
@@ -677,7 +701,7 @@ function PipelineList({
                   <>
                     {hasCodes && (
                       <ListCell column="code" className="type-ui-mono-xs">
-                        {summary.code}
+                        {summary.unassigned ? "" : summary.code}
                       </ListCell>
                     )}
                     <ListCell column="sections">
@@ -868,11 +892,11 @@ function PipelineList({
         ref={listRef}
         id="pipeline-search-results"
         role="listbox"
-        aria-label={search ? "Search results" : GROUPING[list].title}
+        aria-label={search ? "Search results" : SCOPE[scope].title}
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         onKeyDown={moveRovingFocus}
       >
-        {list === "pipelines" && inPipelines.length > 0 && (
+        {scope !== "unplaced" && inPipelines.length > 0 && (
           <ListGroupHeader count={formatCount(inPipelines.length)}>
             Pipelines
           </ListGroupHeader>
@@ -884,7 +908,7 @@ function PipelineList({
           </ListGroupHeader>
         )}
         {proposed.map(renderRow)}
-        {list === "pipelines" && loose.length > 0 && (
+        {scope === "all" && loose.length > 0 && (
           // Counts sections, as the rows under it do, not the rows.
           <ListGroupHeader
             count={formatCount(
@@ -904,7 +928,11 @@ function PipelineList({
           ) : (
             <Hint className="p-3">
               {total === 0
-                ? "This network has no sections."
+                ? scope === "pipelines"
+                  ? NO_PIPELINES
+                  : scope === "unplaced"
+                    ? "Every section is in a pipeline."
+                    : "This network has no sections."
                 : onlyInView
                   ? "Nothing in the map view. Zoom out or pan, or switch off “List follows the map” on the map."
                   : "Nothing matches the filters."}
@@ -914,6 +942,10 @@ function PipelineList({
     </>
   )
 }
+
+/** What the Pipelines list says while the data has none (Figma `419:15535`). */
+const NO_PIPELINES =
+  "No pipelines yet. A pipeline is several sections that a person confirmed belong together. To make one, select sections and choose Make pipeline in the right-click menu, or ask the Agent to propose one. Every section is under Unplaced until then."
 
 function CameraStatus() {
   const zoom = useCamera((s) => s.zoom)

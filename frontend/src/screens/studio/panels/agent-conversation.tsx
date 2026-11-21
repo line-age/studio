@@ -53,7 +53,7 @@ function useOpenAgentRef(): (ref: AgentAnswerRef) => void {
   const selectAttribute = useStudio((s) => s.selectAttribute)
   const selectSection = useStudio((s) => s.selectSection)
   const selectPipeline = useStudio((s) => s.selectPipeline)
-  const setList = useStudio((s) => s.setList)
+  const showPipelines = useStudio((s) => s.showPipelines)
   const requestFit = useStudio((s) => s.requestFit)
   return (ref) => {
     const featureId = ref.type === "feature" ? ref.id : ref.feature_id
@@ -63,7 +63,7 @@ function useOpenAgentRef(): (ref: AgentAnswerRef) => void {
       const members = network.sections.filter(
         (s) => s.pipelineId === pipeline.id
       )
-      setList("pipelines")
+      showPipelines()
       selectPipeline(
         pipeline.id,
         members.map((s) => s.id)

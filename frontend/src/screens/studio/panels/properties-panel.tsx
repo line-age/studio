@@ -98,13 +98,13 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
     new Set()
   )
   const [editTarget, setEditTarget] = useState<Section[]>([])
-  const setList = useStudio((s) => s.setList)
+  const showPipelines = useStudio((s) => s.showPipelines)
   const selectPipeline = useStudio((s) => s.selectPipeline)
   const pipelineById = new Map(network.pipelines.map((p) => [p.id, p]))
-  // "On the pipeline" leads there: the list by pipeline, that one whole.
+  // "On the pipeline" leads there: the pipelines in the list, that one whole.
   const openPipeline = (pipelineId: string) => {
     const members = network.sections.filter((s) => s.pipelineId === pipelineId)
-    setList("pipelines")
+    showPipelines()
     selectPipeline(
       pipelineId,
       members.map((s) => s.id)

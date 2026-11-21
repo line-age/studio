@@ -8,6 +8,7 @@ import { Icon } from "@/components/icons/icon"
 import { PanelFooter } from "@/components/panel-footer"
 import { PanelHeader } from "@/components/panel-header"
 import { YearPicker } from "@/components/year-picker"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -24,13 +25,6 @@ import {
 } from "@/components/ui/combobox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   addedSpan,
   attributeNames,
   buildYearSpan,
@@ -38,11 +32,17 @@ import {
   diameterOf,
   filterCounts,
   formatCount,
-  MEMBERSHIP_LABEL,
-  MEMBERSHIPS,
-  membershipOf,
+  buildYear,
+  canNarrow,
+  firstSeenEditionId,
+  lengthKm,
   optionCounts,
+  passingWithout,
   plural,
+  PROPOSED_END_LABEL,
+  proposedEndKinds,
+  rangeNarrows,
+  PROPOSED_ENDS,
   unknownAttributesOf,
 } from "@/data/derive"
 import { STATUSES, STATUS_LABEL } from "@/data/status"
@@ -50,15 +50,23 @@ import { cn } from "@/lib/utils"
 
 import { HidePanels } from "../panel-toggle"
 import { useCriteria, useStudioData } from "../studio-data"
-import { filtersApplied, useStudio } from "../studio-store"
+import {
+  filtersApplied,
+  sectionFiltersPaused,
+  useStudio,
+} from "../studio-store"
 
 /*
  * The second level of the list panel: every filter on one screen, in place
  * of the list, with the way back and a live count (the owner, 2026-11-13).
- * Every group always shows; with nothing to choose from it says so in one
- * line, so a filter never seems to be missing. The counts beside options
- * are sections of the whole edition with the other filters on: what
- * choosing that option would show.
+ * A group shows while it is on, or while it can narrow what the switch
+ * shows: one of its choices would leave some sections and not all of them
+ * (the owner, 2026-11-21). A filter with nothing to tell apart, as on data
+ * that has no diameters yet, is left out and comes back by itself. Status
+ * always shows. The filters about a section on its own (first shown by,
+ * state, length, proposed end) are offered on All and on Unplaced only. The
+ * counts beside options are sections the switch shows with the other filters
+ * on: what choosing that option would show.
  */
 
 function Group({
@@ -171,15 +179,21 @@ function CheckList({
 /** Many options: type to find one; the chosen ones stay as chips. */
 function MultiPick({
   noun,
+  placeholder = `Search ${noun}`,
   options,
   value,
   onChange,
+  name = (option) => option,
 }: {
   /** "companies", "states": for the search box and its empty line. */
   noun: string
+  /** What the empty search box says. */
+  placeholder?: string
   options: { name: string; count: number }[]
   value: readonly string[]
   onChange: (next: string[]) => void
+  /** How an option reads, when its value is a key. Typing finds it by this. */
+  name?: (option: string) => string
 }) {
   const anchor = useComboboxAnchor()
   const names = useMemo(() => options.map((o) => o.name), [options])
@@ -193,6 +207,7 @@ function MultiPick({
       autoHighlight
       limit={50}
       items={names}
+      itemToStringLabel={name}
       value={value as string[]}
       onValueChange={(next) => onChange(next)}
     >
@@ -200,14 +215,14 @@ function MultiPick({
         <ComboboxValue>
           {(chosen: string[]) => (
             <>
-              {chosen.map((name) => (
-                <ComboboxChip key={name} aria-label={name}>
-                  <span className="max-w-44 truncate">{name}</span>
+              {chosen.map((option) => (
+                <ComboboxChip key={option} aria-label={name(option)}>
+                  <span className="max-w-44 truncate">{name(option)}</span>
                 </ComboboxChip>
               ))}
               <ComboboxChipsInput
                 aria-label={`Search ${noun}`}
-                placeholder={chosen.length === 0 ? `Search ${noun}` : ""}
+                placeholder={chosen.length === 0 ? placeholder : ""}
               />
             </>
           )}
@@ -216,11 +231,11 @@ function MultiPick({
       <ComboboxContent anchor={anchor}>
         <ComboboxEmpty>Nothing matches.</ComboboxEmpty>
         <ComboboxList>
-          {(name: string) => (
-            <ComboboxItem key={name} value={name}>
-              <span className="min-w-0 flex-1 truncate">{name}</span>
+          {(option: string) => (
+            <ComboboxItem key={option} value={option}>
+              <span className="min-w-0 flex-1 truncate">{name(option)}</span>
               <span className="type-ui-mono-xs text-muted-foreground">
-                {formatCount(countOf.get(name) ?? 0)}
+                {formatCount(countOf.get(option) ?? 0)}
               </span>
             </ComboboxItem>
           )}
@@ -230,45 +245,33 @@ function MultiPick({
   )
 }
 
-const ANY = "any"
-
-/** One end of a range of edition years. */
-function EditionYear({
+/** One end of a range of lengths, in whole km. Empty asks for nothing. */
+function Km({
   label,
   placeholder,
-  years,
   value,
   onChange,
 }: {
   label: string
   placeholder: string
-  years: number[]
   value: number | null
-  onChange: (year: number | null) => void
+  onChange: (km: number | null) => void
 }) {
-  const items = [
-    { value: ANY, label: placeholder },
-    ...years.map((y) => ({ value: String(y), label: String(y) })),
-  ]
   return (
-    <Select
-      items={items}
-      value={value === null ? ANY : String(value)}
-      onValueChange={(next) =>
-        onChange(!next || next === ANY ? null : Number(next))
-      }
-    >
-      <SelectTrigger size="sm" aria-label={label} className="min-w-0 flex-1">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {items.map((item) => (
-          <SelectItem key={item.value} value={item.value}>
-            {item.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <Input
+      type="number"
+      inputMode="numeric"
+      min={0}
+      step={1}
+      aria-label={label}
+      placeholder={placeholder}
+      value={value ?? ""}
+      onChange={(event) => {
+        const km = event.target.valueAsNumber
+        onChange(Number.isFinite(km) && km >= 0 ? km : null)
+      }}
+      className="h-7 min-w-0 flex-1"
+    />
   )
 }
 
@@ -283,7 +286,13 @@ const THIS_YEAR = new Date().getFullYear()
  * in sight while they are set. `onBack` returns to the list.
  */
 export function FiltersPanel({ onBack }: { onBack: () => void }) {
-  const { everySection: summaries, owners, network, statesOf } = useStudioData()
+  const {
+    scoped: summaries,
+    owners,
+    network,
+    statesOf,
+    editionYears,
+  } = useStudioData()
   const criteria = useCriteria()
   // Only what this view reads, so panning the map does not redraw it.
   const s = useStudio(
@@ -291,9 +300,10 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
       status: x.status,
       needsDecisionOnly: x.needsDecisionOnly,
       changedOnly: x.changedOnly,
-      memberships: x.memberships,
-      firstSeenFrom: x.firstSeenFrom,
-      firstSeenTo: x.firstSeenTo,
+      firstSeenEditions: x.firstSeenEditions,
+      lengthFrom: x.lengthFrom,
+      lengthTo: x.lengthTo,
+      proposedEnd: x.proposedEnd,
       states: x.states,
       companies: x.companies,
       diameters: x.diameters,
@@ -305,8 +315,9 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
       setStatus: x.setStatus,
       setNeedsDecisionOnly: x.setNeedsDecisionOnly,
       setChangedOnly: x.setChangedOnly,
-      setMemberships: x.setMemberships,
-      setFirstSeen: x.setFirstSeen,
+      setFirstSeenEditions: x.setFirstSeenEditions,
+      setLength: x.setLength,
+      setProposedEnd: x.setProposedEnd,
       setStates: x.setStates,
       setCompanies: x.setCompanies,
       setDiameters: x.setDiameters,
@@ -317,6 +328,8 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
     }))
   )
   const filtered = useStudio(filtersApplied)
+  // On Pipelines the filters about a section on its own are not offered.
+  const paused = useStudio(sectionFiltersPaused)
 
   // Sections of the whole edition, after the other filters. They never
   // follow the map: moving it or opening the table does not change them.
@@ -327,13 +340,54 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
   const matching =
     criteria.status === "all" ? counts.all : counts.status[criteria.status]
 
-  const memberships = useMemo(() => {
-    const found = optionCounts(summaries, criteria, "memberships", (x) => [
-      membershipOf(x),
-    ])
+  // How many sections each group has to choose among: what passes every
+  // filter but its own. A choice that leaves all of them narrows nothing.
+  const among = (without: Parameters<typeof passingWithout>[2]) =>
+    passingWithout(summaries, criteria, without)
+  const editionLabel = (id: string) =>
+    network.editions.find((e) => e.id === id)?.label ?? id
+  const editions = useMemo(() => {
+    const found = optionCounts(
+      summaries,
+      criteria,
+      "firstSeenEditions",
+      (x) => {
+        const first = firstSeenEditionId(x, editionYears)
+        return first === null ? [] : [first]
+      }
+    )
+    // Oldest first, as the list has them.
+    return found.sort(
+      (a, b) =>
+        (editionYears.get(a.name) ?? 0) - (editionYears.get(b.name) ?? 0)
+    )
+  }, [summaries, criteria, editionYears])
+  const ends = useMemo(() => {
+    const found = optionCounts(
+      summaries,
+      criteria,
+      "proposedEnd",
+      proposedEndKinds
+    )
     const count = new Map(found.map((o) => [o.name, o.count]))
-    return MEMBERSHIPS.map((m) => ({ name: m, count: count.get(m) ?? 0 }))
+    return PROPOSED_ENDS.map((kind) => ({
+      name: kind as string,
+      count: count.get(kind) ?? 0,
+    }))
   }, [summaries, criteria])
+  // The shortest and the longest line the switch shows, in whole km.
+  const lengths = useMemo(() => {
+    let min = Infinity
+    let max = -Infinity
+    for (const summary of summaries) {
+      for (const section of summary.sections) {
+        const km = lengthKm(section)
+        if (km < min) min = km
+        if (km > max) max = km
+      }
+    }
+    return min <= max ? ([Math.floor(min), Math.ceil(max)] as const) : null
+  }, [summaries])
   const changed = useMemo(
     () =>
       optionCounts(summaries, criteria, "changedOnly", (x) =>
@@ -378,13 +432,46 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
       count: count.get(name) ?? 0,
     }))
   }, [summaries, criteria])
-  const editionYears = useMemo(
-    () =>
-      [...new Set(network.editions.map((e) => e.year))].sort((a, b) => a - b),
-    [network]
-  )
   const span = useMemo(() => buildYearSpan(summaries), [summaries])
   const added = useMemo(() => addedSpan(summaries), [summaries])
+
+  // Which groups show: on, or able to narrow what the switch shows.
+  const show = {
+    editions:
+      !paused &&
+      (s.firstSeenEditions.length > 0 ||
+        canNarrow(editions, among("firstSeenEditions"))),
+    states:
+      !paused && (s.states.length > 0 || canNarrow(states, among("states"))),
+    length:
+      !paused &&
+      (s.lengthFrom !== null ||
+        s.lengthTo !== null ||
+        (lengths !== null && lengths[0] < lengths[1])),
+    ends:
+      !paused &&
+      (s.proposedEnd.length > 0 || canNarrow(ends, among("proposedEnd"))),
+    companies:
+      s.companies.length > 0 || canNarrow(companies, among("companies")),
+    diameters:
+      s.diameters.length > 0 || canNarrow(diameters, among("diameters")),
+    // A range narrows when the years differ, or some section has none.
+    built:
+      s.builtFrom !== null ||
+      s.builtTo !== null ||
+      (span !== null && rangeNarrows(summaries, buildYear)),
+    added:
+      s.addedFrom !== null ||
+      s.addedTo !== null ||
+      (added !== null && rangeNarrows(summaries, (x) => x.addedAt)),
+    unknownIn:
+      s.unknownIn.length > 0 || canNarrow(attributes, among("unknownIn")),
+    needsDecision:
+      s.needsDecisionOnly ||
+      (counts.needsDecision > 0 && counts.needsDecision < matching),
+    changed:
+      s.changedOnly || canNarrow([{ count: changed }], among("changedOnly")),
+  }
 
   return (
     <>
@@ -438,204 +525,238 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
                 />
               ))}
             </RadioGroup>
-            <OptionRow
-              control={
-                <Checkbox
-                  checked={s.needsDecisionOnly}
-                  onCheckedChange={(on) => s.setNeedsDecisionOnly(on === true)}
-                />
-              }
-              label="Needs your decision"
-              count={counts.needsDecision}
-              selected={s.needsDecisionOnly}
-            />
-            <OptionRow
-              control={
-                <Checkbox
-                  checked={s.changedOnly}
-                  onCheckedChange={(on) => s.setChangedOnly(on === true)}
-                />
-              }
-              label="Changed since review"
-              count={changed}
-              selected={s.changedOnly}
-            />
+            {show.needsDecision && (
+              <OptionRow
+                control={
+                  <Checkbox
+                    checked={s.needsDecisionOnly}
+                    onCheckedChange={(on) =>
+                      s.setNeedsDecisionOnly(on === true)
+                    }
+                  />
+                }
+                label="Needs your decision"
+                count={counts.needsDecision}
+                selected={s.needsDecisionOnly}
+              />
+            )}
+            {show.changed && (
+              <OptionRow
+                control={
+                  <Checkbox
+                    checked={s.changedOnly}
+                    onCheckedChange={(on) => s.setChangedOnly(on === true)}
+                  />
+                }
+                label="Changed since review"
+                count={changed}
+                selected={s.changedOnly}
+              />
+            )}
           </div>
         </Group>
 
-        <Group
-          title="Pipeline"
-          on={s.memberships.length > 0}
-          onClear={() => s.setMemberships([])}
-        >
-          <CheckList
-            label="Pipeline"
-            options={memberships}
-            value={s.memberships}
-            onChange={(next) => s.setMemberships(next as typeof s.memberships)}
-            name={(m) => MEMBERSHIP_LABEL[m as keyof typeof MEMBERSHIP_LABEL]}
-          />
-        </Group>
-
-        <Group
-          title="First seen"
-          on={s.firstSeenFrom !== null || s.firstSeenTo !== null}
-          onClear={() => s.setFirstSeen(null, null)}
-        >
-          <div className="flex items-center gap-2">
-            <EditionYear
-              label="First seen from edition"
-              placeholder="From"
-              years={editionYears.filter(
-                (y) => s.firstSeenTo === null || y <= s.firstSeenTo
-              )}
-              value={s.firstSeenFrom}
-              onChange={(year) => s.setFirstSeen(year, s.firstSeenTo)}
+        {show.editions && (
+          <Group
+            title="First shown by"
+            on={s.firstSeenEditions.length > 0}
+            onClear={() => s.setFirstSeenEditions([])}
+          >
+            <MultiPick
+              noun="editions"
+              placeholder="Type to find an edition"
+              options={editions}
+              value={s.firstSeenEditions}
+              onChange={s.setFirstSeenEditions}
+              name={editionLabel}
             />
-            <span className="type-ui-sm text-muted-foreground">to</span>
-            <EditionYear
-              label="First seen to edition"
-              placeholder="To"
-              years={editionYears.filter(
-                (y) => s.firstSeenFrom === null || y >= s.firstSeenFrom
-              )}
-              value={s.firstSeenTo}
-              onChange={(year) => s.setFirstSeen(s.firstSeenFrom, year)}
-            />
-          </div>
-        </Group>
+          </Group>
+        )}
 
-        <Group
-          title="State"
-          on={s.states.length > 0}
-          onClear={() => s.setStates([])}
-        >
-          {states.length === 0 ? (
-            <Hint>No section runs through a US state.</Hint>
-          ) : (
+        {show.states && (
+          <Group
+            title="State"
+            on={s.states.length > 0}
+            onClear={() => s.setStates([])}
+          >
             <MultiPick
               noun="states"
               options={states}
               value={s.states}
               onChange={s.setStates}
             />
-          )}
-        </Group>
+          </Group>
+        )}
 
-        <Group
-          title="Company"
-          on={s.companies.length > 0}
-          onClear={() => s.setCompanies([])}
-        >
-          {companies.length === 0 ? (
-            <Hint>No section or pipeline has a cited owner yet.</Hint>
-          ) : (
-            <MultiPick
-              noun="companies"
-              options={companies}
-              value={s.companies}
-              onChange={s.setCompanies}
-            />
-          )}
-        </Group>
-
-        <Group
-          title="Diameter"
-          on={s.diameters.length > 0}
-          onClear={() => s.setDiameters([])}
-        >
-          {diameters.length === 0 ? (
-            <Hint>No section has a cited diameter yet.</Hint>
-          ) : diameters.length > LONG_LIST ? (
-            <MultiPick
-              noun="diameters"
-              options={diameters}
-              value={s.diameters}
-              onChange={s.setDiameters}
-            />
-          ) : (
-            <CheckList
-              label="Diameter"
-              options={diameters}
-              value={s.diameters}
-              onChange={s.setDiameters}
-            />
-          )}
-        </Group>
-
-        <Group
-          title="Build date"
-          on={s.builtFrom !== null || s.builtTo !== null}
-          onClear={() => s.setBuilt(null, null)}
-        >
-          {!span ? (
-            <Hint>No section has a cited build date yet.</Hint>
-          ) : (
+        {show.length && (
+          <Group
+            title="Length"
+            on={s.lengthFrom !== null || s.lengthTo !== null}
+            onClear={() => s.setLength(null, null)}
+          >
             <div className="flex items-center gap-2">
-              <YearPicker
-                label="Built from year"
-                value={s.builtFrom}
-                onChange={(year) => s.setBuilt(year, s.builtTo)}
-                min={span[0]}
-                max={s.builtTo ?? THIS_YEAR}
-                first={span[0]}
-                placeholder="From"
+              <Km
+                label="Length from, km"
+                placeholder={lengths ? String(lengths[0]) : "From"}
+                value={s.lengthFrom}
+                onChange={(km) => s.setLength(km, s.lengthTo)}
               />
               <span className="type-ui-sm text-muted-foreground">to</span>
-              <YearPicker
-                label="Built to year"
-                value={s.builtTo}
-                onChange={(year) => s.setBuilt(s.builtFrom, year)}
-                min={s.builtFrom ?? span[0]}
-                first={span[0]}
-                max={THIS_YEAR}
-                placeholder="To"
+              <Km
+                label="Length to, km"
+                placeholder={lengths ? String(lengths[1]) : "To"}
+                value={s.lengthTo}
+                onChange={(km) => s.setLength(s.lengthFrom, km)}
               />
+              <span className="type-ui-sm text-muted-foreground">km</span>
             </div>
-          )}
-        </Group>
+          </Group>
+        )}
 
-        <Group
-          title="Added to Lineage"
-          on={s.addedFrom !== null || s.addedTo !== null}
-          onClear={() => s.setAdded(null, null)}
-        >
-          {!added ? (
-            <Hint>No section says when it was added.</Hint>
-          ) : (
-            <DateRangePicker
-              label="Added to Lineage"
-              from={s.addedFrom}
-              to={s.addedTo}
-              onChange={s.setAdded}
-              min={added[0]}
-              max={added[1]}
-            />
-          )}
-        </Group>
-
-        <Group
-          title="Unknown in"
-          on={s.unknownIn.length > 0}
-          onClear={() => s.unknownIn.forEach(s.toggleUnknownIn)}
-        >
-          {attributes.length === 0 ? (
-            <Hint>No section has an attribute yet.</Hint>
-          ) : (
+        {show.ends && (
+          <Group
+            title="Proposed end"
+            on={s.proposedEnd.length > 0}
+            onClear={() => s.setProposedEnd([])}
+          >
             <CheckList
-              label="Unknown in"
-              options={attributes}
-              value={s.unknownIn}
-              onChange={(next) => {
-                // A box toggles one attribute; find which one changed.
-                const changedName =
-                  next.find((n) => !s.unknownIn.includes(n)) ??
-                  s.unknownIn.find((n) => !next.includes(n))
-                if (changedName) s.toggleUnknownIn(changedName)
-              }}
+              label="Proposed end"
+              options={ends}
+              value={s.proposedEnd}
+              onChange={(next) =>
+                s.setProposedEnd(next as typeof s.proposedEnd)
+              }
+              name={(kind) =>
+                PROPOSED_END_LABEL[kind as keyof typeof PROPOSED_END_LABEL]
+              }
             />
-          )}
-        </Group>
+          </Group>
+        )}
+
+        {show.companies && (
+          <Group
+            title="Company"
+            on={s.companies.length > 0}
+            onClear={() => s.setCompanies([])}
+          >
+            {companies.length === 0 ? (
+              <Hint>No section or pipeline has a cited owner yet.</Hint>
+            ) : (
+              <MultiPick
+                noun="companies"
+                options={companies}
+                value={s.companies}
+                onChange={s.setCompanies}
+              />
+            )}
+          </Group>
+        )}
+
+        {show.diameters && (
+          <Group
+            title="Diameter"
+            on={s.diameters.length > 0}
+            onClear={() => s.setDiameters([])}
+          >
+            {diameters.length === 0 ? (
+              <Hint>No section has a cited diameter yet.</Hint>
+            ) : diameters.length > LONG_LIST ? (
+              <MultiPick
+                noun="diameters"
+                options={diameters}
+                value={s.diameters}
+                onChange={s.setDiameters}
+              />
+            ) : (
+              <CheckList
+                label="Diameter"
+                options={diameters}
+                value={s.diameters}
+                onChange={s.setDiameters}
+              />
+            )}
+          </Group>
+        )}
+
+        {show.built && (
+          <Group
+            title="Build date"
+            on={s.builtFrom !== null || s.builtTo !== null}
+            onClear={() => s.setBuilt(null, null)}
+          >
+            {!span ? (
+              <Hint>No section has a cited build date yet.</Hint>
+            ) : (
+              <div className="flex items-center gap-2">
+                <YearPicker
+                  label="Built from year"
+                  value={s.builtFrom}
+                  onChange={(year) => s.setBuilt(year, s.builtTo)}
+                  min={span[0]}
+                  max={s.builtTo ?? THIS_YEAR}
+                  first={span[0]}
+                  placeholder="From"
+                />
+                <span className="type-ui-sm text-muted-foreground">to</span>
+                <YearPicker
+                  label="Built to year"
+                  value={s.builtTo}
+                  onChange={(year) => s.setBuilt(s.builtFrom, year)}
+                  min={s.builtFrom ?? span[0]}
+                  first={span[0]}
+                  max={THIS_YEAR}
+                  placeholder="To"
+                />
+              </div>
+            )}
+          </Group>
+        )}
+
+        {show.added && (
+          <Group
+            title="Added to Lineage"
+            on={s.addedFrom !== null || s.addedTo !== null}
+            onClear={() => s.setAdded(null, null)}
+          >
+            {!added ? (
+              <Hint>No section says when it was added.</Hint>
+            ) : (
+              <DateRangePicker
+                label="Added to Lineage"
+                from={s.addedFrom}
+                to={s.addedTo}
+                onChange={s.setAdded}
+                min={added[0]}
+                max={added[1]}
+              />
+            )}
+          </Group>
+        )}
+
+        {show.unknownIn && (
+          <Group
+            title="Unknown in"
+            on={s.unknownIn.length > 0}
+            onClear={() => s.unknownIn.forEach(s.toggleUnknownIn)}
+          >
+            {attributes.length === 0 ? (
+              <Hint>No section has an attribute yet.</Hint>
+            ) : (
+              <CheckList
+                label="Unknown in"
+                options={attributes}
+                value={s.unknownIn}
+                onChange={(next) => {
+                  // A box toggles one attribute; find which one changed.
+                  const changedName =
+                    next.find((n) => !s.unknownIn.includes(n)) ??
+                    s.unknownIn.find((n) => !next.includes(n))
+                  if (changedName) s.toggleUnknownIn(changedName)
+                }}
+              />
+            )}
+          </Group>
+        )}
       </div>
 
       <PanelFooter className="justify-between gap-2">
