@@ -13,19 +13,25 @@ import { useCamera, useStudio } from "./studio-store"
  * is made in memory, so this runs without store.
  */
 
+const reads = vi.hoisted(() => ({ count: 0 }))
 vi.mock("@/data/load-network", async (original) => ({
   ...(await original<typeof import("@/data/load-network")>()),
-  loadNetwork: () => Promise.resolve(testNetwork()),
+  loadNetwork: () => {
+    reads.count += 1
+    return Promise.resolve(testNetwork())
+  },
 }))
 vi.mock("./map/map-area", () => ({ MapArea: () => null }))
 // The real change, counted: a decision pressed twice must be made once.
-const applied = vi.hoisted(() => ({ count: 0 }))
+const applied = vi.hoisted(() => ({ count: 0, decidedElsewhere: false }))
 vi.mock("@/data/changes", async (original) => {
   const real = await original<typeof import("@/data/changes")>()
+  const { WriteError } = await import("@/data/store/write")
   return {
     ...real,
     applyChange: (...args: Parameters<typeof real.applyChange>) => {
       applied.count += 1
+      if (applied.decidedElsewhere) throw new WriteError("decided")
       return real.applyChange(...args)
     },
   }
@@ -99,6 +105,27 @@ describe("a decision pressed twice", () => {
       accept.click()
     })
     expect(applied.count).toBe(1)
+  })
+})
+
+describe("a proposal someone else decided first", () => {
+  it("says so and reads the network again", async () => {
+    const user = await open()
+    await user.click(screen.getByRole("button", { name: /Agent/ }))
+    const inbox = within(agent())
+    await user.click(inbox.getByRole("button", { name: /proposals? waiting/ }))
+    const item = inbox.getByText("Diameter of Birch to Cedar").closest("li")!
+    applied.decidedElsewhere = true
+    const before = reads.count
+    try {
+      await user.click(
+        within(item as HTMLElement).getByRole("button", { name: "Accept" })
+      )
+    } finally {
+      applied.decidedElsewhere = false
+    }
+    expect(reads.count).toBe(before + 1)
+    expect(within(item as HTMLElement).queryByRole("alert")).toBeNull()
   })
 })
 

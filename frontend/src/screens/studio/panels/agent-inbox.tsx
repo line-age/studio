@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { toast } from "sonner"
 
 import { Icon } from "@/components/icons/icon"
 import { ProposalCard } from "@/components/proposal-card"
@@ -25,7 +26,7 @@ import type {
   ProposedEnd,
   Section,
 } from "@/data/schema"
-import { actionKey } from "@/data/store/write"
+import { actionKey, WriteError } from "@/data/store/write"
 
 import { useStudioData } from "../studio-data"
 
@@ -87,9 +88,13 @@ export function inboxItems(network: Network): Item[] {
     key: `pipeline:${decision.pipeline.id}`,
     decision,
   }))
+  // A detail read before the last write may still hold what was decided
+  // since: only what the network, read after it, still has waiting is shown.
   for (const section of network.sections) {
+    const open = new Set(section.proposedEnds.map((e) => e.id))
     for (const end of detailOf(section)?.proposedEnds ?? [])
-      items.push({ kind: "end", key: `end:${end.id}`, section, end })
+      if (open.has(end.id))
+        items.push({ kind: "end", key: `end:${end.id}`, section, end })
   }
   const claimsOf = (
     owner: "section" | "pipeline",
@@ -122,7 +127,11 @@ export function inboxItems(network: Network): Item[] {
       "section",
       section.id,
       sectionLabel(section),
-      detailOf(section)?.claims ?? []
+      (detailOf(section)?.claims ?? []).filter(
+        (c) =>
+          (section.values.find((v) => v.attribute === c.attribute)?.proposals ??
+            0) > 0
+      )
     )
   return items
 }
@@ -346,7 +355,7 @@ function Decide({
   confirm: { label: string; change: Change } | null
   reject: { label: string; change: Change }
 }) {
-  const { change } = useStudioData()
+  const { change, reload } = useStudioData()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const key = useRef(actionKey())
@@ -361,6 +370,13 @@ function Decide({
     try {
       await change(c, key.current)
     } catch (e) {
+      if (e instanceof WriteError && e.kind === "decided") {
+        // Someone else decided it since this list was read: read it again,
+        // so it is gone here too, and say why.
+        toast(e.message)
+        reload()
+        return
+      }
       setError(e instanceof Error ? e.message : String(e))
       sending.current = false
       setBusy(false)

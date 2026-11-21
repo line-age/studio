@@ -204,11 +204,20 @@ export function buildQuestion({
   }
 }
 
-/** Every proposal waiting on one claim of a section, as references. */
+/**
+ * Every proposal waiting on one claim of a section, as references. Before
+ * the section's detail is read, the list's count says how many candidates
+ * wait; each is named by its place, and its id is looked up when the
+ * question is sent.
+ */
 export function proposalRefs(section: Section, attribute: string): AgentRef[] {
   const claim = claimsOf(section).find((c) => c.attribute === attribute)
+  const waiting =
+    claim?.proposals.length ??
+    section.values.find((v) => v.attribute === attribute)?.proposals ??
+    0
   return [
-    ...(claim?.proposals ?? []).map((_, index): AgentRef => ({
+    ...Array.from({ length: waiting }, (_, index): AgentRef => ({
       kind: "proposal",
       sectionId: section.id,
       what: "value",
