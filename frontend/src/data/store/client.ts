@@ -214,7 +214,12 @@ export async function fetchSectionRows(
   bbox: string | null = null,
   signal?: AbortSignal
 ): Promise<StoreSectionRow[]> {
-  const query = new URLSearchParams({ network, limit: String(LIST_LIMIT) })
+  const query = new URLSearchParams({
+    network,
+    limit: String(LIST_LIMIT),
+    // Store sends a row's claims only when asked; other readers get the line alone.
+    include: "summary",
+  })
   if (bbox !== null) query.set("bbox", bbox)
   const { features } = await get(`/sections?${query}`, sectionRows, signal)
   if (features.length >= LIST_LIMIT) {

@@ -54,7 +54,7 @@ describe("store client", () => {
     const fetchMock = answer(() => json({ features: [] }))
     await fetchSectionRows("gas")
     expect(fetchMock.mock.calls[0][0]).toBe(
-      "/store/sections?network=gas&limit=10000"
+      "/store/sections?network=gas&limit=10000&include=summary"
     )
   })
 
