@@ -1,4 +1,5 @@
 import { pipelineLabel, sectionLabel } from "./derive"
+import { claimsOf } from "./detail-store"
 import { proposedEndsFor } from "./evidence"
 import type { AgentRef, Network, Section } from "./schema"
 
@@ -49,9 +50,10 @@ export function refWords(
             : `Claim · ${of(ref.ownerId)}`,
       }
     case "citation": {
-      const claim = section(ref.sectionId)?.claims.find(
-        (c) => c.attribute === ref.attribute
-      )
+      const found = section(ref.sectionId)
+      const claim = found
+        ? claimsOf(found).find((c) => c.attribute === ref.attribute)
+        : undefined
       const cited = claim?.citations[ref.index]
       return {
         title: cited?.source ?? "Source",
@@ -130,12 +132,16 @@ function sectionItems(
 function refItem(ref: AgentRef, network: Network): QuestionItem {
   const section = (id: string): Section | undefined =>
     network.sections.find((s) => s.id === id)
+  const claimsOfId = (id: string) => {
+    const found = section(id)
+    return found ? claimsOf(found) : []
+  }
   switch (ref.kind) {
     case "claim": {
       const claims =
         ref.owner === "pipeline"
           ? (network.pipelines.find((p) => p.id === ref.ownerId)?.claims ?? [])
-          : (section(ref.ownerId)?.claims ?? [])
+          : claimsOfId(ref.ownerId)
       const claim = claims.filter((c) => c.attribute === ref.attribute)[
         ref.index ?? 0
       ]
@@ -149,7 +155,7 @@ function refItem(ref: AgentRef, network: Network): QuestionItem {
       }
     }
     case "citation": {
-      const cited = section(ref.sectionId)?.claims.find(
+      const cited = claimsOfId(ref.sectionId).find(
         (c) => c.attribute === ref.attribute
       )?.citations[ref.index]
       return {
@@ -161,7 +167,7 @@ function refItem(ref: AgentRef, network: Network): QuestionItem {
     case "proposal": {
       const found = section(ref.sectionId)
       if (ref.what === "value") {
-        const candidate = found?.claims.find(
+        const candidate = (found ? claimsOf(found) : []).find(
           (c) => c.attribute === ref.attribute
         )?.proposals[Number(ref.key)]
         return {
@@ -200,7 +206,7 @@ export function buildQuestion({
 
 /** Every proposal waiting on one claim of a section, as references. */
 export function proposalRefs(section: Section, attribute: string): AgentRef[] {
-  const claim = section.claims.find((c) => c.attribute === attribute)
+  const claim = claimsOf(section).find((c) => c.attribute === attribute)
   return [
     ...(claim?.proposals ?? []).map((_, index): AgentRef => ({
       kind: "proposal",

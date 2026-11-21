@@ -1,8 +1,10 @@
-import { useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { Icon } from "@/components/icons/icon"
 import { ProposalCard } from "@/components/proposal-card"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { detailOf, requestDetails, useDetails } from "@/data/detail-store"
 import {
   Collapsible,
   CollapsibleContent,
@@ -16,7 +18,13 @@ import {
 } from "@/data/changes"
 import { pipelineLabel, sectionLabel } from "@/data/derive"
 import { citationLine, proposedEndWords } from "@/data/evidence"
-import type { Network, Proposal, ProposedEnd, Section } from "@/data/schema"
+import type {
+  Claim,
+  Network,
+  Proposal,
+  ProposedEnd,
+  Section,
+} from "@/data/schema"
 import { actionKey } from "@/data/store/write"
 
 import { useStudioData } from "../studio-data"
@@ -44,7 +52,35 @@ type Item =
       proposal: Proposal
     }
 
-/** Everything waiting for a person, pipelines first. */
+/** The sections with something waiting on them: an end, a cut, a candidate. */
+export function waitingSections(network: Network): Section[] {
+  return network.sections.filter(
+    (s) => s.proposedEnds.length > 0 || s.values.some((v) => v.proposals > 0)
+  )
+}
+
+/** How many proposals wait, from what the list holds: no section's detail needed. */
+export function inboxCount(network: Network): number {
+  return (
+    proposedPipelines(network).length +
+    network.pipelines.reduce(
+      (n, p) => n + p.claims.reduce((m, c) => m + c.proposals.length, 0),
+      0
+    ) +
+    network.sections.reduce(
+      (n, s) =>
+        n +
+        s.proposedEnds.length +
+        s.values.reduce((m, v) => m + v.proposals, 0),
+      0
+    )
+  )
+}
+
+/**
+ * Everything waiting for a person, pipelines first. A section's ends and
+ * candidates come with its detail: a section not read yet is left out.
+ */
 export function inboxItems(network: Network): Item[] {
   const items: Item[] = proposedPipelines(network).map((decision) => ({
     kind: "pipeline",
@@ -52,21 +88,27 @@ export function inboxItems(network: Network): Item[] {
     decision,
   }))
   for (const section of network.sections) {
-    for (const end of section.proposedEnds)
+    for (const end of detailOf(section)?.proposedEnds ?? [])
       items.push({ kind: "end", key: `end:${end.id}`, section, end })
   }
   const claimsOf = (
     owner: "section" | "pipeline",
     id: string,
     name: string,
-    claims: Section["claims"]
+    claims: readonly Claim[]
   ) => {
     for (const claim of claims)
       claim.proposals.forEach((proposal, index) =>
         items.push({
           kind: "claim",
-          key: `claim:${owner}:${id}:${claim.attribute}:${index}`,
-          at: { owner, ownerId: id, attribute: claim.attribute, index },
+          key: `claim:${owner}:${id}:${claim.attribute}:${proposal.id ?? index}`,
+          at: {
+            owner,
+            ownerId: id,
+            attribute: claim.attribute,
+            index,
+            ...(proposal.id ? { id: proposal.id } : {}),
+          },
           name,
           now: claim.value,
           proposal,
@@ -76,18 +118,42 @@ export function inboxItems(network: Network): Item[] {
   for (const pipeline of network.pipelines)
     claimsOf("pipeline", pipeline.id, pipelineLabel(pipeline), pipeline.claims)
   for (const section of network.sections)
-    claimsOf("section", section.id, sectionLabel(section), section.claims)
+    claimsOf(
+      "section",
+      section.id,
+      sectionLabel(section),
+      detailOf(section)?.claims ?? []
+    )
   return items
 }
 
 export function AgentInbox() {
   const { network } = useStudioData()
   const [shown, setShown] = useState(PAGE)
-  const items = inboxItems(network)
-  if (items.length === 0) return null
-  const count = `${items.length} ${items.length === 1 ? "proposal" : "proposals"} waiting`
+  const total = inboxCount(network)
+  // A section's proposals come with its detail: read when the inbox opens.
+  const waiting = useMemo(() => waitingSections(network), [network])
+  const read = useDetails((s) => s.entries)
+  const generation = useDetails((s) => s.generation)
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    if (open) requestDetails(waiting.map((s) => s.id))
+  }, [open, waiting, generation])
+  const items = useMemo(
+    () => inboxItems(network),
+    // `read` changes as details arrive.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [network, read]
+  )
+  const pending = waiting.filter((s) => detailOf(s) === null).length
+  if (total === 0) return null
+  const count = `${total} ${total === 1 ? "proposal" : "proposals"} waiting`
   return (
-    <Collapsible className="flex min-h-0 shrink-0 flex-col border-b">
+    <Collapsible
+      className="flex min-h-0 shrink-0 flex-col border-b"
+      open={open}
+      onOpenChange={setOpen}
+    >
       <CollapsibleTrigger
         render={
           <button
@@ -101,6 +167,15 @@ export function AgentInbox() {
         <span className="type-ui-xs text-muted-foreground">Decide</span>
       </CollapsibleTrigger>
       <CollapsibleContent className="max-h-[50vh] overflow-y-auto overscroll-contain">
+        {pending > 0 && (
+          <div
+            aria-label="Reading proposals"
+            className="flex flex-col gap-2 px-3 pt-3"
+          >
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        )}
         <ul aria-label="Proposals waiting" className="flex flex-col gap-4 p-3">
           {items.slice(0, shown).map((item) => (
             <li key={item.key} className="flex flex-col gap-2">

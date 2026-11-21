@@ -1,4 +1,11 @@
-import type { Claim, Network, Pipeline, Section } from "./schema"
+import { claimsOf } from "./detail-store"
+import {
+  withClaims,
+  type Claim,
+  type Network,
+  type Pipeline,
+  type Section,
+} from "./schema"
 import { shortId } from "./short-id"
 import {
   decideMembershipsBundle,
@@ -21,8 +28,14 @@ export interface ProposalAt {
   owner: "section" | "pipeline"
   ownerId: string
   attribute: string
-  /** Which of the claim's proposals. */
+  /** Which of the claim's proposals, by place: only for display. */
   index: number
+  /**
+   * The candidate claim's id, where the data has one. Store is told by it,
+   * never by place, so a list that changed in between cannot decide the
+   * wrong one.
+   */
+  id?: string
 }
 
 export type Change =
@@ -96,11 +109,15 @@ export function proposedPipelines(network: Network): PipelineDecision[] {
 }
 
 function claimAt(network: Network, at: ProposalAt): Claim | undefined {
-  const owner =
-    at.owner === "section"
-      ? network.sections.find((s) => s.id === at.ownerId)
-      : network.pipelines.find((p) => p.id === at.ownerId)
-  return owner?.claims.find((c) => c.attribute === at.attribute)
+  if (at.owner === "pipeline") {
+    return network.pipelines
+      .find((p) => p.id === at.ownerId)
+      ?.claims.find((c) => c.attribute === at.attribute)
+  }
+  const section = network.sections.find((s) => s.id === at.ownerId)
+  return section
+    ? claimsOf(section).find((c) => c.attribute === at.attribute)
+    : undefined
 }
 
 /** The id a new pipeline gets on the sample, from the action's key. */
@@ -211,7 +228,9 @@ export function applyChange(
         ? {
             ...network,
             sections: network.sections.map((s) =>
-              s.id === at.ownerId ? { ...s, claims: decide(s.claims) } : s
+              s.id === at.ownerId && s.claims
+                ? withClaims(s, decide(s.claims))
+                : s
             ),
           }
         : {
@@ -270,7 +289,9 @@ export async function sendChange(
       await reviewLink(change.endId, change.verdict)
       return
     case "decide-claim": {
-      const id = claimAt(network, change.at)?.proposals[change.at.index]?.id
+      const id =
+        change.at.id ??
+        claimAt(network, change.at)?.proposals[change.at.index]?.id
       if (!id) throw new MissingIdError("claim")
       await reviewClaim(id, change.verdict === "confirm" ? "accept" : "reject")
       return

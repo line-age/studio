@@ -121,7 +121,7 @@ function EditSectionsForm({
     for (const attribute of attributes) {
       const values = new Set(
         active.map(
-          (s) => s.claims.find((c) => c.attribute === attribute)?.value ?? null
+          (s) => s.values.find((c) => c.attribute === attribute)?.value ?? null
         )
       )
       map.set(attribute, values.size === 1 ? [...values][0] : MIXED)

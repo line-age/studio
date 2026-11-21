@@ -25,19 +25,19 @@ describe("parseNetwork", () => {
   it("fills in the optional lists", () => {
     const network = testNetwork()
     expect(network.notes).toEqual([])
-    expect(network.sections[0].claims[0].proposals).toEqual([])
+    expect(network.sections[0].claims![0].proposals).toEqual([])
     expect(network.sections[0].changedSinceReview).toBe(false)
   })
 
   it("rejects a value that has no citation", () => {
     const input = structuredClone(testNetwork())
-    input.sections[0].claims[0].citations = []
+    input.sections[0].claims![0].citations = []
     expect(detailOf(input)).toContain("A value needs at least one citation")
   })
 
   it("rejects citations on an Unknown claim", () => {
     const input = structuredClone(testNetwork())
-    input.sections[3].claims[0].citations = [{ source: "1937 edition" }]
+    input.sections[3].claims![0].citations = [{ source: "1937 edition" }]
     expect(detailOf(input)).toContain("cannot carry citations")
   })
 

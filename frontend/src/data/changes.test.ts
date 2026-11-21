@@ -92,7 +92,7 @@ describe("applyChange on the sample", () => {
       { kind: "decide-claim", at, verdict: "confirm" },
       "k"
     )
-    const claim = sectionOf(after, "s-2").claims.find(
+    const claim = sectionOf(after, "s-2").claims!.find(
       (c) => c.attribute === "Diameter"
     )!
     expect(claim.value).not.toBeNull()

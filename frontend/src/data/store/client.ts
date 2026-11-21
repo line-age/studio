@@ -43,13 +43,40 @@ const geometry = z.object({
   coordinates: z.unknown(),
 })
 
+/** One accepted claim with a citation, as a list row carries it: raw, unworded. */
+const accepted = z.object({
+  claim_id: z.string().min(1),
+  value_text: z.string().nullish(),
+  value_num: z.number().nullish(),
+  value_unit: z.string().nullish(),
+  valid_edtf: z.string().nullish(),
+  created_at: z.string().nullish(),
+  /** The earliest date of a map sheet cited as showing the line. */
+  shown_as_of: z.string().nullish(),
+  /** Another feature's claim, reached through a confirmed link. */
+  inherited_from: z.string().nullish(),
+})
+
 const sectionRows = z.object({
   features: z.array(
     z.object({
+      geometry: geometry.nullish(),
       properties: z.object({
+        /** The section, or for a piece of it, the link that proposes the cut. */
+        row_id: z.string().min(1),
         section_id: z.string().min(1),
+        label: z.string().nullish(),
         /** The line the section is confirmed part of: its pipeline. */
         line_id: z.string().min(1).nullish(),
+        time_end: z.string().nullish(),
+        end_status: z.string().nullish(),
+        accepted: z.record(z.string(), z.array(accepted)).default({}),
+        candidates: z.record(z.string(), z.number()).default({}),
+        shown_years: z.array(z.number().int()).default([]),
+        gone_year: z.number().int().nullish(),
+        created_at: z.string().nullish(),
+        /** The route as traced, where a proposed cut makes the row a part of it. */
+        whole_route: geometry.nullish(),
       }),
     })
   ),
@@ -88,6 +115,8 @@ const claim = z.object({
   status: z.string(),
   created_at: z.string().nullish(),
   citations: z.array(citation).default([]),
+  /** Set on an inherited claim: the feature it is on. */
+  inherited_from: z.string().nullish(),
 })
 
 const link = z.object({
@@ -113,24 +142,34 @@ const feature = z.object({
     .nullish()
     .transform((dates) => dates ?? null),
   claims: z.array(claim).default([]),
+  /** Claims of other features reached through confirmed links (store's scope). */
+  inherited_claims: z.array(claim).default([]),
   links: z.array(link).default([]),
 })
 
 export type StoreLink = z.infer<typeof link>
-export type StoreSectionRow = z.infer<
-  typeof sectionRows
->["features"][number]["properties"]
+type RowFeature = z.infer<typeof sectionRows>["features"][number]
+export type StoreSectionRow = RowFeature["properties"] & {
+  geometry?: RowFeature["geometry"]
+}
+export type StoreAccepted = z.infer<typeof accepted>
 export type StoreCitation = z.infer<typeof citation>
 export type StoreClaim = z.infer<typeof claim>
 export type StoreFeature = z.infer<typeof feature>
 
-async function get<T>(path: string, schema: z.ZodType<T>): Promise<T> {
+async function get<T>(
+  path: string,
+  schema: z.ZodType<T>,
+  signal?: AbortSignal
+): Promise<T> {
   let response: Response
   try {
     response = await fetch(`${BASE}${path}`, {
       headers: { Accept: "application/json" },
+      signal,
     })
-  } catch {
+  } catch (error) {
+    if (signal?.aborted) throw error
     throw new StoreError("unreachable", `No answer from ${BASE}${path}.`)
   }
   if (response.status === 401 || response.status === 403) {
@@ -164,15 +203,20 @@ async function get<T>(path: string, schema: z.ZodType<T>): Promise<T> {
   return result.data
 }
 
-/** The drawn sections of one network: which exist, and their pipeline. */
+/**
+ * The drawn sections of one network, one row per section (or per piece where
+ * a cut is proposed), each with what the list shows: its accepted claims, the
+ * candidates waiting and the maps that show it. No request per section.
+ */
 export async function fetchSectionRows(
   network: string,
   /** Only the sections that cross this area: "minx,miny,maxx,maxy". */
-  bbox: string | null = null
+  bbox: string | null = null,
+  signal?: AbortSignal
 ): Promise<StoreSectionRow[]> {
   const query = new URLSearchParams({ network, limit: String(LIST_LIMIT) })
   if (bbox !== null) query.set("bbox", bbox)
-  const { features } = await get(`/sections?${query}`, sectionRows)
+  const { features } = await get(`/sections?${query}`, sectionRows, signal)
   if (features.length >= LIST_LIMIT) {
     // Showing the first ten thousand as if it were everything would be a lie.
     throw new StoreError(
@@ -180,16 +224,21 @@ export async function fetchSectionRows(
       `Store has more than ${LIST_LIMIT} section rows, more than Studio can load at once.`
     )
   }
-  return features.map((f) => f.properties)
+  return features.map((f) => ({ ...f.properties, geometry: f.geometry }))
 }
 
-/**
- * The links of one relation, whatever their status. Store has no filter by
- * network here, so the caller keeps the ones that touch its sections.
- */
-export async function fetchLinks(relation: string): Promise<StoreLink[]> {
-  const query = new URLSearchParams({ relation, limit: String(LIST_LIMIT) })
-  const links = await get(`/links?${query}`, z.array(link))
+/** The links of one relation that touch one network, whatever their status. */
+export async function fetchLinks(
+  relation: string,
+  network: string,
+  signal?: AbortSignal
+): Promise<StoreLink[]> {
+  const query = new URLSearchParams({
+    relation,
+    network,
+    limit: String(LIST_LIMIT),
+  })
+  const links = await get(`/links?${query}`, z.array(link), signal)
   if (links.length >= LIST_LIMIT) {
     throw new StoreError(
       "unreadable",
@@ -282,26 +331,29 @@ export async function postBundle(bundle: BundleRequest): Promise<BundleResult> {
   return result.data
 }
 
-export function fetchFeature(id: string): Promise<StoreFeature> {
-  return get(`/features/${encodeURIComponent(id)}`, feature)
-}
+/** Most features store gives in one answer. */
+export const FEATURES_AT_ONCE = 200
 
-/** Fetch every feature, a few at a time, keeping the order of `ids`. */
+/**
+ * Features by id, in requests of up to 200, keeping the order of `ids`. An id
+ * store does not hold is left out of the answer.
+ */
 export async function fetchFeatures(
   ids: readonly string[],
-  atOnce = 8
+  signal?: AbortSignal
 ): Promise<StoreFeature[]> {
-  const out = new Array<StoreFeature>(ids.length)
-  let next = 0
-  const worker = async () => {
-    while (next < ids.length) {
-      const at = next
-      next += 1
-      out[at] = await fetchFeature(ids[at])
-    }
+  const batches: string[][] = []
+  for (let at = 0; at < ids.length; at += FEATURES_AT_ONCE) {
+    batches.push(ids.slice(at, at + FEATURES_AT_ONCE))
   }
-  await Promise.all(
-    Array.from({ length: Math.min(atOnce, ids.length) }, worker)
+  const answers = await Promise.all(
+    batches.map((batch) =>
+      get(
+        `/features?${new URLSearchParams({ ids: batch.join(",") })}`,
+        z.array(feature),
+        signal
+      )
+    )
   )
-  return out
+  return answers.flat()
 }

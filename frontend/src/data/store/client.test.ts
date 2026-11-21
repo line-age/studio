@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
+import { detailOf, useDetails } from "@/data/detail-store"
 import { loadFromStore } from "@/data/load-network"
 import {
   storeFeatures,
@@ -10,7 +11,7 @@ import {
 
 import {
   StoreError,
-  fetchFeature,
+  fetchFeatures,
   fetchSectionRows,
   postBundle,
 } from "./client"
@@ -66,13 +67,13 @@ describe("store client", () => {
     expect(await kindOf(() => fetchSectionRows("gas"))).toBe("unreadable")
     answer(() => json({ features: [{ properties: {} }] }))
     expect(await kindOf(() => fetchSectionRows("gas"))).toBe("unreadable")
-    answer(() => json({ detail: "no such feature" }, 404))
-    expect(await kindOf(() => fetchFeature("x"))).toBe("unreadable")
+    answer(() => json({ detail: "ask for 1 to 200" }, 422))
+    expect(await kindOf(() => fetchFeatures(["x"]))).toBe("unreadable")
   })
 
   it("refuses to show part of a list as the whole", async () => {
     const full = Array.from({ length: 10000 }, (_, i) => ({
-      properties: { section_id: `s-${i}` },
+      properties: { row_id: `s-${i}`, section_id: `s-${i}` },
     }))
     answer(() => json({ features: full }))
     expect(await kindOf(() => fetchSectionRows("gas"))).toBe("unreadable")
@@ -84,35 +85,106 @@ describe("store client", () => {
     return answer((path) => {
       if (path.startsWith("/store/sections")) {
         return json({
-          features: storeRows().map((properties) => ({ properties })),
+          features: storeRows().map(({ geometry, ...properties }) => ({
+            geometry,
+            properties,
+          })),
         })
       }
       if (path.startsWith("/store/links")) {
-        const relation = new URLSearchParams(path.split("?")[1]).get("relation")
-        return json(storeLinks().filter((l) => l.relation === relation))
+        const query = new URLSearchParams(path.split("?")[1])
+        expect(query.get("network")).toBe("gas")
+        const relation = query.get("relation")
+        return json(
+          storeLinks()
+            .filter((l) => l.relation === relation)
+            .map((l) => ({
+              ...l,
+              asserted_by_name: "A. Tracer",
+              asserted_by_kind: "person",
+            }))
+        )
       }
-      const id = decodeURIComponent(path.split("/").pop()!)
-      return json({
-        ...features.find((f) => f.id === id),
-        claims: features
-          .find((f) => f.id === id)!
-          .claims.map((c) => ({ ...c, asserted_by_name: "A. Tracer" })),
-      })
+      const ids = new URLSearchParams(path.split("?")[1]).get("ids")!.split(",")
+      return json(
+        ids.flatMap((id) => {
+          const found = features.find((f) => f.id === id)
+          return found
+            ? [
+                {
+                  ...found,
+                  claims: found.claims.map((c) => ({
+                    ...c,
+                    asserted_by_name: "A. Tracer",
+                  })),
+                },
+              ]
+            : []
+        })
+      )
     })
   }
 
-  it("loads a network: the rows, each section once, links, lines traced as gone", async () => {
+  it("opens a network in a handful of requests, none per section", async () => {
     const fetchMock = answerWithNetwork()
     // The whole network, whatever area this machine's settings name.
     const network = await loadFromStore("gas", null)
     expect(network.name).toBe("Gas network")
-    // The lines traced as gone are read, and are not sections.
+    // Each section once, cut pieces and lines traced as gone not among them.
     expect(network.sections).toHaveLength(3)
-    // One list, one request per section (cut pieces not asked for twice),
-    // three lists of links, one request per line traced as gone.
-    expect(fetchMock).toHaveBeenCalledTimes(1 + 3 + 3 + 3)
+    // One list of sections and three of links. No line: nothing to ask.
+    expect(fetchMock.mock.calls.map(([p]) => String(p).split("?")[0])).toEqual([
+      "/store/sections",
+      "/store/links",
+      "/store/links",
+      "/store/links",
+    ])
     expect(network.sections.flatMap((x) => x.proposedEnds)).toHaveLength(2)
+    // Values are there; claims and citations are not, until a section is opened.
+    expect(network.sections.every((s) => s.claims === undefined)).toBe(true)
+    // A person who proposed a link is never named.
     expect(JSON.stringify(network)).not.toContain("A. Tracer")
+  })
+
+  it("reads opened sections' detail together, with the lines traced as gone", async () => {
+    const fetchMock = answerWithNetwork()
+    const network = await loadFromStore("gas", null)
+    fetchMock.mockClear()
+    const { requestDetails } = await import("@/data/detail-store")
+    requestDetails(network.sections.map((s) => s.id))
+    await vi.waitFor(() =>
+      expect(
+        Object.values(useDetails.getState().entries).every(
+          (e) => e.status === "ready"
+        )
+      ).toBe(true)
+    )
+    // One request for the three sections, one for the lines traced as gone.
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    const [a] = network.sections
+    expect(detailOf(a)?.claims.map((c) => c.attribute)).toContain("Geometry")
+    expect(JSON.stringify(useDetails.getState())).not.toContain("A. Tracer")
+  })
+
+  it("stops the rest and fails whole when one request fails", async () => {
+    let stopped = 0
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const path = String(input)
+        if (path.includes("relation=overlaps")) {
+          return Promise.resolve(json({}, 502))
+        }
+        return new Promise<Response>((_, reject) =>
+          init?.signal?.addEventListener("abort", () => {
+            stopped += 1
+            reject(new DOMException("stopped", "AbortError"))
+          })
+        )
+      })
+    )
+    expect(await kindOf(() => loadFromStore("gas", null))).toBe("unreachable")
+    expect(stopped).toBe(3)
   })
 
   it("asks store for one area when given one, and says so in the name", async () => {

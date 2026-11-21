@@ -54,16 +54,9 @@ export const ID_A = "aaaaaaaa-0000-4000-8000-000000000001"
 export const ID_B = "bbbbbbbb-0000-4000-8000-000000000002"
 export const ID_C = "cccccccc-0000-4000-8000-000000000003"
 
-export function storeRows(): StoreSectionRow[] {
-  // B comes twice: store draws a proposed cut piece as its own row.
-  return [ID_A, ID_B, ID_B, ID_C].map((section_id) => ({
-    section_id,
-    line_id: null,
-  }))
-}
-
 export function storeFeatures(): StoreFeature[] {
-  return [
+  const removals = new Map(storeRemovals().map((f) => [f.id, f]))
+  const features: Omit<StoreFeature, "inherited_claims">[] = [
     {
       id: ID_A,
       label: null,
@@ -146,6 +139,16 @@ export function storeFeatures(): StoreFeature[] {
       ],
     },
   ]
+  // C has Z's claims through the link a person confirmed: its history.
+  return features.map((f) => ({
+    ...f,
+    inherited_claims:
+      f.id === ID_C
+        ? removals
+            .get(ID_Z)!
+            .claims.map((c) => ({ ...c, inherited_from: ID_Z }))
+        : [],
+  }))
 }
 
 /*
@@ -163,6 +166,7 @@ const gone = (id: string, shown: number, omitted: number): StoreFeature => ({
   created_at: "2026-11-12T10:00:00Z",
   dates: { time_end: `${omitted}-12-31` },
   links: [],
+  inherited_claims: [],
   claims: [
     route(shown, [
       [0, 10],
@@ -213,6 +217,7 @@ const link = (
   score,
   asserted_by: "agent-stitch",
   asserted_by_name: "stitch",
+  asserted_by_kind: "pipeline",
 })
 
 export function storeLinks(): StoreLink[] {
@@ -271,6 +276,7 @@ export function storeLines(): StoreFeature[] {
       created_at: "2026-11-12T10:00:00Z",
       dates: null,
       links: [],
+      inherited_claims: [],
       claims: [
         said("l1-name", "name", "Alder trunk", "../1931", 1931),
         said("l1-owner-2", "owner", "Yew Fuel Co.", "1936/..", 1936),
@@ -291,6 +297,7 @@ export function storeLines(): StoreFeature[] {
       created_at: "2026-11-12T10:00:00Z",
       dates: null,
       links: [],
+      inherited_claims: [],
       claims: [],
     },
   ]
@@ -303,4 +310,117 @@ export function storeMemberships(): StoreLink[] {
     link("link-part-b", ID_B, LINE_2, "part_of", "proposed", 0.7),
     link("link-part-c", ID_C, LINE_1, "part_of", "rejected", 0.2),
   ]
+}
+
+/*
+ * Store's list rows for invented features, worked out the way store does
+ * (store's reads.section_summaries): the accepted claims with a citation,
+ * own and inherited, newest first; cited candidates; the years of the sheets
+ * that show the route; the year of the sheet a confirmed removal is not on.
+ * B is drawn twice: a proposed cut makes it a piece of its own.
+ */
+export function rowsFor(
+  features: readonly StoreFeature[],
+  links: readonly StoreLink[] = []
+): StoreSectionRow[] {
+  const year = (s: string | null | undefined) => {
+    const y = s?.match(/\d{4}/)?.[0]
+    return y ? Number(y) : null
+  }
+  return features.flatMap((f) => {
+    const scope = [
+      ...f.claims.map((c) => ({ c, from: null as string | null })),
+      ...f.inherited_claims.map((c) => ({ c, from: c.inherited_from ?? null })),
+    ]
+    const accepted: StoreSectionRow["accepted"] = {}
+    for (const { c, from } of [...scope].sort((a, b) =>
+      (b.c.created_at ?? "").localeCompare(a.c.created_at ?? "")
+    )) {
+      if (c.status !== "accepted" || c.citations.length === 0) continue
+      if (c.attribute_key === "route" && !c.value_geom) continue
+      const shows = c.citations
+        .filter(
+          (x) =>
+            x.role === "map_shows" &&
+            x.source_kind === "map_sheet" &&
+            x.as_of_edtf
+        )
+        .map((x) => x.as_of_edtf!)
+        .sort()
+      ;(accepted[c.attribute_key] ??= []).push({
+        claim_id: c.id ?? `${f.id}-${c.attribute_key}`,
+        value_text: c.value_text ?? null,
+        value_num: c.value_num ?? null,
+        value_unit: c.value_unit ?? null,
+        valid_edtf: c.valid_edtf ?? null,
+        created_at: c.created_at ?? null,
+        shown_as_of: shows[0] ?? null,
+        inherited_from: from,
+      })
+    }
+    const candidates: Record<string, number> = {}
+    for (const c of f.claims) {
+      const valued =
+        Boolean(c.value_text) || c.value_num != null || Boolean(c.value_geom)
+      if (c.status !== "candidate" || !valued || c.citations.length === 0)
+        continue
+      candidates[c.attribute_key] = (candidates[c.attribute_key] ?? 0) + 1
+    }
+    const route = f.claims
+      .filter((c) => c.attribute_key === "route" && c.status === "accepted")
+      .sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""))[0]
+    const shown_years = [
+      ...new Set(
+        (route?.citations ?? []).flatMap((x) =>
+          x.role === "map_shows" &&
+          x.source_kind === "map_sheet" &&
+          year(x.as_of_edtf) !== null
+            ? [year(x.as_of_edtf)!]
+            : []
+        )
+      ),
+    ].sort((a, b) => a - b)
+    const goneYears = scope.flatMap(({ c, from }) =>
+      from !== null &&
+      c.attribute_key === "status" &&
+      c.status === "accepted" &&
+      c.value_text === "decommissioned"
+        ? c.citations.flatMap((x) =>
+            x.role === "map_omits" &&
+            x.source_kind === "map_sheet" &&
+            year(x.as_of_edtf) !== null
+              ? [year(x.as_of_edtf)!]
+              : []
+          )
+        : []
+    )
+    const cuts = links.filter(
+      (l) =>
+        l.relation === "overlaps" &&
+        l.status === "proposed" &&
+        l.to_feature_id === f.id
+    )
+    const confirmedEnd = f.dates?.time_end ?? null
+    const row = (row_id: string): StoreSectionRow => ({
+      row_id,
+      section_id: f.id,
+      label: f.label ?? null,
+      line_id: null,
+      time_end: confirmedEnd,
+      end_status: confirmedEnd ? "confirmed" : null,
+      accepted,
+      candidates,
+      shown_years,
+      gone_year: goneYears.length > 0 ? Math.min(...goneYears) : null,
+      created_at: f.created_at ?? null,
+      geometry: route?.value_geom ?? null,
+      ...(cuts.length > 0 ? { whole_route: route?.value_geom ?? null } : {}),
+    })
+    return [row(f.id), ...cuts.map((l) => row(l.id))]
+  })
+}
+
+/** The rows of the three invented sections, B cut in two. */
+export function storeRows(): StoreSectionRow[] {
+  return rowsFor(storeFeatures(), storeLinks())
 }

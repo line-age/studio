@@ -13,7 +13,7 @@ import type { Starter } from "./add-to-agent"
 
 /** On a claim: what store says; why it is Unknown; what is proposed. */
 export function claimStarters(
-  claim: Claim,
+  claim: Pick<Claim, "value">,
   proposals: readonly AgentRef[] = []
 ): Starter[] {
   return [
@@ -28,7 +28,7 @@ export function claimStarters(
 /** On a section's claim, with the proposals that wait on it. */
 export function sectionClaimStarters(
   section: Section,
-  claim: Claim
+  claim: Pick<Claim, "attribute" | "value">
 ): Starter[] {
   return claimStarters(claim, proposalRefs(section, claim.attribute))
 }

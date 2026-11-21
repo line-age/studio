@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { testNetwork } from "@/test/network"
 
-import { parseNetwork } from "./schema"
+import { parseNetwork, withClaims } from "./schema"
 import {
   NO_CRITERIA,
   applySectionEdits,
@@ -215,7 +215,7 @@ describe("filters", () => {
       const expected = summaries
         .filter((s) =>
           s.sections.some((sec) =>
-            sec.claims.some((c) => c.attribute === name && c.value === null)
+            sec.values.some((c) => c.attribute === name && c.value === null)
           )
         )
         .map((s) => s.id)
@@ -487,7 +487,7 @@ describe("citedClaims", () => {
         },
       ],
     }
-    expect(citedClaims(withUncited).map((c) => c.attribute)).toEqual([
+    expect(citedClaims(withUncited.claims).map((c) => c.attribute)).toEqual([
       "Diameter",
       "Build date",
     ])
@@ -502,13 +502,10 @@ describe("editableAttributes", () => {
 
   it("never offers Name, Owner or Operator: the pipeline's, not the section's", () => {
     const [s1] = testNetwork().sections
-    const withPipelineFields = {
-      ...s1,
-      claims: [
-        { attribute: "Owner", value: "A", citations: [], proposals: [] },
-        ...s1.claims,
-      ],
-    }
+    const withPipelineFields = withClaims(s1, [
+      { attribute: "Owner", value: "A", citations: [], proposals: [] },
+      ...s1.claims!,
+    ])
     expect(editableAttributes([withPipelineFields])).toEqual([
       "Diameter",
       "Build date",
@@ -532,7 +529,7 @@ describe("applySectionEdits", () => {
     )
     const claim = next.sections
       .find((s) => s.id === "s-1")!
-      .claims.find((c) => c.attribute === "Diameter")!
+      .claims!.find((c) => c.attribute === "Diameter")!
     expect(claim.value).toBe("14 in")
     expect(claim.citations).toEqual([
       { source: "Studio edit", quote: "Checked against the 1937 sheet" },
@@ -542,7 +539,7 @@ describe("applySectionEdits", () => {
     expect(
       next.sections
         .find((s) => s.id === "s-3")!
-        .claims.find((c) => c.attribute === "Diameter")!.value
+        .claims!.find((c) => c.attribute === "Diameter")!.value
     ).toBe("6 in")
   })
 
@@ -555,7 +552,7 @@ describe("applySectionEdits", () => {
     )
     const claim = next.sections
       .find((s) => s.id === "s-1")!
-      .claims.find((c) => c.attribute === "Diameter")!
+      .claims!.find((c) => c.attribute === "Diameter")!
     expect(claim.value).toBeNull()
     expect(claim.citations).toEqual([])
   })
@@ -569,7 +566,7 @@ describe("applySectionEdits", () => {
     )
     const claim = next.sections
       .find((s) => s.id === "s-1")!
-      .claims.find((c) => c.attribute === "Status")!
+      .claims!.find((c) => c.attribute === "Status")!
     expect(claim.value).toBe("Done")
   })
 
@@ -583,7 +580,7 @@ describe("applySectionEdits", () => {
     expect(
       next.sections
         .filter((s) => ["s-1", "s-3"].includes(s.id))
-        .map((s) => s.claims.find((c) => c.attribute === "Diameter")!.value)
+        .map((s) => s.claims!.find((c) => c.attribute === "Diameter")!.value)
     ).toEqual(["10 in", "10 in"])
   })
 })

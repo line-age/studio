@@ -3,16 +3,20 @@ import type { ComponentProps, ReactNode } from "react"
 import { Icon } from "@/components/icons/icon"
 import { StatusLabel } from "@/components/status-label"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
 /**
  * One claim of a section: label, then the cited value or Unknown. Trailing:
  * how many sources cite it, and a purple badge when a proposal is waiting.
+ * While the sources are being read (`sourcesLoading`) their place pulses;
+ * the value is shown already.
  */
 export function AttributeRow({
   label,
   value,
   sources = 0,
+  sourcesLoading = false,
   proposals = 0,
   selected = false,
   className,
@@ -22,6 +26,8 @@ export function AttributeRow({
   /** null is Unknown. */
   value: string | null
   sources?: number
+  /** The sources are not read yet. */
+  sourcesLoading?: boolean
   proposals?: number
   selected?: boolean
 } & Omit<ComponentProps<"div">, "children">) {
@@ -57,7 +63,10 @@ export function AttributeRow({
           {proposals} {proposals === 1 ? "proposal" : "proposals"}
         </Badge>
       )}
-      {sources > 0 && (
+      {sourcesLoading && value !== null && (
+        <Skeleton className="h-3 w-6 shrink-0" aria-label="Reading sources" />
+      )}
+      {!sourcesLoading && sources > 0 && (
         <span className="flex shrink-0 items-center gap-1 type-ui-mono-xs text-muted-foreground">
           <Icon name="source" className="size-3.5" />
           <span className="sr-only">Cited by</span>

@@ -1,8 +1,15 @@
 import { shortId } from "../short-id"
 import { shownBy, yearOf } from "../evidence"
-import { citationRoles, parseNetwork, type Network } from "../schema"
+import {
+  citationRoles,
+  parseNetwork,
+  type ClaimValue,
+  type Network,
+  type Section,
+} from "../schema"
 import {
   StoreError,
+  type StoreAccepted,
   type StoreCitation,
   type StoreClaim,
   type StoreFeature,
@@ -13,13 +20,26 @@ import {
 /*
  * Store's answers turned into the Network the screen draws. Pure: no fetch.
  *
+ * Two layers. The summary (`toSummary`) comes from store's list of sections
+ * and the links of the network, with no request per section: every section's
+ * route, the value of each claim row and how many proposals wait on it. The
+ * detail (`toDetail`) is one section's claims with their citations and
+ * proposals, read when the section is opened. Both word a value through the
+ * same functions below, so the list and the panel never disagree.
+ *
  * What store says and what Studio shows:
- *  - A map sheet cited anywhere is an edition; its year is the sheet's date.
+ *  - A map sheet that shows a section is an edition; its year is the sheet's
+ *    date.
  *  - The sheet a section's route is cited to is where it is first seen. The
  *    section is in that edition and every later one. That year is when a map
  *    first shows the line, not when it was built: Build date stays Unknown.
- *  - Only accepted claims are shown as values. A candidate claim is a proposal. No
- *    accepted claim means Unknown; nothing is filled in.
+ *  - Only accepted claims with a citation are shown as values. A candidate
+ *    claim is a proposal. No accepted claim means Unknown; nothing is filled
+ *    in.
+ *  - A section's claims are store's scope: its own, and those it has through
+ *    a confirmed link (a line traced as gone that a person matched to it, the
+ *    section it was split from). Two sections never become one: such a claim
+ *    stays the other feature's, and its citations say where it comes from.
  *  - A citation keeps what it does for the claim (its role) and, for a map,
  *    the date the map is as of. For a map reading, store's locator is the
  *    trace file, not a place on the map, so it is kept apart as `file`.
@@ -57,6 +77,7 @@ interface Citation {
   archiveUrl?: string
   sourceId?: string
   sourceKind?: string
+  inheritedFrom?: string
 }
 
 interface Claim {
@@ -64,9 +85,12 @@ interface Claim {
   attribute: string
   value: string | null
   valid?: string
+  madeAt?: string
   citations: Citation[]
   proposals: { id?: string; value: string; citation: Citation }[]
 }
+
+type Geometry = ReturnType<typeof lineGeometry>
 
 interface ProposedEnd {
   id: string
@@ -74,8 +98,14 @@ interface ProposedEnd {
   otherSectionId: string
   score: number
   proposer?: string
-  geometry: ReturnType<typeof lineGeometry>
+  geometry?: Geometry
   citations: Citation[]
+}
+
+/** What a section shows once it is opened: its claims, and its proposed ends in full. */
+export interface SectionDetail {
+  claims: Claim[]
+  proposedEnds: ProposedEnd[]
 }
 
 /** The attributes Studio lists for a section, in order, and store's key for each. */
@@ -104,7 +134,10 @@ const isMapReading = (c: StoreCitation) =>
   c.source_kind === "map_sheet" &&
   (c.role === "map_shows" || c.role === "map_omits")
 
-const toCitation = (c: StoreCitation): Citation => ({
+const toCitation = (
+  c: StoreCitation,
+  inheritedFrom?: string | null
+): Citation => ({
   ...(c.id ? { id: c.id } : {}),
   source: c.source_title,
   ...(isRole(c.role) ? { role: c.role } : {}),
@@ -125,45 +158,124 @@ const toCitation = (c: StoreCitation): Citation => ({
   ...(c.archive_url ? { archiveUrl: c.archive_url } : {}),
   sourceId: c.source_id,
   sourceKind: c.source_kind,
+  ...(inheritedFrom ? { inheritedFrom } : {}),
 })
 
-/** The day a claim was made, from store's timestamp. */
-const madeAt = (c: StoreClaim | undefined) =>
-  c?.created_at ? { madeAt: c.created_at.slice(0, 10) } : {}
+/** The year of a map sheet a citation names; null for anything else. */
+const sheetYear = (c: StoreCitation): number | null =>
+  c.source_kind === "map_sheet" ? yearOf(c.as_of_edtf) : null
+
+/*
+ * One accepted claim, as both layers have it: store's list gives it raw and
+ * without citations; a feature's detail gives it with them. Worded here only.
+ */
+interface Stated {
+  id?: string
+  key: string
+  text: string | null
+  num: number | null
+  unit: string | null
+  /** A route claim with a line. Its value is the line, not words. */
+  traced: boolean
+  valid: string | null
+  createdAt: string | null
+  /** The earliest date of a map sheet cited as showing the line. */
+  shownAsOf: string | null
+}
+
+/** Code-unit order, as store sorts these dates ("1929" before "1929-08"). */
+const earliest = (dates: readonly string[]): string | null =>
+  dates.length === 0 ? null : dates.reduce((a, b) => (b < a ? b : a))
+
+const statedFromRow = (key: string, c: StoreAccepted): Stated => ({
+  id: c.claim_id,
+  key,
+  text: c.value_text ?? null,
+  num: c.value_num ?? null,
+  unit: c.value_unit ?? null,
+  traced: key === "route",
+  valid: c.valid_edtf ?? null,
+  createdAt: c.created_at ?? null,
+  shownAsOf: c.shown_as_of ?? null,
+})
+
+const statedFromClaim = (c: StoreClaim): Stated => ({
+  ...(c.id ? { id: c.id } : {}),
+  key: c.attribute_key,
+  text: c.value_text ?? null,
+  num: c.value_num ?? null,
+  unit: c.value_unit ?? null,
+  traced: c.attribute_key === "route" && Boolean(c.value_geom),
+  valid: c.valid_edtf ?? null,
+  createdAt: c.created_at ?? null,
+  shownAsOf: earliest(
+    c.citations.flatMap((x) =>
+      x.role === "map_shows" && x.source_kind === "map_sheet" && x.as_of_edtf
+        ? [x.as_of_edtf]
+        : []
+    )
+  ),
+})
+
+/** A claim's value as words; null when it has none Studio can show. */
+function valueOf(c: Stated): string | null {
+  if (c.key === "route") return c.traced ? "Traced line" : null
+  if (c.num !== null) {
+    return [String(c.num), c.unit].filter(Boolean).join(" ")
+  }
+  return c.text ? c.text : null
+}
 
 /**
  * A status as a map can support it. "operational" cited to a map that shows
  * the line says only that the line was drawn by that map's date.
  */
-function statusWords(claim: StoreClaim): string | null {
-  const text = valueOf(claim)
-  if (text !== "operational") return text
-  const dated = claim.citations
-    .filter((c) => c.role === "map_shows")
-    .map(toCitation)
-    .sort((a, b) => (a.asOf ?? "").localeCompare(b.asOf ?? ""))
-    .flatMap((c) => shownBy(c) ?? [])
-  return dated[0] ?? text
+function statusWords(c: Stated): string | null {
+  const text = valueOf(c)
+  if (text !== "operational" || c.shownAsOf === null) return text
+  return shownBy({ source: "", role: "map_shows", asOf: c.shownAsOf }) ?? text
 }
 
-/** A claim's value as words; null when it has none Studio can show. */
-function valueOf(claim: StoreClaim): string | null {
-  if (claim.attribute_key === "route") {
-    return claim.value_geom ? "Traced line" : null
+const wordsFor = (key: string) => (key === "status" ? statusWords : valueOf)
+
+/**
+ * One claim row from the accepted claims behind it, newest first: their
+ * values once each, joined. One claim behind the value: its id and period
+ * can be shown. Several are joined into one row, which then speaks for none
+ * of them alone.
+ */
+function rowOf(key: string, stated: readonly Stated[]) {
+  const words = wordsFor(key)
+  const shown = stated.filter((c) => words(c) !== null)
+  const values = [...new Set(shown.map((c) => words(c)!))]
+  return {
+    value: values.length > 0 ? values.join("; ") : null,
+    shown,
+    only: shown.length === 1 ? shown[0] : undefined,
   }
-  if (claim.value_num !== null && claim.value_num !== undefined) {
-    return [String(claim.value_num), claim.value_unit].filter(Boolean).join(" ")
-  }
-  return claim.value_text ? claim.value_text : null
 }
 
-const newest = (claims: StoreClaim[]) =>
+const newest = <T extends { created_at?: string | null }>(claims: T[]) =>
   [...claims].sort((a, b) =>
     (b.created_at ?? "").localeCompare(a.created_at ?? "")
   )
 
-/** [x, y] pairs only: store may carry a third ordinate, the map does not. */
-function lineGeometry(geom: unknown, featureId: string) {
+/** First seen, from the years of the sheets that show the route. */
+const firstSeenWords = (years: readonly number[]) =>
+  years.length > 0 ? `${Math.min(...years)} edition` : null
+
+/** Last seen, once a person confirmed which map no longer shows the line. */
+const lastSeenWords = (years: readonly number[], gone: number | null) =>
+  years.length > 0 && gone !== null
+    ? `${Math.max(...years)} edition, not on ${gone}`
+    : null
+
+/**
+ * [x, y] pairs only: store may carry a third ordinate, the map does not.
+ * `onePart`: a multi of one line is that line. Store's list sends every row
+ * as a multi; the route it was made from is kept as it was traced.
+ */
+function lineGeometry(geom: unknown, featureId: string, onePart = false) {
   const g = geom as { type?: string; coordinates?: unknown } | null
   const flat = (line: unknown) =>
     (line as number[][]).map(([x, y]) => [x, y] as [number, number])
@@ -172,10 +284,10 @@ function lineGeometry(geom: unknown, featureId: string) {
       return { type: "LineString" as const, coordinates: flat(g.coordinates) }
     }
     if (g?.type === "MultiLineString") {
-      return {
-        type: "MultiLineString" as const,
-        coordinates: (g.coordinates as unknown[]).map(flat),
-      }
+      const lines = (g.coordinates as unknown[]).map(flat)
+      return onePart && lines.length === 1
+        ? { type: "LineString" as const, coordinates: lines[0] }
+        : { type: "MultiLineString" as const, coordinates: lines }
     }
   } catch {
     // Falls through to the error below.
@@ -186,11 +298,9 @@ function lineGeometry(geom: unknown, featureId: string) {
   )
 }
 
-const acceptedOf = (feature: StoreFeature, key: string) =>
+const acceptedOf = (claims: readonly StoreClaim[], key: string) =>
   newest(
-    feature.claims.filter(
-      (c) => c.attribute_key === key && c.status === "accepted"
-    )
+    claims.filter((c) => c.attribute_key === key && c.status === "accepted")
   )
 
 /** The links that say a line traced as gone runs along a section. */
@@ -206,151 +316,131 @@ const PIPELINE_ATTRIBUTES: { attribute: string; key: string }[] = [
   { attribute: "Operator", key: "operator" },
 ]
 
-/** What store holds beside the sections themselves. */
+/** The name of whoever proposed a link, when that is a tool; never a person's. */
+const toolName = (link: StoreLink): string | undefined =>
+  link.asserted_by_name &&
+  link.asserted_by_kind !== undefined &&
+  link.asserted_by_kind !== null &&
+  link.asserted_by_kind !== "person"
+    ? link.asserted_by_name
+    : undefined
+
+/** A candidate claim with a value and a source, as a proposal. */
+const proposalsOf = (claims: readonly StoreClaim[], key: string) =>
+  claims
+    .filter((c) => c.attribute_key === key && c.status === "candidate")
+    .flatMap((c) => {
+      const value = valueOf(statedFromClaim(c))
+      return value !== null && c.citations.length > 0
+        ? [
+            {
+              ...(c.id ? { id: c.id } : {}),
+              value,
+              citation: toCitation(c.citations[0]),
+            },
+          ]
+        : []
+    })
+
+/** What store holds beside the sections' rows. */
 export interface StoreExtras {
-  /** same_as, overlaps and part_of links, any status. */
+  /** same_as, overlaps and part_of links of the network, any status. */
   links?: readonly StoreLink[]
-  /** The lines traced as gone that same_as and overlaps links point at. */
-  removals?: readonly StoreFeature[]
   /** The line features: the pipelines. */
   lines?: readonly StoreFeature[]
 }
 
-export function toNetwork(
+/**
+ * The network from store's list: every section with its route, the value of
+ * each claim row and the proposals waiting, and the pipelines. No section's
+ * claims or citations: those are its detail (`toDetail`).
+ */
+export function toSummary(
   name: string,
   rows: readonly StoreSectionRow[],
-  features: readonly StoreFeature[],
-  { links = [], removals = [], lines = [] }: StoreExtras = {}
+  { links = [], lines = [] }: StoreExtras = {}
 ): Network {
-  // Editions: one per year of the map sheets a claim cites. Two sheets of
-  // the same year (two scans, or two maps) are one edition, not two rows
-  // with the same name.
-  const sheets = new Map<string, { id: string; year: number }>()
-  for (const feature of features) {
-    for (const claim of feature.claims) {
-      for (const c of claim.citations) {
-        const year = yearOf(c.as_of_edtf)
-        if (c.source_kind !== "map_sheet" || year === null) continue
-        sheets.set(c.source_id, { id: `ed-${year}`, year })
-      }
-    }
+  // One section per section id, whatever rows store draws it as: a proposed
+  // cut makes pieces, each its own row.
+  const bySection = new Map<string, StoreSectionRow[]>()
+  for (const row of rows) {
+    const held = bySection.get(row.section_id)
+    if (held) held.push(row)
+    else bySection.set(row.section_id, [row])
   }
-  const editions = [
-    ...new Map([...sheets.values()].map((e) => [e.id, e])).values(),
-  ]
-    .sort((a, b) => a.year - b.year)
-    .map((e) => ({ ...e, label: `${e.year} edition` }))
+
+  // Editions: one per year of the sheets that show a section.
+  const years = [
+    ...new Set([...bySection.values()].flatMap((r) => r[0].shown_years)),
+  ].sort((a, b) => a - b)
+  const editions = years.map((year) => ({
+    id: `ed-${year}`,
+    year,
+    label: `${year} edition`,
+  }))
   if (editions.length === 0) {
     throw new StoreError(
       "unreadable",
-      features.length === 0
+      bySection.size === 0
         ? "Store has no sections for this network. Has the import been run?"
         : "No section in store cites a map sheet, so there are no editions to show."
     )
   }
 
-  const lineOf = new Map(rows.map((r) => [r.section_id, r.line_id ?? null]))
-
-  // Who asserted what kind of thing. Store names the kind on claims only, so
-  // an agent seen asserting a claim as a person is never named on a link.
-  const people = new Set<string>()
-  const linkNames = new Map<string, string>()
-  for (const feature of [...features, ...removals, ...lines]) {
-    for (const claim of feature.claims) {
-      if (claim.asserted_by && claim.asserted_by_kind === "person") {
-        people.add(claim.asserted_by)
-      }
-    }
-    for (const link of feature.links) {
-      if (link.asserted_by_name) linkNames.set(link.id, link.asserted_by_name)
-    }
-  }
-  const toolName = (link: StoreLink): string | undefined => {
-    const name = link.asserted_by_name ?? linkNames.get(link.id)
-    if (!name || link.asserted_by_kind === "person") return undefined
-    if (link.asserted_by && people.has(link.asserted_by)) return undefined
-    return name
-  }
-
-  const sectionIds = new Set(features.map((f) => f.id))
-  const removalById = new Map(removals.map((f) => [f.id, f]))
+  const sectionIds = new Set(bySection.keys())
   const proposedEnds = new Map<string, ProposedEnd[]>()
-  /** Per section: the maps that leave it out, once a person confirmed so. */
-  const confirmedGone = new Map<string, Citation[]>()
-  for (const link of links) {
-    const kind = END_RELATIONS[link.relation]
-    if (kind === undefined) continue
-    const [sectionId, removalId] = sectionIds.has(link.to_feature_id)
-      ? [link.to_feature_id, link.from_feature_id]
-      : [link.from_feature_id, link.to_feature_id]
-    const removal = removalById.get(removalId)
-    if (!sectionIds.has(sectionId) || !removal) continue
-    const omits = acceptedOf(removal, "status").flatMap((c) =>
-      c.citations.filter((x) => x.role === "map_omits").map(toCitation)
-    )
-    if (link.status === "confirmed" && kind === "end") {
-      confirmedGone.set(sectionId, [
-        ...(confirmedGone.get(sectionId) ?? []),
-        ...omits,
-      ])
-      continue
-    }
-    if (link.status !== "proposed") continue
-    const route = acceptedOf(removal, "route")[0]
-    if (!route?.value_geom) continue
-    const proposer = toolName(link)
-    const end: ProposedEnd = {
-      id: link.id,
-      kind,
-      otherSectionId: removal.id,
-      score: Math.min(1, Math.max(0, link.score ?? 0)),
-      ...(proposer ? { proposer } : {}),
-      geometry: lineGeometry(route.value_geom, removal.id),
-      citations: [
-        ...route.citations
-          .filter((x) => x.role === "map_shows")
-          .map(toCitation),
-        ...omits,
-      ],
-    }
-    proposedEnds.set(sectionId, [...(proposedEnds.get(sectionId) ?? []), end])
-  }
-
-  // Pipelines: every line a section is confirmed or proposed part of.
   const proposedIn = new Map<
     string,
     { id: string; pipelineId: string; score: number; proposer?: string }[]
   >()
   const confirmedIn = new Map<string, string>()
   const membershipOf = new Map<string, string>()
+  const score = (link: StoreLink) => Math.min(1, Math.max(0, link.score ?? 0))
   for (const link of links) {
-    if (link.relation !== "part_of") continue
-    const [sectionId, lineId] = sectionIds.has(link.from_feature_id)
+    const fromSection = sectionIds.has(link.from_feature_id)
+    // Only links between a section and something that is not one.
+    if (fromSection === sectionIds.has(link.to_feature_id)) continue
+    const [sectionId, otherId] = fromSection
       ? [link.from_feature_id, link.to_feature_id]
       : [link.to_feature_id, link.from_feature_id]
-    if (!sectionIds.has(sectionId) || sectionIds.has(lineId)) continue
+    const proposer = toolName(link)
+    const kind = END_RELATIONS[link.relation]
+    if (kind !== undefined && link.status === "proposed") {
+      proposedEnds.set(sectionId, [
+        ...(proposedEnds.get(sectionId) ?? []),
+        {
+          id: link.id,
+          kind,
+          otherSectionId: otherId,
+          score: score(link),
+          ...(proposer ? { proposer } : {}),
+          citations: [],
+        },
+      ])
+    }
+    if (link.relation !== "part_of") continue
     if (link.status === "confirmed") {
-      confirmedIn.set(sectionId, lineId)
+      confirmedIn.set(sectionId, otherId)
       membershipOf.set(sectionId, link.id)
     }
     if (link.status !== "proposed") continue
-    const proposer = toolName(link)
     proposedIn.set(sectionId, [
       ...(proposedIn.get(sectionId) ?? []),
       {
         id: link.id,
-        pipelineId: lineId,
-        score: Math.min(1, Math.max(0, link.score ?? 0)),
+        pipelineId: otherId,
+        score: score(link),
         ...(proposer ? { proposer } : {}),
       },
     ])
   }
+
   const pipelineOf = (sectionId: string) =>
-    lineOf.get(sectionId) ?? confirmedIn.get(sectionId) ?? null
+    bySection.get(sectionId)?.[0].line_id ?? confirmedIn.get(sectionId) ?? null
   const lineById = new Map(lines.map((line) => [line.id, line]))
   const pipelineIds = [
     ...new Set([
-      ...features.flatMap((f) => pipelineOf(f.id) ?? []),
+      ...[...sectionIds].flatMap((id) => pipelineOf(id) ?? []),
       ...[...proposedIn.values()].flat().map((p) => p.pipelineId),
     ]),
   ]
@@ -358,36 +448,24 @@ export function toNetwork(
     const line = lineById.get(id)
     const claims: Claim[] = line
       ? PIPELINE_ATTRIBUTES.flatMap(({ attribute, key }) => {
-          const stated = acceptedOf(line, key).filter(
-            (c) => valueOf(c) !== null && c.citations.length > 0
+          const stated = acceptedOf(line.claims, key).filter(
+            (c) =>
+              c.citations.length > 0 && valueOf(statedFromClaim(c)) !== null
           )
-          const proposals = line.claims
-            .filter((c) => c.attribute_key === key && c.status === "candidate")
-            .flatMap((c) => {
-              const value = valueOf(c)
-              return value !== null && c.citations.length > 0
-                ? [
-                    {
-                      ...(c.id ? { id: c.id } : {}),
-                      value,
-                      citation: toCitation(c.citations[0]),
-                    },
-                  ]
-                : []
-            })
+          const proposals = proposalsOf(line.claims, key)
           // One row per accepted claim: an owner that changed is two rows,
           // each with its period. Candidates wait on the first row.
-          const rows: Claim[] = stated.map((c, index) => ({
+          const own: Claim[] = stated.map((c, index) => ({
             ...(c.id ? { id: c.id } : {}),
             attribute,
-            value: valueOf(c),
+            value: valueOf(statedFromClaim(c)),
             ...(c.valid_edtf ? { valid: c.valid_edtf } : {}),
-            ...madeAt(c),
-            citations: c.citations.map(toCitation),
+            ...(c.created_at ? { madeAt: c.created_at.slice(0, 10) } : {}),
+            citations: c.citations.map((x) => toCitation(x)),
             proposals: index === 0 ? proposals : [],
           }))
-          return rows.length > 0
-            ? rows
+          return own.length > 0
+            ? own
             : proposals.length > 0
               ? [{ attribute, value: null, citations: [], proposals }]
               : []
@@ -402,127 +480,258 @@ export function toNetwork(
     }
   })
 
-  const sections = features.map((feature) => {
-    const accepted = (key: string) => acceptedOf(feature, key)
-    const route = accepted("route")[0]
-    if (!route?.value_geom) {
+  const sections = [...bySection.entries()].map(([id, held]) => {
+    const own = held.find((r) => r.row_id === id) ?? held[0]
+    const route = own.whole_route ?? own.geometry
+    if (!route) {
       throw new StoreError(
         "unreadable",
-        `Section ${feature.id} is drawn by store but has no accepted route.`
+        `Section ${id} is drawn by store but has no route.`
       )
     }
-
-    const shown = route.citations.filter(
-      (c) => c.role === "map_shows" && sheets.has(c.source_id)
-    )
-    const first = shown
-      .map((c) => sheets.get(c.source_id)!)
-      .sort((a, b) => a.year - b.year)[0]
-    const endYear = yearOf(feature.dates?.time_end)
-    // With no sheet behind its route the section is shown in every edition
-    // and its First seen is Unknown.
-    const editionIds = editions
-      .filter(
-        (e) =>
-          (first === undefined || e.year >= first.year) &&
-          (endYear === null || e.year <= endYear)
-      )
-      .map((e) => e.id)
-
-    const claims: Claim[] = ATTRIBUTES.map(({ attribute, key }) => {
-      if (attribute === "First seen" && first) {
-        return {
-          attribute,
-          value: `${first.year} edition`,
-          citations: shown
-            .filter((c) => sheets.get(c.source_id) === first)
-            .map(toCitation),
-          proposals: [],
-        }
-      }
-      const gone = confirmedGone.get(feature.id)
-      if (attribute === "Last seen" && gone && gone.length > 0) {
-        // Confirmed by a person: the last map that shows it, and the next
-        // one, which does not.
-        const last = [...shown].sort(
-          (a, b) =>
-            sheets.get(b.source_id)!.year - sheets.get(a.source_id)!.year
-        )[0]
-        const goneYear = yearOf(gone[0].asOf)
-        if (last && goneYear !== null) {
-          return {
-            attribute,
-            value: `${sheets.get(last.source_id)!.year} edition, not on ${goneYear}`,
-            citations: [toCitation(last), ...gone],
-            proposals: [],
-          }
-        }
-      }
-      if (key === null) {
-        return { attribute, value: null, citations: [], proposals: [] }
-      }
-      const words = key === "status" ? statusWords : valueOf
-      const stated = accepted(key).filter(
-        (c) => words(c) !== null && c.citations.length > 0
-      )
-      const proposals = feature.claims
-        .filter((c) => c.attribute_key === key && c.status === "candidate")
-        .flatMap((c) => {
-          const value = valueOf(c)
-          return value !== null && c.citations.length > 0
-            ? [
-                {
-                  ...(c.id ? { id: c.id } : {}),
-                  value,
-                  citation: toCitation(c.citations[0]),
-                },
-              ]
-            : []
-        })
-      const values = [...new Set(stated.map((c) => words(c)!))]
-      // One claim behind the value: its id and period can be shown. Several
-      // are joined into one row, which then speaks for none of them alone.
-      const only = stated.length === 1 ? stated[0] : undefined
-      return {
-        ...(only?.id ? { id: only.id } : {}),
-        attribute,
-        ...(only?.valid_edtf ? { valid: only.valid_edtf } : {}),
-        ...madeAt(only),
-        value: values.length > 0 ? values.join("; ") : null,
-        citations:
-          values.length > 0
-            ? stated.flatMap((c) => c.citations.map(toCitation))
-            : [],
-        proposals,
-      }
-    })
-
+    const endYear = own.end_status === "confirmed" ? yearOf(own.time_end) : null
     return {
-      id: feature.id,
-      code: shortId(feature.id),
-      name: feature.label ? feature.label : null,
-      pipelineId: pipelineOf(feature.id),
-      ...(membershipOf.has(feature.id)
-        ? { membershipId: membershipOf.get(feature.id) }
-        : {}),
-      proposedMemberships: proposedIn.get(feature.id) ?? [],
-      editionIds: editionIds.length > 0 ? editionIds : [editions[0].id],
-      geometry: lineGeometry(route.value_geom, feature.id),
-      claims,
-      proposedEnds: proposedEnds.get(feature.id) ?? [],
-      ...(feature.created_at
-        ? { addedAt: feature.created_at.slice(0, 10) }
-        : {}),
+      id,
+      code: shortId(id),
+      name: own.label ? own.label : null,
+      pipelineId: pipelineOf(id),
+      ...(membershipOf.has(id) ? { membershipId: membershipOf.get(id) } : {}),
+      proposedMemberships: proposedIn.get(id) ?? [],
+      editionIds: editionsOf(editions, own.shown_years, endYear),
+      geometry: lineGeometry(route, id, own.whole_route == null),
+      values: rowValues(own),
+      proposedEnds: proposedEnds.get(id) ?? [],
+      ...(own.created_at ? { addedAt: own.created_at.slice(0, 10) } : {}),
     }
   })
 
-  const input: InputNetwork = {
-    version: 2,
-    name,
-    editions,
-    pipelines,
-    sections,
-  }
+  return parsed({ version: 2, name, editions, pipelines, sections })
+}
+
+/**
+ * The editions that show a section: from the first that shows it to the last
+ * before a confirmed end. With no sheet behind its route the section is shown
+ * in every edition and its First seen is Unknown.
+ */
+function editionsOf(
+  editions: readonly { id: string; year: number }[],
+  shown: readonly number[],
+  endYear: number | null
+): string[] {
+  const first = shown.length > 0 ? Math.min(...shown) : null
+  const ids = editions
+    .filter(
+      (e) =>
+        (first === null || e.year >= first) &&
+        (endYear === null || e.year <= endYear)
+    )
+    .map((e) => e.id)
+  return ids.length > 0 ? ids : [editions[0].id]
+}
+
+/** The value of each claim row from store's list row. */
+function rowValues(row: StoreSectionRow): ClaimValue[] {
+  return ATTRIBUTES.map(({ attribute, key }) => {
+    if (attribute === "First seen") {
+      return { attribute, value: firstSeenWords(row.shown_years), proposals: 0 }
+    }
+    if (attribute === "Last seen") {
+      return {
+        attribute,
+        value: lastSeenWords(row.shown_years, row.gone_year ?? null),
+        proposals: 0,
+      }
+    }
+    if (key === null) return { attribute, value: null, proposals: 0 }
+    const stated = (row.accepted[key] ?? []).map((c) => statedFromRow(key, c))
+    return {
+      attribute,
+      value: rowOf(key, stated).value,
+      proposals: row.candidates[key] ?? 0,
+    }
+  })
+}
+
+/**
+ * One section's detail from its feature: its claims with their citations and
+ * proposals, and its proposed ends in full from the lines traced as gone
+ * they point at. `section` is the section as the summary has it.
+ */
+export function toDetail(
+  feature: StoreFeature,
+  section: Pick<Section, "proposedEnds">,
+  removals: readonly StoreFeature[] = []
+): SectionDetail {
+  // In scope: the section's own claims and those it has through confirmed
+  // links, which stay the other feature's.
+  const inScope = [
+    ...feature.claims.map((claim) => ({ claim, from: null })),
+    ...feature.inherited_claims.map((claim) => ({
+      claim,
+      from: claim.inherited_from ?? null,
+    })),
+  ]
+  const fromOf = new Map(inScope.map((x) => [x.claim, x.from]))
+  const cite = (claim: StoreClaim) =>
+    claim.citations.map((x) => toCitation(x, fromOf.get(claim)))
+
+  // The route is the section's own: the newest accepted one.
+  const route = acceptedOf(feature.claims, "route")[0]
+  const shown = (route?.citations ?? []).filter(
+    (c) => c.role === "map_shows" && sheetYear(c) !== null
+  )
+  const shownYears = shown.map((c) => sheetYear(c)!)
+  // A line traced as gone that a person matched to the section: the map
+  // that leaves it out.
+  const goneCitations = inScope
+    .filter(
+      ({ claim, from }) =>
+        from !== null &&
+        claim.attribute_key === "status" &&
+        claim.status === "accepted" &&
+        claim.value_text === "decommissioned"
+    )
+    .flatMap(({ claim }) =>
+      claim.citations
+        .filter((c) => c.role === "map_omits" && sheetYear(c) !== null)
+        .map((c) => ({ c, from: fromOf.get(claim) }))
+    )
+  const goneYears = goneCitations.map(({ c }) => sheetYear(c)!)
+  const goneYear = goneYears.length > 0 ? Math.min(...goneYears) : null
+
+  const claims: Claim[] = ATTRIBUTES.map(({ attribute, key }) => {
+    if (attribute === "First seen") {
+      const value = firstSeenWords(shownYears)
+      const first = Math.min(...shownYears)
+      return {
+        attribute,
+        value,
+        citations:
+          value === null
+            ? []
+            : shown
+                .filter((c) => sheetYear(c) === first)
+                .map((c) => toCitation(c)),
+        proposals: [],
+      }
+    }
+    if (attribute === "Last seen") {
+      const value = lastSeenWords(shownYears, goneYear)
+      // The last map that shows it, and the next one, which does not.
+      const last = shown.find((c) => sheetYear(c) === Math.max(...shownYears))
+      return {
+        attribute,
+        value,
+        citations:
+          value === null || !last
+            ? []
+            : [
+                toCitation(last),
+                ...goneCitations.map(({ c, from }) => toCitation(c, from)),
+              ],
+        proposals: [],
+      }
+    }
+    if (key === null) {
+      return { attribute, value: null, citations: [], proposals: [] }
+    }
+    const stated = newest(
+      inScope
+        .map(({ claim }) => claim)
+        .filter(
+          (c) =>
+            c.attribute_key === key &&
+            c.status === "accepted" &&
+            c.citations.length > 0
+        )
+    )
+    const statedOf = new Map(stated.map((c) => [statedFromClaim(c), c]))
+    const { value, shown: behind, only } = rowOf(key, [...statedOf.keys()])
+    return {
+      ...(only?.id ? { id: only.id } : {}),
+      attribute,
+      ...(only?.valid ? { valid: only.valid } : {}),
+      ...(only?.createdAt ? { madeAt: only.createdAt.slice(0, 10) } : {}),
+      value,
+      citations:
+        value === null ? [] : behind.flatMap((s) => cite(statedOf.get(s)!)),
+      proposals: proposalsOf(feature.claims, key),
+    }
+  })
+
+  const removalById = new Map(removals.map((f) => [f.id, f]))
+  const proposedEnds = section.proposedEnds.map((end) => {
+    const removal = removalById.get(end.otherSectionId)
+    if (!removal) return end
+    const gone = acceptedOf(removal.claims, "route")[0]
+    const omits = acceptedOf(removal.claims, "status").flatMap((c) =>
+      c.citations
+        .filter((x) => x.role === "map_omits")
+        .map((x) => toCitation(x))
+    )
+    return {
+      ...end,
+      ...(gone?.value_geom
+        ? { geometry: lineGeometry(gone.value_geom, removal.id) }
+        : {}),
+      citations: [
+        ...(gone?.citations ?? [])
+          .filter((x) => x.role === "map_shows")
+          .map((x) => toCitation(x)),
+        ...omits,
+      ],
+    }
+  })
+
+  return { claims, proposedEnds }
+}
+
+/** The lines traced as gone that a section's proposed ends point at. */
+export function removalIdsOf(
+  sections: readonly Pick<Section, "proposedEnds">[]
+) {
+  return [
+    ...new Set(
+      sections.flatMap((s) => s.proposedEnds.map((e) => e.otherSectionId))
+    ),
+  ]
+}
+
+/**
+ * The whole network with every section's detail in it, as the sample has it:
+ * for tests, and for comparing the two layers.
+ */
+export function toNetwork(
+  name: string,
+  rows: readonly StoreSectionRow[],
+  features: readonly StoreFeature[],
+  {
+    links = [],
+    lines = [],
+    removals = [],
+  }: StoreExtras & {
+    removals?: readonly StoreFeature[]
+  } = {}
+): Network {
+  const summary = toSummary(name, rows, { links, lines })
+  const featureById = new Map(features.map((f) => [f.id, f]))
+  return parsed({
+    ...summary,
+    sections: summary.sections.map((section) => {
+      const feature = featureById.get(section.id)
+      if (!feature) return section
+      const detail = toDetail(feature, section, removals)
+      // The values stay the list's: a test compares them with the claims.
+      return {
+        ...section,
+        claims: detail.claims,
+        proposedEnds: detail.proposedEnds,
+      }
+    }),
+  })
+}
+
+function parsed(input: InputNetwork): Network {
   try {
     return parseNetwork(input)
   } catch (error) {

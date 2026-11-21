@@ -157,8 +157,8 @@ function ThreadEntry({ item }: { item: ThreadItem }) {
     ? sectionById.get(item.proposal.sectionId)
     : undefined
   const proposals =
-    target?.claims.find((c) => c.attribute === item.proposal?.attribute)
-      ?.proposals.length ?? 0
+    target?.values.find((c) => c.attribute === item.proposal?.attribute)
+      ?.proposals ?? 0
 
   return (
     <div className="flex flex-col gap-2.5">

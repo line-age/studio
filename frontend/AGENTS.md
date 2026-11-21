@@ -164,6 +164,24 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   data provider (`studio-data.tsx`), which gets it from `src/data/load-network.ts`. When
   the API arrives, that loader is what changes.
 - Counts and statuses are derived in `src/data/derive.ts`, never stored or hard-coded.
+  They read a section's `values` (one per claim row: the value and how many proposals
+  wait), which is what store's list gives and what the sample's claims are reduced to
+  by `claimValues`. Never `claims` for a count or a filter.
+- On store's data a section's claims, citations and proposed ends in full are its
+  detail (`src/data/detail-store.ts`; plan `2026-11-21-001`). Opening Studio reads the
+  sections' rows, the links of the network and its lines: a handful of requests, none
+  per section. A section's detail is read when something needs it
+  (`useSectionDetail`: the opened section, its claim, the citation pop-up, the Agent's
+  inbox when it opens), several sections per request. While it is read, the value
+  shows and only the sources pulse (shadcn Skeleton); nothing reads Unknown because it
+  is not read yet. A failure says so in that panel only, with Try again. After a write
+  the network is read again and kept details stay shown until read again. The sample
+  holds every section's detail already. `to-network.ts` words the list's values and
+  the detail through the same functions; a test checks they agree.
+- A claim a section has through a confirmed link (store's scope: a line traced as gone
+  a person matched to it, the section it was split from) is its history, never a
+  merge: each citation of it carries `inheritedFrom`, and the claim detail says where
+  it comes from.
 - Data comes from a fixture or from store, chosen by `VITE_DATA_SOURCE`, and only through
   `loadNetwork()`. One never stands in for the other when it fails. The app reaches store
   at its own `/store` path, which the dev server and nginx pass on with no token: while

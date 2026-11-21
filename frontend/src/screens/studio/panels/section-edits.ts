@@ -4,7 +4,7 @@ import type { Network } from "@/data/schema"
 import { attributeStoreKey } from "@/data/store/to-network"
 import { saveEditsToStore } from "@/data/store/write-edits"
 
-import { useUpdateNetwork } from "../studio-data"
+import { useStudioData, useUpdateNetwork } from "../studio-data"
 
 export type { SectionEdit }
 
@@ -24,6 +24,7 @@ export function useSaveSectionEdits(): (
   note: string
 ) => Promise<(() => void) | undefined> {
   const updateNetwork = useUpdateNetwork()
+  const { reload } = useStudioData()
   return async (sectionIds, edits, note) => {
     const onStore = dataSource() === "store"
     if (onStore) {
@@ -51,13 +52,15 @@ export function useSaveSectionEdits(): (
           ),
         note
       )
+      // Store said yes: read it again, so what shows is what it holds.
+      reload()
+      return undefined
     }
     let previous: Network | undefined
     updateNetwork((network) => {
       previous = network
       return applySectionEdits(network, sectionIds, edits, note)
     })
-    if (onStore) return undefined
     return () => {
       if (previous) updateNetwork(() => previous!)
     }

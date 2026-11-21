@@ -8,6 +8,7 @@ import {
   ID_C,
   ID_X,
   ID_Y,
+  ID_Z,
   LINE_1,
   LINE_2,
   storeFeatures,
@@ -18,8 +19,10 @@ import {
   storeRows,
 } from "@/test/store-payloads"
 
+import { claimValues } from "@/data/schema"
+
 import { StoreError } from "./client"
-import { attributeStoreKey, toNetwork } from "./to-network"
+import { attributeStoreKey, toDetail, toNetwork, toSummary } from "./to-network"
 
 const network = toNetwork("Gas network", storeRows(), storeFeatures(), {
   links: storeLinks(),
@@ -27,7 +30,7 @@ const network = toNetwork("Gas network", storeRows(), storeFeatures(), {
 })
 const section = (id: string) => network.sections.find((s) => s.id === id)!
 const claim = (id: string, attribute: string) =>
-  section(id).claims.find((c) => c.attribute === attribute)!
+  section(id).claims!.find((c) => c.attribute === attribute)!
 
 describe("toNetwork", () => {
   it("makes one edition per year of the map sheets cited, oldest first", () => {
@@ -113,7 +116,7 @@ describe("toNetwork", () => {
     diameter.citations[0].archive_url = "https://web.archive.invalid/snap"
     const withUrls = toNetwork("Gas network", storeRows(), features)
     const sectionB = withUrls.sections.find((s) => s.id === ID_B)!
-    const diameterClaim = sectionB.claims.find(
+    const diameterClaim = sectionB.claims!.find(
       (c) => c.attribute === "Diameter"
     )!
     expect(diameterClaim.citations[0].url).toBe(
@@ -156,7 +159,7 @@ describe("toNetwork", () => {
     const status = features[0].claims.find((c) => c.attribute_key === "status")!
     status.citations = [{ ...status.citations[0], role: "states" }]
     const out = toNetwork("Gas network", storeRows(), features)
-    const stated = out.sections[0].claims.find((c) => c.attribute === "Status")
+    const stated = out.sections[0].claims!.find((c) => c.attribute === "Status")
     expect(stated?.value).toBe("operational")
   })
 
@@ -200,35 +203,23 @@ describe("toNetwork", () => {
   })
 
   it("names who proposed a link only when it is a tool", () => {
-    // The same agent is seen asserting a claim as a person: no name.
-    const features = storeFeatures()
-    features[0].claims[0] = {
-      ...features[0].claims[0],
-      asserted_by: "agent-stitch",
-      asserted_by_kind: "person",
+    expect(section(ID_A).proposedEnds[0].proposer).toBe("stitch")
+    // Store says a person asserted the link, or does not say who: no name.
+    for (const kind of ["person", null]) {
+      const links = storeLinks().map((l) => ({ ...l, asserted_by_kind: kind }))
+      const named = toSummary("Gas network", storeRows(), { links })
+      expect(JSON.stringify(named)).not.toContain("stitch")
     }
-    const out = toNetwork("Gas network", storeRows(), features, {
-      links: storeLinks(),
-      removals: storeRemovals(),
-    })
-    expect(out.sections[0].proposedEnds[0].proposer).toBeUndefined()
-    // Store says outright that a person asserted the link: no name.
-    const links = storeLinks().map((l) => ({
-      ...l,
-      asserted_by_kind: "person",
-    }))
-    const named = toNetwork("Gas network", storeRows(), storeFeatures(), {
-      links,
-      removals: storeRemovals(),
-    })
-    expect(JSON.stringify(named)).not.toContain("stitch")
   })
 
-  it("leaves out a link whose line traced as gone was not read", () => {
-    const out = toNetwork("Gas network", storeRows(), storeFeatures(), {
+  it("has a proposed end from the list, its route once the section is read", () => {
+    const summary = toSummary("Gas network", storeRows(), {
       links: storeLinks(),
     })
-    expect(out.sections.flatMap((s) => s.proposedEnds)).toEqual([])
+    const [end] = summary.sections.find((s) => s.id === ID_A)!.proposedEnds
+    expect(end).toMatchObject({ id: "link-end", kind: "end", citations: [] })
+    expect(end.geometry).toBeUndefined()
+    expect(section(ID_A).proposedEnds[0].geometry).toBeDefined()
   })
 
   it("draws the route as traced, in two ordinates", () => {
@@ -349,7 +340,8 @@ describe("toNetwork", () => {
 
     it("never shows an owner as a section's own", () => {
       for (const section of piped.sections) {
-        expect(section.claims.map((c) => c.attribute)).not.toContain("Owner")
+        expect(section.claims!.map((c) => c.attribute)).not.toContain("Owner")
+        expect(section.values.map((c) => c.attribute)).not.toContain("Owner")
       }
     })
 
@@ -369,15 +361,14 @@ describe("toNetwork", () => {
 
   it("says so when store has nothing, or a section has no route", () => {
     expect(() => toNetwork("Gas network", [], [])).toThrow(StoreError)
-    const broken = storeFeatures()
-    broken[0].claims = []
+    const broken = storeRows().map((r) => ({ ...r, geometry: null }))
     let detail = ""
     try {
-      toNetwork("Gas network", storeRows(), broken)
+      toSummary("Gas network", broken)
     } catch (error) {
       if (error instanceof StoreError) detail = error.detail
     }
-    expect(detail).toMatch(/no accepted route/)
+    expect(detail).toMatch(/has no route/)
   })
 
   it("lists the sections under the edition that first shows them", () => {
@@ -410,5 +401,41 @@ describe("attributeStoreKey", () => {
 
   it("says null for an attribute store does not know at all", () => {
     expect(attributeStoreKey("Not a real attribute")).toBeNull()
+  })
+})
+
+describe("the list and the detail", () => {
+  it("say the same for every section, inherited claims included", () => {
+    const summary = toSummary("Gas network", storeRows(), {
+      links: storeLinks(),
+    })
+    const features = new Map(storeFeatures().map((f) => [f.id, f]))
+    for (const section of summary.sections) {
+      const detail = toDetail(
+        features.get(section.id)!,
+        section,
+        storeRemovals()
+      )
+      expect(claimValues(detail.claims)).toEqual(section.values)
+    }
+    // C has a claim from its history: it counts in the list as in the panel.
+    const c = summary.sections.find((s) => s.id === ID_C)!
+    expect(c.values.find((v) => v.attribute === "Status")?.value).toBe(
+      "Shown by June 1931; decommissioned"
+    )
+  })
+
+  it("names where a claim from a section's history comes from", () => {
+    const status = claim(ID_C, "Status")
+    const own = status.citations.filter((c) => c.inheritedFrom === undefined)
+    const inherited = status.citations.filter((c) => c.inheritedFrom === ID_Z)
+    expect(own.map((c) => c.role)).toEqual(["map_shows"])
+    expect(inherited.map((c) => c.role)).toEqual(["map_omits"])
+    // Last seen: the last map that shows C is C's own; the one that does not is Z's.
+    expect(
+      claim(ID_C, "Last seen").citations.map((c) => c.inheritedFrom ?? null)
+    ).toEqual([null, ID_Z])
+    // C stays C: one section, its own id and route.
+    expect(network.sections.filter((s) => s.id === ID_Z)).toEqual([])
   })
 })

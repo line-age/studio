@@ -134,7 +134,7 @@ describe("a proposed end or cut", () => {
     const withEnds = {
       ...section,
       claims: [
-        ...section.claims,
+        ...section.claims!,
         { attribute: "Last seen", value: null, citations: [], proposals: [] },
         {
           attribute: "Geometry",

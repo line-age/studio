@@ -250,7 +250,7 @@ describe("asking the Agent", () => {
     // The section's Last seen is as it was.
     const lastSeen = evidenceNetwork()
       .sections.find((s) => s.id === "s-6")!
-      .claims.find((c) => c.attribute === "Last seen")
+      .claims!.find((c) => c.attribute === "Last seen")
     expect(lastSeen?.value).toBeNull()
   })
 

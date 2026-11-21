@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event"
 import { toast } from "sonner"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import type { Network, Section } from "@/data/schema"
+import { withClaims, type Network, type Section } from "@/data/schema"
 import { testNetwork } from "@/test/network"
 
 import { StudioDataProvider } from "../studio-data"
@@ -141,24 +141,21 @@ describe("EditSectionsDialog", () => {
       ...network,
       sections: network.sections.map((s) =>
         s.id === "s-1"
-          ? {
-              ...s,
-              claims: [
-                ...s.claims,
-                {
-                  attribute: "First seen",
-                  value: "1940",
-                  citations: [{ source: "1937 edition" }],
-                  proposals: [],
-                },
-                {
-                  attribute: "Last seen",
-                  value: "1930",
-                  citations: [{ source: "1937 edition" }],
-                  proposals: [],
-                },
-              ],
-            }
+          ? withClaims(s, [
+              ...s.claims!,
+              {
+                attribute: "First seen",
+                value: "1940",
+                citations: [{ source: "1937 edition" }],
+                proposals: [],
+              },
+              {
+                attribute: "Last seen",
+                value: "1930",
+                citations: [{ source: "1937 edition" }],
+                proposals: [],
+              },
+            ])
           : s
       ),
     }
