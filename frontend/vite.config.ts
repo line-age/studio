@@ -19,6 +19,17 @@ export default defineConfig(({ mode }) => {
     env.STUDIO_AUTH === "local"
       ? { Authorization: `Bearer ${LOCAL_DEV_TOKEN}` }
       : undefined
+  // With GATE_URL, sign-in, store and the Agent all go through the gate, which
+  // adds the signed-in person's token (plan 2026-11-21-003). It keeps the
+  // paths as they are and sees this origin, as it will behind nginx.
+  const gate = env.GATE_URL
+    ? Object.fromEntries(
+        ["/auth", "/store", "/agent"].map((path) => [
+          path,
+          { target: env.GATE_URL, changeOrigin: false },
+        ])
+      )
+    : null
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
@@ -27,7 +38,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      proxy: {
+      proxy: gate ?? {
         // The app asks its own origin for store; this passes it on.
         // nginx.conf does the same in the container.
         "/store": {

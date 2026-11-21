@@ -19,10 +19,14 @@ ARG VITE_FIXTURE_URL=""
 # "store" reads the Lineage store through /store instead of a fixture file.
 ARG VITE_DATA_SOURCE=""
 ARG VITE_STORE_NETWORK=""
+# "local": no sign-in; store is asked who this is and nginx sends the fixed
+# local token (see compose.store.yaml). Anything else: sign in through the gate.
+ARG VITE_AUTH=""
 ENV VITE_MAPBOX_TOKEN=$VITE_MAPBOX_TOKEN \
     VITE_FIXTURE_URL=$VITE_FIXTURE_URL \
     VITE_DATA_SOURCE=$VITE_DATA_SOURCE \
-    VITE_STORE_NETWORK=$VITE_STORE_NETWORK
+    VITE_STORE_NETWORK=$VITE_STORE_NETWORK \
+    VITE_AUTH=$VITE_AUTH
 RUN pnpm build
 
 # Serve it. Runs as a non-root user and listens on 8080.
