@@ -16,7 +16,7 @@ import { formatCount } from "@/data/derive"
 import { useSettings, useSettingsOpen } from "../settings"
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
-import { legendText, LINE_WEIGHT, styleName } from "./line-style"
+import { legendText, styleName } from "./line-style"
 
 /**
  * The map key, behind one button among the map controls: how each line is
@@ -72,12 +72,12 @@ export function MapKey() {
             <LayerRow
               name="Heavy"
               meta="In a pipeline"
-              lineKey={<LineKey kind="solid" weight={LINE_WEIGHT.placed} />}
+              lineKey={<LineKey kind="heavy" />}
             />
             <LayerRow
               name="Thin"
               meta="Not in a pipeline"
-              lineKey={<LineKey kind="solid" weight={LINE_WEIGHT.unplaced} />}
+              lineKey={<LineKey kind="thin" />}
             />
             <LayerRow
               name="Dashed"
