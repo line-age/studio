@@ -51,8 +51,11 @@ import {
  *    Neither changes the section: the geometry stays the route as traced, and
  *    Last seen stays Unknown until a person confirms the link in store. Then
  *    it is cited to both maps.
- *  - Who proposed a link is shown only when it is a tool. A person's name
- *    never leaves this file.
+ *  - Who proposed a link is shown only when it is a tool. The one person
+ *    named is a section's tracer (the owner, 2026-11-19): store's list gives
+ *    who asserted its route, and the Traced by filter reads it. No other
+ *    person's name leaves this file: who asserted or reviewed a claim is
+ *    dropped.
  *  - A line is a pipeline. A section confirmed part of a line is in that
  *    pipeline; a part_of link that is only proposed is a proposed
  *    membership and changes nothing. A pipeline's name, owner and operator
@@ -515,6 +518,7 @@ export function toSummary(
       values: rowValues(own),
       proposedEnds: proposedEnds.get(id) ?? [],
       ...(own.created_at ? { addedAt: own.created_at.slice(0, 10) } : {}),
+      ...(own.traced_by ? { tracedBy: own.traced_by } : {}),
     }
   })
 

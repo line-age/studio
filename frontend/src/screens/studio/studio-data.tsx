@@ -290,6 +290,7 @@ export function useCriteria(): SectionCriteria {
   const lengthFrom = useStudio((s) => s.lengthFrom)
   const lengthTo = useStudio((s) => s.lengthTo)
   const proposedEnd = useStudio((s) => s.proposedEnd)
+  const tracers = useStudio((s) => s.tracers)
   const changedOnly = useStudio((s) => s.changedOnly)
   const diameters = useStudio((s) => s.diameters)
   const states = useStudio((s) => s.states)
@@ -306,6 +307,7 @@ export function useCriteria(): SectionCriteria {
       lengthFrom: paused ? null : lengthFrom,
       lengthTo: paused ? null : lengthTo,
       proposedEnd: paused ? NO_CRITERIA.proposedEnd : proposedEnd,
+      tracers: paused ? NO_CRITERIA.tracers : tracers,
       changedOnly,
       diameters,
       states: paused ? NO_CRITERIA.states : states,
@@ -328,6 +330,7 @@ export function useCriteria(): SectionCriteria {
       lengthFrom,
       lengthTo,
       proposedEnd,
+      tracers,
       changedOnly,
       diameters,
       states,

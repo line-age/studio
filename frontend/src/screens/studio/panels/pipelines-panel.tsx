@@ -38,6 +38,7 @@ import {
   type PipelineSummary,
   type SearchHit,
   PROPOSED_END_LABEL,
+  tracerNames,
   SCOPE,
 } from "@/data/derive"
 import { STATUS_LABEL } from "@/data/status"
@@ -103,6 +104,8 @@ export function PipelinesPanel() {
   const lengthTo = useStudio((s) => s.lengthTo)
   const setLength = useStudio((s) => s.setLength)
   const proposedEnd = useStudio((s) => s.proposedEnd)
+  const tracers = useStudio((s) => s.tracers)
+  const setTracers = useStudio((s) => s.setTracers)
   const setProposedEnd = useStudio((s) => s.setProposedEnd)
   const changedOnly = useStudio((s) => s.changedOnly)
   const setChangedOnly = useStudio((s) => s.setChangedOnly)
@@ -236,6 +239,18 @@ export function PipelinesPanel() {
             : `First shown by ${plural(labels.length, "edition")}`,
         hint: `Only sections first shown by the ${labels.join(", the ")}.`,
         remove: () => setFirstSeenEditions([]),
+      })
+    }
+    if (!paused && tracers.length > 0) {
+      const names = tracerNames(network.sections)
+      const named = tracers.map((id) => names.get(id) ?? "someone")
+      chips.push({
+        label:
+          named.length === 1
+            ? `Traced by ${named[0]}`
+            : `Traced by ${plural(named.length, "person", "people")}`,
+        hint: `Only sections traced by ${named.join(", ")}.`,
+        remove: () => setTracers([]),
       })
     }
     if (!paused && states.length > 0) {

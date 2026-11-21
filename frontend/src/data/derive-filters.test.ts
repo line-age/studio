@@ -12,6 +12,8 @@ import {
   passingWithout,
   proposedEndKinds,
   rangeNarrows,
+  tracerNames,
+  tracerOf,
   narrowRows,
   NO_CRITERIA,
   optionCounts,
@@ -114,6 +116,26 @@ describe("the new filters", () => {
     expect(matches(["end"])).toBe(false)
     expect(matches(["end", "cut"])).toBe(true)
     expect(passing({ proposedEnd: ["end", "cut"] })).toEqual([])
+  })
+
+  it("keeps the sections a person traced, by id", () => {
+    const ann = { id: "agent-ann", name: "Ann Example" }
+    const bob = { id: "agent-bob", name: "Bob Example" }
+    const traced = network.sections.map((s, i) =>
+      i === 4 ? s : { ...s, tracedBy: i % 2 === 0 ? ann : bob }
+    )
+    const by = (tracers: string[]) =>
+      traced
+        .filter((s) => sectionMatches(s, { ...NO_CRITERIA, tracers }))
+        .map((s) => s.id)
+    expect(by(["agent-ann"])).toEqual(["s-1", "s-3"])
+    expect(by(["agent-ann", "agent-bob"])).toEqual(["s-1", "s-2", "s-3", "s-4"])
+    // A section nobody is named for was traced by none of them.
+    expect(tracerOf(traced[4])).toEqual([])
+    expect([...tracerNames(traced)]).toEqual([
+      ["agent-ann", "Ann Example"],
+      ["agent-bob", "Bob Example"],
+    ])
   })
 
   it("says whether a filter has anything to tell apart", () => {

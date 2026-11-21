@@ -87,6 +87,8 @@ interface StudioState {
   lengthTo: number | null
   /** Keep sections with a proposed end of one of these kinds waiting. */
   proposedEnd: readonly ProposedEndKind[]
+  /** Keep sections one of these people traced, by store's id. */
+  tracers: readonly string[]
   /** Keep sections changed since a person last reviewed them. */
   changedOnly: boolean
   /** Keep sections whose cited diameter is one of these. */
@@ -163,6 +165,7 @@ interface StudioState {
   setFirstSeenEditions: (editions: readonly string[]) => void
   setLength: (from: number | null, to: number | null) => void
   setProposedEnd: (kinds: readonly ProposedEndKind[]) => void
+  setTracers: (tracers: readonly string[]) => void
   setChangedOnly: (on: boolean) => void
   setDiameters: (diameters: readonly string[]) => void
   setStates: (states: readonly string[]) => void
@@ -345,7 +348,8 @@ export const filtersApplied = (s: StudioState) =>
 
 /**
  * The filters that are about a section on its own: which edition first shows
- * it, where it runs, how long it is, what end is proposed for it. They are
+ * it, who traced it, where it runs, how long it is, what end is proposed for
+ * it. They are
  * offered on All and on Unplaced. On Pipelines they are kept and ask for
  * nothing until the switch goes back (`sectionFiltersPaused`).
  */
@@ -354,7 +358,8 @@ export const sectionFiltersOn = (s: StudioState) =>
   s.states.length > 0 ||
   s.lengthFrom !== null ||
   s.lengthTo !== null ||
-  s.proposedEnd.length > 0
+  s.proposedEnd.length > 0 ||
+  s.tracers.length > 0
 
 export const sectionFiltersPaused = (s: StudioState) => s.scope === "pipelines"
 
@@ -382,6 +387,7 @@ export const useStudio = create<StudioState>((set) => ({
   lengthFrom: null,
   lengthTo: null,
   proposedEnd: [],
+  tracers: [],
   changedOnly: false,
   diameters: [],
   states: [],
@@ -437,6 +443,7 @@ export const useStudio = create<StudioState>((set) => ({
   setFirstSeenEditions: (firstSeenEditions) => set({ firstSeenEditions }),
   setLength: (lengthFrom, lengthTo) => set({ lengthFrom, lengthTo }),
   setProposedEnd: (proposedEnd) => set({ proposedEnd }),
+  setTracers: (tracers) => set({ tracers }),
   setChangedOnly: (changedOnly) => set({ changedOnly }),
   setDiameters: (diameters) => set({ diameters }),
   setStates: (states) => set({ states }),
@@ -455,6 +462,7 @@ export const useStudio = create<StudioState>((set) => ({
       lengthFrom: null,
       lengthTo: null,
       proposedEnd: [],
+      tracers: [],
       changedOnly: false,
       diameters: [],
       states: [],

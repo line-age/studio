@@ -53,6 +53,18 @@ async function parsed() {
 }
 
 describe("store's own answers", () => {
+  it("name who traced each section, from the list alone", async () => {
+    const { rows, links } = await parsed()
+    const summary = toSummary("Oil network", rows, { links })
+    // The recorded person is invented; the id is what a link would carry.
+    for (const section of summary.sections) {
+      expect(section.tracedBy).toEqual({
+        id: expect.stringMatching(/^[0-9a-f-]{36}$/),
+        name: "Ann Example",
+      })
+    }
+  })
+
   it("give the same values in the list as in each section's detail", async () => {
     const { rows, links, features, removals } = await parsed()
     const summary = toSummary("Oil network", rows, { links })

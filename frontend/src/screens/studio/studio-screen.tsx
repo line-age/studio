@@ -430,6 +430,9 @@ function useLinkedView(linked: UrlView) {
         firstSeenEditions: s.firstSeenEditions.filter((id) =>
           network.editions.some((e) => e.id === id)
         ),
+        tracers: s.tracers.filter((id) =>
+          network.sections.some((x) => x.tracedBy?.id === id)
+        ),
         companies: s.companies.filter((name) => companies.has(name)),
         unknownIn: s.unknownIn.filter((name) => attributes.has(name)),
       })

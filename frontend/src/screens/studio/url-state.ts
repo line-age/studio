@@ -37,6 +37,8 @@ export interface UrlView {
   lengthFrom: number | null
   lengthTo: number | null
   proposedEnd: ProposedEndKind[]
+  /** Store's ids of the people; never a name. */
+  tracers: string[]
   changedOnly: boolean
   diameters: string[]
   states: string[]
@@ -65,6 +67,7 @@ export const DEFAULT_VIEW: UrlView = {
   lengthFrom: null,
   lengthTo: null,
   proposedEnd: [],
+  tracers: [],
   changedOnly: false,
   diameters: [],
   states: [],
@@ -96,6 +99,8 @@ export function toSearchParams(view: UrlView): URLSearchParams {
     params.set("len", `${view.lengthFrom ?? ""}-${view.lengthTo ?? ""}`)
   }
   for (const kind of view.proposedEnd) params.append("pe", kind)
+  // A person is named in a link by store's id, never by name.
+  for (const id of view.tracers) params.append("tb", id)
   if (view.changedOnly) params.set("ch", "1")
   for (const d of view.diameters) params.append("d", d)
   for (const state of view.states) params.append("st", state)
@@ -138,6 +143,7 @@ export function fromSearchParams(params: URLSearchParams): UrlView {
   view.proposedEnd = PROPOSED_ENDS.filter((kind) =>
     params.getAll("pe").includes(kind)
   )
+  view.tracers = [...new Set(params.getAll("tb").filter(Boolean))]
   const length = params.get("len")?.split("-")
   if (length?.length === 2) {
     view.lengthFrom = read(km, length[0])
@@ -188,6 +194,7 @@ export function currentView(): UrlView {
     lengthFrom: s.lengthFrom,
     lengthTo: s.lengthTo,
     proposedEnd: [...s.proposedEnd],
+    tracers: [...s.tracers],
     changedOnly: s.changedOnly,
     diameters: [...s.diameters],
     states: [...s.states],
@@ -223,6 +230,7 @@ export function applyUrl(search: string): UrlView {
     lengthFrom: view.lengthFrom,
     lengthTo: view.lengthTo,
     proposedEnd: view.proposedEnd,
+    tracers: view.tracers,
     changedOnly: view.changedOnly,
     diameters: view.diameters,
     states: view.states,

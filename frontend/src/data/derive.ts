@@ -683,6 +683,22 @@ export const PROPOSED_END_LABEL: Record<ProposedEndKind, string> = {
   cut: "Part of it",
 }
 
+/** The id of the person who traced a section, as its only value; none when not said. */
+export function tracerOf(section: Section): readonly string[] {
+  return section.tracedBy ? [section.tracedBy.id] : []
+}
+
+/** Every tracer the sections name, by id: the name the screen shows. */
+export function tracerNames(
+  sections: readonly Section[]
+): ReadonlyMap<string, string> {
+  const names = new Map<string, string>()
+  for (const section of sections) {
+    if (section.tracedBy) names.set(section.tracedBy.id, section.tracedBy.name)
+  }
+  return names
+}
+
 /** The kinds of proposed end waiting on a section, each once. */
 export function proposedEndKinds(section: Section): ProposedEndKind[] {
   return PROPOSED_ENDS.filter((kind) =>
@@ -713,6 +729,8 @@ export interface SectionCriteria {
   lengthTo: number | null
   /** A proposed end of one of these kinds waits on the section. */
   proposedEnd: readonly ProposedEndKind[]
+  /** One of these people (by store's id) traced the section. */
+  tracers: readonly string[]
   /** The section changed since a person last reviewed it. */
   changedOnly: boolean
   /** The section's cited diameter is one of these. */
@@ -745,6 +763,7 @@ export const NO_CRITERIA: SectionCriteria = {
   lengthFrom: null,
   lengthTo: null,
   proposedEnd: [],
+  tracers: [],
   changedOnly: false,
   diameters: [],
   states: [],
@@ -851,6 +870,7 @@ export function hasCriteria(criteria: SectionCriteria): boolean {
     criteria.lengthFrom !== null ||
     criteria.lengthTo !== null ||
     criteria.proposedEnd.length > 0 ||
+    criteria.tracers.length > 0 ||
     criteria.changedOnly ||
     criteria.diameters.length > 0 ||
     criteria.states.length > 0
@@ -911,6 +931,13 @@ export function sectionMatches(
   if (
     criteria.proposedEnd.length > 0 &&
     !section.proposedEnds.some((end) => criteria.proposedEnd.includes(end.kind))
+  ) {
+    return false
+  }
+  if (
+    criteria.tracers.length > 0 &&
+    // A section nobody is named for was traced by none of them.
+    !tracerOf(section).some((id) => criteria.tracers.includes(id))
   ) {
     return false
   }

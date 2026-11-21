@@ -77,6 +77,10 @@ const sectionRows = z.object({
         created_at: z.string().nullish(),
         /** The route as traced, where a proposed cut makes the row a part of it. */
         whole_route: geometry.nullish(),
+        /** The person who asserted the section's current route; never a tool. */
+        traced_by: z
+          .object({ id: z.string().min(1), name: z.string().min(1) })
+          .nullish(),
       }),
     })
   ),

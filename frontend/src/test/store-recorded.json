@@ -3,328 +3,7 @@
     {
       "claims": [
         {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
-          "asserted_by_kind": "person",
-          "asserted_by_name": "Ann Example",
-          "attribute_key": "route",
-          "citations": [
-            {
-              "archive_url": null,
-              "as_of_edtf": "1937",
-              "claim_id": "27e1e296-b24a-4bfb-b63c-cb1742098cde",
-              "confidence": null,
-              "id": "e2c1f9e7-13dd-4b6a-ad04-b634be724a87",
-              "identifier": null,
-              "locator": "the line near Hobbs",
-              "published_edtf": null,
-              "quote": null,
-              "role": "map_shows",
-              "source_id": "203f697d-0e15-49b7-ba2f-f49bc95ba5d4",
-              "source_kind": "map_sheet",
-              "source_title": "Gas pipelines 1937",
-              "url": null
-            }
-          ],
-          "created_at": "2026-11-21T19:22:07.706242+00:00",
-          "end_earliest": "1937-01-01",
-          "end_latest": null,
-          "id": "27e1e296-b24a-4bfb-b63c-cb1742098cde",
-          "request_id": null,
-          "reviews": [],
-          "start_earliest": null,
-          "start_latest": "1937-12-31",
-          "status": "accepted",
-          "valid_edtf": "../1937",
-          "value_feature_id": null,
-          "value_geom": {
-            "coordinates": [
-              [-82, 35],
-              [-82.1, 35.4]
-            ],
-            "type": "LineString"
-          },
-          "value_num": null,
-          "value_text": null,
-          "value_unit": null
-        },
-        {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
-          "asserted_by_kind": "person",
-          "asserted_by_name": "Ann Example",
-          "attribute_key": "status",
-          "citations": [
-            {
-              "archive_url": null,
-              "as_of_edtf": "1937",
-              "claim_id": "89c2ba28-60cc-41dd-a070-854c157f51f7",
-              "confidence": null,
-              "id": "e2c1f9e7-13dd-4b6a-ad04-b634be724a87",
-              "identifier": null,
-              "locator": "the line near Hobbs",
-              "published_edtf": null,
-              "quote": null,
-              "role": "map_shows",
-              "source_id": "203f697d-0e15-49b7-ba2f-f49bc95ba5d4",
-              "source_kind": "map_sheet",
-              "source_title": "Gas pipelines 1937",
-              "url": null
-            }
-          ],
-          "created_at": "2026-11-21T19:22:07.706242+00:00",
-          "end_earliest": "1937-01-01",
-          "end_latest": null,
-          "id": "89c2ba28-60cc-41dd-a070-854c157f51f7",
-          "request_id": null,
-          "reviews": [],
-          "start_earliest": null,
-          "start_latest": "1937-12-31",
-          "status": "accepted",
-          "valid_edtf": "../1937",
-          "value_feature_id": null,
-          "value_geom": null,
-          "value_num": null,
-          "value_text": "operational",
-          "value_unit": null
-        }
-      ],
-      "created_at": "2026-11-21T19:22:07.706242+00:00",
-      "dates": {
-        "date_conflict": false,
-        "existed_from": "../1937",
-        "existed_to": null,
-        "time_end": null,
-        "time_start": "1937-01-01"
-      },
-      "external_keys": [],
-      "id": "15e2a5b9-4b4c-4227-bb9d-a19f1c3a92ff",
-      "inherited_claims": [],
-      "kind": "section",
-      "label": null,
-      "links": [
-        {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
-          "asserted_by_kind": "person",
-          "asserted_by_name": "Ann Example",
-          "citation_id": null,
-          "created_at": "2026-11-21T19:22:07.728777+00:00",
-          "from_feature_id": "4f0c31e9-fefb-4665-9207-09ba5a6884ac",
-          "id": "c78babc4-3529-4e8e-a584-9c4683634c7d",
-          "relation": "overlaps",
-          "score": 0.8,
-          "status": "proposed",
-          "to_feature_id": "15e2a5b9-4b4c-4227-bb9d-a19f1c3a92ff"
-        }
-      ],
-      "network": "oil"
-    },
-    {
-      "claims": [
-        {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
-          "asserted_by_kind": "person",
-          "asserted_by_name": "Ann Example",
-          "attribute_key": "route",
-          "citations": [
-            {
-              "archive_url": null,
-              "as_of_edtf": "1937",
-              "claim_id": "84e67947-1324-4b6f-907c-5f5b15ca405e",
-              "confidence": null,
-              "id": "5606116c-3d6b-44a8-9fd0-424591c2f6a0",
-              "identifier": null,
-              "locator": "the line near Hobbs",
-              "published_edtf": null,
-              "quote": null,
-              "role": "map_shows",
-              "source_id": "203f697d-0e15-49b7-ba2f-f49bc95ba5d4",
-              "source_kind": "map_sheet",
-              "source_title": "Gas pipelines 1937",
-              "url": null
-            }
-          ],
-          "created_at": "2026-11-21T19:22:07.639547+00:00",
-          "end_earliest": "1937-01-01",
-          "end_latest": null,
-          "id": "84e67947-1324-4b6f-907c-5f5b15ca405e",
-          "request_id": null,
-          "reviews": [],
-          "start_earliest": null,
-          "start_latest": "1937-12-31",
-          "status": "accepted",
-          "valid_edtf": "../1937",
-          "value_feature_id": null,
-          "value_geom": {
-            "coordinates": [
-              [-81, 35],
-              [-81.1, 35.2]
-            ],
-            "type": "LineString"
-          },
-          "value_num": null,
-          "value_text": null,
-          "value_unit": null
-        },
-        {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
-          "asserted_by_kind": "person",
-          "asserted_by_name": "Ann Example",
-          "attribute_key": "status",
-          "citations": [
-            {
-              "archive_url": null,
-              "as_of_edtf": "1937",
-              "claim_id": "8812a799-5874-4e94-abf7-4a472aab8868",
-              "confidence": null,
-              "id": "5606116c-3d6b-44a8-9fd0-424591c2f6a0",
-              "identifier": null,
-              "locator": "the line near Hobbs",
-              "published_edtf": null,
-              "quote": null,
-              "role": "map_shows",
-              "source_id": "203f697d-0e15-49b7-ba2f-f49bc95ba5d4",
-              "source_kind": "map_sheet",
-              "source_title": "Gas pipelines 1937",
-              "url": null
-            }
-          ],
-          "created_at": "2026-11-21T19:22:07.639547+00:00",
-          "end_earliest": "1937-01-01",
-          "end_latest": null,
-          "id": "8812a799-5874-4e94-abf7-4a472aab8868",
-          "request_id": null,
-          "reviews": [],
-          "start_earliest": null,
-          "start_latest": "1937-12-31",
-          "status": "accepted",
-          "valid_edtf": "../1937",
-          "value_feature_id": null,
-          "value_geom": null,
-          "value_num": null,
-          "value_text": "operational",
-          "value_unit": null
-        }
-      ],
-      "created_at": "2026-11-21T19:22:07.639547+00:00",
-      "dates": {
-        "date_conflict": false,
-        "existed_from": "../1937",
-        "existed_to": "1955-06-30/1960",
-        "time_end": "1960-12-31",
-        "time_start": "1937-01-01"
-      },
-      "external_keys": [],
-      "id": "c567c10d-bf20-4688-9bfa-9e47e2357400",
-      "inherited_claims": [
-        {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
-          "asserted_by_kind": "person",
-          "asserted_by_name": "Ann Example",
-          "attribute_key": "route",
-          "citations": [
-            {
-              "archive_url": null,
-              "as_of_edtf": "1955-06-30",
-              "claim_id": "b5a1c3d4-0d5b-444c-a1b9-65299ce0ef1c",
-              "confidence": null,
-              "id": "35a25043-40c0-4b00-a5e7-0b1a5aca5371",
-              "identifier": null,
-              "locator": null,
-              "published_edtf": null,
-              "quote": null,
-              "role": "map_shows",
-              "source_id": "b86690d5-9854-495c-8154-20faaec2c245",
-              "source_kind": "map_sheet",
-              "source_title": "Gas pipelines 1955",
-              "url": null
-            }
-          ],
-          "created_at": "2026-11-21T19:22:07.674087+00:00",
-          "end_earliest": "1955-06-30",
-          "end_latest": null,
-          "id": "b5a1c3d4-0d5b-444c-a1b9-65299ce0ef1c",
-          "inherited_from": "d6e04b63-f900-489e-ba06-c50bb93c0287",
-          "request_id": null,
-          "reviews": [],
-          "start_earliest": null,
-          "start_latest": "1955-06-30",
-          "status": "accepted",
-          "valid_edtf": "../1955-06-30",
-          "value_feature_id": null,
-          "value_geom": {
-            "coordinates": [
-              [-81, 35],
-              [-81.1, 35.2]
-            ],
-            "type": "LineString"
-          },
-          "value_num": null,
-          "value_text": null,
-          "value_unit": null
-        },
-        {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
-          "asserted_by_kind": "person",
-          "asserted_by_name": "Ann Example",
-          "attribute_key": "status",
-          "citations": [
-            {
-              "archive_url": null,
-              "as_of_edtf": "1960",
-              "claim_id": "c28834d7-78ec-413a-9127-84f3e7cc1760",
-              "confidence": null,
-              "id": "01865c6f-5571-4671-94fe-bfb57347de5b",
-              "identifier": null,
-              "locator": null,
-              "published_edtf": null,
-              "quote": null,
-              "role": "map_omits",
-              "source_id": "e6986f17-2e18-48e3-9ab9-b605ac8bb735",
-              "source_kind": "map_sheet",
-              "source_title": "Gas pipelines 1960",
-              "url": null
-            }
-          ],
-          "created_at": "2026-11-21T19:22:07.674087+00:00",
-          "end_earliest": null,
-          "end_latest": null,
-          "id": "c28834d7-78ec-413a-9127-84f3e7cc1760",
-          "inherited_from": "d6e04b63-f900-489e-ba06-c50bb93c0287",
-          "request_id": null,
-          "reviews": [],
-          "start_earliest": "1955-06-30",
-          "start_latest": "1960-12-31",
-          "status": "accepted",
-          "valid_edtf": "1955-06-30/1960",
-          "value_feature_id": null,
-          "value_geom": null,
-          "value_num": null,
-          "value_text": "decommissioned",
-          "value_unit": null
-        }
-      ],
-      "kind": "section",
-      "label": null,
-      "links": [
-        {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
-          "asserted_by_kind": "person",
-          "asserted_by_name": "Ann Example",
-          "citation_id": null,
-          "created_at": "2026-11-21T19:22:07.674087+00:00",
-          "from_feature_id": "d6e04b63-f900-489e-ba06-c50bb93c0287",
-          "id": "4a31fec7-7c73-4e4b-a685-3f8719634df7",
-          "relation": "same_as",
-          "score": 0.97,
-          "status": "confirmed",
-          "to_feature_id": "c567c10d-bf20-4688-9bfa-9e47e2357400"
-        }
-      ],
-      "network": "oil"
-    },
-    {
-      "claims": [
-        {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
           "asserted_by_kind": "person",
           "asserted_by_name": "Ann Example",
           "attribute_key": "diameter",
@@ -332,24 +11,24 @@
             {
               "archive_url": null,
               "as_of_edtf": null,
-              "claim_id": "9f2b88fa-a762-4087-a8eb-1059bf4f7613",
+              "claim_id": "8c9af45b-40c7-450a-b653-c6b12a1fa1d9",
               "confidence": null,
-              "id": "26af161a-16f4-4fec-aae7-f7b946eeb95a",
+              "id": "a0f98e2b-4572-4943-b10d-794c6be8a85d",
               "identifier": null,
               "locator": "p. 40",
               "published_edtf": null,
-              "quote": null,
+              "quote": "",
               "role": "states",
-              "source_id": "dae7b22a-fb59-4ac5-9f33-8093ef3cca1b",
+              "source_id": "2a0d552d-a2c9-409f-b23c-75fb65221553",
               "source_kind": "issue",
               "source_title": "Oil & Gas Journal (made up)",
               "url": null
             }
           ],
-          "created_at": "2026-11-21T19:22:07.554394+00:00",
+          "created_at": "2026-11-21T21:23:09.532451+00:00",
           "end_earliest": "1937-01-01",
           "end_latest": null,
-          "id": "9f2b88fa-a762-4087-a8eb-1059bf4f7613",
+          "id": "8c9af45b-40c7-450a-b653-c6b12a1fa1d9",
           "request_id": null,
           "reviews": [],
           "start_earliest": null,
@@ -363,7 +42,7 @@
           "value_unit": "in"
         },
         {
-          "asserted_by": "65b70ee2-89da-4d00-a21d-13c5ef95f742",
+          "asserted_by": "5b31991a-88f1-424f-b9ba-37e0d7db0dfa",
           "asserted_by_kind": "pipeline",
           "asserted_by_name": "cite",
           "attribute_key": "diameter",
@@ -371,24 +50,24 @@
             {
               "archive_url": null,
               "as_of_edtf": null,
-              "claim_id": "97c3a02f-78f4-474d-ad47-77d96e1a6fb0",
+              "claim_id": "efaace17-405c-4128-86fc-8f82d2ef775a",
               "confidence": null,
-              "id": "725df4b7-0204-48af-99eb-5a060d77ef95",
+              "id": "3f909a7f-e983-4c08-a6b0-038ca6ba128d",
               "identifier": null,
               "locator": "p. 40",
               "published_edtf": null,
-              "quote": null,
+              "quote": "",
               "role": "states",
-              "source_id": "c261a822-b4f3-4a15-bd36-1846427cbf2e",
+              "source_id": "9c92766c-bb01-4d53-80f0-402f7787ad19",
               "source_kind": "issue",
               "source_title": "Oil & Gas Journal (made up)",
               "url": null
             }
           ],
-          "created_at": "2026-11-21T19:22:07.596275+00:00",
+          "created_at": "2026-11-21T21:23:09.552811+00:00",
           "end_earliest": "1950-01-01",
           "end_latest": null,
-          "id": "97c3a02f-78f4-474d-ad47-77d96e1a6fb0",
+          "id": "efaace17-405c-4128-86fc-8f82d2ef775a",
           "request_id": null,
           "reviews": [],
           "start_earliest": null,
@@ -402,7 +81,7 @@
           "value_unit": "in"
         },
         {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
           "asserted_by_kind": "person",
           "asserted_by_name": "Ann Example",
           "attribute_key": "route",
@@ -410,24 +89,24 @@
             {
               "archive_url": null,
               "as_of_edtf": "1937",
-              "claim_id": "8c711d79-3f9b-412a-b2fd-cba23b954cd1",
+              "claim_id": "1c20258a-0532-4db6-88e5-d1eef6a08e82",
               "confidence": null,
-              "id": "275bb6ea-bd45-46ee-bc10-f6307f6ea198",
+              "id": "88acba01-8d45-4170-9238-f985e0b24c55",
               "identifier": null,
               "locator": "the line near Hobbs",
               "published_edtf": null,
               "quote": null,
               "role": "map_shows",
-              "source_id": "203f697d-0e15-49b7-ba2f-f49bc95ba5d4",
+              "source_id": "929045a1-472a-45e9-8f4d-7a3f0eaad10e",
               "source_kind": "map_sheet",
               "source_title": "Gas pipelines 1937",
               "url": null
             }
           ],
-          "created_at": "2026-11-21T19:22:07.433393+00:00",
+          "created_at": "2026-11-21T21:23:09.484570+00:00",
           "end_earliest": "1937-01-01",
           "end_latest": null,
-          "id": "8c711d79-3f9b-412a-b2fd-cba23b954cd1",
+          "id": "1c20258a-0532-4db6-88e5-d1eef6a08e82",
           "request_id": null,
           "reviews": [],
           "start_earliest": null,
@@ -447,7 +126,7 @@
           "value_unit": null
         },
         {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
           "asserted_by_kind": "person",
           "asserted_by_name": "Ann Example",
           "attribute_key": "status",
@@ -455,24 +134,24 @@
             {
               "archive_url": null,
               "as_of_edtf": "1937",
-              "claim_id": "90b39df1-6209-44b0-92a1-1c9ec34fff02",
+              "claim_id": "08a256c0-08e7-4dac-a61a-72185c735396",
               "confidence": null,
-              "id": "275bb6ea-bd45-46ee-bc10-f6307f6ea198",
+              "id": "88acba01-8d45-4170-9238-f985e0b24c55",
               "identifier": null,
               "locator": "the line near Hobbs",
               "published_edtf": null,
               "quote": null,
               "role": "map_shows",
-              "source_id": "203f697d-0e15-49b7-ba2f-f49bc95ba5d4",
+              "source_id": "929045a1-472a-45e9-8f4d-7a3f0eaad10e",
               "source_kind": "map_sheet",
               "source_title": "Gas pipelines 1937",
               "url": null
             }
           ],
-          "created_at": "2026-11-21T19:22:07.433393+00:00",
+          "created_at": "2026-11-21T21:23:09.484570+00:00",
           "end_earliest": "1937-01-01",
           "end_latest": null,
-          "id": "90b39df1-6209-44b0-92a1-1c9ec34fff02",
+          "id": "08a256c0-08e7-4dac-a61a-72185c735396",
           "request_id": null,
           "reviews": [],
           "start_earliest": null,
@@ -486,7 +165,7 @@
           "value_unit": null
         }
       ],
-      "created_at": "2026-11-21T19:22:07.433393+00:00",
+      "created_at": "2026-11-21T21:23:09.484570+00:00",
       "dates": {
         "date_conflict": false,
         "existed_from": "../1937",
@@ -495,7 +174,7 @@
         "time_start": "1937-01-01"
       },
       "external_keys": [],
-      "id": "e51c8ff8-8dab-45a3-998e-5e3ac3cda57a",
+      "id": "4e024ea3-a695-417c-baaa-d0f52e719f92",
       "inherited_claims": [],
       "kind": "section",
       "label": null,
@@ -505,7 +184,220 @@
     {
       "claims": [
         {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+          "asserted_by_kind": "person",
+          "asserted_by_name": "Ann Example",
+          "attribute_key": "route",
+          "citations": [
+            {
+              "archive_url": null,
+              "as_of_edtf": "1937",
+              "claim_id": "fdb3b356-9036-4e09-b749-5a3bafa09049",
+              "confidence": null,
+              "id": "89b5063f-43bb-4bd1-ab36-e8ffa76182e3",
+              "identifier": null,
+              "locator": "the line near Hobbs",
+              "published_edtf": null,
+              "quote": null,
+              "role": "map_shows",
+              "source_id": "929045a1-472a-45e9-8f4d-7a3f0eaad10e",
+              "source_kind": "map_sheet",
+              "source_title": "Gas pipelines 1937",
+              "url": null
+            }
+          ],
+          "created_at": "2026-11-21T21:23:09.623683+00:00",
+          "end_earliest": "1937-01-01",
+          "end_latest": null,
+          "id": "fdb3b356-9036-4e09-b749-5a3bafa09049",
+          "request_id": null,
+          "reviews": [],
+          "start_earliest": null,
+          "start_latest": "1937-12-31",
+          "status": "accepted",
+          "valid_edtf": "../1937",
+          "value_feature_id": null,
+          "value_geom": {
+            "coordinates": [
+              [-82, 35],
+              [-82.1, 35.4]
+            ],
+            "type": "LineString"
+          },
+          "value_num": null,
+          "value_text": null,
+          "value_unit": null
+        },
+        {
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+          "asserted_by_kind": "person",
+          "asserted_by_name": "Ann Example",
+          "attribute_key": "status",
+          "citations": [
+            {
+              "archive_url": null,
+              "as_of_edtf": "1937",
+              "claim_id": "13ba67cf-51b5-44b5-8693-d07b596741c9",
+              "confidence": null,
+              "id": "89b5063f-43bb-4bd1-ab36-e8ffa76182e3",
+              "identifier": null,
+              "locator": "the line near Hobbs",
+              "published_edtf": null,
+              "quote": null,
+              "role": "map_shows",
+              "source_id": "929045a1-472a-45e9-8f4d-7a3f0eaad10e",
+              "source_kind": "map_sheet",
+              "source_title": "Gas pipelines 1937",
+              "url": null
+            }
+          ],
+          "created_at": "2026-11-21T21:23:09.623683+00:00",
+          "end_earliest": "1937-01-01",
+          "end_latest": null,
+          "id": "13ba67cf-51b5-44b5-8693-d07b596741c9",
+          "request_id": null,
+          "reviews": [],
+          "start_earliest": null,
+          "start_latest": "1937-12-31",
+          "status": "accepted",
+          "valid_edtf": "../1937",
+          "value_feature_id": null,
+          "value_geom": null,
+          "value_num": null,
+          "value_text": "operational",
+          "value_unit": null
+        }
+      ],
+      "created_at": "2026-11-21T21:23:09.623683+00:00",
+      "dates": {
+        "date_conflict": false,
+        "existed_from": "../1937",
+        "existed_to": null,
+        "time_end": null,
+        "time_start": "1937-01-01"
+      },
+      "external_keys": [],
+      "id": "5ad89ef0-d401-41c5-96cc-7c35f1e3bebd",
+      "inherited_claims": [],
+      "kind": "section",
+      "label": null,
+      "links": [
+        {
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+          "asserted_by_kind": "person",
+          "asserted_by_name": "Ann Example",
+          "citation_id": null,
+          "created_at": "2026-11-21T21:23:09.642698+00:00",
+          "from_feature_id": "f9f47052-0219-46fa-949e-3085428d9083",
+          "id": "ee9411dd-1fed-4ea6-be9a-57967bde478e",
+          "relation": "overlaps",
+          "score": 0.8,
+          "status": "proposed",
+          "to_feature_id": "5ad89ef0-d401-41c5-96cc-7c35f1e3bebd"
+        }
+      ],
+      "network": "oil"
+    },
+    {
+      "claims": [
+        {
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+          "asserted_by_kind": "person",
+          "asserted_by_name": "Ann Example",
+          "attribute_key": "route",
+          "citations": [
+            {
+              "archive_url": null,
+              "as_of_edtf": "1937",
+              "claim_id": "45f0c10d-e184-404d-95dd-4ecee5abbefb",
+              "confidence": null,
+              "id": "0f27c36c-8780-4c7a-8f15-086c2f89182b",
+              "identifier": null,
+              "locator": "the line near Hobbs",
+              "published_edtf": null,
+              "quote": null,
+              "role": "map_shows",
+              "source_id": "929045a1-472a-45e9-8f4d-7a3f0eaad10e",
+              "source_kind": "map_sheet",
+              "source_title": "Gas pipelines 1937",
+              "url": null
+            }
+          ],
+          "created_at": "2026-11-21T21:23:09.563540+00:00",
+          "end_earliest": "1937-01-01",
+          "end_latest": null,
+          "id": "45f0c10d-e184-404d-95dd-4ecee5abbefb",
+          "request_id": null,
+          "reviews": [],
+          "start_earliest": null,
+          "start_latest": "1937-12-31",
+          "status": "accepted",
+          "valid_edtf": "../1937",
+          "value_feature_id": null,
+          "value_geom": {
+            "coordinates": [
+              [-81, 35],
+              [-81.1, 35.2]
+            ],
+            "type": "LineString"
+          },
+          "value_num": null,
+          "value_text": null,
+          "value_unit": null
+        },
+        {
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+          "asserted_by_kind": "person",
+          "asserted_by_name": "Ann Example",
+          "attribute_key": "status",
+          "citations": [
+            {
+              "archive_url": null,
+              "as_of_edtf": "1937",
+              "claim_id": "f101ec88-292a-48b2-8922-a9916aaa3b7a",
+              "confidence": null,
+              "id": "0f27c36c-8780-4c7a-8f15-086c2f89182b",
+              "identifier": null,
+              "locator": "the line near Hobbs",
+              "published_edtf": null,
+              "quote": null,
+              "role": "map_shows",
+              "source_id": "929045a1-472a-45e9-8f4d-7a3f0eaad10e",
+              "source_kind": "map_sheet",
+              "source_title": "Gas pipelines 1937",
+              "url": null
+            }
+          ],
+          "created_at": "2026-11-21T21:23:09.563540+00:00",
+          "end_earliest": "1937-01-01",
+          "end_latest": null,
+          "id": "f101ec88-292a-48b2-8922-a9916aaa3b7a",
+          "request_id": null,
+          "reviews": [],
+          "start_earliest": null,
+          "start_latest": "1937-12-31",
+          "status": "accepted",
+          "valid_edtf": "../1937",
+          "value_feature_id": null,
+          "value_geom": null,
+          "value_num": null,
+          "value_text": "operational",
+          "value_unit": null
+        }
+      ],
+      "created_at": "2026-11-21T21:23:09.563540+00:00",
+      "dates": {
+        "date_conflict": false,
+        "existed_from": "../1937",
+        "existed_to": "1955-06-30/1960",
+        "time_end": "1960-12-31",
+        "time_start": "1937-01-01"
+      },
+      "external_keys": [],
+      "id": "93997a77-2593-4233-b10f-3a589080a1a8",
+      "inherited_claims": [
+        {
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
           "asserted_by_kind": "person",
           "asserted_by_name": "Ann Example",
           "attribute_key": "route",
@@ -513,24 +405,132 @@
             {
               "archive_url": null,
               "as_of_edtf": "1955-06-30",
-              "claim_id": "135104f1-825c-4b95-8d3a-9cdb8768e7ec",
+              "claim_id": "20466957-9e87-4797-95ec-22e92abbd534",
               "confidence": null,
-              "id": "952f0ebf-a418-4ab5-9bc0-3cae98f28e50",
+              "id": "4c3975fe-0df1-4e86-ab43-58d932940d93",
               "identifier": null,
-              "locator": "the line near Hobbs",
+              "locator": null,
               "published_edtf": null,
               "quote": null,
               "role": "map_shows",
-              "source_id": "b86690d5-9854-495c-8154-20faaec2c245",
+              "source_id": "1fd17f97-6740-4e4b-82d3-41170be3bd45",
               "source_kind": "map_sheet",
               "source_title": "Gas pipelines 1955",
               "url": null
             }
           ],
-          "created_at": "2026-11-21T19:22:07.747728+00:00",
+          "created_at": "2026-11-21T21:23:09.594042+00:00",
           "end_earliest": "1955-06-30",
           "end_latest": null,
-          "id": "135104f1-825c-4b95-8d3a-9cdb8768e7ec",
+          "id": "20466957-9e87-4797-95ec-22e92abbd534",
+          "inherited_from": "63b21229-127f-4aa9-9c2c-07a2d61c9129",
+          "request_id": null,
+          "reviews": [],
+          "start_earliest": null,
+          "start_latest": "1955-06-30",
+          "status": "accepted",
+          "valid_edtf": "../1955-06-30",
+          "value_feature_id": null,
+          "value_geom": {
+            "coordinates": [
+              [-81, 35],
+              [-81.1, 35.2]
+            ],
+            "type": "LineString"
+          },
+          "value_num": null,
+          "value_text": null,
+          "value_unit": null
+        },
+        {
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+          "asserted_by_kind": "person",
+          "asserted_by_name": "Ann Example",
+          "attribute_key": "status",
+          "citations": [
+            {
+              "archive_url": null,
+              "as_of_edtf": "1960",
+              "claim_id": "38a00c38-25f3-4a5b-82b4-34426581abb8",
+              "confidence": null,
+              "id": "a9afc125-19bb-4693-808f-1e4869936b88",
+              "identifier": null,
+              "locator": null,
+              "published_edtf": null,
+              "quote": null,
+              "role": "map_omits",
+              "source_id": "78904cf7-9339-4c8c-bee8-8279a4d32cae",
+              "source_kind": "map_sheet",
+              "source_title": "Gas pipelines 1960",
+              "url": null
+            }
+          ],
+          "created_at": "2026-11-21T21:23:09.594042+00:00",
+          "end_earliest": null,
+          "end_latest": null,
+          "id": "38a00c38-25f3-4a5b-82b4-34426581abb8",
+          "inherited_from": "63b21229-127f-4aa9-9c2c-07a2d61c9129",
+          "request_id": null,
+          "reviews": [],
+          "start_earliest": "1955-06-30",
+          "start_latest": "1960-12-31",
+          "status": "accepted",
+          "valid_edtf": "1955-06-30/1960",
+          "value_feature_id": null,
+          "value_geom": null,
+          "value_num": null,
+          "value_text": "decommissioned",
+          "value_unit": null
+        }
+      ],
+      "kind": "section",
+      "label": null,
+      "links": [
+        {
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+          "asserted_by_kind": "person",
+          "asserted_by_name": "Ann Example",
+          "citation_id": null,
+          "created_at": "2026-11-21T21:23:09.594042+00:00",
+          "from_feature_id": "63b21229-127f-4aa9-9c2c-07a2d61c9129",
+          "id": "fda413c0-ab34-47c4-a16c-3cbaf5d8d505",
+          "relation": "same_as",
+          "score": 0.97,
+          "status": "confirmed",
+          "to_feature_id": "93997a77-2593-4233-b10f-3a589080a1a8"
+        }
+      ],
+      "network": "oil"
+    },
+    {
+      "claims": [
+        {
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+          "asserted_by_kind": "person",
+          "asserted_by_name": "Ann Example",
+          "attribute_key": "route",
+          "citations": [
+            {
+              "archive_url": null,
+              "as_of_edtf": "1955-06-30",
+              "claim_id": "9ff1b7ea-a0e9-40d4-940a-f9d0de6d0171",
+              "confidence": null,
+              "id": "399dddd0-0589-4ef1-a08d-3aff3dc368a7",
+              "identifier": null,
+              "locator": "the line near Hobbs",
+              "published_edtf": null,
+              "quote": null,
+              "role": "map_shows",
+              "source_id": "1fd17f97-6740-4e4b-82d3-41170be3bd45",
+              "source_kind": "map_sheet",
+              "source_title": "Gas pipelines 1955",
+              "url": null
+            }
+          ],
+          "created_at": "2026-11-21T21:23:09.658108+00:00",
+          "end_earliest": "1955-06-30",
+          "end_latest": null,
+          "id": "9ff1b7ea-a0e9-40d4-940a-f9d0de6d0171",
           "request_id": null,
           "reviews": [],
           "start_earliest": null,
@@ -550,7 +550,7 @@
           "value_unit": null
         },
         {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
           "asserted_by_kind": "person",
           "asserted_by_name": "Ann Example",
           "attribute_key": "status",
@@ -558,24 +558,24 @@
             {
               "archive_url": null,
               "as_of_edtf": "1955-06-30",
-              "claim_id": "2333bb6a-95e8-4592-96e8-12c60e31b979",
+              "claim_id": "54f67b69-f52f-49cb-a7de-fe35e5a49169",
               "confidence": null,
-              "id": "952f0ebf-a418-4ab5-9bc0-3cae98f28e50",
+              "id": "399dddd0-0589-4ef1-a08d-3aff3dc368a7",
               "identifier": null,
               "locator": "the line near Hobbs",
               "published_edtf": null,
               "quote": null,
               "role": "map_shows",
-              "source_id": "b86690d5-9854-495c-8154-20faaec2c245",
+              "source_id": "1fd17f97-6740-4e4b-82d3-41170be3bd45",
               "source_kind": "map_sheet",
               "source_title": "Gas pipelines 1955",
               "url": null
             }
           ],
-          "created_at": "2026-11-21T19:22:07.747728+00:00",
+          "created_at": "2026-11-21T21:23:09.658108+00:00",
           "end_earliest": "1955-06-30",
           "end_latest": null,
-          "id": "2333bb6a-95e8-4592-96e8-12c60e31b979",
+          "id": "54f67b69-f52f-49cb-a7de-fe35e5a49169",
           "request_id": null,
           "reviews": [],
           "start_earliest": null,
@@ -589,7 +589,7 @@
           "value_unit": null
         }
       ],
-      "created_at": "2026-11-21T19:22:07.747728+00:00",
+      "created_at": "2026-11-21T21:23:09.658108+00:00",
       "dates": {
         "date_conflict": false,
         "existed_from": "../1955-06-30",
@@ -598,7 +598,7 @@
         "time_start": "1955-06-30"
       },
       "external_keys": [],
-      "id": "eca1e223-0fc3-47cd-9eb5-76ae331f68ad",
+      "id": "b9596999-bd8b-4c60-8a9d-9846307083c6",
       "inherited_claims": [],
       "kind": "section",
       "label": null,
@@ -608,37 +608,37 @@
   ],
   "links": [
     {
-      "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
+      "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
       "asserted_by_kind": "person",
       "asserted_by_name": "Ann Example",
       "citation_id": null,
-      "created_at": "2026-11-21T19:22:07.674087+00:00",
-      "from_feature_id": "d6e04b63-f900-489e-ba06-c50bb93c0287",
-      "id": "4a31fec7-7c73-4e4b-a685-3f8719634df7",
+      "created_at": "2026-11-21T21:23:09.594042+00:00",
+      "from_feature_id": "63b21229-127f-4aa9-9c2c-07a2d61c9129",
+      "id": "fda413c0-ab34-47c4-a16c-3cbaf5d8d505",
       "relation": "same_as",
       "score": 0.97,
       "status": "confirmed",
-      "to_feature_id": "c567c10d-bf20-4688-9bfa-9e47e2357400"
+      "to_feature_id": "93997a77-2593-4233-b10f-3a589080a1a8"
     },
     {
-      "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
+      "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
       "asserted_by_kind": "person",
       "asserted_by_name": "Ann Example",
       "citation_id": null,
-      "created_at": "2026-11-21T19:22:07.728777+00:00",
-      "from_feature_id": "4f0c31e9-fefb-4665-9207-09ba5a6884ac",
-      "id": "c78babc4-3529-4e8e-a584-9c4683634c7d",
+      "created_at": "2026-11-21T21:23:09.642698+00:00",
+      "from_feature_id": "f9f47052-0219-46fa-949e-3085428d9083",
+      "id": "ee9411dd-1fed-4ea6-be9a-57967bde478e",
       "relation": "overlaps",
       "score": 0.8,
       "status": "proposed",
-      "to_feature_id": "15e2a5b9-4b4c-4227-bb9d-a19f1c3a92ff"
+      "to_feature_id": "5ad89ef0-d401-41c5-96cc-7c35f1e3bebd"
     }
   ],
   "removals": [
     {
       "claims": [
         {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
           "asserted_by_kind": "person",
           "asserted_by_name": "Ann Example",
           "attribute_key": "route",
@@ -646,24 +646,141 @@
             {
               "archive_url": null,
               "as_of_edtf": "1955-06-30",
-              "claim_id": "da9c5b50-2e65-4ef9-95ac-d2eacc5087cb",
+              "claim_id": "20466957-9e87-4797-95ec-22e92abbd534",
               "confidence": null,
-              "id": "ecd016e0-1482-45e8-bf83-290103786eea",
+              "id": "4c3975fe-0df1-4e86-ab43-58d932940d93",
               "identifier": null,
               "locator": null,
               "published_edtf": null,
               "quote": null,
               "role": "map_shows",
-              "source_id": "b86690d5-9854-495c-8154-20faaec2c245",
+              "source_id": "1fd17f97-6740-4e4b-82d3-41170be3bd45",
               "source_kind": "map_sheet",
               "source_title": "Gas pipelines 1955",
               "url": null
             }
           ],
-          "created_at": "2026-11-21T19:22:07.728777+00:00",
+          "created_at": "2026-11-21T21:23:09.594042+00:00",
           "end_earliest": "1955-06-30",
           "end_latest": null,
-          "id": "da9c5b50-2e65-4ef9-95ac-d2eacc5087cb",
+          "id": "20466957-9e87-4797-95ec-22e92abbd534",
+          "request_id": null,
+          "reviews": [],
+          "start_earliest": null,
+          "start_latest": "1955-06-30",
+          "status": "accepted",
+          "valid_edtf": "../1955-06-30",
+          "value_feature_id": null,
+          "value_geom": {
+            "coordinates": [
+              [-81, 35],
+              [-81.1, 35.2]
+            ],
+            "type": "LineString"
+          },
+          "value_num": null,
+          "value_text": null,
+          "value_unit": null
+        },
+        {
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+          "asserted_by_kind": "person",
+          "asserted_by_name": "Ann Example",
+          "attribute_key": "status",
+          "citations": [
+            {
+              "archive_url": null,
+              "as_of_edtf": "1960",
+              "claim_id": "38a00c38-25f3-4a5b-82b4-34426581abb8",
+              "confidence": null,
+              "id": "a9afc125-19bb-4693-808f-1e4869936b88",
+              "identifier": null,
+              "locator": null,
+              "published_edtf": null,
+              "quote": null,
+              "role": "map_omits",
+              "source_id": "78904cf7-9339-4c8c-bee8-8279a4d32cae",
+              "source_kind": "map_sheet",
+              "source_title": "Gas pipelines 1960",
+              "url": null
+            }
+          ],
+          "created_at": "2026-11-21T21:23:09.594042+00:00",
+          "end_earliest": null,
+          "end_latest": null,
+          "id": "38a00c38-25f3-4a5b-82b4-34426581abb8",
+          "request_id": null,
+          "reviews": [],
+          "start_earliest": "1955-06-30",
+          "start_latest": "1960-12-31",
+          "status": "accepted",
+          "valid_edtf": "1955-06-30/1960",
+          "value_feature_id": null,
+          "value_geom": null,
+          "value_num": null,
+          "value_text": "decommissioned",
+          "value_unit": null
+        }
+      ],
+      "created_at": "2026-11-21T21:23:09.594042+00:00",
+      "dates": {
+        "date_conflict": false,
+        "existed_from": null,
+        "existed_to": "1955-06-30/1960",
+        "time_end": "1960-12-31",
+        "time_start": null
+      },
+      "external_keys": [],
+      "id": "63b21229-127f-4aa9-9c2c-07a2d61c9129",
+      "inherited_claims": [],
+      "kind": "section",
+      "label": null,
+      "links": [
+        {
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+          "asserted_by_kind": "person",
+          "asserted_by_name": "Ann Example",
+          "citation_id": null,
+          "created_at": "2026-11-21T21:23:09.594042+00:00",
+          "from_feature_id": "63b21229-127f-4aa9-9c2c-07a2d61c9129",
+          "id": "fda413c0-ab34-47c4-a16c-3cbaf5d8d505",
+          "relation": "same_as",
+          "score": 0.97,
+          "status": "confirmed",
+          "to_feature_id": "93997a77-2593-4233-b10f-3a589080a1a8"
+        }
+      ],
+      "network": "gas"
+    },
+    {
+      "claims": [
+        {
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+          "asserted_by_kind": "person",
+          "asserted_by_name": "Ann Example",
+          "attribute_key": "route",
+          "citations": [
+            {
+              "archive_url": null,
+              "as_of_edtf": "1955-06-30",
+              "claim_id": "78217079-2757-4245-a0fa-cb69ce8aa8e8",
+              "confidence": null,
+              "id": "db0c5be8-f30f-4dcb-a159-16ccb7c2a081",
+              "identifier": null,
+              "locator": null,
+              "published_edtf": null,
+              "quote": null,
+              "role": "map_shows",
+              "source_id": "1fd17f97-6740-4e4b-82d3-41170be3bd45",
+              "source_kind": "map_sheet",
+              "source_title": "Gas pipelines 1955",
+              "url": null
+            }
+          ],
+          "created_at": "2026-11-21T21:23:09.642698+00:00",
+          "end_earliest": "1955-06-30",
+          "end_latest": null,
+          "id": "78217079-2757-4245-a0fa-cb69ce8aa8e8",
           "request_id": null,
           "reviews": [],
           "start_earliest": null,
@@ -683,7 +800,7 @@
           "value_unit": null
         },
         {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
           "asserted_by_kind": "person",
           "asserted_by_name": "Ann Example",
           "attribute_key": "status",
@@ -691,24 +808,24 @@
             {
               "archive_url": null,
               "as_of_edtf": "1960",
-              "claim_id": "b5f53605-3b20-4b58-9748-c9e47d40790b",
+              "claim_id": "f6177787-2241-48d1-8579-5a982cc1398d",
               "confidence": null,
-              "id": "1893240f-5764-4854-a8f2-4b9eb36a874a",
+              "id": "12a62ecf-8bfc-4a3a-854a-ac1fe203e930",
               "identifier": null,
               "locator": null,
               "published_edtf": null,
               "quote": null,
               "role": "map_omits",
-              "source_id": "e6986f17-2e18-48e3-9ab9-b605ac8bb735",
+              "source_id": "78904cf7-9339-4c8c-bee8-8279a4d32cae",
               "source_kind": "map_sheet",
               "source_title": "Gas pipelines 1960",
               "url": null
             }
           ],
-          "created_at": "2026-11-21T19:22:07.728777+00:00",
+          "created_at": "2026-11-21T21:23:09.642698+00:00",
           "end_earliest": null,
           "end_latest": null,
-          "id": "b5f53605-3b20-4b58-9748-c9e47d40790b",
+          "id": "f6177787-2241-48d1-8579-5a982cc1398d",
           "request_id": null,
           "reviews": [],
           "start_earliest": "1955-06-30",
@@ -722,7 +839,7 @@
           "value_unit": null
         }
       ],
-      "created_at": "2026-11-21T19:22:07.728777+00:00",
+      "created_at": "2026-11-21T21:23:09.642698+00:00",
       "dates": {
         "date_conflict": false,
         "existed_from": null,
@@ -731,140 +848,23 @@
         "time_start": null
       },
       "external_keys": [],
-      "id": "4f0c31e9-fefb-4665-9207-09ba5a6884ac",
+      "id": "f9f47052-0219-46fa-949e-3085428d9083",
       "inherited_claims": [],
       "kind": "section",
       "label": null,
       "links": [
         {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
+          "asserted_by": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
           "asserted_by_kind": "person",
           "asserted_by_name": "Ann Example",
           "citation_id": null,
-          "created_at": "2026-11-21T19:22:07.728777+00:00",
-          "from_feature_id": "4f0c31e9-fefb-4665-9207-09ba5a6884ac",
-          "id": "c78babc4-3529-4e8e-a584-9c4683634c7d",
+          "created_at": "2026-11-21T21:23:09.642698+00:00",
+          "from_feature_id": "f9f47052-0219-46fa-949e-3085428d9083",
+          "id": "ee9411dd-1fed-4ea6-be9a-57967bde478e",
           "relation": "overlaps",
           "score": 0.8,
           "status": "proposed",
-          "to_feature_id": "15e2a5b9-4b4c-4227-bb9d-a19f1c3a92ff"
-        }
-      ],
-      "network": "gas"
-    },
-    {
-      "claims": [
-        {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
-          "asserted_by_kind": "person",
-          "asserted_by_name": "Ann Example",
-          "attribute_key": "route",
-          "citations": [
-            {
-              "archive_url": null,
-              "as_of_edtf": "1955-06-30",
-              "claim_id": "b5a1c3d4-0d5b-444c-a1b9-65299ce0ef1c",
-              "confidence": null,
-              "id": "35a25043-40c0-4b00-a5e7-0b1a5aca5371",
-              "identifier": null,
-              "locator": null,
-              "published_edtf": null,
-              "quote": null,
-              "role": "map_shows",
-              "source_id": "b86690d5-9854-495c-8154-20faaec2c245",
-              "source_kind": "map_sheet",
-              "source_title": "Gas pipelines 1955",
-              "url": null
-            }
-          ],
-          "created_at": "2026-11-21T19:22:07.674087+00:00",
-          "end_earliest": "1955-06-30",
-          "end_latest": null,
-          "id": "b5a1c3d4-0d5b-444c-a1b9-65299ce0ef1c",
-          "request_id": null,
-          "reviews": [],
-          "start_earliest": null,
-          "start_latest": "1955-06-30",
-          "status": "accepted",
-          "valid_edtf": "../1955-06-30",
-          "value_feature_id": null,
-          "value_geom": {
-            "coordinates": [
-              [-81, 35],
-              [-81.1, 35.2]
-            ],
-            "type": "LineString"
-          },
-          "value_num": null,
-          "value_text": null,
-          "value_unit": null
-        },
-        {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
-          "asserted_by_kind": "person",
-          "asserted_by_name": "Ann Example",
-          "attribute_key": "status",
-          "citations": [
-            {
-              "archive_url": null,
-              "as_of_edtf": "1960",
-              "claim_id": "c28834d7-78ec-413a-9127-84f3e7cc1760",
-              "confidence": null,
-              "id": "01865c6f-5571-4671-94fe-bfb57347de5b",
-              "identifier": null,
-              "locator": null,
-              "published_edtf": null,
-              "quote": null,
-              "role": "map_omits",
-              "source_id": "e6986f17-2e18-48e3-9ab9-b605ac8bb735",
-              "source_kind": "map_sheet",
-              "source_title": "Gas pipelines 1960",
-              "url": null
-            }
-          ],
-          "created_at": "2026-11-21T19:22:07.674087+00:00",
-          "end_earliest": null,
-          "end_latest": null,
-          "id": "c28834d7-78ec-413a-9127-84f3e7cc1760",
-          "request_id": null,
-          "reviews": [],
-          "start_earliest": "1955-06-30",
-          "start_latest": "1960-12-31",
-          "status": "accepted",
-          "valid_edtf": "1955-06-30/1960",
-          "value_feature_id": null,
-          "value_geom": null,
-          "value_num": null,
-          "value_text": "decommissioned",
-          "value_unit": null
-        }
-      ],
-      "created_at": "2026-11-21T19:22:07.674087+00:00",
-      "dates": {
-        "date_conflict": false,
-        "existed_from": null,
-        "existed_to": "1955-06-30/1960",
-        "time_end": "1960-12-31",
-        "time_start": null
-      },
-      "external_keys": [],
-      "id": "d6e04b63-f900-489e-ba06-c50bb93c0287",
-      "inherited_claims": [],
-      "kind": "section",
-      "label": null,
-      "links": [
-        {
-          "asserted_by": "187227f0-416d-4110-ba75-e2875a58c30e",
-          "asserted_by_kind": "person",
-          "asserted_by_name": "Ann Example",
-          "citation_id": null,
-          "created_at": "2026-11-21T19:22:07.674087+00:00",
-          "from_feature_id": "d6e04b63-f900-489e-ba06-c50bb93c0287",
-          "id": "4a31fec7-7c73-4e4b-a685-3f8719634df7",
-          "relation": "same_as",
-          "score": 0.97,
-          "status": "confirmed",
-          "to_feature_id": "c567c10d-bf20-4688-9bfa-9e47e2357400"
+          "to_feature_id": "5ad89ef0-d401-41c5-96cc-7c35f1e3bebd"
         }
       ],
       "network": "gas"
@@ -876,228 +876,19 @@
         "geometry": {
           "coordinates": [
             [
-              [-82, 35],
-              [-82.08797008, 35.35211313]
-            ]
-          ],
-          "type": "MultiLineString"
-        },
-        "id": "15e2a5b9-4b4c-4227-bb9d-a19f1c3a92ff",
-        "properties": {
-          "accepted": {
-            "route": [
-              {
-                "claim_id": "27e1e296-b24a-4bfb-b63c-cb1742098cde",
-                "created_at": "2026-11-21T19:22:07.706242+00:00",
-                "inherited_from": null,
-                "shown_as_of": "1937",
-                "valid_edtf": "../1937",
-                "value_num": null,
-                "value_text": null,
-                "value_unit": null
-              }
-            ],
-            "status": [
-              {
-                "claim_id": "89c2ba28-60cc-41dd-a070-854c157f51f7",
-                "created_at": "2026-11-21T19:22:07.706242+00:00",
-                "inherited_from": null,
-                "shown_as_of": "1937",
-                "valid_edtf": "../1937",
-                "value_num": null,
-                "value_text": "operational",
-                "value_unit": null
-              }
-            ]
-          },
-          "candidates": {},
-          "created_at": "2026-11-21T19:22:07.706242+00:00",
-          "date_conflict": false,
-          "diameter": null,
-          "end_status": null,
-          "existed_from": "../1937",
-          "existed_to": null,
-          "gone_year": null,
-          "has_candidates": false,
-          "label": null,
-          "line_id": null,
-          "network": "oil",
-          "row_id": "15e2a5b9-4b4c-4227-bb9d-a19f1c3a92ff",
-          "section_id": "15e2a5b9-4b4c-4227-bb9d-a19f1c3a92ff",
-          "shown_years": [1937],
-          "time_end": null,
-          "time_start": "1937-01-01",
-          "whole_route": {
-            "coordinates": [
-              [-82, 35],
-              [-82.1, 35.4]
-            ],
-            "type": "LineString"
-          }
-        },
-        "type": "Feature"
-      },
-      {
-        "geometry": {
-          "coordinates": [
-            [
-              [-81, 35],
-              [-81.1, 35.2]
-            ]
-          ],
-          "type": "MultiLineString"
-        },
-        "id": "c567c10d-bf20-4688-9bfa-9e47e2357400",
-        "properties": {
-          "accepted": {
-            "route": [
-              {
-                "claim_id": "b5a1c3d4-0d5b-444c-a1b9-65299ce0ef1c",
-                "created_at": "2026-11-21T19:22:07.674087+00:00",
-                "inherited_from": "d6e04b63-f900-489e-ba06-c50bb93c0287",
-                "shown_as_of": "1955-06-30",
-                "valid_edtf": "../1955-06-30",
-                "value_num": null,
-                "value_text": null,
-                "value_unit": null
-              },
-              {
-                "claim_id": "84e67947-1324-4b6f-907c-5f5b15ca405e",
-                "created_at": "2026-11-21T19:22:07.639547+00:00",
-                "inherited_from": null,
-                "shown_as_of": "1937",
-                "valid_edtf": "../1937",
-                "value_num": null,
-                "value_text": null,
-                "value_unit": null
-              }
-            ],
-            "status": [
-              {
-                "claim_id": "c28834d7-78ec-413a-9127-84f3e7cc1760",
-                "created_at": "2026-11-21T19:22:07.674087+00:00",
-                "inherited_from": "d6e04b63-f900-489e-ba06-c50bb93c0287",
-                "shown_as_of": null,
-                "valid_edtf": "1955-06-30/1960",
-                "value_num": null,
-                "value_text": "decommissioned",
-                "value_unit": null
-              },
-              {
-                "claim_id": "8812a799-5874-4e94-abf7-4a472aab8868",
-                "created_at": "2026-11-21T19:22:07.639547+00:00",
-                "inherited_from": null,
-                "shown_as_of": "1937",
-                "valid_edtf": "../1937",
-                "value_num": null,
-                "value_text": "operational",
-                "value_unit": null
-              }
-            ]
-          },
-          "candidates": {},
-          "created_at": "2026-11-21T19:22:07.639547+00:00",
-          "date_conflict": false,
-          "diameter": null,
-          "end_status": "confirmed",
-          "existed_from": "../1937",
-          "existed_to": "1955-06-30/1960",
-          "gone_year": 1960,
-          "has_candidates": false,
-          "label": null,
-          "line_id": null,
-          "network": "oil",
-          "row_id": "c567c10d-bf20-4688-9bfa-9e47e2357400",
-          "section_id": "c567c10d-bf20-4688-9bfa-9e47e2357400",
-          "shown_years": [1937],
-          "time_end": "1960-12-31",
-          "time_start": "1937-01-01",
-          "whole_route": null
-        },
-        "type": "Feature"
-      },
-      {
-        "geometry": {
-          "coordinates": [
-            [
-              [-82.08797008, 35.35211313],
-              [-82.1, 35.4]
-            ]
-          ],
-          "type": "MultiLineString"
-        },
-        "id": "c78babc4-3529-4e8e-a584-9c4683634c7d",
-        "properties": {
-          "accepted": {
-            "route": [
-              {
-                "claim_id": "27e1e296-b24a-4bfb-b63c-cb1742098cde",
-                "created_at": "2026-11-21T19:22:07.706242+00:00",
-                "inherited_from": null,
-                "shown_as_of": "1937",
-                "valid_edtf": "../1937",
-                "value_num": null,
-                "value_text": null,
-                "value_unit": null
-              }
-            ],
-            "status": [
-              {
-                "claim_id": "89c2ba28-60cc-41dd-a070-854c157f51f7",
-                "created_at": "2026-11-21T19:22:07.706242+00:00",
-                "inherited_from": null,
-                "shown_as_of": "1937",
-                "valid_edtf": "../1937",
-                "value_num": null,
-                "value_text": "operational",
-                "value_unit": null
-              }
-            ]
-          },
-          "candidates": {},
-          "created_at": "2026-11-21T19:22:07.706242+00:00",
-          "date_conflict": false,
-          "diameter": null,
-          "end_status": "proposed",
-          "existed_from": "../1937",
-          "existed_to": "1955-06-30/1960",
-          "gone_year": null,
-          "has_candidates": false,
-          "label": null,
-          "line_id": null,
-          "network": "oil",
-          "row_id": "c78babc4-3529-4e8e-a584-9c4683634c7d",
-          "section_id": "15e2a5b9-4b4c-4227-bb9d-a19f1c3a92ff",
-          "shown_years": [1937],
-          "time_end": "1960-12-31",
-          "time_start": "1937-01-01",
-          "whole_route": {
-            "coordinates": [
-              [-82, 35],
-              [-82.1, 35.4]
-            ],
-            "type": "LineString"
-          }
-        },
-        "type": "Feature"
-      },
-      {
-        "geometry": {
-          "coordinates": [
-            [
               [-80, 35],
               [-80.1, 35.2]
             ]
           ],
           "type": "MultiLineString"
         },
-        "id": "e51c8ff8-8dab-45a3-998e-5e3ac3cda57a",
+        "id": "4e024ea3-a695-417c-baaa-d0f52e719f92",
         "properties": {
           "accepted": {
             "diameter": [
               {
-                "claim_id": "9f2b88fa-a762-4087-a8eb-1059bf4f7613",
-                "created_at": "2026-11-21T19:22:07.554394+00:00",
+                "claim_id": "8c9af45b-40c7-450a-b653-c6b12a1fa1d9",
+                "created_at": "2026-11-21T21:23:09.532451+00:00",
                 "inherited_from": null,
                 "shown_as_of": null,
                 "valid_edtf": "../1937",
@@ -1108,8 +899,8 @@
             ],
             "route": [
               {
-                "claim_id": "8c711d79-3f9b-412a-b2fd-cba23b954cd1",
-                "created_at": "2026-11-21T19:22:07.433393+00:00",
+                "claim_id": "1c20258a-0532-4db6-88e5-d1eef6a08e82",
+                "created_at": "2026-11-21T21:23:09.484570+00:00",
                 "inherited_from": null,
                 "shown_as_of": "1937",
                 "valid_edtf": "../1937",
@@ -1120,8 +911,8 @@
             ],
             "status": [
               {
-                "claim_id": "90b39df1-6209-44b0-92a1-1c9ec34fff02",
-                "created_at": "2026-11-21T19:22:07.433393+00:00",
+                "claim_id": "08a256c0-08e7-4dac-a61a-72185c735396",
+                "created_at": "2026-11-21T21:23:09.484570+00:00",
                 "inherited_from": null,
                 "shown_as_of": "1937",
                 "valid_edtf": "../1937",
@@ -1134,7 +925,7 @@
           "candidates": {
             "diameter": 1
           },
-          "created_at": "2026-11-21T19:22:07.433393+00:00",
+          "created_at": "2026-11-21T21:23:09.484570+00:00",
           "date_conflict": false,
           "diameter": "10 in",
           "end_status": null,
@@ -1145,11 +936,167 @@
           "label": null,
           "line_id": null,
           "network": "oil",
-          "row_id": "e51c8ff8-8dab-45a3-998e-5e3ac3cda57a",
-          "section_id": "e51c8ff8-8dab-45a3-998e-5e3ac3cda57a",
+          "row_id": "4e024ea3-a695-417c-baaa-d0f52e719f92",
+          "section_id": "4e024ea3-a695-417c-baaa-d0f52e719f92",
           "shown_years": [1937],
           "time_end": null,
           "time_start": "1937-01-01",
+          "traced_by": {
+            "id": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+            "name": "Ann Example"
+          },
+          "whole_route": null
+        },
+        "type": "Feature"
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              [-82, 35],
+              [-82.08797008, 35.35211313]
+            ]
+          ],
+          "type": "MultiLineString"
+        },
+        "id": "5ad89ef0-d401-41c5-96cc-7c35f1e3bebd",
+        "properties": {
+          "accepted": {
+            "route": [
+              {
+                "claim_id": "fdb3b356-9036-4e09-b749-5a3bafa09049",
+                "created_at": "2026-11-21T21:23:09.623683+00:00",
+                "inherited_from": null,
+                "shown_as_of": "1937",
+                "valid_edtf": "../1937",
+                "value_num": null,
+                "value_text": null,
+                "value_unit": null
+              }
+            ],
+            "status": [
+              {
+                "claim_id": "13ba67cf-51b5-44b5-8693-d07b596741c9",
+                "created_at": "2026-11-21T21:23:09.623683+00:00",
+                "inherited_from": null,
+                "shown_as_of": "1937",
+                "valid_edtf": "../1937",
+                "value_num": null,
+                "value_text": "operational",
+                "value_unit": null
+              }
+            ]
+          },
+          "candidates": {},
+          "created_at": "2026-11-21T21:23:09.623683+00:00",
+          "date_conflict": false,
+          "diameter": null,
+          "end_status": null,
+          "existed_from": "../1937",
+          "existed_to": null,
+          "gone_year": null,
+          "has_candidates": false,
+          "label": null,
+          "line_id": null,
+          "network": "oil",
+          "row_id": "5ad89ef0-d401-41c5-96cc-7c35f1e3bebd",
+          "section_id": "5ad89ef0-d401-41c5-96cc-7c35f1e3bebd",
+          "shown_years": [1937],
+          "time_end": null,
+          "time_start": "1937-01-01",
+          "traced_by": {
+            "id": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+            "name": "Ann Example"
+          },
+          "whole_route": {
+            "coordinates": [
+              [-82, 35],
+              [-82.1, 35.4]
+            ],
+            "type": "LineString"
+          }
+        },
+        "type": "Feature"
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              [-81, 35],
+              [-81.1, 35.2]
+            ]
+          ],
+          "type": "MultiLineString"
+        },
+        "id": "93997a77-2593-4233-b10f-3a589080a1a8",
+        "properties": {
+          "accepted": {
+            "route": [
+              {
+                "claim_id": "20466957-9e87-4797-95ec-22e92abbd534",
+                "created_at": "2026-11-21T21:23:09.594042+00:00",
+                "inherited_from": "63b21229-127f-4aa9-9c2c-07a2d61c9129",
+                "shown_as_of": "1955-06-30",
+                "valid_edtf": "../1955-06-30",
+                "value_num": null,
+                "value_text": null,
+                "value_unit": null
+              },
+              {
+                "claim_id": "45f0c10d-e184-404d-95dd-4ecee5abbefb",
+                "created_at": "2026-11-21T21:23:09.563540+00:00",
+                "inherited_from": null,
+                "shown_as_of": "1937",
+                "valid_edtf": "../1937",
+                "value_num": null,
+                "value_text": null,
+                "value_unit": null
+              }
+            ],
+            "status": [
+              {
+                "claim_id": "38a00c38-25f3-4a5b-82b4-34426581abb8",
+                "created_at": "2026-11-21T21:23:09.594042+00:00",
+                "inherited_from": "63b21229-127f-4aa9-9c2c-07a2d61c9129",
+                "shown_as_of": null,
+                "valid_edtf": "1955-06-30/1960",
+                "value_num": null,
+                "value_text": "decommissioned",
+                "value_unit": null
+              },
+              {
+                "claim_id": "f101ec88-292a-48b2-8922-a9916aaa3b7a",
+                "created_at": "2026-11-21T21:23:09.563540+00:00",
+                "inherited_from": null,
+                "shown_as_of": "1937",
+                "valid_edtf": "../1937",
+                "value_num": null,
+                "value_text": "operational",
+                "value_unit": null
+              }
+            ]
+          },
+          "candidates": {},
+          "created_at": "2026-11-21T21:23:09.563540+00:00",
+          "date_conflict": false,
+          "diameter": null,
+          "end_status": "confirmed",
+          "existed_from": "../1937",
+          "existed_to": "1955-06-30/1960",
+          "gone_year": 1960,
+          "has_candidates": false,
+          "label": null,
+          "line_id": null,
+          "network": "oil",
+          "row_id": "93997a77-2593-4233-b10f-3a589080a1a8",
+          "section_id": "93997a77-2593-4233-b10f-3a589080a1a8",
+          "shown_years": [1937],
+          "time_end": "1960-12-31",
+          "time_start": "1937-01-01",
+          "traced_by": {
+            "id": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+            "name": "Ann Example"
+          },
           "whole_route": null
         },
         "type": "Feature"
@@ -1164,13 +1111,13 @@
           ],
           "type": "MultiLineString"
         },
-        "id": "eca1e223-0fc3-47cd-9eb5-76ae331f68ad",
+        "id": "b9596999-bd8b-4c60-8a9d-9846307083c6",
         "properties": {
           "accepted": {
             "route": [
               {
-                "claim_id": "135104f1-825c-4b95-8d3a-9cdb8768e7ec",
-                "created_at": "2026-11-21T19:22:07.747728+00:00",
+                "claim_id": "9ff1b7ea-a0e9-40d4-940a-f9d0de6d0171",
+                "created_at": "2026-11-21T21:23:09.658108+00:00",
                 "inherited_from": null,
                 "shown_as_of": "1955-06-30",
                 "valid_edtf": "../1955-06-30",
@@ -1181,8 +1128,8 @@
             ],
             "status": [
               {
-                "claim_id": "2333bb6a-95e8-4592-96e8-12c60e31b979",
-                "created_at": "2026-11-21T19:22:07.747728+00:00",
+                "claim_id": "54f67b69-f52f-49cb-a7de-fe35e5a49169",
+                "created_at": "2026-11-21T21:23:09.658108+00:00",
                 "inherited_from": null,
                 "shown_as_of": "1955-06-30",
                 "valid_edtf": "../1955-06-30",
@@ -1193,7 +1140,7 @@
             ]
           },
           "candidates": {},
-          "created_at": "2026-11-21T19:22:07.747728+00:00",
+          "created_at": "2026-11-21T21:23:09.658108+00:00",
           "date_conflict": false,
           "diameter": null,
           "end_status": null,
@@ -1204,12 +1151,85 @@
           "label": null,
           "line_id": null,
           "network": "oil",
-          "row_id": "eca1e223-0fc3-47cd-9eb5-76ae331f68ad",
-          "section_id": "eca1e223-0fc3-47cd-9eb5-76ae331f68ad",
+          "row_id": "b9596999-bd8b-4c60-8a9d-9846307083c6",
+          "section_id": "b9596999-bd8b-4c60-8a9d-9846307083c6",
           "shown_years": [1955],
           "time_end": null,
           "time_start": "1955-06-30",
+          "traced_by": {
+            "id": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+            "name": "Ann Example"
+          },
           "whole_route": null
+        },
+        "type": "Feature"
+      },
+      {
+        "geometry": {
+          "coordinates": [
+            [
+              [-82.08797008, 35.35211313],
+              [-82.1, 35.4]
+            ]
+          ],
+          "type": "MultiLineString"
+        },
+        "id": "ee9411dd-1fed-4ea6-be9a-57967bde478e",
+        "properties": {
+          "accepted": {
+            "route": [
+              {
+                "claim_id": "fdb3b356-9036-4e09-b749-5a3bafa09049",
+                "created_at": "2026-11-21T21:23:09.623683+00:00",
+                "inherited_from": null,
+                "shown_as_of": "1937",
+                "valid_edtf": "../1937",
+                "value_num": null,
+                "value_text": null,
+                "value_unit": null
+              }
+            ],
+            "status": [
+              {
+                "claim_id": "13ba67cf-51b5-44b5-8693-d07b596741c9",
+                "created_at": "2026-11-21T21:23:09.623683+00:00",
+                "inherited_from": null,
+                "shown_as_of": "1937",
+                "valid_edtf": "../1937",
+                "value_num": null,
+                "value_text": "operational",
+                "value_unit": null
+              }
+            ]
+          },
+          "candidates": {},
+          "created_at": "2026-11-21T21:23:09.623683+00:00",
+          "date_conflict": false,
+          "diameter": null,
+          "end_status": "proposed",
+          "existed_from": "../1937",
+          "existed_to": "1955-06-30/1960",
+          "gone_year": null,
+          "has_candidates": false,
+          "label": null,
+          "line_id": null,
+          "network": "oil",
+          "row_id": "ee9411dd-1fed-4ea6-be9a-57967bde478e",
+          "section_id": "5ad89ef0-d401-41c5-96cc-7c35f1e3bebd",
+          "shown_years": [1937],
+          "time_end": "1960-12-31",
+          "time_start": "1937-01-01",
+          "traced_by": {
+            "id": "8d5b701b-ee2c-4deb-8415-1ee15a24e32c",
+            "name": "Ann Example"
+          },
+          "whole_route": {
+            "coordinates": [
+              [-82, 35],
+              [-82.1, 35.4]
+            ],
+            "type": "LineString"
+          }
         },
         "type": "Feature"
       }

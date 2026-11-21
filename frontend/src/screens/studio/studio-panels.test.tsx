@@ -650,6 +650,46 @@ describe("Studio panels", () => {
     ).toBeVisible()
   })
 
+  it("narrows to a tracer's sections, named on screen and kept by id", async () => {
+    const user = userEvent.setup()
+    const network = testNetwork()
+    const ann = { id: "agent-ann", name: "Ann Example" }
+    const bob = { id: "agent-bob", name: "Bob Example" }
+    await renderPanels({
+      ...network,
+      sections: network.sections.map((s, i) => ({
+        ...s,
+        tracedBy: i < 2 ? ann : bob,
+      })),
+    })
+    await user.click(screen.getByRole("button", { name: /^Filters/ }))
+    const box = screen.getByRole("combobox", { name: "Search tracers" })
+    expect(box).toHaveAttribute("placeholder", "Type to find a tracer")
+    await user.type(box, "Ann")
+    const option = await screen.findByRole("option", { name: /Ann Example/ })
+    expect(option).toHaveTextContent("Ann Example2")
+    await user.click(option)
+    // The id is what is kept, and what a link would carry.
+    expect(useStudio.getState().tracers).toEqual(["agent-ann"])
+    expect(
+      screen.getByRole("button", { name: "Show 2 sections" })
+    ).toBeVisible()
+    await user.click(screen.getByRole("button", { name: "Back to the list" }))
+    expect(
+      screen.getByRole("group", { name: "Filters in force" })
+    ).toHaveTextContent("Traced by Ann Example")
+    // Paused on Pipelines, like the other filters about a section.
+    await user.click(screen.getByRole("tab", { name: "Pipelines" }))
+    expect(screen.queryByRole("group", { name: "Filters in force" })).toBeNull()
+  })
+
+  it("leaves Traced by out when the data names no tracer", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("button", { name: /^Filters/ }))
+    expect(filterGroups()).not.toContain("Traced by")
+  })
+
   it("narrows by length and by a proposed end, each with a chip", async () => {
     const user = userEvent.setup()
     const network = testNetwork()

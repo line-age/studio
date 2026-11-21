@@ -25,6 +25,7 @@ const full: UrlView = {
   lengthFrom: 5,
   lengthTo: 50,
   proposedEnd: ["end", "cut"],
+  tracers: ["agent-0001", "agent-0002"],
   changedOnly: true,
   diameters: ['8"', '12"'],
   states: ["Georgia", "South Carolina"],
@@ -96,6 +97,10 @@ describe("the view in the URL", () => {
       firstSeenEditions: ["ed-1931"],
     })
     expect(parse("len=long-short")).toEqual(DEFAULT_VIEW)
+    // A tracer goes by store's id; nothing in a link is a person's name.
+    expect(
+      toSearchParams({ ...DEFAULT_VIEW, tracers: ["agent-0001"] }).toString()
+    ).toBe("tb=agent-0001")
   })
 
   it("carries a range that is open at one end", () => {

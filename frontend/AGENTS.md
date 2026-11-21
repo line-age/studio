@@ -212,7 +212,8 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   shown. It keeps each claim's id and the period it holds for, and each citation's
   role and, for a map, the date the map is as of; a map reading's locator in store is
   the trace file, so it is kept apart as `file`. It never changes a section because of
-  an end store only proposes. It drops who asserted or reviewed a claim; the proposer
+  an end store only proposes. It drops who asserted or reviewed a claim, but for a
+  section's tracer, which store's list names (the owner, 2026-11-19); the proposer
   of a link is kept only when it is a tool (store names the kind of an agent on claims
   only, so an agent seen asserting a claim as a person is never named). Keep it pure
   and test it with invented answers (`src/test/store-payloads.ts`).
@@ -310,8 +311,11 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   `proposedEnds[].kind`; `pe`). They are offered on All and on Unplaced. On Pipelines
   they are not offered and not in force, their chips are not shown, and their values
   are kept and in force again when the switch goes back (`sectionFiltersPaused`).
-  There is no Pipeline filter: the switch does that. Traced by is not built: the
-  tracer is not in what Studio reads at open (see the plan's unresolved question).
+  There is no Pipeline filter: the switch does that. Traced by is a fifth of them
+  (a search with a dropdown of tracers; `tb`, store's id of the person, never the
+  name): store's list names who asserted each section's route (`traced_by`, a person
+  only), kept as `section.tracedBy`. A tracer's name is shown on the screen and goes
+  nowhere else.
   Every filter reads `section.values` and what the list gives; none reads a section's
   detail. The list itself shows only the filters that are on, as chips; counts by status are in
   Filters only. The filter button shows how many are on. The map key and "List follows

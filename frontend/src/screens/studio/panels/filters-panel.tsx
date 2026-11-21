@@ -42,6 +42,8 @@ import {
   PROPOSED_END_LABEL,
   proposedEndKinds,
   rangeNarrows,
+  tracerNames,
+  tracerOf,
   PROPOSED_ENDS,
   unknownAttributesOf,
 } from "@/data/derive"
@@ -304,6 +306,7 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
       lengthFrom: x.lengthFrom,
       lengthTo: x.lengthTo,
       proposedEnd: x.proposedEnd,
+      tracers: x.tracers,
       states: x.states,
       companies: x.companies,
       diameters: x.diameters,
@@ -318,6 +321,7 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
       setFirstSeenEditions: x.setFirstSeenEditions,
       setLength: x.setLength,
       setProposedEnd: x.setProposedEnd,
+      setTracers: x.setTracers,
       setStates: x.setStates,
       setCompanies: x.setCompanies,
       setDiameters: x.setDiameters,
@@ -362,6 +366,15 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
         (editionYears.get(a.name) ?? 0) - (editionYears.get(b.name) ?? 0)
     )
   }, [summaries, criteria, editionYears])
+  // Who traced each section. Named on the screen; chosen and linked by id.
+  const tracerName = useMemo(() => {
+    const names = tracerNames(network.sections)
+    return (id: string) => names.get(id) ?? "Someone the data no longer names"
+  }, [network])
+  const tracers = useMemo(
+    () => optionCounts(summaries, criteria, "tracers", tracerOf),
+    [summaries, criteria]
+  )
   const ends = useMemo(() => {
     const found = optionCounts(
       summaries,
@@ -441,6 +454,8 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
       !paused &&
       (s.firstSeenEditions.length > 0 ||
         canNarrow(editions, among("firstSeenEditions"))),
+    tracers:
+      !paused && (s.tracers.length > 0 || canNarrow(tracers, among("tracers"))),
     states:
       !paused && (s.states.length > 0 || canNarrow(states, among("states"))),
     length:
@@ -569,6 +584,23 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
               value={s.firstSeenEditions}
               onChange={s.setFirstSeenEditions}
               name={editionLabel}
+            />
+          </Group>
+        )}
+
+        {show.tracers && (
+          <Group
+            title="Traced by"
+            on={s.tracers.length > 0}
+            onClear={() => s.setTracers([])}
+          >
+            <MultiPick
+              noun="tracers"
+              placeholder="Type to find a tracer"
+              options={tracers}
+              value={s.tracers}
+              onChange={s.setTracers}
+              name={tracerName}
             />
           </Group>
         )}
