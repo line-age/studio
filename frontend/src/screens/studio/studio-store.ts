@@ -5,6 +5,13 @@ import { refKey, type AgentRef, type Question } from "@/data/question"
 import type { Claim } from "@/data/schema"
 import type { SectionStatus } from "@/data/status"
 
+import {
+  ALL_OFF,
+  FILTERS,
+  filtersInForce,
+  sectionFiltersPaused,
+} from "./filters"
+
 /*
  * What the person has chosen on the Studio screen. Data lives in the network
  * (src/data); this is only selection and filters.
@@ -58,7 +65,7 @@ export interface OpenCitation {
   citationIndex: number
 }
 
-interface StudioState {
+export interface StudioState {
   /** Keep what has a section with this status. */
   status: SectionStatus | "all"
   /** Keep what has a section with a proposal waiting. */
@@ -171,6 +178,8 @@ interface StudioState {
   setStates: (states: readonly string[]) => void
   toggleLayer: (layer: LayerId) => void
   clearFilters: () => void
+  /** Turn one filter off, by its key in `FILTERS`. */
+  takeOff: (filterKey: string) => void
   setQuery: (query: string) => void
   setSearchWholeEdition: (on: boolean) => void
   setScope: (scope: Scope) => void
@@ -333,38 +342,9 @@ let nonce = 0
  * "Needs your decision" among them. "List follows the map" has its own
  * control and does not count.
  */
-export const filtersApplied = (s: StudioState) =>
-  s.status !== "all" ||
-  s.needsDecisionOnly ||
-  s.unknownIn.length > 0 ||
-  s.companies.length > 0 ||
-  s.builtFrom !== null ||
-  s.builtTo !== null ||
-  s.addedFrom !== null ||
-  s.addedTo !== null ||
-  s.changedOnly ||
-  s.diameters.length > 0 ||
-  sectionFiltersApplied(s)
+export const filtersApplied = (s: StudioState) => filtersInForce(s).length > 0
 
-/**
- * The filters that are about a section on its own: which edition first shows
- * it, who traced it, where it runs, how long it is, what end is proposed for
- * it. They are
- * offered on All and on Unplaced. On Pipelines they are kept and ask for
- * nothing until the switch goes back (`sectionFiltersPaused`).
- */
-export const sectionFiltersOn = (s: StudioState) =>
-  s.firstSeenEditions.length > 0 ||
-  s.states.length > 0 ||
-  s.lengthFrom !== null ||
-  s.lengthTo !== null ||
-  s.proposedEnd.length > 0 ||
-  s.tracers.length > 0
-
-export const sectionFiltersPaused = (s: StudioState) => s.scope === "pipelines"
-
-const sectionFiltersApplied = (s: StudioState) =>
-  !sectionFiltersPaused(s) && sectionFiltersOn(s)
+export { sectionFiltersPaused }
 
 /**
  * The list holds only what is in the map view right now: the person wants it,
@@ -448,25 +428,9 @@ export const useStudio = create<StudioState>((set) => ({
   setDiameters: (diameters) => set({ diameters }),
   setStates: (states) => set({ states }),
   // Every filter behind the filter button, the status among them.
-  clearFilters: () =>
-    set({
-      status: "all",
-      needsDecisionOnly: false,
-      unknownIn: [],
-      companies: [],
-      builtFrom: null,
-      builtTo: null,
-      addedFrom: null,
-      addedTo: null,
-      firstSeenEditions: [],
-      lengthFrom: null,
-      lengthTo: null,
-      proposedEnd: [],
-      tracers: [],
-      changedOnly: false,
-      diameters: [],
-      states: [],
-    }),
+  clearFilters: () => set(ALL_OFF),
+  takeOff: (filterKey) =>
+    set(FILTERS.find((filter) => filter.key === filterKey)?.off ?? {}),
   // A new search starts inside the filters again.
   setQuery: (query) =>
     set((s) => ({

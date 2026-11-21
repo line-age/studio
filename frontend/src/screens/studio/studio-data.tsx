@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react"
+import { useShallow } from "zustand/react/shallow"
 
 import { applyChange, sendChange, type Change } from "@/data/changes"
 
@@ -37,7 +38,8 @@ import { actionKey } from "@/data/store/write"
 import { statesBySection, type StatesLookup } from "@/data/us-states"
 
 import { useSettings } from "./settings"
-import { listFollowsMap, sectionFiltersPaused, useStudio } from "./studio-store"
+import { filterCriteria, filterState } from "./filters"
+import { listFollowsMap, useStudio } from "./studio-store"
 
 /*
  * The loaded network plus what the Studio screen derives from it once: the
@@ -324,75 +326,20 @@ export function useRevealSection(): (sectionId: string) => void {
 
 /** What a section has to satisfy: the status chosen and the filters. */
 export function useCriteria(): SectionCriteria {
-  const unknownIn = useStudio((s) => s.unknownIn)
-  const companies = useStudio((s) => s.companies)
-  const builtFrom = useStudio((s) => s.builtFrom)
-  const builtTo = useStudio((s) => s.builtTo)
-  const addedFrom = useStudio((s) => s.addedFrom)
-  const addedTo = useStudio((s) => s.addedTo)
-  const status = useStudio((s) => s.status)
-  const needsDecision = useStudio((s) => s.needsDecisionOnly)
-  // The filters about a section on its own ask for nothing on Pipelines;
-  // they are kept, and in force again when the switch goes back.
-  const paused = useStudio(sectionFiltersPaused)
-  const firstSeenEditions = useStudio((s) => s.firstSeenEditions)
-  const lengthFrom = useStudio((s) => s.lengthFrom)
-  const lengthTo = useStudio((s) => s.lengthTo)
-  const proposedEnd = useStudio((s) => s.proposedEnd)
-  const tracers = useStudio((s) => s.tracers)
-  const changedOnly = useStudio((s) => s.changedOnly)
-  const diameters = useStudio((s) => s.diameters)
-  const states = useStudio((s) => s.states)
+  // From the table in ./filters: a filter paused on Pipelines asks nothing.
+  const parts = useStudio(useShallow(filterState))
   const rule = useSettings((s) => s.requiredAttributes)
   const { owners, editionYears, statesOf } = useStudioData()
   return useMemo(
     () => ({
+      ...NO_CRITERIA,
+      ...filterCriteria(parts),
       owners,
       editionYears,
       statesOf,
-      firstSeenEditions: paused
-        ? NO_CRITERIA.firstSeenEditions
-        : firstSeenEditions,
-      lengthFrom: paused ? null : lengthFrom,
-      lengthTo: paused ? null : lengthTo,
-      proposedEnd: paused ? NO_CRITERIA.proposedEnd : proposedEnd,
-      tracers: paused ? NO_CRITERIA.tracers : tracers,
-      changedOnly,
-      diameters,
-      states: paused ? NO_CRITERIA.states : states,
-      unknownIn,
-      companies,
-      builtFrom,
-      builtTo,
-      addedFrom,
-      addedTo,
-      status,
-      needsDecision,
       rule,
     }),
-    [
-      owners,
-      editionYears,
-      statesOf,
-      paused,
-      firstSeenEditions,
-      lengthFrom,
-      lengthTo,
-      proposedEnd,
-      tracers,
-      changedOnly,
-      diameters,
-      states,
-      unknownIn,
-      companies,
-      builtFrom,
-      builtTo,
-      addedFrom,
-      addedTo,
-      status,
-      needsDecision,
-      rule,
-    ]
+    [parts, owners, editionYears, statesOf, rule]
   )
 }
 

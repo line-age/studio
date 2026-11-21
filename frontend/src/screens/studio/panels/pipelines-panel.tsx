@@ -6,8 +6,8 @@ import {
   useState,
   type KeyboardEvent,
 } from "react"
+import { useShallow } from "zustand/react/shallow"
 
-import { formatDateRange } from "@/components/date-range-picker"
 import { FilterChip } from "@/components/filter-chip"
 import { Hint } from "@/components/hint"
 import { Icon } from "@/components/icons/icon"
@@ -38,12 +38,10 @@ import {
   type PipelineSummary,
   type SearchHit,
   narrowRows,
-  PROPOSED_END_LABEL,
   tracerNames,
   SCOPE,
   type Scope,
 } from "@/data/derive"
-import { STATUS_LABEL } from "@/data/status"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
@@ -62,11 +60,11 @@ import { usePanelWidth } from "../panel-width-context"
 import {
   filtersApplied,
   listFollowsMap,
-  sectionFiltersPaused,
   useCamera,
   useStudio,
 } from "../studio-store"
 import { FiltersPanel } from "./filters-panel"
+import { filterState, filtersInForce, type FilterWords } from "../filters"
 import { listColumns } from "./list-columns"
 import { ScopeSwitch } from "./scope-switch"
 
@@ -98,37 +96,18 @@ export function PipelinesPanel() {
   const setTableOpen = useStudio((s) => s.setTableOpen)
   const view = useStudio((s) => s.view)
   const criteria = useCriteria()
-  const unknownIn = useStudio((s) => s.unknownIn)
-  const companies = useStudio((s) => s.companies)
-  const builtFrom = useStudio((s) => s.builtFrom)
-  const builtTo = useStudio((s) => s.builtTo)
-  const added = useStudio((s) => formatDateRange(s.addedFrom, s.addedTo))
-  const status = useStudio((s) => s.status)
-  const setStatus = useStudio((s) => s.setStatus)
-  const needsDecisionOnly = useStudio((s) => s.needsDecisionOnly)
-  const setNeedsDecisionOnly = useStudio((s) => s.setNeedsDecisionOnly)
-  const toggleUnknownIn = useStudio((s) => s.toggleUnknownIn)
-  const setCompanies = useStudio((s) => s.setCompanies)
-  const setBuilt = useStudio((s) => s.setBuilt)
-  const setAdded = useStudio((s) => s.setAdded)
-  // On Pipelines the filters about a section on its own are paused: kept,
-  // not in force, and not shown as chips.
-  const paused = useStudio(sectionFiltersPaused)
-  const firstSeenEditions = useStudio((s) => s.firstSeenEditions)
-  const setFirstSeenEditions = useStudio((s) => s.setFirstSeenEditions)
-  const lengthFrom = useStudio((s) => s.lengthFrom)
-  const lengthTo = useStudio((s) => s.lengthTo)
-  const setLength = useStudio((s) => s.setLength)
-  const proposedEnd = useStudio((s) => s.proposedEnd)
-  const tracers = useStudio((s) => s.tracers)
-  const setTracers = useStudio((s) => s.setTracers)
-  const setProposedEnd = useStudio((s) => s.setProposedEnd)
-  const changedOnly = useStudio((s) => s.changedOnly)
-  const setChangedOnly = useStudio((s) => s.setChangedOnly)
-  const diameters = useStudio((s) => s.diameters)
-  const setDiameters = useStudio((s) => s.setDiameters)
-  const states = useStudio((s) => s.states)
-  const setStates = useStudio((s) => s.setStates)
+  // The filters as the table in ../filters reads them, and the words its
+  // chips need for things the state holds by id.
+  const filterParts = useStudio(useShallow(filterState))
+  const takeOff = useStudio((s) => s.takeOff)
+  const words = useMemo<FilterWords>(() => {
+    const editions = new Map(network.editions.map((e) => [e.id, e.label]))
+    const tracers = tracerNames(network.sections)
+    return {
+      editionLabel: (id) => editions.get(id) ?? id,
+      tracerName: (id) => tracers.get(id) ?? "someone",
+    }
+  }, [network])
   const openHit = useOpenHit()
   const [active, setActive] = useState(0)
   const panelWidth = usePanelWidth()
@@ -191,121 +170,10 @@ export function PipelinesPanel() {
       remove: () => setWhole(false),
     })
   } else {
-    if (status !== "all") {
+    for (const filter of filtersInForce(filterParts)) {
       chips.push({
-        label: STATUS_LABEL[status],
-        hint: `Only sections that are ${STATUS_LABEL[status].toLocaleLowerCase()}.`,
-        remove: () => setStatus("all"),
-      })
-    }
-    if (needsDecisionOnly) {
-      chips.push({
-        label: "Needs your decision",
-        hint: "Only sections with a proposal waiting for a person.",
-        remove: () => setNeedsDecisionOnly(false),
-      })
-    }
-    if (unknownIn.length > 0) {
-      chips.push({
-        label: `Unknown ${unknownIn.join(", ").toLocaleLowerCase()}`,
-        hint: "Only what has a section where one of these claims is Unknown.",
-        remove: () => unknownIn.forEach(toggleUnknownIn),
-      })
-    }
-    if (companies.length > 0) {
-      chips.push({
-        label:
-          companies.length === 1
-            ? companies[0]
-            : plural(companies.length, "company", "companies"),
-        hint: `Only what has a section owned by ${companies.join(", ")}.`,
-        remove: () => setCompanies([]),
-      })
-    }
-    if (builtFrom !== null || builtTo !== null) {
-      chips.push({
-        label:
-          builtFrom !== null && builtTo !== null
-            ? `Built ${builtFrom} to ${builtTo}`
-            : builtFrom !== null
-              ? `Built ${builtFrom} or later`
-              : `Built ${builtTo} or earlier`,
-        hint: "Only what has a section built in these years. Sections with an Unknown build date are left out.",
-        remove: () => setBuilt(null, null),
-      })
-    }
-    if (added) {
-      chips.push({
-        label: `Added: ${added}`,
-        hint: "Only what has a section added to Lineage on these days.",
-        remove: () => setAdded(null, null),
-      })
-    }
-    if (changedOnly) {
-      chips.push({
-        label: "Changed since review",
-        hint: "Only sections changed since a person last reviewed them.",
-        remove: () => setChangedOnly(false),
-      })
-    }
-    if (!paused && firstSeenEditions.length > 0) {
-      const labels = firstSeenEditions.map(
-        (id) => network.editions.find((e) => e.id === id)?.label ?? id
-      )
-      chips.push({
-        label:
-          labels.length === 1
-            ? `First shown by the ${labels[0]}`
-            : `First shown by ${plural(labels.length, "edition")}`,
-        hint: `Only sections first shown by the ${labels.join(", the ")}.`,
-        remove: () => setFirstSeenEditions([]),
-      })
-    }
-    if (!paused && tracers.length > 0) {
-      const names = tracerNames(network.sections)
-      const named = tracers.map((id) => names.get(id) ?? "someone")
-      chips.push({
-        label:
-          named.length === 1
-            ? `Traced by ${named[0]}`
-            : `Traced by ${plural(named.length, "person", "people")}`,
-        hint: `Only sections traced by ${named.join(", ")}.`,
-        remove: () => setTracers([]),
-      })
-    }
-    if (!paused && states.length > 0) {
-      chips.push({
-        label: states.length === 1 ? states[0] : plural(states.length, "state"),
-        hint: `Only sections that run through ${states.join(", ")}.`,
-        remove: () => setStates([]),
-      })
-    }
-    if (!paused && (lengthFrom !== null || lengthTo !== null)) {
-      chips.push({
-        label:
-          lengthFrom !== null && lengthTo !== null
-            ? `${formatCount(lengthFrom)} to ${formatCount(lengthTo)} km`
-            : lengthFrom !== null
-              ? `${formatCount(lengthFrom)} km or longer`
-              : `${formatCount(lengthTo ?? 0)} km or shorter`,
-        hint: "Only sections whose line is this long, measured along the route as traced.",
-        remove: () => setLength(null, null),
-      })
-    }
-    if (!paused && proposedEnd.length > 0) {
-      chips.push({
-        label: `Proposed end: ${proposedEnd
-          .map((kind) => PROPOSED_END_LABEL[kind].toLocaleLowerCase())
-          .join(" or ")}`,
-        hint: "Only sections a tool proposes an end for.",
-        remove: () => setProposedEnd([]),
-      })
-    }
-    if (diameters.length > 0) {
-      chips.push({
-        label: `Diameter ${diameters.join(", ")}`,
-        hint: "Only sections with one of these cited diameters. Unknown is left out.",
-        remove: () => setDiameters([]),
+        ...filter.chip(filterParts, words),
+        remove: () => takeOff(filter.key),
       })
     }
   }
