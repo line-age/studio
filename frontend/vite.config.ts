@@ -40,6 +40,21 @@ export default defineConfig(({ mode }) => {
       // Tests run on the sample, whatever a developer's .env.local says.
       env: { VITE_DATA_SOURCE: "fixture" },
       css: false,
+      // `pnpm coverage`: lines and branches of the app's own code. What a
+      // change touches is read from this, file by file; no number is a goal.
+      coverage: {
+        provider: "v8",
+        include: ["src/**/*.{ts,tsx}"],
+        exclude: [
+          "src/**/*.test.{ts,tsx}",
+          "src/test/**",
+          "src/components/ui/**",
+          "src/styles/**",
+          "src/main.tsx",
+        ],
+        reporter: ["text", "json-summary", "json"],
+        reportsDirectory: "./coverage",
+      },
     },
   }
 })

@@ -25,3 +25,4 @@ dist-ssr
 
 # Local fixture files may hold real names. Never commit them.
 public/fixtures/local/
+coverage/

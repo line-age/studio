@@ -15,7 +15,8 @@
     "tokens:check": "node scripts/check-tokens.mjs",
     "check": "pnpm tokens:check && pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "fixtures:sample": "node scripts/make-sample-fixture.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -56,6 +57,7 @@
     "@types/react-dom": "^19",
     "@types/topojson-client": "3.1.5",
     "@vitejs/plugin-react": "^6",
+    "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^10",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
