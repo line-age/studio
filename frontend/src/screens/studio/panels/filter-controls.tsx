@@ -209,14 +209,21 @@ export function Km({
   placeholder,
   value,
   onChange,
+  invalid = false,
+  describedBy,
 }: {
   label: string
   placeholder: string
   value: number | null
   onChange: (km: number | null) => void
+  /** The range runs backwards: marked, and pointed at what says so. */
+  invalid?: boolean
+  describedBy?: string
 }) {
   return (
     <Input
+      aria-invalid={invalid || undefined}
+      aria-describedby={describedBy}
       type="number"
       inputMode="numeric"
       min={0}
@@ -228,7 +235,7 @@ export function Km({
         const km = event.target.valueAsNumber
         onChange(Number.isFinite(km) && km >= 0 ? km : null)
       }}
-      className="h-7 min-w-0 flex-1"
+      className="h-control-sm min-w-0 flex-1"
     />
   )
 }
