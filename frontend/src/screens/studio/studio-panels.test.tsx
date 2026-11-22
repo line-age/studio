@@ -506,6 +506,60 @@ describe("Studio panels", () => {
     }
   })
 
+  it("says why the list is empty: the view, the filters or the search", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    const list = () => screen.getByRole("listbox")
+    // Nothing in the map view while the list follows it.
+    act(() => useStudio.getState().setView([50, 50, 51, 51]))
+    expect(list()).toHaveTextContent("Nothing in the map view.")
+    // Not following: the filters left nothing.
+    act(() => {
+      useStudio.getState().setOnlyInView(false)
+      useStudio.getState().setLength(100000, null)
+    })
+    expect(list()).toHaveTextContent("Nothing matches the filters.")
+    // A search that finds something only outside the filters says so.
+    await user.type(
+      screen.getByRole("combobox", { name: "Search name or code" }),
+      "north"
+    )
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Nothing inside the filters matches “north”."
+    )
+  })
+
+  it("lists the sections a search found, each opened by click or keyboard", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.type(
+      screen.getByRole("combobox", { name: "Search name or code" }),
+      "alder"
+    )
+    const found = screen.getByRole("option", { name: /Alder to Birch/ })
+    expect(found).toHaveTextContent("S-0001")
+    found.focus()
+    await user.keyboard("{Enter}")
+    expect([...useStudio.getState().selection]).toEqual(["s-1"])
+  })
+
+  it("counts the found sections past the first six", async () => {
+    const user = userEvent.setup()
+    const network = testNetwork()
+    const many = Array.from({ length: 8 }, (_, i) => ({
+      ...network.sections[0],
+      id: `s-many-${i}`,
+      code: `S-01${i}`,
+      name: `Many line ${i}`,
+    }))
+    await renderPanels({ ...network, sections: [...network.sections, ...many] })
+    await user.type(
+      screen.getByRole("combobox", { name: "Search name or code" }),
+      "many line"
+    )
+    expect(screen.getByText("and 2 more sections")).toBeVisible()
+  })
+
   it("says what a pipeline is when the data has none", async () => {
     const user = userEvent.setup()
     const network = testNetwork()

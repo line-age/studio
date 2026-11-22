@@ -17,20 +17,18 @@ import { useStudio } from "./studio-store"
 import { currentView, fromSearchParams, toSearchParams } from "./url-state"
 
 /*
- * TEMPORARY. These tests freeze how the switch and the filters behave before
- * the code behind them is reshaped (workspace AGENTS.md, "How to develop: a
- * pure refactor before the change"). They are deliberately many and broad:
- * every filter, on every tab, through the rendered panels. They are not the
- * specification and they are deleted once the refactoring is done; the cases
- * that say what the feature must do move into the ordinary tests then.
+ * How every filter behaves, through the rendered panels: its chip and the way
+ * to take it off, whether it pauses on Pipelines, its group in the Filters
+ * panel and its Clear, Clear all, and its words in a link. The table in
+ * ../filters drives all of it, so a filter added there is checked here by
+ * adding it to FILTERS below.
  *
- * While the refactoring runs, nothing in this file is edited. A case that has
- * to change means behaviour changed.
- *
- * Not frozen here, because this test browser does not open a tooltip: the
- * words a chip shows on hover (`hint` below, kept as the record of them).
- * They are compared by reading the diff and in a real browser, before and
- * after.
+ * Started as the tests that froze behaviour before the refactoring of
+ * 2026-11-22 (workspace AGENTS.md, "How to develop"); the broad snapshots of
+ * every header and row were deleted afterwards, these stay as the
+ * specification. Not checked here, because this test browser does not open a
+ * tooltip: the words a chip shows on hover (`hint` below; the stories show
+ * them).
  */
 
 type State = ReturnType<typeof useStudio.getState>
@@ -339,12 +337,6 @@ const FILTERS: {
 ]
 
 const chips = () => screen.queryByRole("group", { name: "Filters in force" })
-const header = () =>
-  screen.getAllByRole("heading", { level: 2 })[0].parentElement!.textContent
-const rows = () =>
-  screen
-    .queryAllByRole("option")
-    .map((row) => row.textContent?.replace(/\s+/g, " "))
 const turnOn = (filter: (typeof FILTERS)[number]) =>
   act(() => filter.on(useStudio.getState()))
 
@@ -355,7 +347,7 @@ beforeEach(() => {
   useStudio.setState(useStudio.getInitialState(), true)
 })
 
-describe("frozen: each filter's chip", () => {
+describe("filters: each filter's chip", () => {
   it.each(FILTERS)("$name: shown, counted, and taken off", async (filter) => {
     const user = userEvent.setup()
     await renderPanels()
@@ -380,7 +372,7 @@ describe("frozen: each filter's chip", () => {
   })
 })
 
-describe("frozen: the switch and each filter", () => {
+describe("filters: the switch and each filter", () => {
   it.each(FILTERS)(
     "$name: paused on Pipelines or not, and back",
     async (filter) => {
@@ -405,28 +397,9 @@ describe("frozen: the switch and each filter", () => {
       }
     }
   )
-
-  it("lists, counts and names the same for every filter on every tab", async () => {
-    // Old output against new: the header and the rows, as they read today.
-    const seen: Record<string, { header: string | null; rows: unknown }> = {}
-    await renderPanels()
-    const cases = [{ name: "no filter", on: () => {} }, ...FILTERS]
-    for (const filter of cases) {
-      for (const scope of SCOPES) {
-        act(() => {
-          useStudio.setState(useStudio.getInitialState(), true)
-          useStudio.getState().setOnlyInView(false)
-          useStudio.getState().setScope(scope as Scope)
-          filter.on(useStudio.getState())
-        })
-        seen[`${filter.name} / ${scope}`] = { header: header(), rows: rows() }
-      }
-    }
-    expect(seen).toMatchSnapshot()
-  })
 })
 
-describe("frozen: the Filters panel", () => {
+describe("filters: the Filters panel", () => {
   it.each(FILTERS)("$name: its group shows and clears", async (filter) => {
     const user = userEvent.setup()
     await renderPanels()
@@ -440,35 +413,6 @@ describe("frozen: the Filters panel", () => {
       screen.getByRole("button", { name: `Clear ${filter.group}` })
     )
     expect(filter.isOff(useStudio.getState())).toBe(true)
-  })
-
-  it("shows these groups on each tab, on data with something for each", async () => {
-    const user = userEvent.setup()
-    const groups: Record<string, (string | undefined)[]> = {}
-    await renderPanels()
-    for (const tab of ["All", "Pipelines", "Unplaced"]) {
-      await user.click(screen.getByRole("button", { name: tab }))
-      await user.click(screen.getByRole("button", { name: /^Filters/ }))
-      groups[tab] = screen
-        .getAllByRole("region")
-        .map((r) => r.getAttribute("aria-labelledby"))
-        .map((id) => document.getElementById(id!)?.textContent)
-      await user.click(screen.getByRole("button", { name: "Back to the list" }))
-    }
-    expect(groups).toMatchSnapshot()
-  })
-
-  it("counts every option as it does today", async () => {
-    const user = userEvent.setup()
-    await renderPanels()
-    await user.click(screen.getByRole("button", { name: /^Filters/ }))
-    const text = screen
-      .getAllByRole("region")
-      .map((r) => r.textContent?.replace(/\s+/g, " "))
-    expect(text).toMatchSnapshot()
-    expect(
-      screen.getByRole("button", { name: /^Show \d+ sections?$/ })
-    ).toHaveTextContent("Show 5 sections")
   })
 
   it("clears every filter at once, from the panel and from the chips", async () => {
@@ -510,7 +454,7 @@ describe("frozen: the Filters panel", () => {
   })
 })
 
-describe("frozen: each filter in a link", () => {
+describe("filters: each filter in a link", () => {
   it.each(FILTERS)("$name: written and read back the same", (filter) => {
     turnOn(filter)
     const written = toSearchParams(currentView()).toString()

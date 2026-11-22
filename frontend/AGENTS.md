@@ -37,8 +37,27 @@ notes. This file wins for anything inside this directory.
 - Map: Mapbox GL JS through `react-map-gl/mapbox`, stock light style. Needs a public
   token in `.env.local` (see `.env.example`); without it the app runs and says so.
 - State: one small zustand store per screen. Data validated with zod.
-- Tests: Vitest and Testing Library.
+- Tests: Vitest and React Testing Library in jsdom; Storybook 10 stories with play
+  functions, run as Vitest tests in a real browser (Playwright Chromium).
 - pnpm. Node 22.
+
+## How to work here
+
+The workspace `AGENTS.md` two levels up says how, in three sections; they hold here:
+
+- **A pure refactor before the change.** When a change has to reshape code, first
+  freeze behaviour with tests through the screen (no app code), then refactor with
+  those tests untouched ("Refactor: ..." commits), then make the small change, then
+  delete the freezing tests that are not the specification.
+- **Judge the tests by coverage of what changed.** `pnpm coverage`: lines and branches
+  of the files a change touches. An uncovered branch gets a test that says what the
+  code must do, or the code goes. No test written only to colour a line.
+- **Two kinds of test.** React Testing Library for behaviour with the screen's data
+  (act as a person: `userEvent`, find by role and name, check what shows; never
+  state, hooks or class names). Stories with a play function for a component's
+  states (`*.stories.tsx` beside it; `storybook/test`'s `expect`, `fn`, `screen` for
+  a popup; every step awaited; setup in `beforeEach`, never `afterEach`). Nothing
+  checked twice.
 
 ## Commands
 
@@ -51,7 +70,9 @@ notes. This file wins for anything inside this directory.
 | `pnpm typecheck`                    | `tsc -b`                                                           |
 | `pnpm lint`                         | ESLint                                                             |
 | `pnpm format:check` / `pnpm format` | Prettier                                                           |
-| `pnpm test`                         | Vitest, once                                                       |
+| `pnpm test`                         | Vitest, once: the unit tests and every story                       |
+| `pnpm coverage`                     | The same, with line and branch coverage per file                   |
+| `pnpm storybook`                    | The stories, to look at beside Figma (port 6006)                   |
 | `pnpm fixtures:sample`              | Rebuild the invented sample `public/fixtures/sample.json`          |
 | `pnpm tokens:build`                 | Regenerate `src/styles/tokens.css` from `tokens/figma-tokens.json` |
 
@@ -234,7 +255,9 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   confirm with its default cut). Last seen stays Unknown until a person confirms the link in store; then it is
   cited to both maps (Figma `213:8036`).
 - One list, one rail item ("Network"), with a three-way switch above it: All, Pipelines,
-  Unplaced (`panels/scope-switch.tsx`, stock shadcn Tabs; Figma section 18, `403:14721`;
+  Unplaced (`panels/scope-switch.tsx`, a shadcn ToggleGroup: three buttons, one pressed, drawn as
+  Figma has it, a grey track with the chosen one on a white pill; Figma section 18,
+  `403:14721`;
   the owner, 2026-11-21; plan `2026-11-21-001-feat-studio-scope-switch-and-filters`).
   One is always on and Studio opens on All. The switch (`scope` in the store, `sc` in
   the URL, `Scope` and `inScope` in `derive.ts`) sets three things in one move: the rows
@@ -315,7 +338,14 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   `proposedEnds[].kind`; `pe`). They are offered on All and on Unplaced. On Pipelines
   they are not offered and not in force, their chips are not shown, and their values
   are kept and in force again when the switch goes back (`sectionFiltersPaused`).
-  There is no Pipeline filter: the switch does that. Traced by is a fifth of them
+  There is no Pipeline filter: the switch does that. Every filter is one entry in
+  `screens/studio/filters.ts` (when it is on, what turns it off, its chip, what it
+  asks of a section, whether it pauses on Pipelines); the store's "filters on" and
+  "clear all", the chips and the criteria read it. Adding a filter: its fields and
+  setter in the store, its words in `url-state.ts`, an entry in `filters.ts`, its
+  control in `panels/filters-panel.tsx` (controls in `filter-controls.tsx`, options
+  and "which groups show" in `filter-options.ts`), and a row in `FILTERS` in
+  `filters-behaviour.test.tsx`. Traced by is a fifth of them
   (a search with a dropdown of tracers; `tb`, store's id of the person, never the
   name): store's list names who asserted each section's route (`traced_by`, a person
   only), kept as `section.tracedBy`. A tracer's name is shown on the screen and goes
