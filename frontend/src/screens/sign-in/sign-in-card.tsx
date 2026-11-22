@@ -17,12 +17,16 @@ export function SignInCard({
   children,
   className,
 }: {
+  /** What the state is, in a few words. */
   heading: string
+  /** One line under the heading. */
   description?: string
   /** Name and describe the card for a dialog that wraps it. */
   headingId?: string
   descriptionId?: string
+  /** What the state says and its buttons. */
   children: ReactNode
+  /** The border and shadow when the card floats over the screen. */
   className?: string
 }) {
   return (

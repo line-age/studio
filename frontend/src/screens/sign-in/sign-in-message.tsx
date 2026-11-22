@@ -7,7 +7,9 @@ export function SignInMessage({
   tone,
   children,
 }: {
+  /** `muted` says what is so; `failed` is announced as an alert. */
   tone: "muted" | "failed"
+  /** The message, one or two sentences. */
   children: ReactNode
 }) {
   return (

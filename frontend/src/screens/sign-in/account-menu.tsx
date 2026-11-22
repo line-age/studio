@@ -8,6 +8,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { signOut } from "@/data/session"
 import { useSession } from "@/data/session-context"
 
@@ -30,38 +35,53 @@ export function AccountMenu({
   const person = session.kind === "signed-in"
   const name = person ? session.name : LOCAL_NAME
   const kind = person ? "person" : "local"
+  const divider = (
+    <span aria-hidden="true" className="mr-1.5 ml-2 h-5 w-px bg-topbar-hover" />
+  )
+  const who = (
+    <div className="flex items-center gap-2.5 p-2">
+      <PersonAvatar name={name} kind={kind} size="default" />
+      <div className="min-w-0">
+        <p className="truncate type-ui-sm-medium text-foreground">{name}</p>
+        <p className="truncate type-ui-xs text-muted-foreground">
+          {person ? `@${session.login}` : "No sign-in on this machine"}
+        </p>
+      </div>
+    </div>
+  )
+  // With nothing to choose it is not a menu: a popover that only says who.
+  if (!person) {
+    return (
+      <>
+        {divider}
+        <Popover>
+          <PopoverTrigger render={<AccountButton name={name} kind={kind} />} />
+          <PopoverContent
+            aria-label="Account"
+            align="end"
+            sideOffset={6}
+            className="w-60 gap-0 p-1"
+          >
+            {who}
+          </PopoverContent>
+        </Popover>
+      </>
+    )
+  }
   return (
     <>
-      <span
-        aria-hidden="true"
-        className="mr-1.5 ml-2 h-5 w-px bg-topbar-hover"
-      />
+      {divider}
       <DropdownMenu>
         <DropdownMenuTrigger
           render={<AccountButton name={name} kind={kind} />}
-          aria-label={`Account: ${name}`}
         />
         <DropdownMenuContent align="end" sideOffset={6} className="w-60">
-          <div className="flex items-center gap-2.5 p-2">
-            <PersonAvatar name={name} kind={kind} size="default" />
-            <div className="min-w-0">
-              <p className="truncate type-ui-sm-medium text-foreground">
-                {name}
-              </p>
-              <p className="truncate type-ui-xs text-muted-foreground">
-                {person ? `@${session.login}` : "No sign-in on this machine"}
-              </p>
-            </div>
-          </div>
-          {person ? (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onSignOut}>
-                <Icon name="sign-out" />
-                Sign out
-              </DropdownMenuItem>
-            </>
-          ) : null}
+          {who}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onSignOut}>
+            <Icon name="sign-out" />
+            Sign out
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </>

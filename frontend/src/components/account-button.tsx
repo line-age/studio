@@ -14,7 +14,12 @@ export function AccountButton({
   kind,
   className,
   ...props
-}: { name: string; kind: "person" | "local" } & ComponentProps<"button">) {
+}: {
+  /** The person's name, as GitHub has it, or "Local developer". */
+  name: string
+  /** A person signed in with GitHub, or Local developer on one machine. */
+  kind: "person" | "local"
+} & ComponentProps<"button">) {
   return (
     <button
       type="button"
@@ -25,7 +30,9 @@ export function AccountButton({
       {...props}
     >
       <PersonAvatar name={name} kind={kind} />
-      <span className="max-w-48 truncate">{name}</span>
+      <span className="max-w-48 truncate">
+        <span className="sr-only">Account:</span> {name}
+      </span>
       <Icon name="chevron-down" className="opacity-70" />
     </button>
   )
