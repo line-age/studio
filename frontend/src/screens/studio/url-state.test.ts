@@ -21,16 +21,18 @@ const full: UrlView = {
   addedFrom: "2026-10-01",
   addedTo: "2026-10-31",
   unknownIn: ["Owner", "Build date"],
-  memberships: ["proposed", "none"],
-  firstSeenFrom: 1929,
-  firstSeenTo: 1937,
+  firstSeenEditions: ["ed-1929", "ed-1937"],
+  lengthFrom: 5,
+  lengthTo: 50,
+  proposedEnd: ["end", "cut"],
+  tracers: ["agent-0001", "agent-0002"],
   changedOnly: true,
   diameters: ['8"', '12"'],
   states: ["Georgia", "South Carolina"],
   followMap: false,
   camera: { lng: -97.305, lat: 36.412, zoom: 6.37 },
   section: "s-2",
-  list: "sections",
+  scope: "unplaced",
   pipeline: null,
 }
 
@@ -61,25 +63,44 @@ describe("the view in the URL", () => {
   it("names the pipeline selected as a whole, in place of a section", () => {
     const view = {
       ...DEFAULT_VIEW,
-      list: "pipelines" as const,
+      scope: "pipelines" as const,
       pipeline: "p-1",
     }
-    expect(toSearchParams(view).toString()).toBe("l=pipelines&p=p-1")
-    expect(parse("l=pipelines&p=p-1")).toEqual(view)
-    // A grouping the app does not have is dropped.
-    expect(parse("l=tables").list).toBeNull()
+    expect(toSearchParams(view).toString()).toBe("sc=pipelines&p=p-1")
+    expect(parse("sc=pipelines&p=p-1")).toEqual(view)
+    // A scope the app does not have opens on All.
+    expect(parse("sc=tables").scope).toBe("all")
   })
 
-  it("opens a link from when an edition was in force as first seen up to it", () => {
-    expect(parse("e=ed-1937")).toEqual({ ...DEFAULT_VIEW, firstSeenTo: 1937 })
-    // A First seen range of the link's own wins.
-    expect(parse("e=ed-1937&f=1929-1931")).toMatchObject({
-      firstSeenFrom: 1929,
-      firstSeenTo: 1931,
+  it("opens an older link on All, without what the screen no longer has", () => {
+    // The grouping, the Pipeline filter, the First seen range and the
+    // edition in force are read past, never an error.
+    expect(parse("l=sections&pm=proposed&f=1929-1931&e=ed-1937")).toEqual(
+      DEFAULT_VIEW
+    )
+    expect(parse("l=pipelines&s=done")).toEqual({
+      ...DEFAULT_VIEW,
+      status: "done",
     })
-    expect(parse("e=latest")).toEqual(DEFAULT_VIEW)
-    // The edition is never written again.
-    expect(toSearchParams(parse("e=ed-1937")).toString()).toBe("f=-1937")
+    // None of it is written again.
+    expect(toSearchParams(parse("l=sections&e=ed-1937")).toString()).toBe("")
+  })
+
+  it("carries the section filters, and drops a kind of end it does not know", () => {
+    expect(toSearchParams({ ...DEFAULT_VIEW, lengthFrom: 5 }).toString()).toBe(
+      "len=5-"
+    )
+    expect(parse("len=-500&pe=cut&pe=sideways&fe=ed-1931")).toEqual({
+      ...DEFAULT_VIEW,
+      lengthTo: 500,
+      proposedEnd: ["cut"],
+      firstSeenEditions: ["ed-1931"],
+    })
+    expect(parse("len=long-short")).toEqual(DEFAULT_VIEW)
+    // A tracer goes by store's id; nothing in a link is a person's name.
+    expect(
+      toSearchParams({ ...DEFAULT_VIEW, tracers: ["agent-0001"] }).toString()
+    ).toBe("tb=agent-0001")
   })
 
   it("carries a range that is open at one end", () => {

@@ -1,7 +1,7 @@
 import { shortId } from "../short-id"
 import { describe, expect, it } from "vitest"
 
-import { NO_PIPELINE_ID, summarise } from "@/data/derive"
+import { editionRows, summarise } from "@/data/derive"
 import {
   ID_A,
   ID_B,
@@ -199,9 +199,7 @@ describe("toNetwork", () => {
 
   it("never lists or counts a line traced as gone", () => {
     expect(network.sections.map((s) => s.id)).not.toContain(ID_X)
-    expect(
-      summarise(network, undefined, "sections").flatMap((g) => g.sections)
-    ).toHaveLength(3)
+    expect(editionRows(network).flatMap((g) => g.sections)).toHaveLength(3)
   })
 
   it("names who proposed a link only when it is a tool", () => {
@@ -348,15 +346,20 @@ describe("toNetwork", () => {
     })
 
     it("lists pipelines, then the proposed one, and every section apart", () => {
-      expect(summarise(piped).map((g) => [g.id, g.kind])).toEqual([
+      expect(
+        summarise(piped, undefined, "pipelines").map((g) => [g.id, g.kind])
+      ).toEqual([
         [LINE_1, "pipeline"],
         [LINE_2, "proposed"],
-        [NO_PIPELINE_ID, "group"],
       ])
+      // Unplaced: what is in no pipeline, a section only proposed among them.
       expect(
-        summarise(piped, undefined, "sections").flatMap((g) =>
-          g.sections.map((s) => s.id)
-        )
+        summarise(piped, undefined, "unplaced")
+          .flatMap((g) => g.sections.map((s) => s.id))
+          .sort()
+      ).toEqual([ID_B, ID_C].sort())
+      expect(
+        editionRows(piped).flatMap((g) => g.sections.map((s) => s.id))
       ).toEqual([ID_A, ID_C, ID_B])
     })
   })
@@ -374,16 +377,15 @@ describe("toNetwork", () => {
   })
 
   it("lists the sections under the edition that first shows them", () => {
-    const groups = summarise(network, undefined, "sections")
+    const groups = editionRows(network)
     // C ended before 1937: it is still listed, under the edition it is on.
     expect(groups.map((g) => [g.name, g.sections.map((s) => s.id)])).toEqual([
       ["First seen in the 1931 edition", [ID_A, ID_C]],
       ["First seen in the 1937 edition", [ID_B]],
     ])
-    // No pipelines in store: by pipeline, every section is in the one row.
-    expect(summarise(network).map((g) => [g.name, g.sections.length])).toEqual([
-      ["No pipeline", 3],
-    ])
+    // No pipelines in store: none are listed, and every section is unplaced.
+    expect(summarise(network, undefined, "pipelines")).toEqual([])
+    expect(summarise(network, undefined, "unplaced")).toEqual(groups)
     expect(groups.every((g) => g.unassigned)).toBe(true)
   })
 })

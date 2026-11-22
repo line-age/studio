@@ -25,7 +25,7 @@ import { HidePanels } from "../panel-toggle"
 import { AgentConversation, type Agent } from "./agent-conversation"
 import { AgentInbox } from "./agent-inbox"
 import { AttachPicker } from "./attach-picker"
-import { useStudioData } from "../studio-data"
+import { useRevealSection, useStudioData } from "../studio-data"
 import { useStudio, type SentQuestion } from "../studio-store"
 
 /*
@@ -46,14 +46,15 @@ function useOpenRef(): (ref: AgentRef) => void {
   const { network } = useStudioData()
   const selectAttribute = useStudio((s) => s.selectAttribute)
   const selectPipeline = useStudio((s) => s.selectPipeline)
-  const setList = useStudio((s) => s.setList)
+  const showPipelines = useStudio((s) => s.showPipelines)
+  const reveal = useRevealSection()
   const requestFit = useStudio((s) => s.requestFit)
   return (ref) => {
     if (ref.kind === "claim" && ref.owner === "pipeline") {
       const members = network.sections.filter(
         (s) => s.pipelineId === ref.ownerId
       )
-      setList("pipelines")
+      showPipelines()
       selectPipeline(
         ref.ownerId,
         members.map((s) => s.id)
@@ -64,6 +65,7 @@ function useOpenRef(): (ref: AgentRef) => void {
     const sectionId = ref.kind === "claim" ? ref.ownerId : ref.sectionId
     const section = network.sections.find((s) => s.id === sectionId)
     if (!section) return
+    reveal(section.id)
     selectAttribute(section.id, ref.attribute)
     requestFit(geometryBounds(section.geometry))
   }

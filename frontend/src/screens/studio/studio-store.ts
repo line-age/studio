@@ -1,9 +1,16 @@
 import { create } from "zustand"
 
-import type { Bounds, ListKind, Membership } from "@/data/derive"
+import type { Bounds, ProposedEndKind, Scope } from "@/data/derive"
 import { refKey, type AgentRef, type Question } from "@/data/question"
 import type { Claim } from "@/data/schema"
 import type { SectionStatus } from "@/data/status"
+
+import {
+  ALL_OFF,
+  FILTERS,
+  filtersInForce,
+  sectionFiltersPaused,
+} from "./filters"
 
 /*
  * What the person has chosen on the Studio screen. Data lives in the network
@@ -58,7 +65,7 @@ export interface OpenCitation {
   citationIndex: number
 }
 
-interface StudioState {
+export interface StudioState {
   /** Keep what has a section with this status. */
   status: SectionStatus | "all"
   /** Keep what has a section with a proposal waiting. */
@@ -80,11 +87,15 @@ interface StudioState {
   /** Keep pipelines with a section added to Lineage in this range of days. */
   addedFrom: string | null
   addedTo: string | null
-  /** Keep sections that stand this way with pipelines. */
-  memberships: readonly Membership[]
-  /** Keep sections first seen on an edition of these years. */
-  firstSeenFrom: number | null
-  firstSeenTo: number | null
+  /** Keep sections one of these editions (by id) is the first to show. */
+  firstSeenEditions: readonly string[]
+  /** Keep sections this long, in km. */
+  lengthFrom: number | null
+  lengthTo: number | null
+  /** Keep sections with a proposed end of one of these kinds waiting. */
+  proposedEnd: readonly ProposedEndKind[]
+  /** Keep sections one of these people traced, by store's id. */
+  tracers: readonly string[]
   /** Keep sections changed since a person last reviewed them. */
   changedOnly: boolean
   /** Keep sections whose cited diameter is one of these. */
@@ -93,13 +104,14 @@ interface StudioState {
   states: readonly string[]
   layers: Record<LayerId, boolean>
   query: string
-  /** Search past the filters, through the whole network. */
-  searchWholeEdition: boolean
+  /** Search past the filters, through everything the switch shows. */
+  searchPastFilters: boolean
   /**
-   * How the list is grouped: by pipeline, or by edition. null until the
-   * person chooses: the data then decides (`defaultList`).
+   * What the switch above the list shows: every section, only those in a
+   * pipeline, or only those in none. The list, the map and the filters
+   * offered follow it; the selection does not.
    */
-  list: ListKind | null
+  scope: Scope
   /**
    * The pipeline picked as a whole in the list; null once the
    * selection is changed any other way. Kept so a link can name it.
@@ -157,16 +169,22 @@ interface StudioState {
   setCompanies: (companies: readonly string[]) => void
   setBuilt: (from: number | null, to: number | null) => void
   setAdded: (from: string | null, to: string | null) => void
-  setMemberships: (memberships: readonly Membership[]) => void
-  setFirstSeen: (from: number | null, to: number | null) => void
+  setFirstSeenEditions: (editions: readonly string[]) => void
+  setLength: (from: number | null, to: number | null) => void
+  setProposedEnd: (kinds: readonly ProposedEndKind[]) => void
+  setTracers: (tracers: readonly string[]) => void
   setChangedOnly: (on: boolean) => void
   setDiameters: (diameters: readonly string[]) => void
   setStates: (states: readonly string[]) => void
   toggleLayer: (layer: LayerId) => void
   clearFilters: () => void
+  /** Turn one filter off, by its key in `FILTERS`. */
+  takeOff: (filterKey: string) => void
   setQuery: (query: string) => void
-  setSearchWholeEdition: (on: boolean) => void
-  setList: (list: ListKind) => void
+  setSearchPastFilters: (on: boolean) => void
+  setScope: (scope: Scope) => void
+  /** Bring the pipelines into the list, where the switch leaves them out. */
+  showPipelines: () => void
   /** Select exactly these sections; none clears the selection. */
   select: (sectionIds: readonly string[]) => void
   /** Select a pipeline as a whole: these are its sections. */
@@ -324,21 +342,9 @@ let nonce = 0
  * "Needs your decision" among them. "List follows the map" has its own
  * control and does not count.
  */
-export const filtersApplied = (s: StudioState) =>
-  s.status !== "all" ||
-  s.needsDecisionOnly ||
-  s.unknownIn.length > 0 ||
-  s.companies.length > 0 ||
-  s.builtFrom !== null ||
-  s.builtTo !== null ||
-  s.addedFrom !== null ||
-  s.addedTo !== null ||
-  s.memberships.length > 0 ||
-  s.firstSeenFrom !== null ||
-  s.firstSeenTo !== null ||
-  s.changedOnly ||
-  s.diameters.length > 0 ||
-  s.states.length > 0
+export const filtersApplied = (s: StudioState) => filtersInForce(s).length > 0
+
+export { sectionFiltersPaused }
 
 /**
  * The list holds only what is in the map view right now: the person wants it,
@@ -357,16 +363,18 @@ export const useStudio = create<StudioState>((set) => ({
   builtTo: null,
   addedFrom: null,
   addedTo: null,
-  memberships: [],
-  firstSeenFrom: null,
-  firstSeenTo: null,
+  firstSeenEditions: [],
+  lengthFrom: null,
+  lengthTo: null,
+  proposedEnd: [],
+  tracers: [],
   changedOnly: false,
   diameters: [],
   states: [],
   layers: readLayers(),
   query: "",
-  searchWholeEdition: false,
-  list: null,
+  searchPastFilters: false,
+  scope: "all",
   selectedPipelineId: null,
   selection: new Set(),
   agentBar: null,
@@ -412,38 +420,28 @@ export const useStudio = create<StudioState>((set) => ({
   setCompanies: (companies) => set({ companies }),
   setBuilt: (builtFrom, builtTo) => set({ builtFrom, builtTo }),
   setAdded: (addedFrom, addedTo) => set({ addedFrom, addedTo }),
-  setMemberships: (memberships) => set({ memberships }),
-  setFirstSeen: (firstSeenFrom, firstSeenTo) =>
-    set({ firstSeenFrom, firstSeenTo }),
+  setFirstSeenEditions: (firstSeenEditions) => set({ firstSeenEditions }),
+  setLength: (lengthFrom, lengthTo) => set({ lengthFrom, lengthTo }),
+  setProposedEnd: (proposedEnd) => set({ proposedEnd }),
+  setTracers: (tracers) => set({ tracers }),
   setChangedOnly: (changedOnly) => set({ changedOnly }),
   setDiameters: (diameters) => set({ diameters }),
   setStates: (states) => set({ states }),
   // Every filter behind the filter button, the status among them.
-  clearFilters: () =>
-    set({
-      status: "all",
-      needsDecisionOnly: false,
-      unknownIn: [],
-      companies: [],
-      builtFrom: null,
-      builtTo: null,
-      addedFrom: null,
-      addedTo: null,
-      memberships: [],
-      firstSeenFrom: null,
-      firstSeenTo: null,
-      changedOnly: false,
-      diameters: [],
-      states: [],
-    }),
+  clearFilters: () => set(ALL_OFF),
+  takeOff: (filterKey) =>
+    set(FILTERS.find((filter) => filter.key === filterKey)?.off ?? {}),
   // A new search starts inside the filters again.
   setQuery: (query) =>
     set((s) => ({
       query,
-      searchWholeEdition: query.trim() === "" ? false : s.searchWholeEdition,
+      searchPastFilters: query.trim() === "" ? false : s.searchPastFilters,
     })),
-  setSearchWholeEdition: (searchWholeEdition) => set({ searchWholeEdition }),
-  setList: (list) => set({ list }),
+  setSearchPastFilters: (searchPastFilters) => set({ searchPastFilters }),
+  // The selection stays as it is: the switch changes what is shown.
+  setScope: (scope) => set({ scope }),
+  showPipelines: () =>
+    set((s) => (s.scope === "unplaced" ? { scope: "all" } : {})),
   select: (sectionIds) =>
     set((s) => {
       const settled = selected(sectionIds)

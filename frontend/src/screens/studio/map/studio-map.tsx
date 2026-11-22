@@ -14,16 +14,9 @@ import { MapControl } from "@/components/map-control"
 import { ToolPalette } from "@/components/tool-palette"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
-import {
-  hasCriteria,
-  sectionMatches,
-  unionBounds,
-  type Bounds,
-} from "@/data/derive"
+import { unionBounds, type Bounds } from "@/data/derive"
 import { useSectionDetail } from "@/data/detail-store"
 import { proposedEndsFor } from "@/data/evidence"
-import type { Geometry } from "@/data/schema"
-import { sectionStatus } from "@/data/status"
 import { cn } from "@/lib/utils"
 
 import { SEARCH_INPUT_ID } from "../panels/pipelines-panel"
@@ -37,7 +30,8 @@ import { linesInLoop, type Point } from "./lasso"
 import { readMapColors } from "./map-colors"
 import { addKeyName, holdsAddKey, mapClick } from "./click-selection"
 import { FollowMapToggle } from "./follow-map-toggle"
-import { statusesDrawn } from "./line-style"
+import { DOTTED_EXTRA, LINE_WEIGHT, statusesDrawn } from "./line-style"
+import { sectionFeatures, type SectionFeature } from "./section-features"
 import { MapKey } from "./map-key"
 import { AgentBar } from "./selection-bar"
 
@@ -52,11 +46,7 @@ const REFIT_WINDOW = 800
 const DOTTED = [0.1, 2.4]
 const DASHED = [4, 3]
 
-type Feature = {
-  type: "Feature"
-  geometry: Geometry
-  properties: Record<string, string>
-}
+type Feature = SectionFeature
 
 const collection = (features: Feature[]) => ({
   type: "FeatureCollection" as const,
@@ -75,7 +65,7 @@ function toBounds(map: MapRef): Bounds | null {
 }
 
 export function StudioMap({ token }: { token: string }) {
-  const { network, everySection: summaries } = useStudioData()
+  const { network, everySection, scoped: summaries } = useStudioData()
   const { openPanel } = useLeftPanel()
   const mapRef = useRef<MapRef>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -164,34 +154,11 @@ export function StudioMap({ token }: { token: string }) {
     return () => observer.disconnect()
   }, [])
 
-  // Every section, sorted by the filters: the ones that pass are drawn by
-  // their status; the rest only faint, and only when the map key says so.
+  // The sections the switch shows, sorted by the filters. What the switch
+  // leaves out is in neither source: see sectionFeatures.
   const [current, faint] = useMemo(() => {
-    const filtering = hasCriteria(criteria)
-    const passing: Feature[] = []
-    const rest: Feature[] = []
-    for (const summary of summaries) {
-      for (const section of summary.sections) {
-        if (!filtering || sectionMatches(section, criteria)) {
-          passing.push({
-            type: "Feature",
-            geometry: section.geometry,
-            properties: {
-              id: section.id,
-              pipelineId: summary.id,
-              status: sectionStatus(section, criteria.rule),
-            },
-          })
-        } else {
-          rest.push({
-            type: "Feature",
-            geometry: section.geometry,
-            properties: { id: section.id },
-          })
-        }
-      }
-    }
-    return [collection(passing), collection(rest)]
+    const features = sectionFeatures(summaries, criteria)
+    return [collection(features.drawn), collection(features.faint)]
   }, [summaries, criteria])
 
   // The lines traced as gone behind the proposal being read: an end on Last
@@ -233,8 +200,9 @@ export function StudioMap({ token }: { token: string }) {
   )
 
   const initialBounds = useMemo(
-    () => unionBounds(summaries.flatMap((s) => (s.bounds ? [s.bounds] : []))),
-    [summaries]
+    () =>
+      unionBounds(everySection.flatMap((s) => (s.bounds ? [s.bounds] : []))),
+    [everySection]
   )
 
   // Where the map opens: the place a link gave, else a section a link
@@ -520,7 +488,12 @@ export function StudioMap({ token }: { token: string }) {
                       colors.selected,
                       colors.line,
                     ],
-                    "line-width": 2,
+                    "line-width": [
+                      "case",
+                      ["get", "placed"],
+                      LINE_WEIGHT.placed,
+                      LINE_WEIGHT.unplaced,
+                    ],
                   }}
                 />
                 <Layer
@@ -538,7 +511,12 @@ export function StudioMap({ token }: { token: string }) {
                       colors.selected,
                       colors.line,
                     ],
-                    "line-width": 2.5,
+                    "line-width": [
+                      "case",
+                      ["get", "placed"],
+                      LINE_WEIGHT.placed + DOTTED_EXTRA,
+                      LINE_WEIGHT.unplaced + DOTTED_EXTRA,
+                    ],
                     "line-dasharray": DOTTED,
                   }}
                 />

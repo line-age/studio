@@ -29,21 +29,21 @@ export const HELP_STEPS: readonly HelpStep[] = [
   {
     id: "sections",
     title: "The network",
-    body: "One list of every section that was traced, grouped the way you choose with Group by. By edition: one row for each map edition, with the sections it is the first to show. By pipeline: the pipelines, then the ones only proposed, then the sections in no pipeline. Select a row and its sections are listed on the right.",
+    body: "One list of the network. The pipelines come first, then the ones only proposed, then the sections in no pipeline yet, one row for each map edition with the sections it is the first to show. Select a row and its sections are listed on the right.",
     targets: ["sections"],
     needs: "list",
   },
   {
     id: "search",
-    title: "Group by, search and filters",
-    body: "Group by changes the rows, not what is shown. Type a name or a code to narrow the list. The button beside the search opens the filters: status, pipeline, first seen, state, company, diameter, build date and more. The ones that are on show as chips under the search. Press / to jump to the search from anywhere.",
+    title: "The switch, search and filters",
+    body: "The switch shows everything, only the pipelines, or only the sections not placed in one yet; the map follows it, and what is selected stays selected. Type a name or a code to narrow the list. The button beside the search opens the filters: status, the edition that first shows a section, state, length, a proposed end and more. A filter shows only while it has something to tell apart. The ones that are on show as chips under the search. Press / to jump to the search from anywhere.",
     targets: ["list-tools"],
     needs: "list",
   },
   {
     id: "map",
     title: "The map",
-    body: "Each line is a section. A line is solid or dotted by its status. Drag to move the map and scroll to zoom.",
+    body: "Each line is a section. A line is solid or dotted by its status, and heavy when the section is in a pipeline, thin when it is in none. Drag to move the map and scroll to zoom.",
     targets: ["map"],
   },
   {

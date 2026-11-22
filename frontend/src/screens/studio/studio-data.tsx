@@ -7,18 +7,21 @@ import {
   useState,
   type ReactNode,
 } from "react"
+import { useShallow } from "zustand/react/shallow"
 
 import { applyChange, sendChange, type Change } from "@/data/changes"
 
 import {
-  defaultList,
+  editionRows,
+  inScope,
   groupSelection,
   inView,
   narrowRows,
+  NO_CRITERIA,
   ownersBySection,
   search,
   summarise,
-  type ListKind,
+  type Scope,
   type PipelineSummary,
   type SearchHit,
   type SectionCriteria,
@@ -35,6 +38,7 @@ import { actionKey } from "@/data/store/write"
 import { statesBySection, type StatesLookup } from "@/data/us-states"
 
 import { useSettings } from "./settings"
+import { filterCriteria, filterState } from "./filters"
 import { listFollowsMap, useStudio } from "./studio-store"
 
 /*
@@ -63,16 +67,25 @@ interface StudioData {
    * again.
    */
   change: (change: Change, key?: string) => Promise<boolean>
-  /** How the list is grouped: by pipeline, or by edition. */
-  list: ListKind
+  /** What the switch above the list shows. */
+  scope: Scope
   /** Every row of the list, whatever the filters say. */
   summaries: PipelineSummary[]
   /**
-   * Every section once, grouped by the edition that first shows it. Counts,
-   * filters and the map speak for the whole network through this, however
-   * the list is grouped.
+   * Every section of the network once, grouped by the edition that first
+   * shows it, whatever the switch says. The selection reads this: a section
+   * the switch hides stays selected.
    */
   everySection: PipelineSummary[]
+  /** Every pipeline with a confirmed section, whatever the switch says. */
+  pipelines: PipelineSummary[]
+  /** Whether the switch shows a section: in the list, on the map. */
+  shows: (sectionId: string) => boolean
+  /**
+   * The sections the switch shows, once each, grouped the same way. The
+   * counts, the filters and the map speak through this.
+   */
+  scoped: PipelineSummary[]
   /** The owners of each section's pipeline; a section has none of its own. */
   owners: ReadonlyMap<string, readonly string[]>
   /** The year of each edition, by id. */
@@ -137,7 +150,7 @@ export function StudioDataProvider({
     [fetched, loaded]
   )
   const rule = useSettings((s) => s.requiredAttributes)
-  const chosen = useStudio((s) => s.list)
+  const scope = useStudio((s) => s.scope)
 
   // These depend on the network only, not on the edition or the rule.
   const editionYears = useMemo(
@@ -147,18 +160,44 @@ export function StudioDataProvider({
   const statesOf = useMemo(() => statesBySection(loaded.sections), [loaded])
 
   const value = useMemo<StudioData>(() => {
-    const list = chosen ?? defaultList(loaded)
-    const everySection = summarise(loaded, rule, "sections")
-    const summaries =
-      list === "sections" ? everySection : summarise(loaded, rule, list)
+    const everySection = editionRows(loaded, rule)
+    const summaries = summarise(loaded, rule, scope)
+    // What the switch shows. On Pipelines that is every section a row of the
+    // list holds: a proposed pipeline is listed there, so its sections are
+    // drawn and counted too (thin: they are not placed yet), and a row one
+    // can click always has something on the map.
+    const shown =
+      scope === "all"
+        ? null
+        : new Set(
+            scope === "pipelines"
+              ? summaries.flatMap((row) => row.sections.map((s) => s.id))
+              : loaded.sections
+                  .filter((section) => inScope(section, scope))
+                  .map((s) => s.id)
+          )
+    const scoped =
+      shown === null
+        ? everySection
+        : editionRows(
+            loaded,
+            rule,
+            loaded.sections.filter((section) => shown.has(section.id))
+          )
+    const pipelines = (
+      scope === "unplaced" ? summarise(loaded, rule, "pipelines") : summaries
+    ).filter((row) => row.kind === "pipeline")
     return {
       network: loaded,
       reload,
       source,
       change,
-      list,
+      scope,
       summaries,
       everySection,
+      pipelines,
+      scoped,
+      shows: (sectionId: string) => shown === null || shown.has(sectionId),
       owners: ownersBySection(loaded),
       editionYears,
       statesOf,
@@ -169,7 +208,7 @@ export function StudioDataProvider({
   }, [
     loaded,
     rule,
-    chosen,
+    scope,
     editionYears,
     statesOf,
     reload,
@@ -214,7 +253,7 @@ export function useVisiblePipelines(): PipelineSummary[] {
 
 /** What is selected, sorted into pipelines. Empty when nothing is. */
 export function useSelectionGroups(): SelectionGroup[] {
-  const { summaries, everySection, list } = useStudioData()
+  const { summaries, everySection, pipelines } = useStudioData()
   const selection = useStudio((s) => s.selection)
   const criteria = useCriteria()
   // Groups as the filters leave them, so "all of a group" means all that
@@ -224,77 +263,83 @@ export function useSelectionGroups(): SelectionGroup[] {
     [summaries, criteria]
   )
   return useMemo(() => {
-    const groups = groupSelection(rows, selection)
-    if (list === "sections") return groups
-    // Grouped by pipeline, a section whose pipeline the data does not list
-    // is in no row: it goes under its first-seen group.
+    // A section goes under its pipeline, or the pipeline it is proposed for;
+    // only then under the edition that first shows it, so none is named
+    // twice.
+    const groups = groupSelection(
+      rows.filter((row) => !row.unassigned),
+      selection
+    )
     const held = new Set(groups.flatMap((g) => g.sections.map((s) => s.id)))
-    const rest = new Set([...selection].filter((id) => !held.has(id)))
-    return rest.size === 0
-      ? groups
-      : [...groups, ...groupSelection(everySection, rest)]
-  }, [rows, everySection, list, selection])
+    const left = (ids: Iterable<string>) =>
+      new Set([...ids].filter((id) => !held.has(id)))
+    for (const group of groupSelection(
+      rows.filter((row) => row.unassigned),
+      left(selection)
+    )) {
+      groups.push(group)
+      group.sections.forEach((s) => held.add(s.id))
+    }
+    // What the switch or the filters leave out of the list stays selected:
+    // it goes under its pipeline, or under its first-seen group of the
+    // whole network.
+    if (left(selection).size === 0) return groups
+    for (const group of groupSelection(pipelines, left(selection))) {
+      groups.push(group)
+      group.sections.forEach((s) => held.add(s.id))
+    }
+    // An edition can have sections the filters pass and sections they leave
+    // out, both selected: one group for it, not two with one id.
+    for (const extra of groupSelection(everySection, left(selection))) {
+      const at = groups.findIndex((g) => g.summary.id === extra.summary.id)
+      if (at === -1) {
+        groups.push(extra)
+        continue
+      }
+      const sections = [...groups[at].sections, ...extra.sections]
+      groups[at] = {
+        summary: extra.summary,
+        sections,
+        whole: sections.length === extra.summary.sections.length,
+      }
+    }
+    return groups
+  }, [rows, pipelines, everySection, selection])
+}
+
+/**
+ * Brings a section into what is shown before it is opened from somewhere
+ * that is not the list or the map (a reference in an answer, a link): where
+ * the switch hides it, the switch goes to All. Otherwise it would be selected
+ * with nothing in the list and no line on the map.
+ */
+export function useRevealSection(): (sectionId: string) => void {
+  const { shows } = useStudioData()
+  const setScope = useStudio((s) => s.setScope)
+  return useCallback(
+    (sectionId: string) => {
+      if (!shows(sectionId)) setScope("all")
+    },
+    [shows, setScope]
+  )
 }
 
 /** What a section has to satisfy: the status chosen and the filters. */
 export function useCriteria(): SectionCriteria {
-  const unknownIn = useStudio((s) => s.unknownIn)
-  const companies = useStudio((s) => s.companies)
-  const builtFrom = useStudio((s) => s.builtFrom)
-  const builtTo = useStudio((s) => s.builtTo)
-  const addedFrom = useStudio((s) => s.addedFrom)
-  const addedTo = useStudio((s) => s.addedTo)
-  const status = useStudio((s) => s.status)
-  const needsDecision = useStudio((s) => s.needsDecisionOnly)
-  const memberships = useStudio((s) => s.memberships)
-  const firstSeenFrom = useStudio((s) => s.firstSeenFrom)
-  const firstSeenTo = useStudio((s) => s.firstSeenTo)
-  const changedOnly = useStudio((s) => s.changedOnly)
-  const diameters = useStudio((s) => s.diameters)
-  const states = useStudio((s) => s.states)
+  // From the table in ./filters: a filter paused on Pipelines asks nothing.
+  const parts = useStudio(useShallow(filterState))
   const rule = useSettings((s) => s.requiredAttributes)
   const { owners, editionYears, statesOf } = useStudioData()
   return useMemo(
     () => ({
+      ...NO_CRITERIA,
+      ...filterCriteria(parts),
       owners,
       editionYears,
       statesOf,
-      memberships,
-      firstSeenFrom,
-      firstSeenTo,
-      changedOnly,
-      diameters,
-      states,
-      unknownIn,
-      companies,
-      builtFrom,
-      builtTo,
-      addedFrom,
-      addedTo,
-      status,
-      needsDecision,
       rule,
     }),
-    [
-      owners,
-      editionYears,
-      statesOf,
-      memberships,
-      firstSeenFrom,
-      firstSeenTo,
-      changedOnly,
-      diameters,
-      states,
-      unknownIn,
-      companies,
-      builtFrom,
-      builtTo,
-      addedFrom,
-      addedTo,
-      status,
-      needsDecision,
-      rule,
-    ]
+    [parts, owners, editionYears, statesOf, rule]
   )
 }
 
@@ -307,7 +352,7 @@ export function useSearchHits(): { hits: SearchHit[]; outside: number } {
   const { summaries } = useStudioData()
   const visible = useVisiblePipelines()
   const query = useStudio((s) => s.query)
-  const whole = useStudio((s) => s.searchWholeEdition)
+  const whole = useStudio((s) => s.searchPastFilters)
   const view = useStudio((s) => s.view)
   return useMemo(() => {
     const all = search(summaries, query)

@@ -13,7 +13,8 @@ table; selects sections across pipelines by row boxes, clicks on the map or a La
 shows the selection's claims grouped in the right panel, and one claim in full with
 its sources (what each does for the claim, and a map's edition and date) and any
 proposal, among them an end or a cut that store proposes for a section; hands a selection to the Agent
-chat as references; groups the one list by edition or by pipeline; keeps the view in the
+chat as references; shows all of the network, only its pipelines or only the sections
+in none, by one switch above the list; keeps the view in the
 URL; walks a first-time visitor through the screen with a Help tour, and explains each
 area and the words in a Help dialog; lets a person ask the Agent about a section, a
 claim, a source or a proposal with questions that only read, keeps a sent question in
@@ -36,8 +37,77 @@ notes. This file wins for anything inside this directory.
 - Map: Mapbox GL JS through `react-map-gl/mapbox`, stock light style. Needs a public
   token in `.env.local` (see `.env.example`); without it the app runs and says so.
 - State: one small zustand store per screen. Data validated with zod.
-- Tests: Vitest and Testing Library.
+- Tests: Vitest and React Testing Library in jsdom; Storybook 10 stories with play
+  functions, run as Vitest tests in a real browser (Playwright Chromium), each also
+  checked for accessibility and compared with its approved screenshot; Playwright for
+  the user flows (`e2e/`).
 - pnpm. Node 22.
+
+## How to work here
+
+The workspace `AGENTS.md` two levels up says how, in three sections; they hold here:
+
+- **A pure refactor before the change.** When a change has to reshape code, first
+  freeze behaviour with tests through the screen (no app code), then refactor with
+  those tests untouched ("Refactor: ..." commits), then make the small change, then
+  delete the freezing tests that are not the specification.
+- **Judge the tests by coverage of what changed.** `pnpm coverage`: lines and branches
+  of the files a change touches. An uncovered branch gets a test that says what the
+  code must do, or the code goes. No test written only to colour a line.
+- **Two kinds of test.** React Testing Library for behaviour with the screen's data
+  (act as a person: `userEvent`, find by role and name, check what shows; never
+  state, hooks or class names). Stories with a play function for a component's
+  states (`*.stories.tsx` beside it; `storybook/test`'s `expect`, `fn`, `screen` for
+  a popup; every step awaited; setup in `beforeEach`, never `afterEach`). Nothing
+  checked twice.
+- **A new component comes with its tests, in the same change.** One with states a
+  person can see (anything in `src/components/`, and a panel part that takes props:
+  a control, a row, a chip) gets `*.stories.tsx` beside it: one Storybook entry per
+  component, titled by where it lives (`Parts/…`, `Studio/List/…`,
+  `Studio/Filters/…`); one story per state, named for the state; a play function on
+  a state reached by acting; a JSDoc line on the component, on each prop and on each
+  story saying why it exists. A story renders the component with its own props (a
+  controlled one through `controlled()` in `src/test/controlled.tsx`), so its docs
+  show real usage. Every story is also checked for accessibility (axe, through
+  `@storybook/addon-a11y`); a problem fails the test. Only a token question for
+  Figma may be set to `a11y: { test: "todo" }`, with a comment saying which. A
+  panel, or anything that needs the screen's data and store, gets an RTL test
+  instead; a pure function, a unit test. A visible change to a component updates
+  its stories. The pull request reports coverage of the changed files.
+- **The UI test pipeline** (Storybook's UI Testing Handbook; `.github/workflows/frontend.yml`,
+  four jobs on every pull request): `check` (everything in `pnpm check`: unit and RTL
+  tests, every story's play function and accessibility), `storybook` (it builds on its
+  own), `visual` and `e2e`.
+  - **Visual.** Every story, once its play function passed, is compared with its
+    approved screenshot in `visual/` (Vitest's `toMatchScreenshot`; no outside
+    service). Screenshots are made on Linux in the Playwright image CI uses:
+    `pnpm test:visual` compares, `pnpm test:visual:update` approves what the stories
+    look like now (needs Docker). A change that is meant: update, look at every
+    changed PNG, commit them with the change. One that is not: fix it. CI keeps the
+    differences as the `visual-differences` artifact.
+  - **User flows** (`e2e/`, Playwright, `pnpm test:e2e`): the built app on the
+    sample, no store and no map token. Only flows a person cannot do without
+    (open Studio, the switch and its link, a filter and its chip, a selection
+    across a switch); everything else is a story or an RTL test. A flow that
+    lands gets one here when it crosses panels.
+
+### Storybook for agents (MCP)
+
+`@storybook/addon-mcp` serves the components to an agent while `pnpm storybook`
+runs: the `storybook` MCP server in `.mcp.json`, at `localhost:6006/mcp`
+(storybook.js.org/docs/ai; a preview feature). It reads each component's props from
+its TypeScript types and JSDoc (`features.componentsManifest`). When working on a
+component that has stories:
+
+- Look it up first: `docs-list`, then `docs-show` for its props and examples. Use only
+  props that are documented or shown in a story; a story's name is not a prop name. If
+  a prop is not there, do not guess from other libraries: ask.
+- Before writing or changing stories, read `get-storybook-story-instructions`. The
+  rules above win where they differ.
+- Check the work with `test-run` on the stories touched (it runs their play
+  functions), then `pnpm check`.
+- If Storybook is not running, start it (`pnpm storybook`) or say the tools are
+  missing; do not work around them.
 
 ## Commands
 
@@ -50,7 +120,13 @@ notes. This file wins for anything inside this directory.
 | `pnpm typecheck`                    | `tsc -b`                                                           |
 | `pnpm lint`                         | ESLint                                                             |
 | `pnpm format:check` / `pnpm format` | Prettier                                                           |
-| `pnpm test`                         | Vitest, once                                                       |
+| `pnpm test`                         | Vitest, once: the unit tests and every story                       |
+| `pnpm coverage`                     | The same, with line and branch coverage per file                   |
+| `pnpm test:visual`                  | Every story against its approved screenshot, on Linux (Docker)     |
+| `pnpm test:visual:update`           | Approve what the stories look like now; review the PNGs            |
+| `pnpm test:e2e`                     | The user flows in Chromium, on the built app and the sample        |
+| `pnpm storybook`                    | The stories, to look at beside Figma; MCP for agents (port 6006)   |
+| `pnpm build-storybook`              | Storybook as a static site in `storybook-static/`                  |
 | `pnpm fixtures:sample`              | Rebuild the invented sample `public/fixtures/sample.json`          |
 | `pnpm tokens:build`                 | Regenerate `src/styles/tokens.css` from `tokens/figma-tokens.json` |
 
@@ -168,7 +244,7 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   wait), which is what store's list gives and what the sample's claims are reduced to
   by `claimValues`. Never `claims` for a count or a filter.
 - On store's data a section's claims, citations and proposed ends in full are its
-  detail (`src/data/detail-store.ts`; plan `2026-11-21-001`). Opening Studio reads the
+  detail (`src/data/detail-store.ts`; plan `2026-11-21-001-feat-studio-store-light-loading`). Opening Studio reads the
   sections' rows, the links of the network and its lines: a handful of requests, none
   per section. A section's detail is read when something needs it
   (`useSectionDetail`: the opened section, its claim, the citation pop-up, the Agent's
@@ -211,7 +287,8 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   shown. It keeps each claim's id and the period it holds for, and each citation's
   role and, for a map, the date the map is as of; a map reading's locator in store is
   the trace file, so it is kept apart as `file`. It never changes a section because of
-  an end store only proposes. It drops who asserted or reviewed a claim; the proposer
+  an end store only proposes. It drops who asserted or reviewed a claim, but for a
+  section's tracer, which store's list names (the owner, 2026-11-19); the proposer
   of a link is kept only when it is a tool (store names the kind of an agent on claims
   only, so an agent seen asserting a claim as a person is never named). Keep it pure
   and test it with invented answers (`src/test/store-payloads.ts`).
@@ -231,25 +308,40 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   decided in the Agent's inbox; a proposed cut has no button anywhere (store would take a
   confirm with its default cut). Last seen stays Unknown until a person confirms the link in store; then it is
   cited to both maps (Figma `213:8036`).
-- One list, one rail item ("Network"), grouped by the "Group by" select
-  (`panels/group-by-select.tsx`; Figma section 12, `237:10367`; the owner, 2026-11-13).
-  The groupings are Edition and Pipeline only; State, Status and Company are filters.
-  By pipeline: "Pipelines", then "Proposed pipelines" (no section confirmed, only
-  proposed; the row shows the best score bare, all scores on hover), then "Not in a
-  pipeline" with one row, "No pipeline" (`NO_PIPELINE_ID`): in none and proposed for
-  none. By edition: one row per edition with the sections it is the first to show.
-  Every grouping holds every section of the network; rows are groups only, sections
-  are on the right. The title, the column head and the listbox name come from
-  `GROUPING`; the header counts sections, never rows, and holds no counts by status.
-  `summarise(network, rule, list)` builds either (`ListKind` is still `"pipelines" |
-"sections"`, "sections" meaning by edition); `everySection` in `studio-data.tsx` is
-  always the edition rows, and the counts, the filters and the map read it however the
-  list is grouped. The list opens by pipeline when the data has any (`defaultList`);
-  the choice is `list` in the store and `l` in the URL. Changing it clears nothing. A
-  row's `kind` is `pipeline`, `proposed`, `first-seen` or `group`: do not write
-  "pipeline" into a string that covers them all. A group handed to the Agent goes as
-  its section ids, never "all": its id means nothing under another grouping. Only a
-  pipeline row sets `selectedPipelineId` and `p`.
+- One list, one rail item ("Network"), with a three-way switch above it: All, Pipelines,
+  Unplaced (`panels/scope-switch.tsx`, a shadcn ToggleGroup: three buttons, one pressed, drawn as
+  Figma has it, a grey track with the chosen one on a white pill; Figma section 18,
+  `403:14721`;
+  the owner, 2026-11-21; plan `2026-11-21-001-feat-studio-scope-switch-and-filters`).
+  One is always on and Studio opens on All. The switch (`scope` in the store, `sc` in
+  the URL, `Scope` and `inScope` in `derive.ts`) sets three things in one move: the rows
+  of the list, the lines on the map and the filters offered. A section is placed once a
+  person confirmed it part of a pipeline (`isPlaced`); one only proposed for a pipeline
+  is unplaced. Pipelines: "Pipelines", then "Proposed pipelines" (no section confirmed,
+  only proposed; the row shows the best score bare, all scores on hover). Unplaced: one
+  row per edition with the sections in no pipeline that it is the first to show. All:
+  the pipelines, the proposed ones, then "Not in a pipeline" with those edition rows.
+  With no pipelines in the data the Pipelines list says what a pipeline is and how one
+  gets made; it is never blank and never a stand-in row. There is no Group by: sections
+  in a pipeline are not listed by edition. Rows are groups only, sections are on the
+  right. The title and the column head come from `SCOPE`; the header counts sections,
+  never rows ("2 pipelines · 42 sections" on Pipelines), and holds no counts by status.
+  `summarise(network, rule, scope)` builds the rows; `editionRows` builds edition rows
+  of any set of sections. In `studio-data.tsx`, `scoped` is the sections the switch
+  shows, once each (on Pipelines that is every section a row holds, so a proposed
+  pipeline's sections are drawn and counted there too, thin), and the counts, the filters, the search and the map read it;
+  `everySection` is the whole network whatever the switch says, and only the selection
+  reads it. Switching never changes the selection: a section the switch hides stays
+  selected and counted in the right panel, under its pipeline or its edition
+  (`useSelectionGroups`), and is drawn again when the switch goes back. A row's `kind`
+  is `pipeline`, `proposed` or `first-seen`: do not write "pipeline" into a string that
+  covers them all. A group handed to the Agent goes as its section ids, never "all":
+  its row is not in every list. Only a pipeline row sets `selectedPipelineId` and `p`.
+  Something that leads to a pipeline (a link with `p`, "On the pipeline", a reference
+  in an answer) calls `showPipelines`, which moves the switch off Unplaced. Something
+  that opens one section from outside the list and the map (a reference in an answer,
+  a link with `sel`) calls `useRevealSection`, which moves the switch to All when it
+  hides that section.
 - A group's row follows the filters and, while the list follows the map, the view
   (`narrowRows`, the owner, 2026-11-13): it counts and selects only the sections that
   pass, so "1929 edition" with the State filter is that edition in that state. A
@@ -257,8 +349,9 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   the right. The selection's groups follow the filters but not the view, so a pan
   never changes what is selected.
 - The table has one Status column: the split by status as a bar, then the word for
-  the whole (a status never shows as colour alone). Grouped by edition it has no Code
-  and no progress column: an edition has neither.
+  the whole (a status never shows as colour alone). On Unplaced it has no Code and no
+  progress column: an edition has neither. On All, where pipelines and editions are
+  listed together, an edition's row leaves those two cells empty.
 - A pipeline's own claims are name, owner and operator (`ON_PIPELINE`), never a
   section's. The right panel shows them above its sections when one pipeline is
   selected (`pipelineClaims`, `datedValue`: "Alder Gas Co., by 1931"; an owner that
@@ -276,25 +369,55 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   not found stays Unknown (the owner, 2026-11-13).
 - Settings (`settings.ts`) are kept in the browser: the required attributes and solid or
   dotted per status. The map and its key read the line style from `map/line-style.ts`.
-- The view is in the URL (`url-state.ts`): grouping, status, filters, search, list
+- The view is in the URL (`url-state.ts`): the switch, status, filters, search, list
   follows map, map position, one section. Not layout, the map key's eyes or Settings.
-  An old link with `e=ed-<year>` opens as First seen up to that year. Add a field
-  there when adding a filter. No test or screenshot uses a real name in a URL.
+  What an older link carried and the screen no longer has is read past, never an
+  error: the grouping (`l`), the Pipeline filter (`pm`), the First seen range (`f`) and
+  the edition in force (`e`). Such a link opens on All. Add a field there when adding
+  a filter. No test or screenshot uses a real name in a URL; a person is named in a
+  URL by store's id, never by name.
 - Filters are the second level of the list panel (the owner, 2026-11-13): the button
   beside the search opens every filter on one screen in place of the list, at the
   list's own width (a table folds while they are open and comes back on Back), with
-  Back, Clear all and a live "Show n sections". Status is one of the filters. Every
-  group always shows; with nothing to offer it says so in one line, never hidden. The
-  list itself shows only the filters that are on, as chips; counts by status are in
+  Back, Clear all and a live "Show n sections". Status is one of the filters and always
+  shows. Any other group shows only while it is on, or while it can narrow what the
+  switch shows: one of its choices would leave some sections and not all of them
+  (`canNarrow`, `passingWithout`, `rangeNarrows`; the owner, 2026-11-21). So on data
+  with no diameters, owners or build dates those filters are left out, and come back
+  by themselves once claims exist. "Needs your decision" and "Changed since review"
+  follow the same rule inside Status. The filters about a section on its own are
+  First shown by (a search with a dropdown of editions, several tickable, each with
+  its count; `fe`), State (`st`), Length (from and to in km, measured along the route
+  as traced, `lengthKm`; `len`) and Proposed end (the whole section, or part of it:
+  `proposedEnds[].kind`; `pe`). They are offered on All and on Unplaced. On Pipelines
+  they are not offered and not in force, their chips are not shown, and their values
+  are kept and in force again when the switch goes back (`sectionFiltersPaused`).
+  There is no Pipeline filter: the switch does that. Every filter is one entry in
+  `screens/studio/filters.ts` (when it is on, what turns it off, its chip, what it
+  asks of a section, whether it pauses on Pipelines); the store's "filters on" and
+  "clear all", the chips and the criteria read it. Adding a filter: its fields and
+  setter in the store, its words in `url-state.ts`, an entry in `filters.ts`, its
+  control in `panels/filters-panel.tsx` (controls in `filter-controls.tsx`, options
+  and "which groups show" in `filter-options.ts`), and a row in `FILTERS` in
+  `filters-behaviour.test.tsx`. Traced by is a fifth of them
+  (a search with a dropdown of tracers; `tb`, store's id of the person, never the
+  name): store's list names who asserted each section's route (`traced_by`, a person
+  only), kept as `section.tracedBy`. A tracer's name is shown on the screen and goes
+  nowhere else.
+  Every filter reads `section.values` and what the list gives; none reads a section's
+  detail. The list itself shows only the filters that are on, as chips; counts by status are in
   Filters only. The filter button shows how many are on. The map key and "List follows
   the map" are map controls, not filters. There is no Filters or Editions panel in the
   rail.
 - The map key (`map/map-key.tsx`, Figma `239:10993`) replaces the layers popover and
-  the legend: Solid and Dotted (the statuses drawn so, from Settings), Dashed (proposed
+  the legend: Solid and Dotted (the statuses drawn so, from Settings), Heavy and Thin
+  (in a pipeline, in none; the two weights are `LINE_WEIGHT` in `map/line-style.ts`,
+  and colour is never used for this), Dashed (proposed
   by a tool, with an eye), Faint (sections the filters leave out, with an eye, off
   until asked for), Blue (selected), and a link that opens Settings
   (`useSettingsOpen`). The two eyes are kept in this browser (`studio.map-key`). The
-  map sorts sections by the filters one by one; a faint line cannot be clicked.
+  map sorts sections by the filters one by one; a faint line cannot be clicked. What
+  the switch leaves out is not faint: it is not drawn at all and cannot be clicked.
 - A section's states (State filter) come from its line and the Census outlines in
   `us-atlas` (`src/data/us-states.ts`), worked out when first asked. Where a line lies
   is not a claim and needs no citation. Company counts a section's own Owner claim as
@@ -452,7 +575,7 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   invented behaviour. The "Scanned map" eye and the draw tools other than Select and
   Lasso are hidden the same way. The right-click menu does not open when it has
   nothing to offer.
-- The counts in Filters are the whole network after the other filters; they never
+- The counts in Filters are what the switch shows after the other filters; they never
   follow the map.
   Only the list follows it (`listFollowsMap`), and its header says "n of m in view".
   While the list is a table (`tableOpen`) it holds everything and the follow button

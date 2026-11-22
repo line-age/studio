@@ -222,6 +222,13 @@ let serial = 139
 const sections = []
 
 /** An invented day each record was added: spread over ten weeks from 1 Sept 2026. */
+/** Who traced each section: three invented people, by turns. */
+const TRACERS = [
+  { id: "tracer-1", name: "Tracer One (invented)" },
+  { id: "tracer-2", name: "Tracer Two (invented)" },
+  { id: "tracer-3", name: "Tracer Three (invented)" },
+]
+
 function addedDay(index) {
   const day = new Date(Date.UTC(2026, 8, 1 + ((index * 5) % 70)))
   return day.toISOString().slice(0, 10)
@@ -251,6 +258,8 @@ function add(pipelineId, name, from, to, options = {}) {
     }),
     changedSinceReview: options.changed ?? false,
     addedAt: addedDay(sections.length),
+    // Invented people. A real tracer's name never goes in a fixture.
+    tracedBy: TRACERS[sections.length % TRACERS.length],
   }
   sections.push(section)
   return section

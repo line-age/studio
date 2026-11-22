@@ -215,6 +215,15 @@ const section = z.object({
   changedSinceReview: z.boolean().default(false),
   /** The day the section's record was added to Lineage, "2026-11-12". */
   addedAt: z.iso.date().optional(),
+  /**
+   * The person who traced the section's line from the map: store's id for
+   * them, and their name. The name is shown on the screen and goes nowhere
+   * else: a link names a tracer by id, and no fixture, test or screenshot
+   * holds a real one.
+   */
+  tracedBy: z
+    .object({ id: z.string().min(1), name: z.string().min(1) })
+    .optional(),
 })
 
 /** One value per claim row, as the list shows it. */

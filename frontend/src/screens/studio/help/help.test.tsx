@@ -78,13 +78,14 @@ describe("the Help tour", () => {
   it("has an area on screen for every step", async () => {
     await renderScreen()
     for (const [index, step] of HELP_STEPS.entries()) {
-      act(() => useHelp.getState().start(index))
+      // Awaited: a step can open a panel whose parts load while it renders.
+      await act(async () => useHelp.getState().start(index))
       if (step.targets.length > 0) {
         await waitFor(() => expect(area(index)).toBeTruthy())
       }
       // Still on the step: it was not passed over for want of an area.
       expect(await cardTitle()).toBe(step.title)
-      act(() => useHelp.getState().end())
+      await act(async () => useHelp.getState().end())
     }
   })
 

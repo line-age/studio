@@ -188,6 +188,8 @@ committed.
 - Coordinates are WGS 84 degrees, longitude first, as in GeoJSON.
 - Counts (sections per pipeline, claims cited, Unknown) are never stored. The
   app derives them, so they cannot disagree with the data.
+- A section's `tracedBy` (`id`, `name`) says who traced its line. In a committed
+  fixture the people are invented; a real tracer's name never goes in one.
 - A section's `values` (each claim row's value and how many proposals wait) are
   worked out from its `claims` when the file is read. Do not write them in a
   fixture; store's data has them in place of the claims, which it reads per section.

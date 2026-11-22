@@ -7,6 +7,12 @@ import type { LineStyle } from "../settings"
  * in Settings. The map and its key both read it from here, so they agree.
  */
 
+// How heavy a line is: kept with the line sample, which the key draws by it.
+export { LINE_WEIGHT } from "@/components/line-key"
+
+/** A dotted line is drawn a little heavier than a solid one, to read as well. */
+export const DOTTED_EXTRA = 0.5
+
 /** The statuses drawn in this style, in their usual order. */
 export function statusesDrawn(
   lineStyle: Record<SectionStatus, LineStyle>,

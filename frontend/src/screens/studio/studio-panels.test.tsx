@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { Suspense } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import type { Network } from "@/data/schema"
+import { withClaims, type Network } from "@/data/schema"
 import { testNetwork } from "@/test/network"
 
 import { LeftPanelContext } from "./left-panel-context"
@@ -52,12 +52,15 @@ beforeEach(() => {
 describe("Studio panels", () => {
   it("lists the pipelines with their status in words", async () => {
     await renderPanels()
-    const list = screen.getByRole("listbox", { name: "Pipelines" })
+    // The screen opens on All: the pipelines, the proposed one, then what
+    // is in no pipeline, by edition.
+    const list = screen.getByRole("listbox", { name: "Network" })
     const rows = within(list).getAllByRole("option")
     expect(rows.map((row) => row.textContent)).toEqual([
       expect.stringContaining("North line"),
       expect.stringContaining("South line"),
       expect.stringContaining("P-003"),
+      expect.stringContaining("1937 edition1"),
     ])
     expect(rows[0]).toHaveTextContent("In progress")
     // Progress says what it counts: sections done of the pipeline's sections.
@@ -71,8 +74,8 @@ describe("Studio panels", () => {
     expect(rows[2]).toHaveTextContent("0.70")
     expect(within(rows[2]).getByTitle("Score 0.70")).toBeVisible()
     expect(rows[2]).toHaveTextContent("Proposed")
-    // Every section here is in a pipeline or proposed for one: no last row.
-    expect(list).not.toHaveTextContent("Not in a pipeline")
+    // A section only proposed for a pipeline is still in none.
+    expect(list).toHaveTextContent("Not in a pipeline1")
   })
 
   it("shows the sections of the selected pipeline and asks the map to show it", async () => {
@@ -195,7 +198,7 @@ describe("Studio panels", () => {
   it("adds pipelines by their boxes and lists them grouped on the right", async () => {
     const user = userEvent.setup()
     await renderPanels()
-    const list = screen.getByRole("listbox", { name: "Pipelines" })
+    const list = screen.getByRole("listbox", { name: "Network" })
 
     await user.click(
       within(list).getByRole("checkbox", { name: "Select North line" })
@@ -229,7 +232,7 @@ describe("Studio panels", () => {
   it("selects a run of rows with Shift, and all or none with the header box", async () => {
     const user = userEvent.setup()
     await renderPanels()
-    const list = screen.getByRole("listbox", { name: "Pipelines" })
+    const list = screen.getByRole("listbox", { name: "Network" })
     const rows = within(list).getAllByRole("option")
 
     await user.click(rows[0])
@@ -325,74 +328,297 @@ describe("Studio panels", () => {
     expect(input).toHaveValue("")
   })
 
-  it("has one Group by, and the title, column and rows follow it", async () => {
+  it("has one switch, and the title, column, rows and count follow it", async () => {
     const user = userEvent.setup()
     await renderPanels()
-    const groupBy = screen.getByRole("combobox", { name: "Group by" })
-    expect(groupBy).toHaveTextContent("Group byPipeline")
-    expect(screen.getByRole("heading", { name: "Pipelines" })).toBeVisible()
-    // No edition to choose, and no counts by status above the list.
+    const tabs = within(screen.getByRole("group", { name: "Show" }))
+    expect(tabs.getAllByRole("button").map((tab) => tab.textContent)).toEqual([
+      "All",
+      "Pipelines",
+      "Unplaced",
+    ])
+    expect(tabs.getByRole("button", { name: "All" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    )
+    expect(screen.getByRole("heading", { name: "Network" })).toBeVisible()
+    expect(screen.getByText("5 sections")).toBeVisible()
+    // No Group by, no edition to choose.
+    expect(screen.queryByRole("combobox", { name: "Group by" })).toBeNull()
     expect(screen.queryByRole("combobox", { name: /[Ee]dition/ })).toBeNull()
 
-    await user.click(groupBy)
-    const choices = await screen.findAllByRole("option", {
-      name: /^(Edition|Pipeline)$/,
-    })
-    expect(choices.map((c) => c.textContent)).toEqual(["Edition", "Pipeline"])
-    await user.click(choices[0])
-    expect(useStudio.getState().list).toBe("sections")
-    expect(screen.getByRole("heading", { name: "Editions" })).toBeVisible()
-    const list = screen.getByRole("listbox", { name: "Editions" })
-    // Every section, the old route on the 1931 map among them.
+    await user.click(tabs.getByRole("button", { name: "Pipelines" }))
+    expect(useStudio.getState().scope).toBe("pipelines")
+    expect(screen.getByRole("heading", { name: "Pipelines" })).toBeVisible()
+    // What is counted is said: the pipelines, and the sections its rows
+    // hold, the one only proposed for a pipeline among them.
+    expect(screen.getByText("2 pipelines · 5 sections")).toBeVisible()
+    const pipelines = screen.getByRole("listbox", { name: "Pipelines" })
     expect(
-      within(list)
+      within(pipelines)
         .getAllByRole("option")
         .map((row) => row.textContent)
     ).toEqual([
-      expect.stringContaining("1931 edition2"),
-      expect.stringContaining("1937 edition3"),
+      expect.stringContaining("North line"),
+      expect.stringContaining("South line"),
+      expect.stringContaining("P-003"),
     ])
-    // Editions are not under a heading of their own.
-    expect(list).not.toHaveTextContent("first seen")
+    expect(pipelines).not.toHaveTextContent("Not in a pipeline")
+
+    await user.click(tabs.getByRole("button", { name: "Unplaced" }))
+    expect(screen.getByRole("heading", { name: "Unplaced" })).toBeVisible()
+    expect(screen.getByText("1 section")).toBeVisible()
+    const unplaced = screen.getByRole("listbox", { name: "Unplaced" })
+    expect(
+      within(unplaced)
+        .getAllByRole("option")
+        .map((row) => row.textContent)
+    ).toEqual([expect.stringContaining("1937 edition1")])
+    // Editions are not under a heading of their own here.
+    expect(unplaced).not.toHaveTextContent("Not in a pipeline")
+  })
+
+  it("keeps the selection through the switch, hidden sections among it", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    const tabs = within(screen.getByRole("group", { name: "Show" }))
+    const list = screen.getByRole("listbox", { name: "Network" })
+    await user.click(
+      within(list).getByRole("checkbox", { name: "Select North line" })
+    )
+    await user.click(
+      within(list).getByRole("checkbox", { name: /1937 edition/ })
+    )
+    const picked = ["s-1", "s-2", "s-4"]
+    expect([...useStudio.getState().selection].sort()).toEqual(picked)
+    for (const tab of ["Unplaced", "Pipelines", "All"]) {
+      await user.click(tabs.getByRole("button", { name: tab }))
+      expect([...useStudio.getState().selection].sort()).toEqual(picked)
+      // The right panel still counts every one of them.
+      expect(screen.getByText(/^3 sections/)).toBeVisible()
+    }
+  })
+
+  it("lets the header box speak for the rows shown, never for hidden ones", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    const all = () =>
+      screen.getByRole("checkbox", { name: "Select everything shown" })
+    // North line is selected, then hidden by the switch.
+    await user.click(
+      screen.getByRole("checkbox", { name: "Select North line" })
+    )
+    await user.click(screen.getByRole("button", { name: "Unplaced" }))
+    // Nothing shown is selected: the box is empty, not half ticked.
+    expect(all()).toHaveAttribute("aria-checked", "false")
+    // Ticking it adds what is shown and keeps the hidden pipeline.
+    await user.click(all())
+    expect([...useStudio.getState().selection].sort()).toEqual([
+      "s-1",
+      "s-2",
+      "s-4",
+    ])
+    expect(all()).toHaveAttribute("aria-checked", "true")
+    // Clearing it takes off only what is shown.
+    await user.click(all())
+    expect([...useStudio.getState().selection].sort()).toEqual(["s-1", "s-2"])
+  })
+
+  it("says a widened search stays inside what the switch shows", async () => {
+    const user = userEvent.setup()
+    act(() => {
+      useStudio.getState().setScope("pipelines")
+      // Only North line has a section with this diameter.
+      useStudio.getState().setDiameters(["12 in"])
+    })
+    await renderPanels()
+    await user.type(
+      screen.getByRole("combobox", { name: "Search name or code" }),
+      "south"
+    )
+    const widen = await screen.findByRole("button", {
+      name: "Search every pipeline",
+    })
+    await user.click(widen)
+    expect(screen.getByText("Searching every pipeline.")).toBeVisible()
+    expect(
+      screen.getByRole("group", { name: "Filters in force" })
+    ).toHaveTextContent("Every pipeline")
+    expect(screen.queryByText(/whole network/i)).toBeNull()
+  })
+
+  it("counts, on Pipelines, only the pipelines the filters leave", async () => {
+    act(() => {
+      useStudio.getState().setScope("pipelines")
+      // Only North line has a section with this diameter.
+      useStudio.getState().setDiameters(["12 in"])
+    })
+    await renderPanels()
+    const list = screen.getByRole("listbox", { name: "Pipelines" })
+    expect(within(list).getAllByRole("option")).toHaveLength(1)
+    expect(screen.getByText("1 pipeline · 1 section")).toBeVisible()
+  })
+
+  it("lists an edition once on the right, whatever the filters leave of it", async () => {
+    const user = userEvent.setup()
+    const network = testNetwork()
+    act(() => useStudio.getState().setScope("unplaced"))
+    await renderPanels({
+      ...network,
+      sections: network.sections.map((s) => ({ ...s, pipelineId: null })),
+    })
+    // All three sections the 1937 edition first shows are selected; then a
+    // filter leaves one of them.
+    await user.click(screen.getByRole("option", { name: /1937 edition/ }))
+    act(() => useStudio.getState().setDiameters(["6 in"]))
+    expect([...useStudio.getState().selection]).toHaveLength(3)
+    // One group for the edition, holding all three: never two with one id.
+    expect(screen.getAllByText("First seen in the 1937 edition")).toHaveLength(
+      1
+    )
+    expect(screen.getAllByRole("treeitem")).toHaveLength(3)
+  })
+
+  it("says the network is empty on Unplaced, not that all is placed", async () => {
+    const network = testNetwork()
+    act(() => useStudio.getState().setScope("unplaced"))
+    await renderPanels({ ...network, pipelines: [], sections: [] })
+    const list = screen.getByRole("listbox", { name: "Unplaced" })
+    expect(list).toHaveTextContent("This network has no sections.")
+    expect(list).not.toHaveTextContent("Every section is in a pipeline.")
+  })
+
+  it("says so when the length asked for runs backwards", async () => {
+    const user = userEvent.setup()
+    act(() => useStudio.getState().setLength(50, 5))
+    await renderPanels()
+    await user.click(screen.getByRole("button", { name: /^Filters/ }))
+    expect(
+      screen.getByText("From is more than to, so no section can match.")
+    ).toBeVisible()
+    // Both boxes are marked, and point at what says why.
+    for (const name of ["Length from, km", "Length to, km"]) {
+      const box = screen.getByRole("spinbutton", { name })
+      expect(box).toHaveAttribute("aria-invalid", "true")
+      expect(box).toHaveAccessibleDescription(
+        "From is more than to, so no section can match."
+      )
+    }
+  })
+
+  it("says why the list is empty: the view, the filters or the search", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    const list = () => screen.getByRole("listbox")
+    // Nothing in the map view while the list follows it.
+    act(() => useStudio.getState().setView([50, 50, 51, 51]))
+    expect(list()).toHaveTextContent("Nothing in the map view.")
+    // Not following: the filters left nothing.
+    act(() => {
+      useStudio.getState().setOnlyInView(false)
+      useStudio.getState().setLength(100000, null)
+    })
+    expect(list()).toHaveTextContent("Nothing matches the filters.")
+    // A search that finds something only outside the filters says so.
+    await user.type(
+      screen.getByRole("combobox", { name: "Search name or code" }),
+      "north"
+    )
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Nothing inside the filters matches “north”."
+    )
+  })
+
+  it("lists the sections a search found, each opened by click or keyboard", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.type(
+      screen.getByRole("combobox", { name: "Search name or code" }),
+      "alder"
+    )
+    const found = screen.getByRole("option", { name: /Alder to Birch/ })
+    expect(found).toHaveTextContent("S-0001")
+    found.focus()
+    await user.keyboard("{Enter}")
+    expect([...useStudio.getState().selection]).toEqual(["s-1"])
+  })
+
+  it("counts the found sections past the first six", async () => {
+    const user = userEvent.setup()
+    const network = testNetwork()
+    const many = Array.from({ length: 8 }, (_, i) => ({
+      ...network.sections[0],
+      id: `s-many-${i}`,
+      code: `S-01${i}`,
+      name: `Many line ${i}`,
+    }))
+    await renderPanels({ ...network, sections: [...network.sections, ...many] })
+    await user.type(
+      screen.getByRole("combobox", { name: "Search name or code" }),
+      "many line"
+    )
+    expect(screen.getByText("and 2 more sections")).toBeVisible()
+  })
+
+  it("says what a pipeline is when the data has none", async () => {
+    const user = userEvent.setup()
+    const network = testNetwork()
+    await renderPanels({
+      ...network,
+      pipelines: [],
+      sections: network.sections.map((s) => ({
+        ...s,
+        pipelineId: null,
+        proposedMemberships: [],
+      })),
+    })
+    await user.click(screen.getByRole("button", { name: "Pipelines" }))
+    const list = screen.getByRole("listbox", { name: "Pipelines" })
+    expect(within(list).queryAllByRole("option")).toHaveLength(0)
+    expect(list).toHaveTextContent("No pipelines yet.")
+    expect(list).toHaveTextContent("Make pipeline")
+    expect(screen.getByText("0 pipelines · 0 sections")).toBeVisible()
   })
 
   it("counts and selects, on an edition's row, only what the filters leave", async () => {
     const user = userEvent.setup()
+    const network = testNetwork()
     act(() => {
-      useStudio.getState().setList("sections")
-      useStudio.getState().setMemberships(["in"])
+      useStudio.getState().setScope("unplaced")
+      useStudio.getState().setDiameters(["6 in"])
     })
-    await renderPanels()
-    const list = screen.getByRole("listbox", { name: "Editions" })
-    // s-4 is in no pipeline: the 1937 row is two sections, not three.
+    // Every section in no pipeline: the 1937 edition first shows three.
+    await renderPanels({
+      ...network,
+      sections: network.sections.map((s) => ({
+        ...s,
+        pipelineId: null,
+        proposedMemberships: [],
+      })),
+    })
+    const list = screen.getByRole("listbox", { name: "Unplaced" })
+    // Only s-3 has that diameter: the 1937 row is one section, not three.
     const row = within(list).getByRole("option", { name: /1937 edition/ })
-    expect(row).toHaveTextContent("1937 edition2")
+    expect(row).toHaveTextContent("1937 edition1")
     await user.click(row)
-    expect([...useStudio.getState().selection]).toEqual(["s-2", "s-3"])
-    // All that shows is selected: the row is ticked, and the right lists two.
+    expect([...useStudio.getState().selection]).toEqual(["s-3"])
+    // All that shows is selected: the row is ticked, and the right lists one.
     expect(within(row).getByRole("checkbox")).toHaveAttribute(
       "aria-checked",
       "true"
     )
-    expect(screen.getByText("2 of 2 selected")).toBeVisible()
+    expect(screen.getByText("1 of 1 selected")).toBeVisible()
     expect(
       screen.queryByRole("treeitem", { name: /Unnamed section/ })
     ).toBeNull()
   })
 
-  it("puts what is in no pipeline in one last row, under its heading", async () => {
+  it("puts what is in no pipeline last, under its heading, by edition", async () => {
     const user = userEvent.setup()
-    const network = testNetwork()
-    await renderPanels({
-      ...network,
-      sections: network.sections.map((s) =>
-        s.id === "s-4" ? { ...s, proposedMemberships: [] } : s
-      ),
-    })
-    const list = screen.getByRole("listbox", { name: "Pipelines" })
+    await renderPanels()
+    const list = screen.getByRole("listbox", { name: "Network" })
     expect(list).toHaveTextContent("Not in a pipeline1")
-    const row = within(list).getByRole("option", { name: /No pipeline/ })
-    expect(row).toHaveTextContent("No pipeline1")
+    const row = within(list).getByRole("option", { name: /1937 edition/ })
     await user.click(row)
     expect([...useStudio.getState().selection]).toEqual(["s-4"])
     // A group is not a pipeline: the link does not name one.
@@ -401,9 +627,14 @@ describe("Studio panels", () => {
 
   it("lists a first-seen group's sections on the right, not in the list", async () => {
     const user = userEvent.setup()
-    act(() => useStudio.getState().setList("sections"))
-    await renderPanels()
-    const list = screen.getByRole("listbox", { name: "Editions" })
+    act(() => useStudio.getState().setScope("unplaced"))
+    const network = testNetwork()
+    // Nothing confirmed part of a pipeline: the 1937 edition first shows three.
+    await renderPanels({
+      ...network,
+      sections: network.sections.map((s) => ({ ...s, pipelineId: null })),
+    })
+    const list = screen.getByRole("listbox", { name: "Unplaced" })
     // The list has one row per group and nothing to open under it.
     expect(
       within(list).queryByRole("button", { name: /^List the sections/ })
@@ -461,48 +692,212 @@ describe("Studio panels", () => {
     ).toHaveAttribute("aria-pressed", "true")
   })
 
-  it("shows every filter group, and says so when one has nothing to offer", async () => {
-    const user = userEvent.setup()
-    await renderPanels()
-    await user.click(screen.getByRole("button", { name: /^Filters/ }))
-    const groups = screen
+  const filterGroups = () =>
+    screen
       .getAllByRole("region")
       .map((r) => r.getAttribute("aria-labelledby"))
       .map((id) => document.getElementById(id!)?.textContent)
-    expect(groups).toEqual([
+
+  it("shows a filter only while it has something to tell apart", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("button", { name: /^Filters/ }))
+    // The invented sample is in no US state and has no proposed end: those
+    // filters could narrow nothing and are left out. The old Pipeline filter
+    // is gone: the switch does that.
+    expect(filterGroups()).toEqual([
       "Status",
-      "Pipeline",
-      "First seen",
-      "State",
+      "First shown by",
+      "Length",
       "Company",
       "Diameter",
       "Build date",
       "Added to Lineage",
       "Unknown in",
     ])
-    // The invented sample is not in any US state.
+    // Status always shows; its two boxes only while they can narrow.
+    const status = screen.getByRole("group", { name: "Sections by status" })
+    expect(within(status).getByText("Needs your decision")).toBeVisible()
+    expect(within(status).getByText("Changed since review")).toBeVisible()
+  })
+
+  it("leaves out a filter every section answers the same way, until it is on", async () => {
+    const user = userEvent.setup()
+    const network = testNetwork()
+    // No section has a cited diameter: Unknown on all of them.
+    const bare = {
+      ...network,
+      sections: network.sections.map((s) =>
+        withClaims(
+          { ...s, changedSinceReview: false },
+          s.claims!.map((c) =>
+            c.attribute === "Diameter"
+              ? { ...c, value: null, citations: [], proposals: [] }
+              : c
+          )
+        )
+      ),
+    }
+    await renderPanels(bare)
+    await user.click(screen.getByRole("button", { name: /^Filters/ }))
+    expect(filterGroups()).not.toContain("Diameter")
+    const status = screen.getByRole("group", { name: "Sections by status" })
+    expect(within(status).queryByText("Changed since review")).toBeNull()
+    // A filter that is on always shows, so it can be taken off.
+    act(() => useStudio.getState().setDiameters(["6 in"]))
+    expect(filterGroups()).toContain("Diameter")
+  })
+
+  it("offers the filters about a section on All and Unplaced, not on Pipelines", async () => {
+    const user = userEvent.setup()
+    act(() => useStudio.getState().setFirstSeenEditions(["ed-1931"]))
+    await renderPanels()
+    // In force on All: a chip, and the two sections the 1931 map first shows.
+    const chips = () =>
+      screen.queryByRole("group", { name: "Filters in force" })
+    expect(chips()).toHaveTextContent("First shown by the 1931 edition")
+    expect(screen.getByText("2 sections")).toBeVisible()
+
+    await user.click(screen.getByRole("button", { name: "Pipelines" }))
+    // Paused: no chip, every pipeline listed, the filter button not lit.
+    expect(chips()).toBeNull()
+    expect(screen.getByText("2 pipelines · 5 sections")).toBeVisible()
+    expect(screen.getByRole("button", { name: "Filters" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    )
+    await user.click(screen.getByRole("button", { name: "Filters" }))
+    expect(filterGroups()).not.toContain("First shown by")
+    expect(filterGroups()).not.toContain("Length")
+    expect(filterGroups()).toContain("Company")
+    await user.click(screen.getByRole("button", { name: "Back to the list" }))
+
+    // Kept, and in force again on the way back.
+    expect(useStudio.getState().firstSeenEditions).toEqual(["ed-1931"])
+    await user.click(screen.getByRole("button", { name: "All" }))
+    expect(chips()).toHaveTextContent("First shown by the 1931 edition")
+  })
+
+  it("finds an edition by typing, ticks several, each with its count", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("button", { name: /^Filters/ }))
+    const box = screen.getByRole("combobox", { name: "Search editions" })
+    expect(box).toHaveAttribute("placeholder", "Type to find an edition…")
+    await user.click(box)
+    const options = await screen.findAllByRole("option")
+    expect(options.map((o) => o.textContent)).toEqual([
+      "1931 edition2",
+      "1937 edition3",
+    ])
+    await user.type(box, "1937")
+    await user.click(
+      await screen.findByRole("option", { name: /1937 edition/ })
+    )
+    expect(useStudio.getState().firstSeenEditions).toEqual(["ed-1937"])
     expect(
-      screen.getByText("No section runs through a US state.")
+      screen.getByRole("button", { name: "Show 3 sections" })
+    ).toBeVisible()
+    await user.clear(box)
+    await user.type(box, "1931")
+    await user.click(
+      await screen.findByRole("option", { name: /1931 edition/ })
+    )
+    expect(useStudio.getState().firstSeenEditions).toEqual([
+      "ed-1937",
+      "ed-1931",
+    ])
+    expect(
+      screen.getByRole("button", { name: "Show 5 sections" })
     ).toBeVisible()
   })
 
-  it("narrows to the sections proposed for a pipeline, with a chip", async () => {
+  it("narrows to a tracer's sections, named on screen and kept by id", async () => {
     const user = userEvent.setup()
-    act(() => useStudio.getState().setList("sections"))
-    await renderPanels()
+    const network = testNetwork()
+    const ann = { id: "agent-ann", name: "Ann Example" }
+    const bob = { id: "agent-bob", name: "Bob Example" }
+    await renderPanels({
+      ...network,
+      sections: network.sections.map((s, i) => ({
+        ...s,
+        tracedBy: i < 2 ? ann : bob,
+      })),
+    })
     await user.click(screen.getByRole("button", { name: /^Filters/ }))
-    const pipeline = screen.getByRole("group", { name: "Pipeline" })
-    const proposed = within(pipeline)
-      .getByText("Proposed for one")
-      .closest("label")!
-    expect(proposed).toHaveTextContent("Proposed for one1")
-    await user.click(within(proposed).getByRole("checkbox"))
-    expect(screen.getByRole("button", { name: "Show 1 section" })).toBeVisible()
+    const box = screen.getByRole("combobox", { name: "Search tracers" })
+    expect(box).toHaveAttribute("placeholder", "Type to find a tracer…")
+    await user.type(box, "Ann")
+    const option = await screen.findByRole("option", { name: /Ann Example/ })
+    expect(option).toHaveTextContent("Ann Example2")
+    await user.click(option)
+    // The id is what is kept, and what a link would carry.
+    expect(useStudio.getState().tracers).toEqual(["agent-ann"])
+    expect(
+      screen.getByRole("button", { name: "Show 2 sections" })
+    ).toBeVisible()
     await user.click(screen.getByRole("button", { name: "Back to the list" }))
     expect(
       screen.getByRole("group", { name: "Filters in force" })
-    ).toHaveTextContent("Proposed for one")
-    expect(useStudio.getState().memberships).toEqual(["proposed"])
+    ).toHaveTextContent("Traced by Ann Example")
+    // Paused on Pipelines, like the other filters about a section.
+    await user.click(screen.getByRole("button", { name: "Pipelines" }))
+    expect(screen.queryByRole("group", { name: "Filters in force" })).toBeNull()
+  })
+
+  it("leaves Traced by out when the data names no tracer", async () => {
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("button", { name: /^Filters/ }))
+    expect(filterGroups()).not.toContain("Traced by")
+  })
+
+  it("narrows by length and by a proposed end, each with a chip", async () => {
+    const user = userEvent.setup()
+    const network = testNetwork()
+    await renderPanels({
+      ...network,
+      sections: network.sections.map((s) =>
+        s.id === "s-4"
+          ? {
+              ...s,
+              proposedEnds: [
+                {
+                  id: "pe-cut",
+                  kind: "cut" as const,
+                  otherSectionId: "gone-9",
+                  score: 0.6,
+                  citations: [],
+                },
+              ],
+            }
+          : s
+      ),
+    })
+    await user.click(screen.getByRole("button", { name: /^Filters/ }))
+    const ends = screen.getByRole("group", { name: "Proposed end" })
+    expect(
+      within(ends).getByText("The whole section").closest("label")
+    ).toHaveTextContent("The whole section0")
+    const part = within(ends).getByText("Part of it").closest("label")!
+    expect(part).toHaveTextContent("Part of it1")
+    await user.click(within(part).getByRole("checkbox"))
+    expect(useStudio.getState().proposedEnd).toEqual(["cut"])
+    expect(screen.getByRole("button", { name: "Show 1 section" })).toBeVisible()
+    await user.click(screen.getByRole("button", { name: "Clear Proposed end" }))
+
+    await user.type(
+      screen.getByRole("spinbutton", { name: "Length from, km" }),
+      "100000"
+    )
+    expect(useStudio.getState().lengthFrom).toBe(100000)
+    expect(
+      screen.getByRole("button", { name: "Show 0 sections" })
+    ).toBeVisible()
+    await user.click(screen.getByRole("button", { name: "Back to the list" }))
+    expect(
+      screen.getByRole("group", { name: "Filters in force" })
+    ).toHaveTextContent("100,000 km or longer")
   })
 
   it("counts the sections by status, and one click narrows the list", async () => {
@@ -521,7 +916,7 @@ describe("Studio panels", () => {
     expect(
       screen.getByRole("group", { name: "Filters in force" })
     ).toHaveTextContent("Not started")
-    const list = screen.getByRole("listbox", { name: "Pipelines" })
+    const list = screen.getByRole("listbox", { name: "Network" })
     // North and South line stay: one of each one's sections is not started.
     expect(
       within(list)
@@ -531,6 +926,8 @@ describe("Studio panels", () => {
       expect.stringContaining("North line"),
       expect.stringContaining("South line"),
       expect.stringContaining("P-003"),
+      // s-4, proposed for P-003, is also in no pipeline yet.
+      expect.stringContaining("1937 edition1"),
     ])
 
     // In the right panel the section that does not match is dimmed.
@@ -561,7 +958,7 @@ describe("Studio panels", () => {
     const show = screen.getByRole("button", { name: "Show 3 sections" })
     await user.click(show)
 
-    expect(screen.getByRole("listbox", { name: "Pipelines" })).toBeVisible()
+    expect(screen.getByRole("listbox", { name: "Network" })).toBeVisible()
     expect(useStudio.getState().unknownIn).toEqual(["Diameter"])
     expect(
       screen.getByRole("button", { name: /^Filters, \d+ (is|are) on$/ })
@@ -590,7 +987,7 @@ describe("Studio panels", () => {
     expect(useStudio.getState().unknownIn).toEqual([])
     expect(useStudio.getState().status).toBe("all")
     await user.click(screen.getByRole("button", { name: "Back to the list" }))
-    expect(screen.getByRole("listbox", { name: "Pipelines" })).toBeVisible()
+    expect(screen.getByRole("listbox", { name: "Network" })).toBeVisible()
   })
 })
 
@@ -693,5 +1090,19 @@ describe("Progress says what it counts", () => {
     await renderPanels()
     act(() => useStudio.getState().select(["s-1", "s-3"]))
     expect(screen.getAllByText(/^1 of \d selected$/).length).toBe(2)
+  })
+})
+
+describe("the Filters panel's head", () => {
+  it("names the tab it filters and how many filters are on", async () => {
+    localStorage.clear()
+    useStudio.setState(useStudio.getInitialState(), true)
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("button", { name: "Filters" }))
+    expect(screen.getByText("Filters · All")).toBeVisible()
+    expect(screen.getByText("None on")).toBeVisible()
+    act(() => useStudio.getState().setDiameters(["6 in"]))
+    expect(screen.getByText("1 on")).toBeVisible()
   })
 })

@@ -86,7 +86,7 @@ async function renderList({
 const allCount = () => statusCount("All")
 
 const rows = () =>
-  within(screen.getByRole("listbox", { name: "Pipelines" })).getAllByRole(
+  within(screen.getByRole("listbox", { name: "Network" })).getAllByRole(
     "option"
   )
 
@@ -100,7 +100,7 @@ describe("Counts and the map view", () => {
   it("keeps the status counts whole when the map moves; only the list follows", async () => {
     await renderList()
     const whole = await allCount()
-    expect(rows()).toHaveLength(3)
+    expect(rows()).toHaveLength(4)
 
     act(() => useStudio.getState().setView(NORTH_ONLY))
 
@@ -112,10 +112,12 @@ describe("Counts and the map view", () => {
   it("says in the list header how many of the whole are in view", async () => {
     await renderList()
     act(() => useStudio.getState().setView(NORTH_ONLY))
-    // Sections of the whole network, however the list is grouped.
+    // Sections of what the switch shows, whatever the rows are.
     const total = await allCount()
     expect(screen.getByText(`2 of ${total} in view`)).toBeInTheDocument()
-    act(() => useStudio.getState().setList("sections"))
+    // On Pipelines the whole is what its rows hold: the pipelines' sections
+    // and the one proposed for a pipeline.
+    act(() => useStudio.getState().setScope("pipelines"))
     expect(screen.getByText(`2 of ${total} in view`)).toBeInTheDocument()
   })
 
@@ -128,16 +130,16 @@ describe("Counts and the map view", () => {
 
     const total = await allCount()
     expect(screen.getByText(`${total} sections`)).toBeInTheDocument()
-    expect(rows()).toHaveLength(3)
-    act(() => useStudio.getState().setList("sections"))
-    expect(screen.getByText(`${total} sections`)).toBeInTheDocument()
+    expect(rows()).toHaveLength(4)
+    act(() => useStudio.getState().setScope("unplaced"))
+    expect(screen.getByText("1 section")).toBeInTheDocument()
   })
 
   it("holds everything while the list is a table, and shows following as paused", async () => {
     await renderList({ wide: true })
     act(() => useStudio.getState().setView(NORTH_ONLY))
 
-    expect(rows()).toHaveLength(3)
+    expect(rows()).toHaveLength(4)
     const toggle = screen.getByRole("button", { name: "List follows the map" })
     // The person's choice stands; it only waits.
     expect(toggle).toHaveAttribute("aria-pressed", "true")
@@ -148,7 +150,7 @@ describe("Counts and the map view", () => {
   it("follows the map again when the table goes back to a list", async () => {
     const setWide = await renderList({ wide: true })
     act(() => useStudio.getState().setView(NORTH_ONLY))
-    expect(rows()).toHaveLength(3)
+    expect(rows()).toHaveLength(4)
 
     setWide(false)
 

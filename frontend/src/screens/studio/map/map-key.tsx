@@ -13,14 +13,15 @@ import {
 } from "@/components/ui/popover"
 import { formatCount } from "@/data/derive"
 
-import { useSettings, useSettingsOpen } from "../settings"
+import { useSettings, useSettingsOpen, type Settings } from "../settings"
 import { useStudioData } from "../studio-data"
-import { useStudio } from "../studio-store"
+import { useStudio, type LayerId } from "../studio-store"
 import { legendText, styleName } from "./line-style"
 
 /**
  * The map key, behind one button among the map controls: how each line is
- * drawn and what that means. Two of the lines can be hidden, each with its
+ * drawn and what that means: solid or dotted for status, heavy or thin for
+ * in a pipeline or in none. Two of the lines can be hidden, each with its
  * eye; the eyes belong to the map and do not filter the list. How a status
  * is drawn is chosen in Settings, which the link at the bottom opens.
  */
@@ -30,9 +31,38 @@ export function MapKey() {
   const toggleLayer = useStudio((s) => s.toggleLayer)
   const lineStyle = useSettings((s) => s.lineStyle)
   const openSettings = useSettingsOpen((s) => s.setOpen)
+  return (
+    <MapKeyPopover
+      lineStyle={lineStyle}
+      waiting={network.proposedPaths.length}
+      layers={layers}
+      onToggleLayer={toggleLayer}
+      onOpenSettings={() => openSettings(true)}
+    />
+  )
+}
+
+/** The map key's button and what it opens, given all it shows. */
+export function MapKeyPopover({
+  lineStyle,
+  waiting,
+  layers,
+  onToggleLayer,
+  onOpenSettings,
+}: {
+  /** How each status is drawn, from Settings: it names what Solid and Dotted mean. */
+  lineStyle: Settings["lineStyle"]
+  /** How many paths a tool proposes and a person has not decided. */
+  waiting: number
+  /** Which of the two lines that can be hidden are shown. */
+  layers: Record<LayerId, boolean>
+  /** An eye was pressed: show or hide that line on the map. */
+  onToggleLayer: (layer: LayerId) => void
+  /** "Change how lines are drawn": the key closes and Settings opens. */
+  onOpenSettings: () => void
+}) {
   const [open, setOpen] = useState(false)
   const popup = useRef<HTMLDivElement>(null)
-  const waiting = network.proposedPaths.length
 
   return (
     <MapControl>
@@ -69,12 +99,22 @@ export function MapKey() {
               lineKey={<LineKey kind="dotted" />}
             />
             <LayerRow
+              name="Heavy"
+              meta="In a pipeline"
+              lineKey={<LineKey kind="heavy" />}
+            />
+            <LayerRow
+              name="Thin"
+              meta="Not in a pipeline"
+              lineKey={<LineKey kind="thin" />}
+            />
+            <LayerRow
               name="Dashed"
               label="proposed paths"
               meta={`Proposed by a tool · ${formatCount(waiting)} waiting`}
               lineKey={<LineKey kind="dashed" />}
               visible={layers.proposed}
-              onVisibleChange={() => toggleLayer("proposed")}
+              onVisibleChange={() => onToggleLayer("proposed")}
             />
             <LayerRow
               name="Faint"
@@ -82,7 +122,7 @@ export function MapKey() {
               meta="Hidden by the filters"
               lineKey={<LineKey kind="ghost" />}
               visible={layers.faint}
-              onVisibleChange={() => toggleLayer("faint")}
+              onVisibleChange={() => onToggleLayer("faint")}
             />
             <LayerRow
               name="Blue"
@@ -97,7 +137,7 @@ export function MapKey() {
               className="h-auto p-0"
               onClick={() => {
                 setOpen(false)
-                openSettings(true)
+                onOpenSettings()
               }}
             >
               Change how lines are drawn
