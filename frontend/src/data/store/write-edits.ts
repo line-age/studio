@@ -1,11 +1,12 @@
-import { postBundle, type BundleRequest } from "./client"
 import { attributeStoreKey } from "./to-network"
+import { postBundle, type Bundle, type BundleClaim } from "./write"
 
 /*
- * Saving a person's Edit to store, as a bundle. Only the attributes store
- * actually has a claim slot for can be written this way: attributeStoreKey
- * says which. Every other edited attribute (First seen, Last seen, Build
- * date, Geometry today) stays local to Studio; see AGENTS.md.
+ * Saving a person's Edit to store, as a bundle, through write.ts like every
+ * other write. Only what a person can type and store can take is written
+ * this way: a diameter. Status needs one of store's own words and Geometry a
+ * line, so neither is typed; First seen, Last seen and Build date have no
+ * claim slot yet. See AGENTS.md.
  */
 
 export interface SectionEdit {
@@ -16,9 +17,18 @@ export interface SectionEdit {
 
 const STUDIO_SOURCE_REF = "studio-edit-source"
 
-/** Only the edits store has a real attribute_key for. */
+/** Store keys whose value Studio can make from what a person types. */
+const TYPED_KEYS = new Set(["diameter"])
+
+/** Whether Edit can write this attribute to store. */
+export function writableOnStore(attribute: string): boolean {
+  const key = attributeStoreKey(attribute)
+  return key !== null && TYPED_KEYS.has(key)
+}
+
+/** Only the edits Edit can write to store. */
 export function persistableEdits(edits: readonly SectionEdit[]): SectionEdit[] {
-  return edits.filter((edit) => attributeStoreKey(edit.attribute) !== null)
+  return edits.filter((edit) => writableOnStore(edit.attribute))
 }
 
 /** "12 in" -> {value: 12, unit: "in"}. Whatever store expects for a quantity. */
@@ -32,12 +42,21 @@ export function parseQuantity(
   return { value, unit: match[2] || null }
 }
 
+/** Why a typed diameter cannot be written, or undefined when it can. */
+export function diameterError(text: string): string | undefined {
+  return text.trim() === "" || parseQuantity(text)
+    ? undefined
+    : "Give a number, like 12 in."
+}
+
 /**
  * Writes the edits store can keep as one bundle: a shared "Studio edit"
  * source (idempotent: the same external key every time), one citation per
  * claim carrying the edit's note, and one claim per attribute per section.
  * No `status` is asked for: store decides candidate or accepted by who
- * Studio's token speaks for (see AGENTS.md on what that means today).
+ * Studio's token speaks for (see AGENTS.md on what that means today). A
+ * value it cannot write is an error, never skipped: the person is told
+ * nothing was saved rather than that it was.
  */
 export async function saveEditsToStore(
   edits: readonly SectionEdit[],
@@ -46,12 +65,11 @@ export async function saveEditsToStore(
   const writable = persistableEdits(edits)
   if (writable.length === 0) return
 
-  const citations: NonNullable<BundleRequest["citations"]> = []
-  const claims: NonNullable<BundleRequest["claims"]> = []
+  const citations: NonNullable<Bundle["citations"]> = []
+  const claims: BundleClaim[] = []
 
   writable.forEach((edit, index) => {
-    const key = attributeStoreKey(edit.attribute)
-    if (!key) return
+    const key = attributeStoreKey(edit.attribute)!
     const citationRef = `citation-${index}`
     citations.push({
       ref: citationRef,
@@ -64,20 +82,14 @@ export async function saveEditsToStore(
       attribute: key,
       citations: [{ citation: citationRef, role: "confirms" }],
     }
-    if (key === "diameter") {
-      const parsed = parseQuantity(edit.value)
-      if (!parsed) return
-      claims.push({
-        ...base,
-        value_num: parsed.value,
-        value_unit: parsed.unit,
-      })
-    } else {
-      claims.push({ ...base, value_text: edit.value })
+    const parsed = parseQuantity(edit.value)
+    if (!parsed) {
+      throw new Error(
+        `${edit.attribute} "${edit.value}" is not a number. Nothing was changed.`
+      )
     }
+    claims.push({ ...base, value_num: parsed.value, value_unit: parsed.unit })
   })
-
-  if (claims.length === 0) return
 
   await postBundle({
     sources: [

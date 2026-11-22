@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { withClaims, type Network, type Section } from "@/data/schema"
-import { testNetwork } from "@/test/network"
+import { evidenceNetwork, testNetwork } from "@/test/network"
 
 import { StudioDataProvider } from "../studio-data"
 import { EditSectionsDialog } from "./edit-sections-dialog"
@@ -166,7 +166,49 @@ describe("EditSectionsDialog", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled()
   })
 
+  it("says a diameter must be a number, and will not save one that is not", async () => {
+    const user = await renderDialog(testNetwork(), ["s-1"])
+    const diameter = screen.getByLabelText("Diameter")
+    await user.clear(diameter)
+    await user.type(diameter, "about 12")
+    expect(diameter).toHaveAccessibleDescription("Give a number, like 12 in.")
+    expect(diameter).toBeInvalid()
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled()
+
+    await user.clear(diameter)
+    await user.type(diameter, "16 in")
+    expect(diameter).toBeValid()
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled()
+  })
+
   describe("on the store", () => {
+    it("does not offer Geometry as text: store needs a line", async () => {
+      vi.stubEnv("VITE_DATA_SOURCE", "store")
+      await renderDialog(evidenceNetwork(), ["s-6"])
+      expect(screen.getByLabelText("Geometry")).toBeDisabled()
+    })
+
+    it("shows store's reason when it refuses an edit", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve(json({ detail: "diameter must be positive" }, 422))
+        )
+      )
+      vi.stubEnv("VITE_DATA_SOURCE", "store")
+      const user = await renderDialog(testNetwork(), ["s-1"])
+      const diameter = screen.getByLabelText("Diameter")
+      await user.clear(diameter)
+      await user.type(diameter, "-4 in")
+      await user.click(screen.getByRole("button", { name: "Save" }))
+      expect(toast.error).toHaveBeenCalledWith(
+        "Store did not accept this change. Nothing was changed.",
+        { description: "diameter must be positive" }
+      )
+      expect(toast).not.toHaveBeenCalled()
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
+    })
+
     it("blocks clearing Diameter rather than saving a clear the store cannot keep", async () => {
       const fetchMock = vi.fn()
       vi.stubGlobal("fetch", fetchMock)

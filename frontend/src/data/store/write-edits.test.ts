@@ -93,22 +93,51 @@ describe("saveEditsToStore", () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it("writes a text claim, with no value_num, for a non-quantity attribute", async () => {
-    const fetchMock = vi.fn<
-      (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
-    >(() => Promise.resolve(json({ ids: {}, created: {} })))
+  it("never writes Status or Geometry as typed text: store needs its own word or a line", async () => {
+    const fetchMock = vi.fn()
     vi.stubGlobal("fetch", fetchMock)
     await saveEditsToStore(
-      [{ sectionId: "s-1", attribute: "Status", value: "Done" }],
+      [
+        { sectionId: "s-1", attribute: "Status", value: "Shown by 1932" },
+        { sectionId: "s-1", attribute: "Geometry", value: "Traced line" },
+      ],
       ""
     )
-    const body = JSON.parse(fetchMock.mock.calls[0][1]!.body as string)
-    expect(body.claims).toEqual([
-      expect.objectContaining({
-        feature: "s-1",
-        attribute: "status",
-        value_text: "Done",
-      }),
-    ])
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("refuses a diameter that is not a number instead of saving nothing quietly", async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal("fetch", fetchMock)
+    await expect(
+      saveEditsToStore(
+        [{ sectionId: "s-1", attribute: "Diameter", value: "about 12" }],
+        ""
+      )
+    ).rejects.toThrow(
+      'Diameter "about 12" is not a number. Nothing was changed.'
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("says why store refused, in its own words", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(
+          json({ detail: "diameter needs a unit store knows" }, 422)
+        )
+      )
+    )
+    await expect(
+      saveEditsToStore(
+        [{ sectionId: "s-1", attribute: "Diameter", value: "12 parsecs" }],
+        ""
+      )
+    ).rejects.toMatchObject({
+      kind: "invalid",
+      message: "Store did not accept this change. Nothing was changed.",
+      detail: "diameter needs a unit store knows",
+    })
   })
 })

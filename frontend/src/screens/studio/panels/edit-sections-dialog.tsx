@@ -31,7 +31,8 @@ import {
 import { findEmbeddedDate, type DateParts } from "@/data/evidence"
 import { dataSource } from "@/data/load-network"
 import type { Section } from "@/data/schema"
-import { attributeStoreKey } from "@/data/store/to-network"
+import { WriteError } from "@/data/store/write"
+import { diameterError, writableOnStore } from "@/data/store/write-edits"
 import { cn } from "@/lib/utils"
 
 import { DateField } from "./date-field"
@@ -174,9 +175,21 @@ function EditSectionsForm({
       ? "Last seen cannot be before First seen."
       : undefined
 
+  const typedError =
+    changedAttributes.includes("Diameter") && current("Diameter").trim() !== ""
+      ? diameterError(current("Diameter"))
+      : undefined
+  const errorOf = (attribute: string): string | undefined =>
+    attribute === "Last seen"
+      ? dateOrderError
+      : attribute === "Diameter"
+        ? typedError
+        : undefined
+  const blocked = !!dateOrderError || !!typedError
+
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    if (dateOrderError) return
+    if (blocked) return
     if (changedAttributes.length === 0) {
       onDone()
       return
@@ -195,9 +208,14 @@ function EditSectionsForm({
       )
       onDone()
     } catch (error) {
-      toast.error(
+      const message =
         error instanceof Error ? error.message : "Could not save the edit."
-      )
+      // Store's own reason, when it gave one, so the person can act on it.
+      if (error instanceof WriteError && error.detail) {
+        toast.error(message, { description: error.detail })
+      } else {
+        toast.error(message)
+      }
     } finally {
       setSaving(false)
     }
@@ -249,7 +267,6 @@ function EditSectionsForm({
           </div>
         )}
         {groups.map((group, groupIndex) => {
-          const groupKey = (attribute: string) => attributeStoreKey(attribute)
           return (
             <div
               key={group.label}
@@ -262,12 +279,11 @@ function EditSectionsForm({
               <div className="flex flex-col gap-2.5">
                 {group.attrs.map((attribute) => {
                   const isMixed = shared.get(attribute) === MIXED
-                  const disabled = storeMode && groupKey(attribute) === null
+                  const disabled = storeMode && !writableOnStore(attribute)
                   const fieldId = `edit-${attribute}`
                   const changed = changedAttributes.includes(attribute)
                   const isDate = DATE_FIELDS.includes(attribute)
-                  const fieldError =
-                    attribute === "Last seen" ? dateOrderError : undefined
+                  const fieldError = errorOf(attribute)
                   return (
                     <div key={attribute} className="flex flex-col gap-1">
                       <div className="flex items-center gap-3">
@@ -307,6 +323,10 @@ function EditSectionsForm({
                               disabled={disabled}
                               autoFocus={fieldId === firstFieldId}
                               className="placeholder:italic"
+                              aria-invalid={!!fieldError}
+                              aria-describedby={
+                                fieldError ? `${fieldId}-error` : undefined
+                              }
                               onChange={(event) =>
                                 setFields((prev) => ({
                                   ...prev,
@@ -341,6 +361,14 @@ function EditSectionsForm({
                           </InputGroup>
                         )}
                       </div>
+                      {fieldError && !isDate && (
+                        <p
+                          id={`${fieldId}-error`}
+                          className="pl-[7.5rem] type-ui-xs text-destructive"
+                        >
+                          {fieldError}
+                        </p>
+                      )}
                       {!changed && disabled && (
                         <Hint className="pl-[7.5rem] type-ui-xs">
                           Not editable yet
@@ -387,9 +415,7 @@ function EditSectionsForm({
         </DialogClose>
         <Button
           type="submit"
-          disabled={
-            saving || changedAttributes.length === 0 || !!dateOrderError
-          }
+          disabled={saving || changedAttributes.length === 0 || blocked}
         >
           {submitLabel}
         </Button>

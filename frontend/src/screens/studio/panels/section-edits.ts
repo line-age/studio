@@ -1,8 +1,7 @@
 import { applySectionEdits, listWords, type SectionEdit } from "@/data/derive"
 import { dataSource } from "@/data/load-network"
 import type { Network } from "@/data/schema"
-import { attributeStoreKey } from "@/data/store/to-network"
-import { saveEditsToStore } from "@/data/store/write-edits"
+import { saveEditsToStore, writableOnStore } from "@/data/store/write-edits"
 
 import { useStudioData, useUpdateNetwork } from "../studio-data"
 
@@ -29,8 +28,7 @@ export function useSaveSectionEdits(): (
     const onStore = dataSource() === "store"
     if (onStore) {
       const cleared = edits.filter(
-        (edit) =>
-          edit.value === null && attributeStoreKey(edit.attribute) !== null
+        (edit) => edit.value === null && writableOnStore(edit.attribute)
       )
       if (cleared.length > 0) {
         throw new Error(

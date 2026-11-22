@@ -36,7 +36,26 @@ export interface BundleReview {
   note?: string
 }
 
+/** A claim as a bundle carries it: a person's edit, with its citation. */
+export interface BundleClaim {
+  ref?: string
+  feature: string
+  attribute: string
+  value_text?: string
+  value_num?: number
+  value_unit?: string | null
+  citations: { citation: string; role: string }[]
+}
+
 export interface Bundle {
+  sources?: {
+    ref: string
+    kind: string
+    title: string
+    external_key?: { system: string; key: string }
+  }[]
+  citations?: { ref: string; source: string; quote?: string }[]
+  claims?: BundleClaim[]
   features?: {
     ref: string
     kind: "line"
