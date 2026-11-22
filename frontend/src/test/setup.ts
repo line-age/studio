@@ -21,3 +21,10 @@ beforeEach(() => {
 })
 
 afterEach(cleanup)
+
+// jsdom has no pointer capture; Sonner's toasts call it on a press.
+if (!Element.prototype.setPointerCapture) {
+  Element.prototype.setPointerCapture = () => {}
+  Element.prototype.releasePointerCapture = () => {}
+  Element.prototype.hasPointerCapture = () => false
+}
