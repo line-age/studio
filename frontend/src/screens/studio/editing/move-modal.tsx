@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState, type ReactNode } from "react"
 
 import {
   EditModal,
@@ -7,6 +7,7 @@ import {
   EditModalHeader,
 } from "@/components/edit-modal"
 import { Hint } from "@/components/hint"
+import { StatusLabel } from "@/components/status-label"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { pipelineLabel, plural, sectionLabel } from "@/data/derive"
@@ -159,14 +160,33 @@ export function MoveModal({
                   <ChoiceRow
                     key={p.id}
                     value={p.id}
-                    label={`${pipelineLabel(p)} · ${p.code}`}
+                    // A pipeline no source names yet reads Unknown, as in the list.
+                    label={
+                      p.name === null ? (
+                        <>
+                          <StatusLabel status="unknown" size="sm">
+                            Unknown name
+                          </StatusLabel>{" "}
+                          · {p.code}
+                        </>
+                      ) : (
+                        `${p.name} · ${p.code}`
+                      )
+                    }
+                    name={`${p.name ?? "Unknown name"} · ${p.code}`}
                     meta={plural(counts.get(p.id) ?? 0, "section")}
                   />
                 ))}
                 {pipelines.length === 0 && (
                   <Hint className="px-3 py-2">No pipeline matches.</Hint>
                 )}
-                {placed && <ChoiceRow value={NONE} label="Not in a pipeline" />}
+                {placed && (
+                  <ChoiceRow
+                    value={NONE}
+                    label="Not in a pipeline"
+                    name="Not in a pipeline"
+                  />
+                )}
               </RadioGroup>
             </>
           )}
@@ -199,10 +219,13 @@ function savedText(count: number, to: string | null): string {
 function ChoiceRow({
   value,
   label,
+  name,
   meta,
 }: {
   value: string
-  label: string
+  label: ReactNode
+  /** The row's name for a screen reader. */
+  name: string
   meta?: string
 }) {
   const id = `move-choice-${value}`
@@ -213,7 +236,7 @@ function ChoiceRow({
         "flex cursor-pointer items-center gap-3 border-b px-3 py-2 last:border-b-0 hover:bg-muted"
       )}
     >
-      <RadioGroupItem id={id} value={value} aria-label={label} />
+      <RadioGroupItem id={id} value={value} aria-label={name} />
       <span className="min-w-0 flex-1 truncate type-ui-sm">{label}</span>
       {meta && (
         <span className="shrink-0 type-ui-xs text-muted-foreground">

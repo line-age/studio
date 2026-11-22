@@ -18,8 +18,9 @@ in none, by one switch above the list; keeps the view in the
 URL; walks a first-time visitor through the screen with a Help tour, and explains each
 area and the words in a Help dialog; lets a person ask the Agent about a section, a
 claim, a source or a proposal with questions that only read, keeps a sent question in
-the thread, and shows an answer's statements with what each rests on; makes, changes
-and takes sections out of pipelines from the right-click menu, and decides what tools
+the thread, and shows an answer's statements with what each rests on; makes pipelines,
+edits them and their sections and removes sections from them, each in a modal opened from the
+right-click menu (2026-11-22, Figma section 20), and decides what tools
 proposed (pipelines, ends, candidate claims) in the Agent's inbox, as the person using
 it (2026-11-15, plan 005). The repo `README.md` one level
 up shows it with screenshots; keep those current when the screen changes visibly.
@@ -288,11 +289,16 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   sample, nothing.
 - Writing (plan 005). `src/data/store/write.ts` is the frontend's only place for store's
   write shapes: pure bundle builders (`placeBundle` makes a pipeline, adds to one, moves
-  and takes out: the membership left is rejected, the new one confirmed, in one bundle;
-  `decideMembershipsBundle`), the reviews, and refusals in words (`WriteError`). Every
+  and removes: the membership left is rejected, the new one confirmed, in one bundle;
+  `decideMembershipsBundle`; `mergeBundles` sends several parts as one), the reviews, and
+  refusals in words (`WriteError`: "Couldn't save. Nothing was changed." and the reason,
+  kept apart as `reason`; nothing a person reads names store). A person's typed values
+  are a bundle part (`editsBundle` in `write-edits.ts`), for a section or a pipeline's
+  Name, Owner and Operator (`PIPELINE_KEYS`), cited to the "Studio edit" source. Every
   new row has an external key from the action's key, made when the person presses it, so
   a retry makes nothing twice. `src/data/changes.ts` holds every change as one type
-  (`Change`): `applyChange` makes it in memory on the sample (tests, demo),
+  (`Change`: `place`, `members` for a pipeline's sections added and removed in one save,
+  `edit-pipeline`, and the decisions): `applyChange` makes it in memory on the sample (tests, demo),
   `sendChange` sends it to store; `change()` on the data provider picks one and, on
   store, reads the network again once store answers. Nothing shows as done before that.
   A section is in one pipeline for its whole life: leaving one says it was wrong. A
@@ -453,13 +459,33 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
 - Not designed means not built: nothing new until Figma has it. Section 7 of the Studio
   page has the status counts, in-place filters, layers button, Settings and the table.
   The one menu is the right click (stock shadcn Context Menu, the owner's request).
-  At its top, the changes (`pipeline-actions.ts`, Figma `213:8451`, `209:7993`): on one
-  section "Change pipeline", which opens the dock at the bottom of the right panel
-  (`panels/pipeline-dock.tsx`, `209:8268`: Move to a pipeline, Not in a pipeline or New
-  pipeline, then Change); on several, "Make pipeline" (at once; the new pipeline has no
-  name until a source gives one) and "Add to a pipeline" (the dock). The dock then says
-  what the change came to, or why store refused it. On a section row, below the
-  changes, "Edit" opens the Edit sections window on that row alone; where the row is
+  Every change opens a modal (Figma section 20, `469:17256`; the owner, 2026-11-22):
+  nothing changes in a panel, a dock or the list itself. Menu items carry no dots. The
+  menus are the same in the list and on the map (`pipeline-actions.ts`): a pipeline row
+  offers Edit pipeline and Sections, never Make pipeline (`472:17456`); one section in a
+  pipeline Edit, Move to a pipeline and "Remove from <pipeline>" (`472:17474`); one in
+  none Edit, Add to a pipeline and Make pipeline; several "N sections selected", Edit
+  selected (N), Make pipeline and Add to a pipeline (`472:17496`). On the map no row was
+  clicked, so one section is Edit and several are Edit selected (N) alone. The modals are
+  mounted once (`panels/editing-modals.tsx`) and opened through the store (`edit`,
+  `editing`), each built on `components/edit-modal.tsx` (header with the verb and the
+  thing; fields one per row, the label at 96; a footer that says what Save will do, Cancel
+  and the action with its count; "Saving"; not saved, the modal stays open with the reason
+  above the footer and the action reads Try again, sending the same change with the same
+  key): Move / Add to a pipeline (`editing/move-modal.tsx`, `471:17342`: find a pipeline,
+  nothing chosen until a click, Not in a pipeline; Remove opens it set on Not in a
+  pipeline; no New pipeline), Make pipeline (`make-pipeline-modal.tsx`, `471:17383`: an
+  optional name, one bundle), Edit pipeline (`edit-pipeline-modal.tsx`, `471:17263`: Name,
+  Owner, Operator and a note, by the rules file; an edit adds a claim beside the old one
+  until store can reject the old one in the same bundle) and Sections
+  (`sections-modal.tsx`, `472:17366`: find by code or name, Remove with Undo, Save changes
+  in one bundle). Pick on the map folds Sections into a bar (`map/pick-bar.tsx`,
+  `475:17477`): the draft is in the store (`SectionsDraft`), the map shows the whole
+  network whatever the switch says, a click on a section adds it (blue) or marks one of
+  the pipeline's own for removal (faint, never dashed), a label beside the pointer says
+  what a click does (`map/map-pick-label.tsx`, `482:19090`), Done goes back to the modal
+  and Cancel or Esc drops only the picks. On a section row,
+  above the changes, "Edit" opens the Edit sections window on that row alone; where the row is
   ticked as part of a bigger selection, a muted "N sections selected" line and "Edit
   selected (N)" open it on the whole ticked selection instead, never silently on more
   than the menu says (`add-to-agent.tsx`'s `EditTarget`). A section row no longer offers

@@ -87,7 +87,7 @@ export function actionKey(): string {
  * Put `sections` in `target`, as one bundle: the memberships they leave are
  * rejected (a section is in one pipeline for its whole life, so leaving one
  * says it was wrong), then the new ones confirmed. A section already in the
- * target is left alone. Makes a pipeline, adds to one, moves and takes out.
+ * target is left alone. Makes a pipeline, adds to one, moves and removes.
  */
 export function placeBundle(
   sections: readonly Placed[],
