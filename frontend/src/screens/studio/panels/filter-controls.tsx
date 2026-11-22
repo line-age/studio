@@ -27,16 +27,20 @@ import { cn } from "@/lib/utils"
  * chips for many options, and a range of lengths in km.
  */
 
+/** One filter in the Filters panel: its heading, Clear while it is on, its control. */
 export function Group({
   title,
   on,
   onClear,
   children,
 }: {
+  /** The filter's name, as the group's heading: "Length". */
   title: string
   /** The group's filter is on: it offers Clear. */
   on: boolean
+  /** Clear was pressed: turn this filter off. */
   onClear: () => void
+  /** The filter's control. */
   children: React.ReactNode
 }) {
   const id = useId()
@@ -67,9 +71,13 @@ export function OptionRow({
   count,
   selected,
 }: {
+  /** The box or radio that chooses it; the whole row is its label. */
   control: React.ReactNode
+  /** What the choice is: "Needs your decision". */
   label: string
+  /** How many sections it would leave, after the other filters. */
   count: number
+  /** It is chosen: its label turns medium. */
   selected: boolean
 }) {
   return (
@@ -98,9 +106,13 @@ export function CheckList({
   onChange,
   name = (option) => option,
 }: {
+  /** The list's name, for a screen reader: "Proposed end". */
   label: string
+  /** Every option, by its key, with how many sections it would leave. */
   options: { name: string; count: number }[]
+  /** The keys ticked. */
   value: readonly string[]
+  /** A box was ticked or unticked: the keys ticked now. */
   onChange: (next: string[]) => void
   /** How an option reads, when its value is a key. */
   name?: (option: string) => string
@@ -147,8 +159,11 @@ export function MultiPick({
   noun: string
   /** What the empty search box says. */
   placeholder?: string
+  /** Every option, by its key, with how many sections it would leave. */
   options: { name: string; count: number }[]
+  /** The keys picked, shown as chips. */
   value: readonly string[]
+  /** One was picked or removed: the keys picked now. */
   onChange: (next: string[]) => void
   /** How an option reads, when its value is a key. Typing finds it by this. */
   name?: (option: string) => string
@@ -181,7 +196,11 @@ export function MultiPick({
           {(chosen: string[]) => (
             <>
               {chosen.map((option) => (
-                <ComboboxChip key={option} aria-label={name(option)}>
+                <ComboboxChip
+                  key={option}
+                  aria-label={name(option)}
+                  removeLabel={`Remove ${name(option)}`}
+                >
                   <span className="max-w-44 truncate">{name(option)}</span>
                 </ComboboxChip>
               ))}
@@ -198,7 +217,7 @@ export function MultiPick({
       </ComboboxChips>
       <ComboboxContent anchor={anchor}>
         <ComboboxEmpty>Nothing matches.</ComboboxEmpty>
-        <ComboboxList>
+        <ComboboxList aria-label={noun}>
           {(option: string) => (
             <ComboboxItem key={option} value={option}>
               <span className="min-w-0 flex-1 truncate">{name(option)}</span>
@@ -224,8 +243,11 @@ export function LengthRange({
   onChange,
   bounds,
 }: {
+  /** The shortest length asked for, in km; null asks for none. */
   from: number | null
+  /** The longest length asked for, in km; null asks for none. */
   to: number | null
+  /** Either end was typed or emptied: both ends now. */
   onChange: (from: number | null, to: number | null) => void
   /** The shortest and longest section, shown as the placeholders. */
   bounds: readonly [number, number] | null

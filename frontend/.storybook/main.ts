@@ -8,7 +8,11 @@ import type { StorybookConfig } from "@storybook/react-vite"
 const config: StorybookConfig = {
   framework: "@storybook/react-vite",
   stories: ["../src/**/*.stories.tsx"],
-  addons: ["@storybook/addon-vitest", "@storybook/addon-mcp"],
+  addons: [
+    "@storybook/addon-vitest",
+    "@storybook/addon-mcp",
+    "@storybook/addon-a11y",
+  ],
   core: { disableTelemetry: true },
   // For agents: the MCP addon serves each component's props and stories at
   // localhost:6006/mcp while `pnpm storybook` runs (docs: storybook.js.org/docs/ai).

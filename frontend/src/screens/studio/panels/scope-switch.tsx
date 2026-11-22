@@ -11,7 +11,8 @@ import { useStudio } from "../studio-store"
  * Built as a toggle group, so it is heard as three buttons, one pressed: it
  * changes the view in place and controls no tab panel. It looks as Figma
  * draws it (the owner, 2026-11-22: look A): a grey track, the one chosen on a
- * white pill.
+ * white pill. The others are at 70% of the text colour, not Figma's 60%: at
+ * 60% they miss the 4.5:1 contrast text needs on the grey (4.33).
  */
 export function ScopeSwitch() {
   const scope = useStudio((s) => s.scope)
@@ -32,7 +33,7 @@ export function ScopeSwitch() {
         <ToggleGroupItem
           key={value}
           value={value}
-          className="h-full flex-1 rounded-md border border-transparent px-1.5 text-foreground/60 hover:bg-transparent hover:text-foreground active:bg-transparent aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm aria-pressed:active:bg-background"
+          className="h-full flex-1 rounded-md border border-transparent px-1.5 text-foreground/70 hover:bg-transparent hover:text-foreground active:bg-transparent aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm aria-pressed:active:bg-background"
         >
           {SCOPE[value].label}
         </ToggleGroupItem>
