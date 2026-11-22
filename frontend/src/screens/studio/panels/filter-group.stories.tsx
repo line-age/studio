@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { expect, fn } from "storybook/test"
 
-import { Group, Km } from "./filter-controls"
+import { Group, LengthRange } from "./filter-controls"
 
 /* One filter's group in the Filters panel: its title, and Clear while on. */
 
@@ -13,23 +13,12 @@ const meta = {
   args: { title: "Length", on: false, onClear: fn(), children: null },
   render: (args) => (
     <Group {...args}>
-      <div className="flex items-center gap-2">
-        <Km
-          label="Length from, km"
-          name="length-from"
-          placeholder="0"
-          value={args.on ? 5 : null}
-          onChange={noop}
-        />
-        <span className="type-ui-sm text-muted-foreground">to</span>
-        <Km
-          label="Length to, km"
-          name="length-to"
-          placeholder="1652"
-          value={args.on ? 50 : null}
-          onChange={noop}
-        />
-      </div>
+      <LengthRange
+        from={args.on ? 5 : null}
+        to={args.on ? 50 : null}
+        bounds={[0, 1652]}
+        onChange={noop}
+      />
     </Group>
   ),
 } satisfies Meta<typeof Group>

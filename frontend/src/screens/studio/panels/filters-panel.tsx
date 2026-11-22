@@ -21,7 +21,13 @@ import { isSectionStatus, STATUSES, STATUS_LABEL } from "@/data/status"
 import { HidePanels } from "../panel-toggle"
 import { filtersApplied, useStudio } from "../studio-store"
 import { filtersInForce } from "../filters"
-import { CheckList, Group, Km, MultiPick, OptionRow } from "./filter-controls"
+import {
+  CheckList,
+  Group,
+  LengthRange,
+  MultiPick,
+  OptionRow,
+} from "./filter-controls"
 import { useFilterOptions } from "./filter-options"
 
 /*
@@ -47,8 +53,6 @@ const THIS_YEAR = new Date().getFullYear()
  * The filters, shown in place of the list in the same panel so the map stays
  * in sight while they are set. `onBack` returns to the list.
  */
-/** The id of what says a length range runs backwards. */
-const BACKWARDS_ID = "filter-length-backwards"
 
 export function FiltersPanel({ onBack }: { onBack: () => void }) {
   // Only what this view reads, so panning the map does not redraw it.
@@ -109,9 +113,6 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
     added,
     show,
   } = useFilterOptions()
-  // A range from more than to: no section can match, and the boxes say so.
-  const backwards =
-    s.lengthFrom !== null && s.lengthTo !== null && s.lengthFrom > s.lengthTo
 
   return (
     <>
@@ -256,33 +257,12 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
             on={s.lengthFrom !== null || s.lengthTo !== null}
             onClear={() => s.setLength(null, null)}
           >
-            <div className="flex items-center gap-2">
-              <Km
-                label="Length from, km"
-                name="length-from"
-                placeholder={lengths ? String(lengths[0]) : "From"}
-                value={s.lengthFrom}
-                onChange={(km) => s.setLength(km, s.lengthTo)}
-                invalid={backwards}
-                describedBy={backwards ? BACKWARDS_ID : undefined}
-              />
-              <span className="type-ui-sm text-muted-foreground">to</span>
-              <Km
-                label="Length to, km"
-                name="length-to"
-                placeholder={lengths ? String(lengths[1]) : "To"}
-                value={s.lengthTo}
-                onChange={(km) => s.setLength(s.lengthFrom, km)}
-                invalid={backwards}
-                describedBy={backwards ? BACKWARDS_ID : undefined}
-              />
-              <span className="type-ui-sm text-muted-foreground">km</span>
-            </div>
-            {backwards && (
-              <Hint id={BACKWARDS_ID} role="status">
-                From is more than to, so no section can match.
-              </Hint>
-            )}
+            <LengthRange
+              from={s.lengthFrom}
+              to={s.lengthTo}
+              onChange={s.setLength}
+              bounds={lengths}
+            />
           </Group>
         )}
 

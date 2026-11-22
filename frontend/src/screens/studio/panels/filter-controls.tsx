@@ -1,6 +1,7 @@
 import { useId, useMemo } from "react"
 
 import { GroupLabel } from "@/components/group-label"
+import { Hint } from "@/components/hint"
 import { Icon } from "@/components/icons/icon"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -23,7 +24,7 @@ import { cn } from "@/lib/utils"
 /*
  * The controls the Filters panel is made of: a group with its title and
  * Clear, a row per option with its count, a list of boxes, a search with
- * chips for many options, and one end of a range in km.
+ * chips for many options, and a range of lengths in km.
  */
 
 export function Group({
@@ -212,8 +213,61 @@ export function MultiPick({
   )
 }
 
-/** One end of a range of lengths, in whole km. Empty asks for nothing. */
-export function Km({
+/**
+ * How long a section is, from and to, in whole km. Either end may be empty,
+ * and asks for nothing. A range that runs backwards marks both boxes and says
+ * why, since no section can match it.
+ */
+export function LengthRange({
+  from,
+  to,
+  onChange,
+  bounds,
+}: {
+  from: number | null
+  to: number | null
+  onChange: (from: number | null, to: number | null) => void
+  /** The shortest and longest section, shown as the placeholders. */
+  bounds: readonly [number, number] | null
+}) {
+  const backwardsId = useId()
+  const backwards = from !== null && to !== null && from > to
+  const describedBy = backwards ? backwardsId : undefined
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <Km
+          label="Length from, km"
+          name="length-from"
+          placeholder={bounds ? String(bounds[0]) : "From"}
+          value={from}
+          onChange={(km) => onChange(km, to)}
+          invalid={backwards}
+          describedBy={describedBy}
+        />
+        <span className="type-ui-sm text-muted-foreground">to</span>
+        <Km
+          label="Length to, km"
+          name="length-to"
+          placeholder={bounds ? String(bounds[1]) : "To"}
+          value={to}
+          onChange={(km) => onChange(from, km)}
+          invalid={backwards}
+          describedBy={describedBy}
+        />
+        <span className="type-ui-sm text-muted-foreground">km</span>
+      </div>
+      {backwards && (
+        <Hint id={backwardsId} role="status">
+          From is more than to, so no section can match.
+        </Hint>
+      )}
+    </>
+  )
+}
+
+/** One end of a length range, in whole km. Empty asks for nothing. */
+function Km({
   label,
   name,
   placeholder,
