@@ -1,11 +1,13 @@
 import { z } from "zod"
 
+import { studioFetch } from "../session"
+
 /*
  * Reading from store, the Lineage database's API. The browser never talks to
  * store itself: it asks this app's own origin at /store, and the server in
- * front (Vite in development, nginx in the container) passes the request on.
- * No token: store takes a request with none as the local person while there
- * are no users. Writing is in write.ts.
+ * front (the gate, or Vite and nginx when working locally) passes the request
+ * on with the person's token, which the browser never holds (../session.ts).
+ * Writing is in write.ts.
  *
  * Only the fields Studio uses are read. The name of whoever asserted or
  * reviewed a claim is in store's answer and is left out here on purpose. For a
@@ -168,7 +170,7 @@ async function get<T>(
 ): Promise<T> {
   let response: Response
   try {
-    response = await fetch(`${BASE}${path}`, {
+    response = await studioFetch(`${BASE}${path}`, {
       headers: { Accept: "application/json" },
       signal,
     })
@@ -179,7 +181,7 @@ async function get<T>(
   if (response.status === 401 || response.status === 403) {
     throw new StoreError(
       "refused",
-      `${path} answered ${response.status}. Does store take a request with no token?`
+      `${path} answered ${response.status}. Is the sign-in still on?`
     )
   }
   if ([502, 503, 504].includes(response.status)) {
@@ -289,7 +291,7 @@ export type BundleResult = z.infer<typeof bundleResult>
 export async function postBundle(bundle: BundleRequest): Promise<BundleResult> {
   let response: Response
   try {
-    response = await fetch(`${BASE}/bundles`, {
+    response = await studioFetch(`${BASE}/bundles`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -303,7 +305,7 @@ export async function postBundle(bundle: BundleRequest): Promise<BundleResult> {
   if (response.status === 401 || response.status === 403) {
     throw new StoreError(
       "refused",
-      `/bundles answered ${response.status}. Check STORE_TOKEN.`
+      `/bundles answered ${response.status}. Is the sign-in still on?`
     )
   }
   if ([502, 503, 504].includes(response.status)) {

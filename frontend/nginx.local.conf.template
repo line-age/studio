@@ -1,0 +1,44 @@
+# The local build only (VITE_AUTH=local, compose.store.yaml): when the
+# container starts, nginx fills in ${STORE_URL} and ${STORE_TOKEN} from the
+# environment and writes the result to conf.d. Never a deployed image: it
+# passes /store on with one fixed token, whoever asks.
+server {
+  listen 8080;
+  server_name _;
+  root /usr/share/nginx/html;
+  index index.html;
+
+  gzip on;
+  gzip_types text/css application/javascript application/json image/svg+xml;
+
+  # Vite puts a content hash in every file name under /assets/.
+  location /assets/ {
+    add_header Cache-Control "public, max-age=31536000, immutable";
+    try_files $uri =404;
+  }
+
+  # Fixtures are data, not routes: a missing one is a 404, not the app shell.
+  location /fixtures/ {
+    add_header Cache-Control "no-cache";
+    try_files $uri =404;
+  }
+
+  # The app asks its own origin for store; this passes it on with the token,
+  # so the browser never holds one. The address is looked up when a request
+  # comes, not at start, so the container runs with no store beside it.
+  location /store/ {
+    resolver 127.0.0.11 valid=10s ipv6=off;
+    set $store "${STORE_URL}";
+    rewrite ^/store/(.*)$ /$1 break;
+    proxy_pass $store;
+    proxy_set_header Authorization "Bearer ${STORE_TOKEN}";
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+  }
+
+  # Single-page app: any other path gets the shell, which must not be cached.
+  location / {
+    add_header Cache-Control "no-cache";
+    try_files $uri $uri/ /index.html;
+  }
+}

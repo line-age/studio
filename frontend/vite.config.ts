@@ -8,9 +8,26 @@ import { defineConfig } from "vitest/config"
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  // STORE_URL is read here, on the server side. Store takes a request with no
-  // token as the local person while there are no users, so none is sent.
+  // STORE_URL is read here, on the server side. Store refuses a request with no
+  // token. VITE_AUTH=local sends a fixed one, which a local store pointed at the
+  // fake GitHub (dev/fake-github) takes as the person "Local developer". The
+  // same switch tells the app to ask store who this is instead of the gate.
   const env = loadEnv(mode, import.meta.dirname, "")
+  const localToken =
+    env.VITE_AUTH === "local"
+      ? { Authorization: "Bearer local-dev" }
+      : undefined
+  // With GATE_URL, sign-in, store and the Agent all go through the gate, which
+  // adds the signed-in person's token (plan 2026-11-21-003). It keeps the
+  // paths as they are and sees this origin, as it will behind nginx.
+  const gate = env.GATE_URL
+    ? Object.fromEntries(
+        ["/auth", "/store", "/agent"].map((path) => [
+          path,
+          { target: env.GATE_URL },
+        ])
+      )
+    : null
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
@@ -19,13 +36,14 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      proxy: {
+      proxy: gate ?? {
         // The app asks its own origin for store; this passes it on.
         // nginx.conf does the same in the container.
         "/store": {
           target: env.STORE_URL || "http://localhost:47110",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/store/, ""),
+          headers: localToken,
         },
         // The Agent service (studio/agent). It takes no token; the browser never
         // holds one. Its answers stream, so nothing here may buffer them.

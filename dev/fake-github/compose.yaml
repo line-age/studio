@@ -1,0 +1,22 @@
+# The fake GitHub, beside a local store. Start store first (it makes the network), then:
+#
+#   docker compose -f dev/fake-github/compose.yaml up -d
+#
+# and start store with store.override.yaml as well, so it asks this in place of GitHub.
+# No host port: only containers on store's network reach it.
+name: fake-github
+
+services:
+  fake-github:
+    image: python:3.12-alpine
+    command: ["python", "/app/server.py"]
+    volumes: ["./server.py:/app/server.py:ro"]
+    networks:
+      store:
+        aliases: [fake-github]
+    restart: unless-stopped
+
+networks:
+  store:
+    name: store_default
+    external: true

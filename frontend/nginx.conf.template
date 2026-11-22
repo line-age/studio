@@ -1,5 +1,6 @@
-# A template: when the container starts, nginx fills in ${STORE_URL} and
-# ${STORE_TOKEN} from the environment and writes the result to conf.d.
+# The image's nginx: Studio's files only. The local build (VITE_AUTH=local)
+# uses nginx.local.conf.template instead, which also passes /store on with the
+# fixed local token.
 server {
   listen 8080;
   server_name _;
@@ -21,18 +22,9 @@ server {
     try_files $uri =404;
   }
 
-  # The app asks its own origin for store; this passes it on with the token,
-  # so the browser never holds one. The address is looked up when a request
-  # comes, not at start, so the container runs with no store beside it.
-  location /store/ {
-    resolver 127.0.0.11 valid=10s ipv6=off;
-    set $store "${STORE_URL}";
-    rewrite ^/store/(.*)$ /$1 break;
-    proxy_pass $store;
-    proxy_set_header Authorization "Bearer ${STORE_TOKEN}";
-    proxy_http_version 1.1;
-    proxy_set_header Connection "";
-  }
+  # No /store or /agent here: on store's data the gate sits in front of this
+  # container and answers them, adding the signed-in person's token. This
+  # image never adds a token of its own.
 
   # Single-page app: any other path gets the shell, which must not be cached.
   location / {

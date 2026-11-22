@@ -1,11 +1,14 @@
 import { Toaster } from "@/components/ui/sonner"
+import { SessionGate } from "@/screens/sign-in/session-gate"
 import { StudioScreen } from "@/screens/studio/studio-screen"
 
-/** One screen for now. More screens get their own directory under screens/. */
+/** One screen, behind sign-in on store's data. More screens get their own directory under screens/. */
 export function App() {
   return (
     <>
-      <StudioScreen />
+      <SessionGate>
+        <StudioScreen />
+      </SessionGate>
       <Toaster />
     </>
   )

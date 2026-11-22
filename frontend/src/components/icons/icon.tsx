@@ -117,6 +117,11 @@ const paths = {
     "M14.5 3.5H3.5C2.94772 3.5 2.5 3.94772 2.5 4.5V13.5C2.5 14.0523 2.94772 14.5 3.5 14.5H14.5C15.0523 14.5 15.5 14.0523 15.5 13.5V4.5C15.5 3.94772 15.0523 3.5 14.5 3.5Z",
     "M11 3.5V14.5",
   ],
+  // A door frame and an arrow leaving it (Figma icon/sign-out, 463:17227).
+  "sign-out": [
+    "M7.5 3H5C4.17 3 3.5 3.67 3.5 4.5V13.5C3.5 14.33 4.17 15 5 15H7.5",
+    "M11.5 5.5L15 9L11.5 12.5M15 9H7.5",
+  ],
 } as const
 
 export type IconName = keyof typeof paths

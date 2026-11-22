@@ -4,13 +4,15 @@
  * proposals, through its own pipeline token); both are checked against
  * store's bundle schema (`bundle.schema.json`, from store's model).
  *
- * Studio writes as the person using it. In development store takes a request
- * with no token as the local person, so nothing here holds a token.
+ * Studio writes as the person signed in: the gate (or, locally, the dev proxy
+ * and nginx) adds their token on the way, so nothing here holds one.
  *
  * Every new row carries an external key made from the action's key, which is
  * made once when the person presses the item. Sent again (a lost answer, a
  * retry), the same bundle makes nothing new.
  */
+
+import { studioFetch } from "../session"
 
 const BASE = "/store"
 const SYSTEM = "studio"
@@ -146,7 +148,7 @@ export function writeErrorKind(status: number, detail: string): WriteErrorKind {
 export async function post(path: string, body: unknown): Promise<unknown> {
   let response: Response
   try {
-    response = await fetch(`${BASE}${path}`, {
+    response = await studioFetch(`${BASE}${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

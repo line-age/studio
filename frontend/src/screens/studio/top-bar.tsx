@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+import { AccountMenu } from "./account/account-menu"
 import { HELP_BUTTON_ID } from "./help/help-store"
 
 /*
@@ -24,7 +25,8 @@ import { HELP_BUTTON_ID } from "./help/help-store"
  * design but hidden until there is something behind them (the owner,
  * 2026-11-13; this replaces showing them as designed). Each comes back with
  * its feature. Help is a menu (the owner, 2026-11-13): take the tour, ask
- * the Agent, or read the help topics. Stock shadcn, not in Figma yet.
+ * the Agent, or read the help topics. Stock shadcn, not in Figma yet. Last on
+ * the right, who is signed in and Sign out (AccountMenu, Figma section 19).
  */
 
 /** What the Help menu offers. */
@@ -150,6 +152,7 @@ export function TopBar({
             <TopbarButton id={HELP_BUTTON_ID}>Help</TopbarButton>
           )}
         </div>
+        <AccountMenu />
       </div>
     </header>
   )

@@ -262,10 +262,30 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   it comes from.
 - Data comes from a fixture or from store, chosen by `VITE_DATA_SOURCE`, and only through
   `loadNetwork()`. One never stands in for the other when it fails. The app reaches store
-  at its own `/store` path, which the dev server and nginx pass on with no token: while
-  there are no users, store takes a request with none as the local person ("Local
-  developer"), who reads and decides (plan 005, D3). No token, and no name starting with
-  `VITE_` that holds one, ever goes in the code or the bundle.
+  at its own `/store` path, and nothing in the browser holds a token: on store's data a
+  person signs in with GitHub through the gate (plan `2026-11-21-003`), which adds their
+  token on the way. Locally (`VITE_AUTH=local`) the dev server and nginx send a fixed token that a store started with the fake
+  GitHub (`dev/fake-github`) takes as "Local developer", who reads and decides. Only that
+  build's image gets the nginx config that adds it (`nginx.local.conf.template`); any other
+  image serves the files alone and leaves `/store` and `/agent` to the gate. No token,
+  and no name starting with `VITE_` that holds one, ever goes in the code or the bundle.
+- Sign-in (`src/screens/sign-in/`, Figma section 19, `425:15687`). `src/data/session.ts`
+  says who is using Studio (`loadSession`: the sample, Local developer, signed in, signed
+  out, in no team) and is the one place a sign-in ending is heard: every request
+  to `/store` goes (and the Agent's client) through `studioFetch`, which sends
+  `X-Studio: 1` and, on a 401 or a read refused with 403 (out of the team) while signed in,
+  raises "Sign in again" over the screen; a 403 on a write stays that write's error. It is kept in
+  `session.ts`, so one that comes back before anything listens is not lost (`SignInAgain`, `425:15755`), the view kept in the URL. `SessionGate`
+  shows the sign-in page in place of Studio until there is a session; nothing of store's
+  shows before. The gate sends a sign-in that did not end in a session back with
+  `?sign_in=not_in_team&login=` or `?sign_in=failed`; `signInReturn` reads it once and the
+  words leave the address. `SessionGate` hands the session down (`SessionContext`); the
+  top bar's right end shows who it is (`screens/studio/account/`: `AccountMenu`, Figma `459:16690`; parts
+  `AccountButton` and `PersonAvatar`): signed in, the avatar and name open a menu with the
+  GitHub login and Sign out (`signOut`: `POST /auth/logout`, then the same view loaded in
+  place; if the gate does not answer, the person stays signed in and a toast says so);
+  Local developer, a grey avatar and a popover that says there is no sign-in; on the
+  sample, nothing.
 - Writing (plan 005). `src/data/store/write.ts` is the frontend's only place for store's
   write shapes: pure bundle builders (`placeBundle` makes a pipeline, adds to one, moves
   and takes out: the membership left is rejected, the new one confirmed, in one bundle;
@@ -570,7 +590,7 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   is gone, so run it after moving things. Tests run with the tour seen
   (`src/test/setup.ts`); README screenshots are taken with `studio.tour-seen` set.
 - Hide what does not work (the owner, 2026-11-13). The top bar holds the app name,
-  the breadcrumb, Settings and Help; the menu, Undo, Redo, Export and "Review changes"
+  the breadcrumb, Settings, Help and, on store's data, who is using Studio; the menu, Undo, Redo, Export and "Review changes"
   are in Figma but hidden until the feature behind each exists. Do not wire them to
   invented behaviour. The "Scanned map" eye and the draw tools other than Select and
   Lasso are hidden the same way. The right-click menu does not open when it has
