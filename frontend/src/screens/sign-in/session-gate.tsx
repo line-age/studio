@@ -24,9 +24,10 @@ import { SignInScreen } from "./sign-in-screen"
  * What decides whether Studio opens. On the sample it always does. On
  * store's data it asks who is using it first: signed in (or, locally, Local
  * developer) opens Studio; anything else is the sign-in page, so nothing of
- * store's shows before a sign-in. A 401 while signed in raises "Sign in
- * again" over the screen. Locally there is no gate to sign in again through,
- * so a 401 there shows only where the request failed.
+ * store's shows before a sign-in. A sign-in ending while signed in (a 401,
+ * or a read refused with 403) raises "Sign in again" over the screen. Locally
+ * there is no gate to sign in again through, so a refusal there shows only
+ * where the request failed.
  */
 export function SessionGate({
   children,
@@ -40,7 +41,7 @@ export function SessionGate({
   // the address after a sign-in that did not end in a session.
   const [session, setSession] = useState<Session | null>(() =>
     dataSource() === "fixture"
-      ? { kind: "sample" }
+      ? { kind: "no-gate" }
       : signInReturn(window.location.search)
   )
   const ended = useSyncExternalStore(subscribeSignInEnded, signInHasEnded)

@@ -19,12 +19,12 @@ import type { DataSource } from "./load-network"
  * With VITE_AUTH=local (development and the local container only) there is no
  * gate: store is asked who this is, and the dev proxy or nginx sends a fixed
  * token that a store started with the fake GitHub takes as Local developer.
- * The sample needs no sign-in at all.
+ * The sample needs no sign-in at all. Both open Studio with nobody to name,
+ * until the Local developer mark is drawn (plan step 2).
  */
 
 export type Session =
-  | { kind: "sample" }
-  | { kind: "local" }
+  | { kind: "no-gate" }
   | { kind: "signed-in"; name: string; login: string; chat: string }
   | { kind: "signed-out"; failure?: SignInFailure }
   | { kind: "not-in-team"; login: string }
@@ -87,7 +87,7 @@ export function signInUrl(options: { chooseAccount?: boolean } = {}): string {
 
 /** Who is using Studio. Never throws: a gate that does not answer is a failure. */
 export async function loadSession(source: DataSource): Promise<Session> {
-  if (source === "fixture") return { kind: "sample" }
+  if (source === "fixture") return { kind: "no-gate" }
   // Locally a 401 also lands on the sign-in page, whose button leads to a
   // gate that is not there: store is not on the fake GitHub, or the proxy
   // sends no token. Studio does not open either way (R15).
@@ -102,7 +102,7 @@ export async function loadSession(source: DataSource): Promise<Session> {
   }
   if (response.status === 401) return { kind: "signed-out" }
   if (!response.ok) return { kind: "signed-out", failure: "unreachable" }
-  if (local) return { kind: "local" }
+  if (local) return { kind: "no-gate" }
   // An unknown path gets the app shell from nginx and Vite, so a 200 that is
   // not the person is a gate that is not there.
   const json: unknown = await response.json().catch(() => null)
@@ -112,7 +112,10 @@ export async function loadSession(source: DataSource): Promise<Session> {
 }
 
 /*
- * Whether a request was refused because the sign-in ended. Kept here and not
+ * Whether a request was refused because the sign-in ended: a 401, or a 403 on
+ * a read, which is store saying the person has left their team. A write can
+ * be refused for what it asks (another agent's claim), so a 403 there stays
+ * the write's own error. Kept here and not
  * in a component, so a 401 that comes back before any component listens (as
  * one can while Studio first loads) is never lost. Once ended, only a new
  * page load starts it again.
@@ -138,8 +141,8 @@ export function forgetSignInEnded(): void {
 
 /**
  * fetch for Studio's own /store and /agent: says the request comes from
- * Studio (the gate refuses a write without it), and records a 401 as the
- * sign-in ending. The caller still sees the 401 and fails as it always did,
+ * Studio (the gate refuses a write without it), and records the sign-in
+ * ending (above). The caller still sees the 401 and fails as it always did,
  * so nothing that was refused is shown as done.
  */
 export async function studioFetch(
@@ -149,7 +152,9 @@ export async function studioFetch(
   const headers = new Headers(init.headers)
   headers.set("X-Studio", "1")
   const response = await fetch(input, { ...init, headers })
-  if (response.status === 401 && !ended) {
+  const read = (init.method ?? "GET").toUpperCase() === "GET"
+  const over = response.status === 401 || (response.status === 403 && read)
+  if (over && !ended) {
     ended = true
     for (const listener of listeners) listener()
   }

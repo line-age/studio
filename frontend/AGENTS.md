@@ -268,10 +268,11 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   GitHub (`dev/fake-github`) takes as "Local developer", who reads and decides. No token,
   and no name starting with `VITE_` that holds one, ever goes in the code or the bundle.
 - Sign-in (`src/screens/sign-in/`, Figma section 19, `425:15687`). `src/data/session.ts`
-  says who is using Studio (`loadSession`: the sample, Local developer, signed in, signed
-  out, in no team) and is the one place a 401 is heard: every request to `/store` goes
-  (and the Agent's client) through `studioFetch`, which sends `X-Studio: 1` and, on a
-  401 while signed in, raises "Sign in again" over the screen; the 401 is kept in
+  says who is using Studio (`loadSession`: no gate (the sample or Local developer), signed
+  in, signed out, in no team) and is the one place a sign-in ending is heard: every request
+  to `/store` goes (and the Agent's client) through `studioFetch`, which sends
+  `X-Studio: 1` and, on a 401 or a read refused with 403 (out of the team) while signed in,
+  raises "Sign in again" over the screen; a 403 on a write stays that write's error. It is kept in
   `session.ts`, so one that comes back before anything listens is not lost (`SignInAgain`, `425:15755`), the view kept in the URL. `SessionGate`
   shows the sign-in page in place of Studio until there is a session; nothing of store's
   shows before. The gate sends a sign-in that did not end in a session back with

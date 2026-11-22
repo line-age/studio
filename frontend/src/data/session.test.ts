@@ -43,7 +43,7 @@ afterEach(() => {
 describe("loadSession", () => {
   it("asks nobody on the sample", async () => {
     const fetchMock = answer(() => json(person))
-    expect(await loadSession("fixture")).toEqual({ kind: "sample" })
+    expect(await loadSession("fixture")).toEqual({ kind: "no-gate" })
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
@@ -84,7 +84,7 @@ describe("loadSession", () => {
     it("is Local developer when store takes the local token", async () => {
       vi.stubEnv("VITE_AUTH", "local")
       const fetchMock = answer(() => json({ kind: "person" }))
-      expect(await loadSession("store")).toEqual({ kind: "local" })
+      expect(await loadSession("store")).toEqual({ kind: "no-gate" })
       expect(String(fetchMock.mock.calls[0][0])).toBe("/store/me")
     })
 
@@ -174,8 +174,20 @@ describe("studioFetch", () => {
     expect(signInHasEnded()).toBe(true)
   })
 
-  it("does not take a refusal that is not a 401 as the sign-in ending", async () => {
+  it("takes a 403 on a read as the sign-in ending: out of the team", async () => {
     answer(() => json({}, 403))
+    await studioFetch("/store/x")
+    expect(signInHasEnded()).toBe(true)
+  })
+
+  it("leaves a 403 on a write to the write: it may refuse what was asked", async () => {
+    answer(() => json({}, 403))
+    await studioFetch("/store/bundles", { method: "POST" })
+    expect(signInHasEnded()).toBe(false)
+  })
+
+  it("does not take other errors as the sign-in ending", async () => {
+    answer(() => json({}, 500))
     await studioFetch("/store/x")
     expect(signInHasEnded()).toBe(false)
   })

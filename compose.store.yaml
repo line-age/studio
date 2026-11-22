@@ -1,14 +1,14 @@
-# Lineage Studio on real data from a local store. Start store first (its own
-# `docker compose up -d` in a folder named `store`), put a token for it in
-# frontend/.env.local as STORE_TOKEN, then from this directory:
-# (A store started with dev/fake-github takes STORE_TOKEN=local-dev as the person
-# "Local developer"; tools/gas-stack.sh does all of this and sets it.)
+# Lineage Studio on real data from a local store, as Local developer. Start store
+# with the fake GitHub first (tools/gas-stack.sh does both; see
+# dev/fake-github/compose.yaml), then from this directory:
 #
 #   docker compose -f compose.yaml -f compose.store.yaml \
 #     --env-file frontend/.env.local up --build
 #
-# The token is given to nginx when the container starts. It is not in the
-# image or in what the browser downloads.
+# nginx sends store the fixed token local-dev, which a store on the fake GitHub
+# takes as Local developer and a real one refuses. It is given to nginx when the
+# container starts, not built into the image or what the browser downloads.
+# The image is tagged :local so it is never taken for one to deploy.
 
 services:
   frontend:
@@ -17,10 +17,10 @@ services:
         VITE_DATA_SOURCE: store
         # On one machine, with no gate: Local developer, by the token below.
         VITE_AUTH: local
-    image: lineage-studio-frontend:store
+    image: lineage-studio-frontend:local
     environment:
       STORE_URL: ${STORE_URL:-http://api:8000}
-      STORE_TOKEN: ${STORE_TOKEN:?Set STORE_TOKEN in frontend/.env.local}
+      STORE_TOKEN: local-dev
     networks: [default, store]
 
 networks:
