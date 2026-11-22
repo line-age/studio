@@ -7,8 +7,10 @@ import {
   type Section,
 } from "./schema"
 import { shortId } from "./short-id"
+import { editsBundle, PIPELINE_KEYS } from "./store/write-edits"
 import {
   decideMembershipsBundle,
+  mergeBundles,
   placeBundle,
   postBundle,
   reviewClaim,
@@ -38,9 +40,29 @@ export interface ProposalAt {
   id?: string
 }
 
+/** A typed value for one of a pipeline's own claims (Name, Owner, Operator). */
+export interface PipelineEdit {
+  attribute: string
+  value: string
+}
+
 export type Change =
-  /** Make a pipeline, add to one, move, take out: one change. */
+  /** Make a pipeline, add to one, move, remove: one change. */
   | { kind: "place"; sectionIds: readonly string[]; target: Target }
+  /** A pipeline's sections: some added, some removed, in one save. */
+  | {
+      kind: "members"
+      pipelineId: string
+      add: readonly string[]
+      remove: readonly string[]
+    }
+  /** A pipeline's own claims, as a person typed them, and why. */
+  | {
+      kind: "edit-pipeline"
+      pipelineId: string
+      edits: readonly PipelineEdit[]
+      note: string
+    }
   /** A proposed pipeline, decided whole. */
   | { kind: "decide-pipeline"; pipelineId: string; verdict: Verdict }
   /** A proposed end (`same_as`). A proposed cut is never decided here. */
@@ -145,11 +167,17 @@ export function applyChange(
           : target.kind === "new"
             ? newPipelineId(key)
             : null
+      const name = target.kind === "new" ? target.name?.trim() : undefined
       const pipelines =
         target.kind === "new"
           ? [
               ...network.pipelines,
-              { id: to!, code: shortId(to!), name: null, claims: [] },
+              {
+                id: to!,
+                code: shortId(to!),
+                name: name || null,
+                claims: name ? [personClaim("Name", name, "")] : [],
+              },
             ]
           : network.pipelines
       return {
@@ -170,6 +198,40 @@ export function applyChange(
         }),
       }
     }
+    case "members": {
+      const added = applyChange(
+        network,
+        {
+          kind: "place",
+          sectionIds: change.add,
+          target: { kind: "pipeline", pipelineId: change.pipelineId },
+        },
+        key
+      )
+      return applyChange(
+        added,
+        { kind: "place", sectionIds: change.remove, target: { kind: "none" } },
+        key
+      )
+    }
+    case "edit-pipeline":
+      return {
+        ...network,
+        pipelines: network.pipelines.map((p) => {
+          if (p.id !== change.pipelineId) return p
+          let claims = p.claims
+          for (const edit of change.edits) {
+            const claim = personClaim(edit.attribute, edit.value, change.note)
+            const at = claims.findIndex((c) => c.attribute === edit.attribute)
+            claims =
+              at === -1
+                ? [...claims, claim]
+                : claims.map((c, i) => (i === at ? claim : c))
+          }
+          const name = change.edits.find((e) => e.attribute === "Name")
+          return { ...p, claims, ...(name ? { name: name.value.trim() } : {}) }
+        }),
+      }
     case "decide-pipeline": {
       const decision = pipelineDecision(network, change.pipelineId)
       if (!decision) return network
@@ -247,6 +309,53 @@ export function applyChange(
   }
 }
 
+/** A person's typed value on the sample: cited to "Studio edit", like Edit. */
+function personClaim(attribute: string, value: string, note: string): Claim {
+  return {
+    attribute,
+    value: value.trim(),
+    citations: [
+      { source: "Studio edit", ...(note.trim() ? { quote: note.trim() } : {}) },
+    ],
+    proposals: [],
+    madeAt: new Date().toISOString().slice(0, 10),
+  }
+}
+
+/** A section as a write needs it: its id and its confirmed membership. */
+function placedOf(network: Network, ids: readonly string[]) {
+  const byId = new Map(network.sections.map((s) => [s.id, s]))
+  const sections = ids.map((id) => {
+    const s = byId.get(id)
+    if (!s) throw new MissingIdError("section")
+    return {
+      id: s.id,
+      pipelineId: s.pipelineId,
+      ...(s.membershipId ? { membershipId: s.membershipId } : {}),
+    }
+  })
+  if (sections.some((s) => s.pipelineId !== null && !s.membershipId))
+    throw new MissingIdError("membership")
+  return sections
+}
+
+/** A pipeline's typed values as a bundle part, on `feature` (an id or a ref). */
+function pipelineEditsBundle(
+  feature: string,
+  edits: readonly PipelineEdit[],
+  note: string
+) {
+  return editsBundle(
+    edits.map((edit) => ({
+      feature,
+      key: PIPELINE_KEYS[edit.attribute],
+      label: edit.attribute,
+      value: edit.value,
+    })),
+    note
+  )
+}
+
 /** A write needs ids from store; the sample has none for some things. */
 export class MissingIdError extends Error {
   constructor(what: string) {
@@ -265,21 +374,40 @@ export async function sendChange(
 ): Promise<void> {
   switch (change.kind) {
     case "place": {
-      const byId = new Map(network.sections.map((s) => [s.id, s]))
-      const sections = change.sectionIds.map((id) => {
-        const s = byId.get(id)
-        if (!s) throw new MissingIdError("section")
-        return {
-          id: s.id,
-          pipelineId: s.pipelineId,
-          ...(s.membershipId ? { membershipId: s.membershipId } : {}),
-        }
-      })
-      if (sections.some((s) => s.pipelineId !== null && !s.membershipId))
-        throw new MissingIdError("membership")
-      await postBundle(placeBundle(sections, change.target, key))
+      const sections = placedOf(network, change.sectionIds)
+      const bundle = placeBundle(sections, change.target, key)
+      const name =
+        change.target.kind === "new" ? change.target.name?.trim() : undefined
+      await postBundle(
+        name
+          ? mergeBundles(
+              bundle,
+              pipelineEditsBundle(
+                "line",
+                [{ attribute: "Name", value: name }],
+                ""
+              )
+            )
+          : bundle
+      )
       return
     }
+    case "members": {
+      const target: Target = { kind: "pipeline", pipelineId: change.pipelineId }
+      await postBundle(
+        mergeBundles(
+          placeBundle(placedOf(network, change.add), target, key),
+          placeBundle(placedOf(network, change.remove), { kind: "none" }, key)
+        )
+      )
+      return
+    }
+    case "edit-pipeline":
+      if (change.edits.length === 0) return
+      await postBundle(
+        pipelineEditsBundle(change.pipelineId, change.edits, change.note)
+      )
+      return
     case "decide-pipeline": {
       const decision = pipelineDecision(network, change.pipelineId)
       if (!decision) return

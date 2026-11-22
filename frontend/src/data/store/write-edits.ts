@@ -19,6 +19,27 @@ export interface SectionEdit {
 
 const STUDIO_SOURCE_REF = "studio-edit-source"
 
+/** A pipeline's own claims, as Studio names them, and store's key for each. */
+export const PIPELINE_KEYS: Readonly<Record<string, string>> = {
+  Name: "name",
+  Owner: "owner",
+  Operator: "operator",
+}
+
+/**
+ * Why typed text cannot be a pipeline's Name, Owner or Operator, by the
+ * rules, or undefined when it can. Empty is not a mistake: it changes nothing.
+ */
+export function pipelineTypedError(
+  attribute: string,
+  text: string
+): string | undefined {
+  const key = PIPELINE_KEYS[attribute]
+  if (!key || text.trim() === "") return undefined
+  const read = readTyped(key, text)
+  return read.ok ? undefined : read.message
+}
+
 /** Whether Edit can write this attribute to store. */
 export function writableOnStore(attribute: string): boolean {
   const key = attributeStoreKey(attribute)

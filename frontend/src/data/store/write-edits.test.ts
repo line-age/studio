@@ -125,7 +125,8 @@ describe("saveEditsToStore", () => {
       )
     ).rejects.toMatchObject({
       kind: "invalid",
-      message: "Couldn't save. Nothing was changed. The change was not accepted.",
+      message:
+        "Couldn't save. Nothing was changed. The change was not accepted.",
       detail: "diameter needs a unit store knows",
     })
   })

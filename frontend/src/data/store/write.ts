@@ -26,9 +26,14 @@ export interface Placed {
   membershipId?: string
 }
 
-/** Where the sections go: an existing pipeline, a new one, or none. */
+/**
+ * Where the sections go: an existing pipeline, a new one (with a name a
+ * person gave it, or none until a source gives one), or none.
+ */
 export type Target =
-  { kind: "pipeline"; pipelineId: string } | { kind: "new" } | { kind: "none" }
+  | { kind: "pipeline"; pipelineId: string }
+  | { kind: "new"; name?: string }
+  | { kind: "none" }
 
 export interface BundleReview {
   link: string
@@ -118,6 +123,25 @@ export function placeBundle(
     }))
   }
   return bundle
+}
+
+/**
+ * Several bundle parts as one bundle, sent in one transaction. Their refs
+ * must not clash: each builder names its own.
+ */
+export function mergeBundles(...parts: readonly Bundle[]): Bundle {
+  const merged: Bundle = {}
+  for (const part of parts) {
+    for (const key of Object.keys(part) as (keyof Bundle)[]) {
+      const rows = part[key]
+      if (!rows || rows.length === 0) continue
+      ;(merged[key] as unknown[]) = [
+        ...((merged[key] as unknown[]) ?? []),
+        ...rows,
+      ]
+    }
+  }
+  return merged
 }
 
 /**

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest"
 
-import { decideMembershipsBundle, placeBundle, type Bundle } from "./write"
+import { editsBundle } from "./write-edits"
+import {
+  decideMembershipsBundle,
+  mergeBundles,
+  placeBundle,
+  type Bundle,
+} from "./write"
 
 /*
  * What write.ts sends, checked against store's own bundle schema (from
@@ -88,6 +94,38 @@ const bundles: [string, Bundle][] = [
     ),
   ],
   ["decide", decideMembershipsBundle(["l-1"], "confirm")],
+  [
+    "make with a name",
+    mergeBundles(
+      placeBundle([{ id: "s-1", pipelineId: null }], { kind: "new" }, "k"),
+      editsBundle(
+        [{ feature: "line", key: "name", label: "Name", value: "Calder" }],
+        ""
+      )
+    ),
+  ],
+  [
+    "a pipeline's sections",
+    mergeBundles(
+      placeBundle(
+        [{ id: "s-2", pipelineId: "b", membershipId: "l-2" }],
+        { kind: "pipeline", pipelineId: "a" },
+        "k"
+      ),
+      placeBundle(
+        [{ id: "s-1", pipelineId: "a", membershipId: "l-1" }],
+        { kind: "none" },
+        "k"
+      )
+    ),
+  ],
+  [
+    "a pipeline's own claims",
+    editsBundle(
+      [{ feature: "p-1", key: "operator", label: "Operator", value: "Birch" }],
+      "why"
+    ),
+  ],
 ]
 
 describe("write.ts against store's bundle schema", () => {

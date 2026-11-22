@@ -101,7 +101,10 @@ describe("section details", () => {
           ["a", detail("12 in")],
           [
             "b",
-            { error: "Couldn't load. The answer was not in a form Studio understands." },
+            {
+              error:
+                "Couldn't load. The answer was not in a form Studio understands.",
+            },
           ],
         ])
       )
