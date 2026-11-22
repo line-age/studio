@@ -59,7 +59,7 @@ describe("SessionGate", () => {
   })
 
   it("opens Studio for Local developer", async () => {
-    gate({ kind: "no-gate" })
+    gate({ kind: "local" })
     expect(await screen.findByText("The Studio screen")).toBeInTheDocument()
   })
 
@@ -73,7 +73,7 @@ describe("SessionGate", () => {
   })
 
   it("does not ask Local developer to sign in again: there is no gate", async () => {
-    gate({ kind: "no-gate" })
+    gate({ kind: "local" })
     await screen.findByText("The Studio screen")
     refused()
     await act(() => studioFetch("/store/sections"))

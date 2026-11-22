@@ -19,12 +19,12 @@ import type { DataSource } from "./load-network"
  * With VITE_AUTH=local (development and the local container only) there is no
  * gate: store is asked who this is, and the dev proxy or nginx sends a fixed
  * token that a store started with the fake GitHub takes as Local developer.
- * The sample needs no sign-in at all. Both open Studio with nobody to name,
- * until the Local developer mark is drawn (plan step 2).
+ * The sample needs no sign-in at all.
  */
 
 export type Session =
-  | { kind: "no-gate" }
+  | { kind: "sample" }
+  | { kind: "local" }
   | { kind: "signed-in"; name: string; login: string; chat: string }
   | { kind: "signed-out"; failure?: SignInFailure }
   | { kind: "not-in-team"; login: string }
@@ -85,9 +85,19 @@ export function signInUrl(options: { chooseAccount?: boolean } = {}): string {
   return `/auth/login?${query.toString()}`
 }
 
+/**
+ * Signs out: the gate drops the session, then the page is loaded again and
+ * comes up on the sign-in page, on the same view. A gate that does not answer
+ * leaves the person where they were; the reload then shows what is true.
+ */
+export async function signOut(): Promise<void> {
+  await studioFetch("/auth/logout", { method: "POST" }).catch(() => null)
+  window.location.assign(currentView())
+}
+
 /** Who is using Studio. Never throws: a gate that does not answer is a failure. */
 export async function loadSession(source: DataSource): Promise<Session> {
-  if (source === "fixture") return { kind: "no-gate" }
+  if (source === "fixture") return { kind: "sample" }
   // Locally a 401 also lands on the sign-in page, whose button leads to a
   // gate that is not there: store is not on the fake GitHub, or the proxy
   // sends no token. Studio does not open either way (R15).
@@ -102,7 +112,7 @@ export async function loadSession(source: DataSource): Promise<Session> {
   }
   if (response.status === 401) return { kind: "signed-out" }
   if (!response.ok) return { kind: "signed-out", failure: "unreachable" }
-  if (local) return { kind: "no-gate" }
+  if (local) return { kind: "local" }
   // An unknown path gets the app shell from nginx and Vite, so a 200 that is
   // not the person is a gate that is not there.
   const json: unknown = await response.json().catch(() => null)

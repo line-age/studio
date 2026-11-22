@@ -43,7 +43,7 @@ afterEach(() => {
 describe("loadSession", () => {
   it("asks nobody on the sample", async () => {
     const fetchMock = answer(() => json(person))
-    expect(await loadSession("fixture")).toEqual({ kind: "no-gate" })
+    expect(await loadSession("fixture")).toEqual({ kind: "sample" })
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
@@ -84,7 +84,7 @@ describe("loadSession", () => {
     it("is Local developer when store takes the local token", async () => {
       vi.stubEnv("VITE_AUTH", "local")
       const fetchMock = answer(() => json({ kind: "person" }))
-      expect(await loadSession("store")).toEqual({ kind: "no-gate" })
+      expect(await loadSession("store")).toEqual({ kind: "local" })
       expect(String(fetchMock.mock.calls[0][0])).toBe("/store/me")
     })
 

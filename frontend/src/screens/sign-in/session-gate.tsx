@@ -7,6 +7,7 @@ import {
 
 import { LoadBar } from "@/components/load-bar"
 import { dataSource } from "@/data/load-network"
+import { SessionContext } from "@/data/session-context"
 import {
   currentView,
   isSignedOut,
@@ -41,7 +42,7 @@ export function SessionGate({
   // the address after a sign-in that did not end in a session.
   const [session, setSession] = useState<Session | null>(() =>
     dataSource() === "fixture"
-      ? { kind: "no-gate" }
+      ? { kind: "sample" }
       : signInReturn(window.location.search)
   )
   const ended = useSyncExternalStore(subscribeSignInEnded, signInHasEnded)
@@ -74,9 +75,9 @@ export function SessionGate({
   }
   if (isSignedOut(session)) return <SignInScreen session={session} />
   return (
-    <>
+    <SessionContext value={session}>
       {children}
       <SignInAgain open={ended && session.kind === "signed-in"} />
-    </>
+    </SessionContext>
   )
 }
