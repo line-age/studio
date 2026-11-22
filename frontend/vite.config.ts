@@ -2,6 +2,8 @@ import { resolve } from "node:path"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { loadEnv } from "vite"
+import { storybookTest } from "@storybook/addon-vitest/vitest-plugin"
+import { playwright } from "@vitest/browser-playwright"
 import { defineConfig } from "vitest/config"
 
 // https://vite.dev/config/
@@ -35,11 +37,39 @@ export default defineConfig(({ mode }) => {
       },
     },
     test: {
-      environment: "jsdom",
-      setupFiles: ["./src/test/setup.ts"],
-      // Tests run on the sample, whatever a developer's .env.local says.
-      env: { VITE_DATA_SOURCE: "fixture" },
-      css: false,
+      projects: [
+        {
+          // The app's tests: React Testing Library in jsdom.
+          extends: true,
+          test: {
+            name: "unit",
+            environment: "jsdom",
+            setupFiles: ["./src/test/setup.ts"],
+            // Tests run on the sample, whatever a developer's .env.local says.
+            env: { VITE_DATA_SOURCE: "fixture" },
+            css: false,
+            include: ["src/**/*.test.{ts,tsx}"],
+          },
+        },
+        {
+          // Every story, and its play function, in a real browser.
+          extends: true,
+          plugins: [
+            storybookTest({
+              configDir: resolve(import.meta.dirname, ".storybook"),
+            }),
+          ],
+          test: {
+            name: "storybook",
+            browser: {
+              enabled: true,
+              headless: true,
+              provider: playwright(),
+              instances: [{ browser: "chromium" }],
+            },
+          },
+        },
+      ],
       // `pnpm coverage`: lines and branches of the app's own code. What a
       // change touches is read from this, file by file; no number is a goal.
       coverage: {

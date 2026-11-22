@@ -16,7 +16,9 @@
     "check": "pnpm tokens:check && pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "fixtures:sample": "node scripts/make-sample-fixture.mjs",
     "test": "vitest run",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "storybook": "storybook dev -p 6006 --no-open",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -48,6 +50,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^10",
+    "@storybook/addon-vitest": "10.6.8",
+    "@storybook/react-vite": "10.6.8",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.10",
@@ -57,14 +61,18 @@
     "@types/react-dom": "^19",
     "@types/topojson-client": "3.1.5",
     "@vitejs/plugin-react": "^6",
+    "@vitest/browser": "5.1.0",
+    "@vitest/browser-playwright": "5.1.0",
     "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^10",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17",
     "jsdom": "^31.0.0",
+    "playwright": "^1.65.1",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
+    "storybook": "10.6.8",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8",
     "vite": "^8",
