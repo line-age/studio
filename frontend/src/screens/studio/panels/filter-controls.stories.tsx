@@ -101,6 +101,20 @@ export const MultiPickTypeAndTick: Story = {
   },
 }
 
+/** By keyboard alone: type, Enter picks the first match. */
+export const MultiPickByKeyboard: Story = {
+  render: (args) => <Editions onChange={args.onChange} />,
+  play: async ({ canvas, userEvent, args }) => {
+    const box = canvas.getByRole("combobox", { name: "Search editions" })
+    await userEvent.click(box)
+    await userEvent.keyboard("1937")
+    await screen.findByRole("option", { name: /1937 edition/ })
+    await userEvent.keyboard("{Enter}")
+    await expect(args.onChange).toHaveBeenLastCalledWith(["ed-1937"])
+    await expect(canvas.getByLabelText("1937 edition")).toBeVisible()
+  },
+}
+
 export const MultiPickNoMatch: Story = {
   render: (args) => <Editions onChange={args.onChange} />,
   play: async ({ canvas, userEvent }) => {
