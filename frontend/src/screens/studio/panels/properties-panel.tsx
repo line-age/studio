@@ -33,7 +33,7 @@ import {
 } from "@/data/derive"
 import { OWNER_ROW, PIPELINE_ROW, proposedEndsFor } from "@/data/evidence"
 import { ON_PIPELINE, sectionStatus } from "@/data/status"
-import { useDetailLookup, useSectionDetail } from "@/data/detail-store"
+import { useSectionDetail } from "@/data/detail-store"
 import type { Geometry, Section } from "@/data/schema"
 import { Button } from "@/components/ui/button"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
@@ -41,11 +41,6 @@ import { cn } from "@/lib/utils"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { useSectionChanges } from "../pipeline-actions"
-import {
-  claimStarters,
-  pipelineRowStarters,
-  sectionClaimStarters,
-} from "../starters"
 import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { ClaimDetail } from "./claim-detail"
@@ -250,7 +245,14 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                     index: nth,
                   },
                 ]}
-                starters={claimStarters(claim)}
+                edit={{
+                  name: pipelineLabel(owner),
+                  count: 1,
+                  onEditOne: () =>
+                    edit({ kind: "edit-pipeline", pipelineId: owner.id }),
+                  onEditAll: () =>
+                    edit({ kind: "edit-pipeline", pipelineId: owner.id }),
+                }}
               >
                 <AttributeRow
                   className="pl-3"
@@ -399,7 +401,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                                   sectionIds: [section.id],
                                 },
                               ]}
-                              starters={pipelineRowStarters(section)}
+                              changes={sectionChanges([section.id])}
                             >
                               <AttributeRow
                                 role="treeitem"
@@ -507,7 +509,7 @@ function SectionClaimRows({
   onLeft: () => void
 }) {
   const { status, detail, retry } = useSectionDetail(section)
-  const lookup = useDetailLookup()
+  const edit = useStudio((s) => s.edit)
   return (
     <>
       {section.values
@@ -537,7 +539,14 @@ function SectionClaimRows({
                   attribute: value.attribute,
                 },
               ]}
-              starters={sectionClaimStarters(section, value, lookup)}
+              edit={{
+                name: sectionLabel(section),
+                count: 1,
+                onEditOne: () =>
+                  edit({ kind: "edit-sections", sectionIds: [section.id] }),
+                onEditAll: () =>
+                  edit({ kind: "edit-sections", sectionIds: [section.id] }),
+              }}
             >
               <AttributeRow
                 role="treeitem"

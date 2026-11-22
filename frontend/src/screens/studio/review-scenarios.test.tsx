@@ -296,9 +296,7 @@ describe("reviewing", () => {
       keys: "[MouseRight]",
       target: screen.getByRole("option", { name: /North line/ }),
     })
-    await user.click(
-      await screen.findByRole("menuitem", { name: "Add to the Agent chat" })
-    )
+    await user.click(await screen.findByRole("menuitem", { name: "Ask" }))
 
     const agent = screen.getByRole("complementary", { name: "agent" })
     expect(within(agent).getByText("North line")).toBeVisible()
@@ -314,9 +312,7 @@ describe("reviewing", () => {
       keys: "[MouseRight]",
       target: screen.getByRole("option", { name: /1937 edition/ }),
     })
-    await user.click(
-      await screen.findByRole("menuitem", { name: "Add to the Agent chat" })
-    )
+    await user.click(await screen.findByRole("menuitem", { name: "Ask" }))
     // A group is only a way of listing: never "all" of it.
     expect(useStudio.getState().agentAttachments).toEqual([
       { pipelineId: "unassigned:ed-1937", sectionIds: ["s-4"] },

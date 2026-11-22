@@ -48,15 +48,6 @@ export function useAskAgent(): (
 }
 
 /**
- * A question that only reads, offered in a menu: its words, and what it
- * attaches when that is not the menu's own thing (a proposal on a claim).
- */
-export interface Starter {
-  words: string
-  refs?: readonly AgentRef[]
-}
-
-/**
  * Right click on `children` offers to attach `items` to the next question
  * for the Agent, and opens the Agent panel. The menu is stock shadcn: it is
  * not in Figma yet (the owner asked for it on 2026-11-12). With nothing to
@@ -85,7 +76,6 @@ export interface EditTarget {
 export function AddToAgentMenu({
   items = [],
   refs = [],
-  starters = [],
   changes = [],
   edit,
   onOpenChange,
@@ -101,14 +91,8 @@ export function AddToAgentMenu({
   /** Finer things: a claim, a source, a proposal. */
   refs?: readonly AgentRef[]
   /**
-   * Questions that only read, above "Add to the Agent chat". Each attaches
-   * the same things and puts its words in the message box.
-   */
-  starters?: readonly Starter[]
-  /**
-   * Sections only: puts "Edit …" first, with a muted line at the top naming
-   * how many when several. Not offered with `starters` (section rows drop
-   * those three questions).
+   * Puts "Edit …" first, with a muted line at the top naming how many when
+   * several: a section's own Edit window, or a pipeline's.
    */
   edit?: EditTarget
   /** So the row(s) this menu acts on can be highlighted while it is open. */
@@ -124,14 +108,7 @@ export function AddToAgentMenu({
     askAgent(items, more)
   }
   const empty =
-    changes.length === 0 &&
-    !edit &&
-    items.length === 0 &&
-    refs.length === 0 &&
-    starters.every((starter) => !starter.refs?.length)
-  // Section rows (edit present) say plain "Ask"; claims, sources and the map
-  // keep their own, unrelated "Add to the Agent chat" wording.
-  const askLabel = edit ? "Ask" : "Add to the Agent chat"
+    changes.length === 0 && !edit && items.length === 0 && refs.length === 0
   return (
     <ContextMenu
       disabled={empty}
@@ -163,24 +140,9 @@ export function AddToAgentMenu({
           </ContextMenuItem>
         ))}
         {(edit || changes.length > 0) && <ContextMenuSeparator />}
-        {starters.map((starter) => (
-          <ContextMenuItem
-            key={starter.words}
-            onClick={() =>
-              ask(items, {
-                refs: starter.refs ?? refs,
-                words: starter.words,
-              })
-            }
-          >
-            <Icon name="ask" />
-            {starter.words}
-          </ContextMenuItem>
-        ))}
-        {starters.length > 0 && <ContextMenuSeparator />}
         <ContextMenuItem onClick={() => ask(items, { refs })}>
           <Icon name="ask" />
-          {askLabel}
+          Ask
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

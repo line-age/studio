@@ -302,11 +302,7 @@ describe("a pipeline row's menu", () => {
     const items = (await screen.findAllByRole("menuitem")).map(
       (item) => item.textContent
     )
-    expect(items).toEqual([
-      "Edit pipeline",
-      "Sections",
-      "Add to the Agent chat",
-    ])
+    expect(items).toEqual(["Edit pipeline", "Sections", "Ask"])
   })
 
   it("edits a pipeline's name: Save waits for a change, then the list shows it", async () => {

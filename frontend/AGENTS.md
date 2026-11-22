@@ -488,14 +488,11 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   above the changes, "Edit" opens the Edit sections window on that row alone; where the row is
   ticked as part of a bigger selection, a muted "N sections selected" line and "Edit
   selected (N)" open it on the whole ticked selection instead, never silently on more
-  than the menu says (`add-to-agent.tsx`'s `EditTarget`). A section row no longer offers
-  the starter questions below: just "Ask", which asks the same as elsewhere but opens
-  with nothing pre-filled. On a claim or a source the starter questions that only read
-  still show (`starters.ts`): "What does store say about this?" on a claim or a source,
-  "Why is this Unknown?" on an Unknown claim, "What is proposed here, and why?" where a
-  proposal waits. No starter changes a claim. "Ask the Agent about this" under a proposal (Figma
-  `223:11018`) asks the same and decides nothing. Below any starters, "Add to the Agent
-  chat" (claims, sources, the map) or "Ask" (section rows). Choosing an item leaves the
+  than the menu says (`add-to-agent.tsx`'s `EditTarget`). Every menu hands its thing to the Agent with one item, "Ask" (the owner, 2026-11-22): no
+  starter questions, no "Add to the Agent chat". A claim row offers Edit (the section's Edit
+  window; on a pipeline's own claim, Edit pipeline) and Ask; a section's Pipeline row its
+  pipeline changes and Ask; a source Ask. "Ask the Agent about this" under a proposal (Figma
+  `223:11018`) still puts its question in the box and decides nothing. Choosing an item leaves the
   cursor in the chat (`finalFocus`). Tooltips are on the filter icon, the filter chips
   and the "List follows the map" button (stock shadcn Tooltip).
 - Edit and Edit selected open the Edit sections window (`panels/edit-sections-dialog.tsx`;

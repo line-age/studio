@@ -56,7 +56,7 @@ describe("Add to the Agent chat", () => {
       target: screen.getByText("Target"),
     })
     expect(
-      await screen.findByRole("menuitem", { name: "Add to the Agent chat" })
+      await screen.findByRole("menuitem", { name: "Ask" })
     ).toBeInTheDocument()
   })
 })
