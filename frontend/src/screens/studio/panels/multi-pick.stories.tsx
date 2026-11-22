@@ -1,66 +1,49 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useState } from "react"
+import type { ComponentProps } from "react"
 import { expect, fn, screen } from "storybook/test"
+
+import { controlled } from "@/test/controlled"
 
 import { MultiPick } from "./filter-controls"
 
 /*
  * A search with a dropdown, several tickable, each with its count (First
- * shown by, Traced by). Editions and counts are invented.
+ * shown by, Traced by, State). Editions and counts are invented.
  */
-
-const EDITIONS = [
-  { name: "ed-1929", count: 664 },
-  { name: "ed-1931", count: 266 },
-  { name: "ed-1937", count: 96 },
-  { name: "ed-1947", count: 0 },
-]
-const editionLabel = (id: string) => `${id.slice(3)} edition`
-
-/** Keeps what is picked, and reports each change. */
-function Editions({
-  initial = [],
-  onChange,
-}: {
-  initial?: string[]
-  onChange: (next: string[]) => void
-}) {
-  const [value, setValue] = useState<string[]>(initial)
-  return (
-    <MultiPick
-      noun="editions"
-      placeholder="Type to find an edition…"
-      options={EDITIONS}
-      value={value}
-      onChange={(next) => {
-        setValue(next)
-        onChange(next)
-      }}
-      name={editionLabel}
-    />
-  )
-}
-
-interface Args {
-  initial: string[]
-  onChange: (next: string[]) => void
-}
 
 const meta = {
   title: "Studio/Filters/MultiPick",
-  args: { initial: [], onChange: fn() },
-  render: (args) => (
-    <Editions initial={args.initial} onChange={args.onChange} />
-  ),
-} satisfies Meta<Args>
+  component: MultiPick,
+  args: {
+    noun: "editions",
+    placeholder: "Type to find an edition…",
+    options: [
+      { name: "ed-1929", count: 664 },
+      { name: "ed-1931", count: 266 },
+      { name: "ed-1937", count: 96 },
+      { name: "ed-1947", count: 0 },
+    ],
+    value: [],
+    onChange: fn(),
+    name: (id: string) => `${id.slice(3)} edition`,
+  },
+  decorators: [
+    // Controlled: what is picked stays picked.
+    controlled<ComponentProps<typeof MultiPick>>(
+      "onChange",
+      (_current, value: string[]) => ({ value })
+    ),
+  ],
+} satisfies Meta<typeof MultiPick>
 
 export default meta
-type Story = StoryObj<Args>
+type Story = StoryObj<typeof meta>
 
 const searchBox = (canvas: {
   getByRole: (role: "combobox", o: { name: string }) => HTMLElement
 }) => canvas.getByRole("combobox", { name: "Search editions" })
 
+/** Nothing picked: the search box says what to type. */
 export const Empty: Story = {
   play: async ({ canvas }) => {
     await expect(searchBox(canvas)).toHaveAttribute(
@@ -70,16 +53,19 @@ export const Empty: Story = {
   },
 }
 
+/** What is picked stays as chips, each one removable. */
 export const SeveralTicked: Story = {
   name: "Several ticked",
-  args: { initial: ["ed-1929", "ed-1937"] },
+  args: { value: ["ed-1929", "ed-1937"] },
   play: async ({ canvas }) => {
     await expect(canvas.getByLabelText("1929 edition")).toBeVisible()
-    await expect(canvas.getByLabelText("1937 edition")).toBeVisible()
+    await expect(
+      canvas.getByRole("button", { name: "Remove 1937 edition" })
+    ).toBeVisible()
   },
 }
 
-/** Reached by typing to find an edition and ticking two. */
+/** Reached by typing to find an edition and ticking two; each has its count. */
 export const Open: Story = {
   name: "Open, two ticked",
   play: async ({ canvas, userEvent, args, step }) => {
@@ -119,6 +105,7 @@ export const PickedByKeyboard: Story = {
   },
 }
 
+/** A search that finds nothing says so, never an empty dropdown. */
 export const NoMatch: Story = {
   name: "No match",
   play: async ({ canvas, userEvent }) => {

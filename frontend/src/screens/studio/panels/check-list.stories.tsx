@@ -1,51 +1,40 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useState } from "react"
+import type { ComponentProps } from "react"
 import { expect, fn } from "storybook/test"
+
+import { controlled } from "@/test/controlled"
 
 import { CheckList } from "./filter-controls"
 
 /* A list of boxes, any number at once, each with its count. Invented counts. */
 
-/** Keeps what is ticked, and reports each change. */
-function Ends({
-  initial,
-  onChange,
-}: {
-  initial: string[]
-  onChange: (next: string[]) => void
-}) {
-  const [value, setValue] = useState<string[]>(initial)
-  return (
-    <CheckList
-      label="Proposed end"
-      options={[
-        { name: "end", count: 37 },
-        { name: "cut", count: 46 },
-      ]}
-      value={value}
-      onChange={(next) => {
-        setValue(next)
-        onChange(next)
-      }}
-      name={(kind) => (kind === "end" ? "The whole section" : "Part of it")}
-    />
-  )
-}
-
-interface Args {
-  initial: string[]
-  onChange: (next: string[]) => void
-}
-
 const meta = {
   title: "Studio/Filters/CheckList",
-  args: { initial: [], onChange: fn() },
-  render: (args) => <Ends initial={args.initial} onChange={args.onChange} />,
-} satisfies Meta<Args>
+  component: CheckList,
+  args: {
+    label: "Proposed end",
+    options: [
+      { name: "end", count: 37 },
+      { name: "cut", count: 46 },
+    ],
+    value: [],
+    onChange: fn(),
+    name: (kind: string) =>
+      kind === "end" ? "The whole section" : "Part of it",
+  },
+  decorators: [
+    // Controlled: what is ticked stays ticked.
+    controlled<ComponentProps<typeof CheckList>>(
+      "onChange",
+      (_current, value: string[]) => ({ value })
+    ),
+  ],
+} satisfies Meta<typeof CheckList>
 
 export default meta
-type Story = StoryObj<Args>
+type Story = StoryObj<typeof meta>
 
+/** Nothing ticked: each option with how many it would leave. */
 export const NoneTicked: Story = {
   name: "None ticked",
   play: async ({ canvas }) => {
@@ -57,7 +46,7 @@ export const NoneTicked: Story = {
   },
 }
 
-/** Reached by ticking one. */
+/** Reached by ticking one: the change is reported with its key. */
 export const OneTicked: Story = {
   name: "One ticked",
   play: async ({ canvas, userEvent, args }) => {

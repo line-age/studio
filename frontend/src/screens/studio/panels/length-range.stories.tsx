@@ -1,39 +1,27 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useState } from "react"
+import type { ComponentProps } from "react"
 import { expect, fn } from "storybook/test"
+
+import { controlled } from "@/test/controlled"
 
 import { LengthRange } from "./filter-controls"
 
 /* How long a section is, from and to, in km. Invented bounds. */
 
-interface Args {
-  from: number | null
-  to: number | null
-  bounds: readonly [number, number] | null
-  onChange: (from: number | null, to: number | null) => void
-}
-
-/** Keeps the range typed, and reports each change. */
-function Typed({ from, to, bounds, onChange }: Args) {
-  const [range, setRange] = useState({ from, to })
-  return (
-    <LengthRange
-      from={range.from}
-      to={range.to}
-      bounds={bounds}
-      onChange={(nextFrom, nextTo) => {
-        setRange({ from: nextFrom, to: nextTo })
-        onChange(nextFrom, nextTo)
-      }}
-    />
-  )
-}
-
 const meta = {
   title: "Studio/Filters/LengthRange",
   component: LengthRange,
   args: { from: null, to: null, bounds: [0, 1652], onChange: fn() },
-  render: (args) => <Typed {...args} />,
+  decorators: [
+    // Controlled: what is typed stays.
+    controlled<ComponentProps<typeof LengthRange>>(
+      "onChange",
+      (_current, from: number | null, to: number | null) => ({
+        from,
+        to,
+      })
+    ),
+  ],
 } satisfies Meta<typeof LengthRange>
 
 export default meta
@@ -52,6 +40,7 @@ export const Empty: Story = {
   },
 }
 
+/** A range in force: both ends typed. */
 export const Filled: Story = { args: { from: 5, to: 50 } }
 
 /** Reached by typing a from beyond the to: both boxes marked, and why. */

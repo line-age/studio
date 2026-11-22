@@ -63,8 +63,12 @@ The workspace `AGENTS.md` two levels up says how, in three sections; they hold h
   a control, a row, a chip) gets `*.stories.tsx` beside it: one Storybook entry per
   component, titled by where it lives (`Parts/…`, `Studio/List/…`,
   `Studio/Filters/…`); one story per state, named for the state; a play function on
-  a state reached by acting; a JSDoc line on the component and on each story saying
-  why it exists. A panel, or anything that needs the screen's data and store, gets an
+  a state reached by acting; a JSDoc line on the component, on each prop and on each
+  story saying why it exists. A story renders the component with its own props (a
+  controlled one through `controlled()` in `src/test/controlled.tsx`), so its docs
+  show real usage. Every story is also checked for accessibility (axe, through
+  `@storybook/addon-a11y`); a problem fails the test. Only a token question for
+  Figma may be set to `a11y: { test: "todo" }`, with a comment saying which. A panel, or anything that needs the screen's data and store, gets an
   RTL test instead; a pure function, a unit test. A visible change to a component
   updates its stories. The pull request reports coverage of the changed files.
 

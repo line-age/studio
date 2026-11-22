@@ -29,9 +29,13 @@ export const SEARCH_PAST: Record<Scope, { chip: string; all: string }> = {
   },
 }
 
+/** One filter in force, as a chip. */
 export interface Chip {
+  /** What the chip says: "Texas", "50 km or longer". */
   label: string
+  /** What the filter does, in a sentence, on hover. */
   hint: string
+  /** Its ×: take this filter off. */
   remove: () => void
 }
 
@@ -70,7 +74,12 @@ export function useFilterChips(widened: boolean): Chip[] {
 }
 
 /** The chips under the search, and Clear all where there are several. */
-export function FilterChips({ chips }: { chips: readonly Chip[] }) {
+export function FilterChips({
+  chips,
+}: {
+  /** The filters in force, in the order the table lists them. */
+  chips: readonly Chip[]
+}) {
   if (chips.length === 0) return null
   return (
     <div

@@ -21,7 +21,9 @@ export function LineKey({
   kind,
   className,
 }: {
+  /** Which line: solid, dotted, heavy, thin, dashed, ghost or selected. */
   kind: LineKind
+  /** Extra classes for its box, which is 28 by 16. */
   className?: string
 }) {
   return (
