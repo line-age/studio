@@ -204,7 +204,7 @@ describe("EditSectionsDialog", () => {
       await user.type(diameter, "16 in")
       await user.click(screen.getByRole("button", { name: "Save" }))
       expect(toast.error).toHaveBeenCalledWith(
-        "Store did not accept this change. Nothing was changed.",
+        "Couldn't save. Nothing was changed. The change was not accepted.",
         { description: "diameter must be positive" }
       )
       expect(toast).not.toHaveBeenCalled()

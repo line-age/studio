@@ -101,7 +101,7 @@ describe("section details", () => {
           ["a", detail("12 in")],
           [
             "b",
-            { error: "Store answered in a form Studio does not understand." },
+            { error: "Couldn't load. The answer was not in a form Studio understands." },
           ],
         ])
       )
@@ -111,7 +111,7 @@ describe("section details", () => {
     expect(shown("a")).toBe("12 in")
     expect(entry("b")).toMatchObject({
       status: "failed",
-      error: "Store answered in a form Studio does not understand.",
+      error: "Couldn't load. The answer was not in a form Studio understands.",
     })
   })
 

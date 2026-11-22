@@ -135,22 +135,30 @@ export function decideMembershipsBundle(
 export type WriteErrorKind =
   "unreachable" | "refused" | "decided" | "placed" | "invalid"
 
-const messages: Record<WriteErrorKind, string> = {
-  unreachable: "Store cannot be reached. Nothing was changed.",
-  refused: "Store refused this change. Nothing was changed.",
-  decided: "Someone has already decided this. Nothing was changed.",
-  placed: "A section is already in a pipeline. Nothing was changed.",
-  invalid: "Store did not accept this change. Nothing was changed.",
+/** What every failed save says first (Figma `471:17432`). */
+export const NOT_SAVED = "Couldn't save. Nothing was changed."
+
+/** Why, in plain words: nothing a person reads names store. */
+const reasons: Record<WriteErrorKind, string> = {
+  unreachable: "The connection dropped. Try again.",
+  refused: "You are not allowed to make this change.",
+  decided: "Someone has already decided this.",
+  placed: "A section is already in another pipeline.",
+  invalid: "The change was not accepted.",
 }
 
 /** Why a write failed, in words a person can act on. */
 export class WriteError extends Error {
   readonly kind: WriteErrorKind
+  /** The reason in plain words, without the "Couldn't save" before it. */
+  readonly reason: string
+  /** The refusal's own words, when it gave some (a value's rule). */
   readonly detail: string
   constructor(kind: WriteErrorKind, detail = "") {
-    super(messages[kind])
+    super(`${NOT_SAVED} ${reasons[kind]}`)
     this.name = "WriteError"
     this.kind = kind
+    this.reason = reasons[kind]
     this.detail = detail
   }
 }

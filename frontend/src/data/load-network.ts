@@ -161,7 +161,7 @@ function storeDetailReader(network: Network): DetailReader {
           parsed.success
             ? parsed.data
             : {
-                error: `Store answered in a form Studio does not understand. ${z.prettifyError(parsed.error)}`,
+                error: `Couldn't load. The answer was not in a form Studio understands. ${z.prettifyError(parsed.error)}`,
               }
         )
       } catch (error) {

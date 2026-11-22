@@ -23,9 +23,9 @@ export const LIST_LIMIT = 10000
 export type StoreErrorKind = "unreachable" | "refused" | "unreadable"
 
 const messages: Record<StoreErrorKind, string> = {
-  unreachable: "Store cannot be reached.",
-  refused: "Store refused the request.",
-  unreadable: "Store answered in a form Studio does not understand.",
+  unreachable: "Couldn't load. The connection dropped.",
+  refused: "Couldn't load. You do not have access.",
+  unreadable: "Couldn't load. The answer was not in a form Studio understands.",
 }
 
 /** Why reading from store failed, in words a person can act on. */

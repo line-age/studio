@@ -211,7 +211,7 @@ describe("Change pipeline", () => {
     applied.loseNext = true
     await user.click(dock.getByRole("button", { name: "Change" }))
     expect(await dock.findByRole("alert")).toHaveTextContent(
-      "Store cannot be reached."
+      "Couldn't save. Nothing was changed. The connection dropped. Try again."
     )
     await user.click(dock.getByRole("button", { name: "Change" }))
     expect(
