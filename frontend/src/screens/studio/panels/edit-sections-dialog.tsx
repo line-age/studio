@@ -34,6 +34,7 @@ import { typedError, writableOnStore } from "@/data/store/write-edits"
 import { cn } from "@/lib/utils"
 
 import { DateField } from "./date-field"
+import { toastSaved } from "../editing/use-save-change"
 import { useSaveSectionEdits } from "./section-edits"
 
 /*
@@ -197,9 +198,9 @@ function EditSectionsForm({
     const targetIds = active.map((s) => s.id)
     try {
       const undo = await save(targetIds, edits, note)
-      toast(
+      toastSaved(
         `Updated ${listWords(changedAttributes)} on ${plural(active.length, "section")}.`,
-        undo ? { action: { label: "Undo", onClick: undo } } : undefined
+        undo
       )
       onDone()
     } catch (error) {
@@ -380,7 +381,11 @@ function EditSectionsForm({
           </div>
         ))}
         <div className="border-t pt-4">
-          <EditModalField id="edit-note" label="Note (optional)">
+          <EditModalField
+            id="edit-note"
+            label="Note (optional)"
+            hint="Kept as the source of the change, shown with its citation."
+          >
             <Input
               id="edit-note"
               value={note}

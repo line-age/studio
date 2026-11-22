@@ -2,14 +2,16 @@ import {
   createContext,
   use,
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react"
 import { useShallow } from "zustand/react/shallow"
 
-import { applyChange, sendChange, type Change } from "@/data/changes"
+import { applyChange, inverseOf, sendChange, type Change } from "@/data/changes"
 
 import {
   editionRows,
@@ -67,6 +69,12 @@ interface StudioData {
    * again.
    */
   change: (change: Change, key?: string) => Promise<boolean>
+  /**
+   * The same as `change`, for a change a person makes in a modal: resolves
+   * with its Undo, which puts back what it did (on the sample the network as
+   * it was; on store the opposite change, `inverseOf`) and reads again.
+   */
+  undoable: (change: Change, key: string) => Promise<() => Promise<void>>
   /** What the switch above the list shows. */
   scope: Scope
   /** Every row of the list, whatever the filters say. */
@@ -143,6 +151,30 @@ export function StudioDataProvider({
     },
     [source, loaded, fetched, reload]
   )
+  // The network as shown now, for an Undo pressed later: its memberships
+  // are the ones store holds after the change.
+  const latest = useRef(loaded)
+  useEffect(() => {
+    latest.current = loaded
+  })
+  const undoable = useCallback(
+    async (made: Change, key: string) => {
+      const before = loaded
+      if (source === "store") {
+        const lookup = lookupIn(useDetails.getState())
+        const result = await sendChange(before, made, key, lookup)
+        await reload()
+        return async () => {
+          for (const back of inverseOf(before, made, result))
+            await sendChange(latest.current, back, actionKey(), lookup)
+          await reload()
+        }
+      }
+      setEdited({ from: fetched, to: applyChange(before, made, key) })
+      return async () => setEdited({ from: fetched, to: before })
+    },
+    [source, loaded, fetched, reload]
+  )
   const updateNetwork = useCallback(
     (updater: (network: Network) => Network) => {
       setEdited({ from: fetched, to: updater(loaded) })
@@ -192,6 +224,7 @@ export function StudioDataProvider({
       reload,
       source,
       change,
+      undoable,
       scope,
       summaries,
       everySection,
@@ -214,6 +247,7 @@ export function StudioDataProvider({
     reload,
     source,
     change,
+    undoable,
     updateNetwork,
   ])
 

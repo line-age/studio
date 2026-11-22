@@ -241,6 +241,22 @@ describe("a section's menu", () => {
     ).toBeTruthy()
   })
 
+  it("undoes a move from the toast, and says it is undone", async () => {
+    const user = await open()
+    const modal = await oneSection(user, "Move to a pipeline")
+    await user.click(modal.getByRole("radio", { name: "South line · P-002" }))
+    await user.click(modal.getByRole("button", { name: "Move 1 section" }))
+    await screen.findByText("The section is in South line now.")
+    await user.click(screen.getByRole("button", { name: "Undo" }))
+    expect(
+      await screen.findByText("Undone: The section is in South line now.")
+    ).toBeTruthy()
+    // Back in North line: its row counts both sections again.
+    expect(
+      screen.getByRole("option", { name: /North line/ })
+    ).toHaveTextContent("/2")
+  })
+
   it("stays open when not saved, and Try again sends the same change with the same key", async () => {
     const user = await open()
     const modal = await oneSection(user, "Remove from North line")
@@ -349,7 +365,7 @@ describe("a pipeline row's menu", () => {
     expect(modal.getByText("Will add 1 section and remove 1")).toBeTruthy()
     await user.click(modal.getByRole("button", { name: "Save changes" }))
     expect(
-      await screen.findByText("Added 1 section and removed 1 on North line.")
+      await screen.findByText("Added 1 section to North line and removed 1.")
     ).toBeTruthy()
     expect(applied.count).toBeGreaterThan(0)
   })

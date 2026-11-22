@@ -1,6 +1,6 @@
 import { appliesTo, isTyped, readTyped, ruleFor } from "../edit-rules"
 import { attributeStoreKey } from "./to-network"
-import { postBundle, type Bundle, type BundleClaim } from "./write"
+import { claimIdsOf, postBundle, type Bundle, type BundleClaim } from "./write"
 
 /*
  * Saving a person's Edit to store, as a bundle, through write.ts like every
@@ -130,15 +130,16 @@ export function editsBundle(
 /**
  * Writes the edits store can keep as one bundle (`editsBundle`). No `status`
  * is asked for: store decides candidate or accepted by who Studio's token
- * speaks for (see AGENTS.md on what that means today).
+ * speaks for (see AGENTS.md on what that means today). Resolves with the
+ * ids of the claims written, for an Undo that rejects them.
  */
 export async function saveEditsToStore(
   edits: readonly SectionEdit[],
   note: string
-): Promise<void> {
+): Promise<string[]> {
   const writable = persistableEdits(edits)
-  if (writable.length === 0) return
-  await postBundle(
+  if (writable.length === 0) return []
+  const answer = await postBundle(
     editsBundle(
       writable.map((edit) => ({
         feature: edit.sectionId,
@@ -149,4 +150,5 @@ export async function saveEditsToStore(
       note
     )
   )
+  return claimIdsOf(answer)
 }

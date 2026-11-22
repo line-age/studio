@@ -1,5 +1,7 @@
 import "mapbox-gl/dist/mapbox-gl.css"
 
+import type { ExpressionSpecification } from "mapbox-gl"
+
 import { useEffect, useMemo, useRef, useState } from "react"
 import MapGL, {
   AttributionControl,
@@ -412,6 +414,29 @@ export function StudioMap({ token }: { token: string }) {
     ],
     [draft, selected]
   )
+  // While picking, what the person is working on stands out: the pipeline's
+  // own sections and the ones added. The rest of the network is dimmed.
+  const focusFilter = useMemo(
+    () => [
+      "in",
+      ["get", "id"],
+      [
+        "literal",
+        draft
+          ? [
+              ...network.sections
+                .filter((s) => s.pipelineId === draft.pipelineId)
+                .map((s) => s.id),
+              ...draft.add,
+            ]
+          : [],
+      ],
+    ],
+    [draft, network]
+  )
+  const lineOpacity: ExpressionSpecification | number = draft
+    ? ["case", focusFilter as ExpressionSpecification, 1, 0.35]
+    : 1
   const removedFilter = useMemo(
     () => ["in", ["get", "id"], ["literal", draft ? [...draft.remove] : []]],
     [draft]
@@ -577,6 +602,7 @@ export function StudioMap({ token }: { token: string }) {
                     "line-join": "round",
                   }}
                   paint={{
+                    "line-opacity": lineOpacity,
                     "line-color": [
                       "case",
                       removedFilter,
@@ -602,6 +628,7 @@ export function StudioMap({ token }: { token: string }) {
                     "line-join": "round",
                   }}
                   paint={{
+                    "line-opacity": lineOpacity,
                     "line-color": [
                       "case",
                       removedFilter,

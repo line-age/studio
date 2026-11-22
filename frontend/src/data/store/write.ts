@@ -226,6 +226,17 @@ export async function post(path: string, body: unknown): Promise<unknown> {
   return json
 }
 
+/** The claim ids a bundle's answer gives for its claim refs ("claim-0"…). */
+export function claimIdsOf(answer: unknown): string[] {
+  const ids =
+    answer && typeof answer === "object" && "ids" in answer
+      ? (answer as { ids: Record<string, unknown> }).ids
+      : {}
+  return Object.entries(ids ?? {})
+    .filter(([ref]) => ref.startsWith("claim-"))
+    .map(([, id]) => String(id))
+}
+
 export function postBundle(bundle: Bundle): Promise<unknown> {
   return post("/bundles", bundle)
 }

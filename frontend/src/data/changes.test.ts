@@ -4,6 +4,7 @@ import { testNetwork } from "@/test/network"
 
 import {
   applyChange,
+  inverseOf,
   newPipelineId,
   pipelineDecision,
   sendChange,
@@ -286,5 +287,88 @@ describe("sendChange to store", () => {
         "k"
       )
     ).rejects.toThrow(/no id in store/)
+  })
+})
+
+describe("inverseOf: what Undo sends to store", () => {
+  it("puts moved sections back where each was, one change per place", () => {
+    const before = testNetwork()
+    expect(
+      inverseOf(
+        before,
+        {
+          kind: "place",
+          sectionIds: ["s-1", "s-3", "s-4"],
+          target: { kind: "pipeline", pipelineId: "p-3" },
+        },
+        { claimIds: [] }
+      )
+    ).toEqual([
+      {
+        kind: "place",
+        sectionIds: ["s-1"],
+        target: { kind: "pipeline", pipelineId: "p-1" },
+      },
+      {
+        kind: "place",
+        sectionIds: ["s-3"],
+        target: { kind: "pipeline", pipelineId: "p-2" },
+      },
+      { kind: "place", sectionIds: ["s-4"], target: { kind: "none" } },
+    ])
+  })
+
+  it("takes back a named new pipeline's sections and rejects its name", () => {
+    const undo = inverseOf(
+      testNetwork(),
+      {
+        kind: "place",
+        sectionIds: ["s-4"],
+        target: { kind: "new", name: "X" },
+      },
+      { claimIds: ["c-9"] }
+    )
+    expect(undo).toEqual([
+      { kind: "place", sectionIds: ["s-4"], target: { kind: "none" } },
+      { kind: "reject-claims", claimIds: ["c-9"] },
+    ])
+  })
+
+  it("undoes a pipeline's sections: the removed come back, the added go home", () => {
+    const undo = inverseOf(
+      testNetwork(),
+      { kind: "members", pipelineId: "p-1", add: ["s-3"], remove: ["s-1"] },
+      { claimIds: [] }
+    )
+    expect(undo).toEqual([
+      {
+        kind: "place",
+        sectionIds: ["s-3"],
+        target: { kind: "pipeline", pipelineId: "p-2" },
+      },
+      {
+        kind: "place",
+        sectionIds: ["s-1"],
+        target: { kind: "pipeline", pipelineId: "p-1" },
+      },
+    ])
+  })
+
+  it("rejects the claims an Edit pipeline wrote, and undoes no decision", () => {
+    const network = testNetwork()
+    expect(
+      inverseOf(
+        network,
+        { kind: "edit-pipeline", pipelineId: "p-1", edits: [], note: "" },
+        { claimIds: ["c-1", "c-2"] }
+      )
+    ).toEqual([{ kind: "reject-claims", claimIds: ["c-1", "c-2"] }])
+    expect(
+      inverseOf(
+        network,
+        { kind: "decide-pipeline", pipelineId: "p-3", verdict: "confirm" },
+        { claimIds: [] }
+      )
+    ).toEqual([])
   })
 })

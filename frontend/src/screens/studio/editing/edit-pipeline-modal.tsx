@@ -121,7 +121,11 @@ export function EditPipelineModal({
           )
         })}
         <div className="border-t pt-4">
-          <EditModalField id="edit-pipeline-note" label="Note">
+          <EditModalField
+            id="edit-pipeline-note"
+            label="Note"
+            hint="Kept as the source of the change, shown with its citation."
+          >
             <Input
               id="edit-pipeline-note"
               value={note}

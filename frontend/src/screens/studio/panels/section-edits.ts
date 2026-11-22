@@ -1,6 +1,7 @@
 import { applySectionEdits, listWords, type SectionEdit } from "@/data/derive"
 import { dataSource } from "@/data/load-network"
 import type { Network } from "@/data/schema"
+import { reviewClaim } from "@/data/store/write"
 import { saveEditsToStore, writableOnStore } from "@/data/store/write-edits"
 
 import { useStudioData, useUpdateNetwork } from "../studio-data"
@@ -21,7 +22,7 @@ export function useSaveSectionEdits(): (
   sectionIds: readonly string[],
   edits: readonly SectionEdit[],
   note: string
-) => Promise<(() => void) | undefined> {
+) => Promise<(() => Promise<void>) | undefined> {
   const updateNetwork = useUpdateNetwork()
   const { reload } = useStudioData()
   return async (sectionIds, edits, note) => {
@@ -35,7 +36,7 @@ export function useSaveSectionEdits(): (
           `Studio cannot clear ${listWords(cleared.map((edit) => edit.attribute))} on the store yet.`
         )
       }
-      await saveEditsToStore(
+      const claimIds = await saveEditsToStore(
         edits
           .filter(
             (edit): edit is SectionEdit & { value: string } =>
@@ -51,15 +52,21 @@ export function useSaveSectionEdits(): (
         note
       )
       // Store said yes: read it again, so what shows is what it holds.
-      reload()
-      return undefined
+      await reload()
+      // Undo takes the claims back: each rejected, kept in the history.
+      return claimIds.length > 0
+        ? async () => {
+            for (const id of claimIds) await reviewClaim(id, "reject")
+            await reload()
+          }
+        : undefined
     }
     let previous: Network | undefined
     updateNetwork((network) => {
       previous = network
       return applySectionEdits(network, sectionIds, edits, note)
     })
-    return () => {
+    return async () => {
       if (previous) updateNetwork(() => previous!)
     }
   }

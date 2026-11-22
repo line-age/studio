@@ -12,7 +12,7 @@ import { StudioDataProvider } from "../studio-data"
 import { EditSectionsDialog } from "./edit-sections-dialog"
 
 vi.mock("sonner", () => ({
-  toast: Object.assign(vi.fn(), { error: vi.fn() }),
+  toast: Object.assign(vi.fn(), { error: vi.fn(), success: vi.fn() }),
 }))
 
 afterEach(() => {
@@ -111,7 +111,7 @@ describe("EditSectionsDialog", () => {
     await user.clear(diameter)
     await user.type(diameter, "14 in")
     await user.click(screen.getByRole("button", { name: "Save" }))
-    expect(toast).toHaveBeenCalledWith(
+    expect(toast.success).toHaveBeenCalledWith(
       "Updated Diameter on 1 section.",
       expect.anything()
     )
@@ -207,7 +207,7 @@ describe("EditSectionsDialog", () => {
         "Couldn't save. Nothing was changed. The change was not accepted.",
         { description: "diameter must be positive" }
       )
-      expect(toast).not.toHaveBeenCalled()
+      expect(toast.success).not.toHaveBeenCalled()
       expect(screen.getByRole("dialog")).toBeInTheDocument()
     })
 
@@ -221,7 +221,7 @@ describe("EditSectionsDialog", () => {
       expect(toast.error).toHaveBeenCalledWith(
         "Studio cannot clear Diameter on the store yet."
       )
-      expect(toast).not.toHaveBeenCalled()
+      expect(toast.success).not.toHaveBeenCalled()
       expect(fetchMock).not.toHaveBeenCalled()
     })
 
@@ -236,8 +236,8 @@ describe("EditSectionsDialog", () => {
       await user.clear(diameter)
       await user.type(diameter, "14 in")
       await user.click(screen.getByRole("button", { name: "Save" }))
-      expect(toast).toHaveBeenCalledTimes(1)
-      expect(vi.mocked(toast).mock.calls[0][1]).toBeUndefined()
+      expect(toast.success).toHaveBeenCalledTimes(1)
+      expect(vi.mocked(toast.success).mock.calls[0][1]).toBeUndefined()
     })
 
     it("disables a field store cannot keep, with a Not editable yet hint", async () => {

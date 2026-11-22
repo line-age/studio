@@ -9,6 +9,7 @@ import {
 import { shortId } from "./short-id"
 import { editsBundle, PIPELINE_KEYS } from "./store/write-edits"
 import {
+  claimIdsOf,
   decideMembershipsBundle,
   mergeBundles,
   placeBundle,
@@ -56,6 +57,11 @@ export type Change =
       add: readonly string[]
       remove: readonly string[]
     }
+  /**
+   * Claims a person just wrote, taken back (Undo on store): each rejected.
+   * Store never deletes; a rejected claim stays in the history.
+   */
+  | { kind: "reject-claims"; claimIds: readonly string[] }
   /** A pipeline's own claims, as a person typed them, and why. */
   | {
       kind: "edit-pipeline"
@@ -214,6 +220,10 @@ export function applyChange(
         key
       )
     }
+    case "reject-claims":
+      // Only store's claims have ids; the sample's Undo puts back the
+      // network as it was instead.
+      return network
     case "edit-pipeline":
       return {
         ...network,
@@ -356,6 +366,51 @@ function pipelineEditsBundle(
   )
 }
 
+/**
+ * The changes that put back what `change` did, worked out from the network
+ * as it was before it (`before`) and what it made: sections go back to the
+ * pipeline they were in, or to none; claims written are rejected. A pipeline
+ * Make pipeline made stays, empty: store never deletes. Only the changes a
+ * person makes in a modal are undone this way; a decision is not.
+ */
+export function inverseOf(
+  before: Network,
+  change: Change,
+  made: Made
+): Change[] {
+  const byId = new Map(before.sections.map((s) => [s.id, s]))
+  /** Put each section back where it was, one change per place. */
+  const back = (ids: readonly string[]): Change[] => {
+    const places = new Map<string | null, string[]>()
+    for (const id of ids) {
+      const was = byId.get(id)?.pipelineId ?? null
+      places.set(was, [...(places.get(was) ?? []), id])
+    }
+    return [...places].map(([pipelineId, sectionIds]) => ({
+      kind: "place",
+      sectionIds,
+      target:
+        pipelineId === null
+          ? { kind: "none" }
+          : { kind: "pipeline", pipelineId },
+    }))
+  }
+  const rejected: Change[] =
+    made.claimIds.length > 0
+      ? [{ kind: "reject-claims", claimIds: made.claimIds }]
+      : []
+  switch (change.kind) {
+    case "place":
+      return [...back(change.sectionIds), ...rejected]
+    case "members":
+      return [...back([...change.add, ...change.remove])]
+    case "edit-pipeline":
+      return rejected
+    default:
+      return []
+  }
+}
+
 /** A write needs ids from store; the sample has none for some things. */
 export class MissingIdError extends Error {
   constructor(what: string) {
@@ -364,21 +419,27 @@ export class MissingIdError extends Error {
   }
 }
 
-/** Send `change` to store. */
+/** What a change wrote that its Undo needs: the ids of the claims it made. */
+export interface Made {
+  claimIds: string[]
+}
+
+/** Send `change` to store. Resolves with what it made, for its Undo. */
 export async function sendChange(
   network: Network,
   change: Change,
   key: string,
   /** Sections' details, for a candidate named by place and not by id. */
   details: DetailLookup = ownDetail
-): Promise<void> {
+): Promise<Made> {
+  const none: Made = { claimIds: [] }
   switch (change.kind) {
     case "place": {
       const sections = placedOf(network, change.sectionIds)
       const bundle = placeBundle(sections, change.target, key)
       const name =
         change.target.kind === "new" ? change.target.name?.trim() : undefined
-      await postBundle(
+      const answer = await postBundle(
         name
           ? mergeBundles(
               bundle,
@@ -390,7 +451,7 @@ export async function sendChange(
             )
           : bundle
       )
-      return
+      return { claimIds: claimIdsOf(answer) }
     }
     case "members": {
       const target: Target = { kind: "pipeline", pipelineId: change.pipelineId }
@@ -400,35 +461,42 @@ export async function sendChange(
           placeBundle(placedOf(network, change.remove), { kind: "none" }, key)
         )
       )
-      return
+      return none
     }
     case "edit-pipeline":
-      if (change.edits.length === 0) return
-      await postBundle(
-        pipelineEditsBundle(change.pipelineId, change.edits, change.note)
-      )
-      return
+      if (change.edits.length === 0) return none
+      return {
+        claimIds: claimIdsOf(
+          await postBundle(
+            pipelineEditsBundle(change.pipelineId, change.edits, change.note)
+          )
+        ),
+      }
+    case "reject-claims":
+      // One review each: store has no bundle for claim reviews yet.
+      for (const id of change.claimIds) await reviewClaim(id, "reject")
+      return none
     case "decide-pipeline": {
       const decision = pipelineDecision(network, change.pipelineId)
-      if (!decision) return
+      if (!decision) return none
       const linkIds =
         change.verdict === "confirm"
           ? decision.confirms.map((c) => c.linkId)
           : decision.proposed.map((p) => p.linkId)
-      if (linkIds.length === 0) return
+      if (linkIds.length === 0) return none
       await postBundle(decideMembershipsBundle(linkIds, change.verdict))
-      return
+      return none
     }
     case "decide-end":
       await reviewLink(change.endId, change.verdict)
-      return
+      return none
     case "decide-claim": {
       const id =
         change.at.id ??
         claimAt(network, change.at, details)?.proposals[change.at.index]?.id
       if (!id) throw new MissingIdError("claim")
       await reviewClaim(id, change.verdict === "confirm" ? "accept" : "reject")
-      return
+      return none
     }
   }
 }

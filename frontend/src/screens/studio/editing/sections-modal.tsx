@@ -10,7 +10,14 @@ import { Icon } from "@/components/icons/icon"
 import { Hint } from "@/components/hint"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { citedLabel, listWords, pipelineLabel, plural } from "@/data/derive"
+import {
+  citedLabel,
+  geometryBounds,
+  listWords,
+  pipelineLabel,
+  plural,
+  unionBounds,
+} from "@/data/derive"
 import type { Pipeline, Section } from "@/data/schema"
 import { actionKey } from "@/data/store/write"
 import { cn } from "@/lib/utils"
@@ -46,6 +53,15 @@ export function sectionsSummary(
   return parts.length > 0 ? `Will ${parts.join(" and ")}` : undefined
 }
 
+/** The toast once saved: "Added 2 sections to Tolland and removed 1." */
+function savedText(add: number, remove: number, pipeline: string): string {
+  if (add > 0 && remove > 0)
+    return `Added ${plural(add, "section")} to ${pipeline} and removed ${remove}.`
+  return add > 0
+    ? `Added ${plural(add, "section")} to ${pipeline}.`
+    : `Removed ${plural(remove, "section")} from ${pipeline}.`
+}
+
 export function SectionsModal({
   pipeline,
   draft,
@@ -59,6 +75,7 @@ export function SectionsModal({
   const rule = useSettings((s) => s.requiredAttributes)
   const draftSections = useStudio((s) => s.draftSections)
   const startPicking = useStudio((s) => s.startPicking)
+  const requestFit = useStudio((s) => s.requestFit)
   const [query, setQuery] = useState("")
   // One key per draft saved: a retry of the same draft makes nothing twice.
   const key = useRef(actionKey())
@@ -140,13 +157,7 @@ export function SectionsModal({
             remove: draft.remove,
           },
           key.current,
-          `${summary
-            .replace(/^Will add/, "Added")
-            .replace(/^Will remove/, "Removed")
-            .replace(
-              " and remove",
-              " and removed"
-            )} on ${pipelineLabel(pipeline)}.`
+          savedText(added.length, removing.size, pipelineLabel(pipeline))
         )
       }}
     >
@@ -206,7 +217,19 @@ export function SectionsModal({
               </ul>
             )}
           </div>
-          <Button type="button" variant="outline" onClick={startPicking}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              // The map frames the pipeline and what is added so far, so the
+              // picks are in view when the modal folds away.
+              const bounds = unionBounds(
+                [...members, ...added].map((s) => geometryBounds(s.geometry))
+              )
+              if (bounds) requestFit(bounds)
+              startPicking()
+            }}
+          >
             <Icon name="tool-select" className="size-3.5" />
             Pick on the map
           </Button>
