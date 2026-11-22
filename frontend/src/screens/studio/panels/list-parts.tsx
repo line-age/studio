@@ -1,11 +1,9 @@
 import { Hint } from "@/components/hint"
 import { Icon } from "@/components/icons/icon"
-import { plural, type SearchHit } from "@/data/derive"
+import { plural, type Scope, type SearchHit } from "@/data/derive"
 import { isActivate } from "@/lib/roving"
 
 import { AddToAgentMenu } from "../add-to-agent"
-import { useStudioData } from "../studio-data"
-import { listFollowsMap, useStudio } from "../studio-store"
 
 /** Most sections listed under one hit before the rest are counted. */
 const SECTION_ROWS = 6
@@ -79,14 +77,20 @@ export function EmptyList({
   search,
   total,
   hasSections,
+  scope,
+  followsMap,
 }: {
+  /** The search typed, and how many hits the filters keep out; null when none. */
   search: { outside: number; query: string } | null
   /** Rows the switch gives the list, before the filters and the view. */
   total: number
+  /** The network has any section at all. */
   hasSections: boolean
+  /** What the switch above the list shows. */
+  scope: Scope
+  /** The list shows only what is in the map view. */
+  followsMap: boolean
 }) {
-  const { scope } = useStudioData()
-  const onlyInView = useStudio(listFollowsMap)
   if (search) {
     return (
       <Hint className="p-3" role="status">
@@ -103,7 +107,7 @@ export function EmptyList({
           : scope === "unplaced" && hasSections
             ? "Every section is in a pipeline."
             : "This network has no sections."
-        : onlyInView
+        : followsMap
           ? "Nothing in the map view. Zoom out or pan, or switch off “List follows the map” on the map."
           : "Nothing matches the filters."}
     </Hint>

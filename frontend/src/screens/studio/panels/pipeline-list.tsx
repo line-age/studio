@@ -24,7 +24,7 @@ import { usePanelWidth } from "../panel-width-context"
 import { usePipelineChanges } from "../pipeline-actions"
 import { useSettings } from "../settings"
 import { useSelectionGroups, useStudioData } from "../studio-data"
-import { useStudio } from "../studio-store"
+import { listFollowsMap, useStudio } from "../studio-store"
 import { EmptyList, FoundSections } from "./list-parts"
 import { listColumns } from "./list-columns"
 
@@ -78,6 +78,7 @@ export function PipelineList({
 }) {
   const { scope, network } = useStudioData()
   const hasSections = network.sections.length > 0
+  const followsMap = useStudio(listFollowsMap)
   const rule = useSettings((s) => s.requiredAttributes)
   const groups = useSelectionGroups()
   const select = useStudio((s) => s.select)
@@ -419,7 +420,13 @@ export function PipelineList({
         )}
         {loose.map(renderRow)}
         {rows.length === 0 && (
-          <EmptyList search={search} total={total} hasSections={hasSections} />
+          <EmptyList
+            search={search}
+            total={total}
+            hasSections={hasSections}
+            scope={scope}
+            followsMap={followsMap}
+          />
         )}
       </div>
     </>
