@@ -20,7 +20,9 @@ class RuleError(ValueError):
     """A claim store's rules do not allow, said as store says it."""
 
 
-def check_claim(claim: dict[str, Any], *, kind: str | None = None, network: str | None = None) -> None:
+def check_claim(
+    claim: dict[str, Any], *, kind: str | None = None, network: str | None = None
+) -> None:
     """Raise RuleError when `claim` breaks store's rules for its attribute. `kind` and
     `network` are the feature's, checked when given."""
     key = claim.get("attribute")
@@ -32,13 +34,19 @@ def check_claim(claim: dict[str, Any], *, kind: str | None = None, network: str 
     if network is not None and rule["networks"] is not None and network not in rule["networks"]:
         raise RuleError(f"{key} does not apply to the {network} network")
     value_type = rule["value_type"]
-    needs = {"text": "value_text", "enum": "value_text", "quantity": "value_num",
-             "geometry": "value_geom", "feature": "value_feature"}[value_type]
+    needs = {
+        "text": "value_text",
+        "enum": "value_text",
+        "quantity": "value_num",
+        "geometry": "value_geom",
+        "feature": "value_feature",
+    }[value_type]
     if claim.get(needs) is None:
         raise RuleError(f"{key} needs a {value_type} value")
     if value_type == "enum" and claim["value_text"] not in rule["enum_values"]:
         raise RuleError(
-            f"{claim['value_text']} is not a value of {key} ({', '.join(rule['enum_values'])})")
+            f"{claim['value_text']} is not a value of {key} ({', '.join(rule['enum_values'])})"
+        )
     if value_type == "quantity":
         units = rule["units"]
         if units is not None and claim.get("value_unit") not in units:
