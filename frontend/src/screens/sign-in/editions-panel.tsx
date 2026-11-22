@@ -10,13 +10,15 @@ import cited1965 from "./assets/1965-cited.svg"
 import edge1965 from "./assets/1965-edge.svg"
 import sheet1965 from "./assets/1965-sheet.svg"
 import unknown1965 from "./assets/1965-unknown.svg"
+import { DevelopedBy } from "./developed-by"
 
 /*
  * The dark half of the sign-in page (Figma `433:16225`): three invented map
  * sheets, 1929, 1947 and 1965, on which a network grows. White lines are
- * cited, orange dotted ones Unknown. Decoration only: no store data, hidden
- * from assistive technology and on narrow screens. The layers are Figma's
- * own drawings, stacked in its order on an 864 by 1000 canvas.
+ * cited, orange dotted ones Unknown. The drawing is decoration only: no
+ * store data, hidden from assistive technology. The Tight Line credit sits
+ * at the bottom. The whole panel is hidden on narrow screens. The layers are
+ * Figma's own drawings, stacked in its order on an 864 by 1000 canvas.
  */
 
 const LAYERS = [
@@ -43,11 +45,11 @@ const YEARS = [
 
 export function EditionsPanel() {
   return (
-    <div
-      aria-hidden="true"
-      className="relative flex-1 overflow-hidden bg-topbar text-topbar-foreground max-md:hidden"
-    >
-      <div className="absolute inset-y-0 left-1/2 aspect-[864/1000] -translate-x-1/2">
+    <div className="relative flex-1 overflow-hidden bg-topbar text-topbar-foreground max-md:hidden">
+      <div
+        aria-hidden="true"
+        className="absolute inset-y-0 left-1/2 aspect-[864/1000] -translate-x-1/2"
+      >
         {LAYERS.map((src) => (
           <img
             key={src}
@@ -66,9 +68,9 @@ export function EditionsPanel() {
           </span>
         ))}
       </div>
-      <p className="absolute inset-x-0 bottom-10 text-center type-ui-sm-medium">
-        The history of a network, recovered from its maps.
-      </p>
+      <div className="absolute inset-x-0 bottom-10.5 flex justify-center">
+        <DevelopedBy surface="dark" />
+      </div>
     </div>
   )
 }

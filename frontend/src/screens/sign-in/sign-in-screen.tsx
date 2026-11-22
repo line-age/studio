@@ -78,8 +78,9 @@ export function SignInScreen({
             </p>
           </SignInCard>
         )}
-        <div className="absolute inset-x-0 bottom-10.5 mx-auto w-95 px-6">
-          <DevelopedBy />
+        {/* On a narrow screen the editions panel, and its credit, are hidden. */}
+        <div className="absolute inset-x-0 bottom-10.5 mx-auto w-95 px-6 md:hidden">
+          <DevelopedBy surface="light" />
         </div>
       </div>
       <EditionsPanel />
