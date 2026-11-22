@@ -6,6 +6,7 @@ import {
   signInHasEnded,
   signInReturn,
   signInUrl,
+  signOut,
   studioFetch,
   subscribeSignInEnded,
 } from "./session"
@@ -190,5 +191,26 @@ describe("studioFetch", () => {
     answer(() => json({}, 500))
     await studioFetch("/store/x")
     expect(signInHasEnded()).toBe(false)
+  })
+})
+
+describe("signOut", () => {
+  it("asks the gate to end the session, as Studio, then loads the same view", async () => {
+    at("/?sc=pipelines")
+    const fetchMock = answer(() => new Response(null, { status: 204 }))
+    const go = vi.fn()
+    await signOut(go)
+    const [path, init] = fetchMock.mock.calls[0]
+    expect(String(path)).toBe("/auth/logout")
+    expect(init?.method).toBe("POST")
+    expect(new Headers(init?.headers).get("X-Studio")).toBe("1")
+    expect(go).toHaveBeenCalledWith("/?sc=pipelines")
+  })
+
+  it("loads the page again even when the gate does not answer", async () => {
+    vi.stubGlobal("fetch", () => Promise.reject(new TypeError("offline")))
+    const go = vi.fn()
+    await signOut(go)
+    expect(go).toHaveBeenCalledWith("/")
   })
 })

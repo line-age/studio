@@ -90,9 +90,12 @@ export function signInUrl(options: { chooseAccount?: boolean } = {}): string {
  * comes up on the sign-in page, on the same view. A gate that does not answer
  * leaves the person where they were; the reload then shows what is true.
  */
-export async function signOut(): Promise<void> {
+export async function signOut(
+  /** Loads the page again. Tests pass their own. */
+  go: (url: string) => void = (url) => window.location.assign(url)
+): Promise<void> {
   await studioFetch("/auth/logout", { method: "POST" }).catch(() => null)
-  window.location.assign(currentView())
+  go(currentView())
 }
 
 /** Who is using Studio. Never throws: a gate that does not answer is a failure. */
