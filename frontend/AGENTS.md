@@ -58,6 +58,33 @@ The workspace `AGENTS.md` two levels up says how, in three sections; they hold h
   states (`*.stories.tsx` beside it; `storybook/test`'s `expect`, `fn`, `screen` for
   a popup; every step awaited; setup in `beforeEach`, never `afterEach`). Nothing
   checked twice.
+- **A new component comes with its tests, in the same change.** One with states a
+  person can see (anything in `src/components/`, and a panel part that takes props:
+  a control, a row, a chip) gets `*.stories.tsx` beside it: one Storybook entry per
+  component, titled by where it lives (`Parts/…`, `Studio/List/…`,
+  `Studio/Filters/…`); one story per state, named for the state; a play function on
+  a state reached by acting; a JSDoc line on the component and on each story saying
+  why it exists. A panel, or anything that needs the screen's data and store, gets an
+  RTL test instead; a pure function, a unit test. A visible change to a component
+  updates its stories. The pull request reports coverage of the changed files.
+
+### Storybook for agents (MCP)
+
+`@storybook/addon-mcp` serves the components to an agent while `pnpm storybook`
+runs: the `storybook` MCP server in `.mcp.json`, at `localhost:6006/mcp`
+(storybook.js.org/docs/ai; a preview feature). It reads each component's props from
+its TypeScript types and JSDoc (`features.componentsManifest`). When working on a
+component that has stories:
+
+- Look it up first: `docs-list`, then `docs-show` for its props and examples. Use only
+  props that are documented or shown in a story; a story's name is not a prop name. If
+  a prop is not there, do not guess from other libraries: ask.
+- Before writing or changing stories, read `get-storybook-story-instructions`. The
+  rules above win where they differ.
+- Check the work with `test-run` on the stories touched (it runs their play
+  functions), then `pnpm check`.
+- If Storybook is not running, start it (`pnpm storybook`) or say the tools are
+  missing; do not work around them.
 
 ## Commands
 
@@ -72,7 +99,7 @@ The workspace `AGENTS.md` two levels up says how, in three sections; they hold h
 | `pnpm format:check` / `pnpm format` | Prettier                                                           |
 | `pnpm test`                         | Vitest, once: the unit tests and every story                       |
 | `pnpm coverage`                     | The same, with line and branch coverage per file                   |
-| `pnpm storybook`                    | The stories, to look at beside Figma (port 6006)                   |
+| `pnpm storybook`                    | The stories, to look at beside Figma; MCP for agents (port 6006)   |
 | `pnpm fixtures:sample`              | Rebuild the invented sample `public/fixtures/sample.json`          |
 | `pnpm tokens:build`                 | Regenerate `src/styles/tokens.css` from `tokens/figma-tokens.json` |
 
