@@ -1,12 +1,14 @@
+import { appliesTo, isTyped, readTyped, ruleFor } from "../edit-rules"
 import { attributeStoreKey } from "./to-network"
 import { postBundle, type Bundle, type BundleClaim } from "./write"
 
 /*
  * Saving a person's Edit to store, as a bundle, through write.ts like every
- * other write. Only what a person can type and store can take is written
- * this way: a diameter. Status needs one of store's own words and Geometry a
- * line, so neither is typed; First seen, Last seen and Build date have no
- * claim slot yet. See AGENTS.md.
+ * other write. What can be written, and how typed text becomes a value, is
+ * store's own registry (`../edit-rules.ts`): an attribute whose value is
+ * typed (a diameter today; Status is chosen from store's words and Geometry
+ * is a line, so neither is typed) and that applies to a section. First seen,
+ * Last seen and Build date have no claim slot yet. See AGENTS.md.
  */
 
 export interface SectionEdit {
@@ -17,13 +19,11 @@ export interface SectionEdit {
 
 const STUDIO_SOURCE_REF = "studio-edit-source"
 
-/** Store keys whose value Studio can make from what a person types. */
-const TYPED_KEYS = new Set(["diameter"])
-
 /** Whether Edit can write this attribute to store. */
 export function writableOnStore(attribute: string): boolean {
   const key = attributeStoreKey(attribute)
-  return key !== null && TYPED_KEYS.has(key)
+  const rule = key ? ruleFor(key) : undefined
+  return !!rule && isTyped(rule) && appliesTo(rule, { kind: "section" })
 }
 
 /** Only the edits Edit can write to store. */
@@ -31,22 +31,19 @@ export function persistableEdits(edits: readonly SectionEdit[]): SectionEdit[] {
   return edits.filter((edit) => writableOnStore(edit.attribute))
 }
 
-/** "12 in" -> {value: 12, unit: "in"}. Whatever store expects for a quantity. */
-export function parseQuantity(
+/**
+ * Why typed text cannot be an attribute's value, by store's rules, or
+ * undefined when it can (or when store keeps no claim for the attribute).
+ */
+export function typedError(
+  attribute: string,
   text: string
-): { value: number; unit: string | null } | null {
-  const match = /^\s*(-?[\d.]+)\s*(.*?)\s*$/.exec(text)
-  if (!match) return null
-  const value = Number(match[1])
-  if (!Number.isFinite(value)) return null
-  return { value, unit: match[2] || null }
-}
-
-/** Why a typed diameter cannot be written, or undefined when it can. */
-export function diameterError(text: string): string | undefined {
-  return text.trim() === "" || parseQuantity(text)
-    ? undefined
-    : "Give a number, like 12 in."
+): string | undefined {
+  const key = attributeStoreKey(attribute)
+  const rule = key ? ruleFor(key) : undefined
+  if (!key || !rule || !isTyped(rule) || text.trim() === "") return undefined
+  const read = readTyped(key, text)
+  return read.ok ? undefined : read.message
 }
 
 /**
@@ -82,13 +79,13 @@ export async function saveEditsToStore(
       attribute: key,
       citations: [{ citation: citationRef, role: "confirms" }],
     }
-    const parsed = parseQuantity(edit.value)
-    if (!parsed) {
+    const read = readTyped(key, edit.value)
+    if (!read.ok) {
       throw new Error(
-        `${edit.attribute} "${edit.value}" is not a number. Nothing was changed.`
+        `${edit.attribute} "${edit.value}": ${read.message} Nothing was changed.`
       )
     }
-    claims.push({ ...base, value_num: parsed.value, value_unit: parsed.unit })
+    claims.push({ ...base, ...read.value })
   })
 
   await postBundle({

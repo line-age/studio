@@ -1,0 +1,216 @@
+{
+  "attributes": [
+    {
+      "key": "name",
+      "value_type": "text",
+      "cardinality": "one",
+      "feature_kinds": [
+        "line",
+        "section",
+        "station"
+      ],
+      "networks": null,
+      "enum_values": null,
+      "units": null,
+      "min_value": null
+    },
+    {
+      "key": "owner",
+      "value_type": "text",
+      "cardinality": "many",
+      "feature_kinds": [
+        "line",
+        "section",
+        "station"
+      ],
+      "networks": null,
+      "enum_values": null,
+      "units": null,
+      "min_value": null
+    },
+    {
+      "key": "operator",
+      "value_type": "text",
+      "cardinality": "one",
+      "feature_kinds": [
+        "line",
+        "section",
+        "station"
+      ],
+      "networks": null,
+      "enum_values": null,
+      "units": null,
+      "min_value": null
+    },
+    {
+      "key": "commodity",
+      "value_type": "enum",
+      "cardinality": "one",
+      "feature_kinds": [
+        "line",
+        "section"
+      ],
+      "networks": null,
+      "enum_values": [],
+      "units": null,
+      "min_value": null
+    },
+    {
+      "key": "status",
+      "value_type": "enum",
+      "cardinality": "one",
+      "feature_kinds": [
+        "line",
+        "section",
+        "station",
+        "node",
+        "edge"
+      ],
+      "networks": null,
+      "enum_values": [
+        "proposed",
+        "permitted",
+        "under_construction",
+        "operational",
+        "maintenance",
+        "decommissioned"
+      ],
+      "units": null,
+      "min_value": null
+    },
+    {
+      "key": "route",
+      "value_type": "geometry",
+      "cardinality": "one",
+      "feature_kinds": [
+        "section"
+      ],
+      "networks": null,
+      "enum_values": null,
+      "units": null,
+      "min_value": null
+    },
+    {
+      "key": "location",
+      "value_type": "geometry",
+      "cardinality": "one",
+      "feature_kinds": [
+        "station",
+        "node"
+      ],
+      "networks": null,
+      "enum_values": null,
+      "units": null,
+      "min_value": null
+    },
+    {
+      "key": "diameter",
+      "value_type": "quantity",
+      "cardinality": "one",
+      "feature_kinds": [
+        "section"
+      ],
+      "networks": [
+        "gas",
+        "oil",
+        "refined",
+        "water"
+      ],
+      "enum_values": null,
+      "units": [
+        "in",
+        "mm"
+      ],
+      "min_value": 0
+    },
+    {
+      "key": "voltage",
+      "value_type": "quantity",
+      "cardinality": "one",
+      "feature_kinds": [
+        "section"
+      ],
+      "networks": [
+        "electric"
+      ],
+      "enum_values": null,
+      "units": null,
+      "min_value": 0
+    },
+    {
+      "key": "gauge",
+      "value_type": "quantity",
+      "cardinality": "one",
+      "feature_kinds": [
+        "section"
+      ],
+      "networks": [
+        "road"
+      ],
+      "enum_values": null,
+      "units": null,
+      "min_value": 0
+    },
+    {
+      "key": "lanes",
+      "value_type": "quantity",
+      "cardinality": "one",
+      "feature_kinds": [
+        "section"
+      ],
+      "networks": [
+        "road"
+      ],
+      "enum_values": null,
+      "units": null,
+      "min_value": 0
+    },
+    {
+      "key": "station_kind",
+      "value_type": "enum",
+      "cardinality": "one",
+      "feature_kinds": [
+        "station"
+      ],
+      "networks": null,
+      "enum_values": [
+        "pump",
+        "compressor",
+        "substation",
+        "terminal",
+        "intake",
+        "delivery"
+      ],
+      "units": null,
+      "min_value": null
+    },
+    {
+      "key": "serves",
+      "value_type": "feature",
+      "cardinality": "many",
+      "feature_kinds": [
+        "station"
+      ],
+      "networks": null,
+      "enum_values": null,
+      "units": null,
+      "min_value": null
+    },
+    {
+      "key": "flow_direction",
+      "value_type": "enum",
+      "cardinality": "one",
+      "feature_kinds": [
+        "edge"
+      ],
+      "networks": null,
+      "enum_values": [
+        "forward",
+        "reverse",
+        "both"
+      ],
+      "units": null,
+      "min_value": null
+    }
+  ]
+}

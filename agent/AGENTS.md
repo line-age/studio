@@ -55,6 +55,12 @@ questions (B8). Behaviours are added one at a time, each with its eval first.
   as JSON Schema (from `store/model`, `Bundle.model_json_schema(by_alias=True)`);
   `tests/test_pipeline.py` checks every bundle the Agent builds against it with every
   object closed. Regenerate it when store's bundle changes.
+- **What a value may be is one file.** `contract/attribute-rules.json` is store's attribute
+  registry (value type, enum words, feature kinds, networks) plus limits store does not
+  enforce yet: a quantity's units and lower bound. `value_rules.py` checks every claim
+  against it in `ProposalClient.propose`, so a claim that breaks it is never sent.
+  Studio's frontend reads the same file (`frontend/src/data/edit-rules.ts`, its own copy,
+  held equal by a test); change both copies together.
 - **cite is a service, never imported.** It is reached over HTTP (`cite_client.py`,
   `CITE_URL`); its code, prompts and fixtures stay out of this public repo. Code checks
   every search request (`cite_flow.check_request`): places, years and turned-down values

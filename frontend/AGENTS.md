@@ -485,8 +485,13 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   error under Last seen) is disabled with a short note on real store, since store cannot
   yet take a date write from Studio — the simpler of the two options the owner allowed,
   over blocking Save; building the store write for dates is a later round. Status is
-  left out of this window for now. Saving a person's edit on the fixture, or on store
-  for a field store does take (everything but dates), writes it as an accepted claim
+  left out of this window for now. What can be typed, and how text becomes a value, is Studio's one rules file
+  (`src/data/edit-rules.ts`, zod schemas from `src/data/attribute-rules.json`: store's
+  registry plus a quantity's units and lower bound, which store does not enforce yet; the
+  same file the Agent checks its proposals against): a field that breaks it shows the
+  rule under it ("Give the unit: in or mm.") and Save waits. Never a check of a typed value
+  anywhere else. Saving a person's edit on the fixture, or on store
+  for a field store does take (a diameter today), writes it as an accepted claim
   at once: a person's edit needs no citation to be believed. An agent's claim is never
   changed this way; it stays a candidate until a review accepts or rejects it, same as
   before.

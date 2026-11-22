@@ -32,7 +32,7 @@ import { findEmbeddedDate, type DateParts } from "@/data/evidence"
 import { dataSource } from "@/data/load-network"
 import type { Section } from "@/data/schema"
 import { WriteError } from "@/data/store/write"
-import { diameterError, writableOnStore } from "@/data/store/write-edits"
+import { typedError, writableOnStore } from "@/data/store/write-edits"
 import { cn } from "@/lib/utils"
 
 import { DateField } from "./date-field"
@@ -175,17 +175,16 @@ function EditSectionsForm({
       ? "Last seen cannot be before First seen."
       : undefined
 
-  const typedError =
-    changedAttributes.includes("Diameter") && current("Diameter").trim() !== ""
-      ? diameterError(current("Diameter"))
-      : undefined
+  // Store's rules for a typed value (edit-rules.ts), on every changed field.
+  const typedErrors = new Map(
+    changedAttributes.flatMap((attribute) => {
+      const error = typedError(attribute, current(attribute))
+      return error ? [[attribute, error] as const] : []
+    })
+  )
   const errorOf = (attribute: string): string | undefined =>
-    attribute === "Last seen"
-      ? dateOrderError
-      : attribute === "Diameter"
-        ? typedError
-        : undefined
-  const blocked = !!dateOrderError || !!typedError
+    attribute === "Last seen" ? dateOrderError : typedErrors.get(attribute)
+  const blocked = !!dateOrderError || typedErrors.size > 0
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()

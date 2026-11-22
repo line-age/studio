@@ -171,7 +171,9 @@ describe("EditSectionsDialog", () => {
     const diameter = screen.getByLabelText("Diameter")
     await user.clear(diameter)
     await user.type(diameter, "about 12")
-    expect(diameter).toHaveAccessibleDescription("Give a number, like 12 in.")
+    expect(diameter).toHaveAccessibleDescription(
+      "Give a number and a unit, like 12 in."
+    )
     expect(diameter).toBeInvalid()
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled()
 
@@ -199,7 +201,7 @@ describe("EditSectionsDialog", () => {
       const user = await renderDialog(testNetwork(), ["s-1"])
       const diameter = screen.getByLabelText("Diameter")
       await user.clear(diameter)
-      await user.type(diameter, "-4 in")
+      await user.type(diameter, "16 in")
       await user.click(screen.getByRole("button", { name: "Save" }))
       expect(toast.error).toHaveBeenCalledWith(
         "Store did not accept this change. Nothing was changed.",

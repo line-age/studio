@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import {
-  parseQuantity,
-  persistableEdits,
-  saveEditsToStore,
-} from "./write-edits"
+import { persistableEdits, saveEditsToStore, typedError } from "./write-edits"
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -24,19 +20,12 @@ describe("persistableEdits", () => {
   })
 })
 
-describe("parseQuantity", () => {
-  it("splits a number from its unit", () => {
-    expect(parseQuantity("12 in")).toEqual({ value: 12, unit: "in" })
-    expect(parseQuantity("6in")).toEqual({ value: 6, unit: "in" })
-  })
-
-  it("allows a bare number, with no unit", () => {
-    expect(parseQuantity("12")).toEqual({ value: 12, unit: null })
-  })
-
-  it("says null for text with no number in it", () => {
-    expect(parseQuantity("Mixed")).toBeNull()
-    expect(parseQuantity("")).toBeNull()
+describe("typedError", () => {
+  it("checks a typed value by store's rules, and only where store keeps the claim", () => {
+    expect(typedError("Diameter", "12 in")).toBeUndefined()
+    expect(typedError("Diameter", "12")).toBe("Give the unit: in or mm.")
+    expect(typedError("First seen", "whenever")).toBeUndefined()
+    expect(typedError("Diameter", "  ")).toBeUndefined()
   })
 })
 
@@ -115,7 +104,7 @@ describe("saveEditsToStore", () => {
         ""
       )
     ).rejects.toThrow(
-      'Diameter "about 12" is not a number. Nothing was changed.'
+      'Diameter "about 12": Give a number and a unit, like 12 in. Nothing was changed.'
     )
     expect(fetchMock).not.toHaveBeenCalled()
   })
@@ -131,7 +120,7 @@ describe("saveEditsToStore", () => {
     )
     await expect(
       saveEditsToStore(
-        [{ sectionId: "s-1", attribute: "Diameter", value: "12 parsecs" }],
+        [{ sectionId: "s-1", attribute: "Diameter", value: "12 in" }],
         ""
       )
     ).rejects.toMatchObject({

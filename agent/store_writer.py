@@ -13,6 +13,7 @@ from typing import Any
 
 import httpx
 
+import value_rules
 from store_client import StoreError, check_store_url
 
 
@@ -41,7 +42,12 @@ class ProposalClient:
         )
 
     def propose(self, bundle: dict[str, Any]) -> dict[str, Any]:
-        """Send one bundle. Returns store's `ids` (ref to UUID) and `created`."""
+        """Send one bundle. Returns store's `ids` (ref to UUID) and `created`. A claim
+        store's rules refuse (value_rules) is never sent."""
+        try:
+            value_rules.check_bundle(bundle)
+        except value_rules.RuleError as exc:
+            raise StoreError("bad_request", str(exc)) from exc
         try:
             response = self._http.post("/bundles", json=bundle)
         except httpx.HTTPError as exc:
