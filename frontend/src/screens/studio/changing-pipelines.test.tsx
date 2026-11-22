@@ -310,6 +310,29 @@ describe("a pipeline row's menu", () => {
     expect(screen.getByRole("option", { name: /Calder Valley/ })).toBeTruthy()
   })
 
+  it("adds an owner to a pipeline, with why, and says so", async () => {
+    const user = await open()
+    const modal = await rightClick(user, pipelineRow(), "Edit pipeline")
+    const owner = modal.getByRole("textbox", { name: "Owner" })
+    await user.clear(owner)
+    await user.type(owner, "Birch Gas Co.")
+    await user.type(
+      modal.getByRole("textbox", { name: "Note" }),
+      "sold in 1950"
+    )
+    expect(modal.getByText("Will update Owner")).toBeTruthy()
+    await user.click(modal.getByRole("button", { name: "Save" }))
+    expect(await screen.findByText("Updated Owner on North line.")).toBeTruthy()
+  })
+
+  it("leaves a pipeline as it was when a field is emptied: emptying is not a change", async () => {
+    const user = await open()
+    const modal = await rightClick(user, pipelineRow(), "Edit pipeline")
+    await user.clear(modal.getByRole("textbox", { name: "Name" }))
+    expect(modal.getByText("No changes yet")).toBeTruthy()
+    expect(modal.getByRole("button", { name: "Save" })).toBeDisabled()
+  })
+
   it("changes a pipeline's sections in one save: one removed, one found and added", async () => {
     const user = await open()
     const modal = await rightClick(user, pipelineRow(), "Sections")
