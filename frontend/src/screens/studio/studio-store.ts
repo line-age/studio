@@ -35,6 +35,12 @@ export type PipelineEdit =
   | { mode: "change" | "add"; sectionIds: readonly string[] }
   | { mode: "done"; text: string; failed: boolean }
 
+/**
+ * The change being made in a modal (Figma section 20): which modal, and on
+ * what. One at a time; null while none is open. Not in the URL.
+ */
+export type Editing = { kind: "edit-sections"; sectionIds: readonly string[] }
+
 export interface FitRequest {
   bounds: Bounds
   /** Changes on every request so the map reacts even to the same bounds. */
@@ -158,6 +164,8 @@ export interface StudioState {
   pipelineEdit: PipelineEdit | null
   /** The citation pop-up: null while closed. */
   openedCitation: OpenCitation | null
+  /** The modal a change is being made in; null while none is open. */
+  editing: Editing | null
 
   /** Choose a status; the one already chosen goes back to all. */
   setStatus: (status: SectionStatus | "all") => void
@@ -239,6 +247,8 @@ export interface StudioState {
   sendQuestion: (sent: SentQuestion) => void
   /** Empty the composer after a question went to the Agent service. */
   clearAgentDraft: () => void
+  /** Open a change's modal, or close it (null). */
+  edit: (editing: Editing | null) => void
   /** Open the dock for choosing where sections go, or close it (null). */
   editPipeline: (edit: PipelineEdit | null) => void
   /** Open the citation pop-up at one claim's citation; 0 when not given. */
@@ -393,6 +403,7 @@ export const useStudio = create<StudioState>((set) => ({
   sentQuestions: [],
   pipelineEdit: null,
   openedCitation: null,
+  editing: null,
 
   setStatus: (status) =>
     set((s) => ({ status: s.status === status ? "all" : status })),
@@ -558,6 +569,7 @@ export const useStudio = create<StudioState>((set) => ({
   clearAgentDraft: () =>
     set({ agentAttachments: [], agentRefs: [], agentDraft: null }),
   editPipeline: (edit) => set({ pipelineEdit: edit }),
+  edit: (editing) => set({ editing }),
   detachFromAgent: (pipelineId) =>
     set((s) => ({
       agentAttachments: s.agentAttachments.filter(

@@ -49,7 +49,6 @@ import {
 import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { ClaimDetail } from "./claim-detail"
-import { EditSectionsDialog } from "./edit-sections-dialog"
 import { PipelineDock } from "./pipeline-dock"
 import { useStudio } from "../studio-store"
 
@@ -97,7 +96,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const [menuTargetIds, setMenuTargetIds] = useState<ReadonlySet<string>>(
     new Set()
   )
-  const [editTarget, setEditTarget] = useState<Section[]>([])
+  const edit = useStudio((s) => s.edit)
   const showPipelines = useStudio((s) => s.showPipelines)
   const selectPipeline = useStudio((s) => s.selectPipeline)
   const pipelineById = new Map(network.pipelines.map((p) => [p.id, p]))
@@ -324,9 +323,17 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                     }
                     edit={{
                       name: sectionLabel(section),
-                      onEditOne: () => setEditTarget([section]),
+                      onEditOne: () =>
+                        edit({
+                          kind: "edit-sections",
+                          sectionIds: [section.id],
+                        }),
                       count: targetSections.length,
-                      onEditAll: () => setEditTarget(targetSections),
+                      onEditAll: () =>
+                        edit({
+                          kind: "edit-sections",
+                          sectionIds: targetSections.map((s) => s.id),
+                        }),
                     }}
                     onOpenChange={(open) =>
                       setMenuTargetIds(
@@ -477,13 +484,6 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
       <PanelFooter>
         <span className="truncate">{selectionSize(groups)}</span>
       </PanelFooter>
-      <EditSectionsDialog
-        open={editTarget.length > 0}
-        onOpenChange={(open) => {
-          if (!open) setEditTarget([])
-        }}
-        sections={editTarget}
-      />
     </>
   )
 }

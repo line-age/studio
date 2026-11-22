@@ -48,6 +48,7 @@ import {
   useStudioData,
 } from "./studio-data"
 import { useStudio, type LeftPanel } from "./studio-store"
+import { EditingModals } from "./panels/editing-modals"
 import { TopBar, type Crumb } from "./top-bar"
 import { applyUrl, followView, type UrlView } from "./url-state"
 
@@ -404,6 +405,7 @@ function Loaded({ linked }: { linked: UrlView }) {
       right={<PropertiesPanel />}
     >
       <MapArea />
+      <EditingModals />
     </Frame>
   )
 }
