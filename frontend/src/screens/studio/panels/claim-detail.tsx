@@ -152,7 +152,6 @@ function Detail({ section, claim }: { section: Section; claim: Claim }) {
                     index,
                   },
                 ]}
-                starters={[{ words: STARTERS.say }]}
               >
                 <Citation
                   source={citation.source}

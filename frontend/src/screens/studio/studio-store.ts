@@ -27,13 +27,30 @@ export type LeftPanel = "pipelines" | "agent"
 export type LayerId = "proposed" | "faint"
 
 /**
- * "change": one section, moved, taken out or starting a new pipeline.
- * "add": several sections, into a pipeline. "done": what a change came to,
- * or why store refused it, in words.
+ * The change being made in a modal (Figma section 20): which modal, and on
+ * what. One at a time; null while none is open. Not in the URL.
  */
-export type PipelineEdit =
-  | { mode: "change" | "add"; sectionIds: readonly string[] }
-  | { mode: "done"; text: string; failed: boolean }
+export type Editing =
+  | { kind: "edit-sections"; sectionIds: readonly string[] }
+  /** Move or add to a pipeline; `removing` opens it on Not in a pipeline. */
+  | { kind: "move"; sectionIds: readonly string[]; removing?: boolean }
+  | { kind: "make"; sectionIds: readonly string[] }
+  | { kind: "edit-pipeline"; pipelineId: string }
+  | SectionsDraft
+
+/**
+ * The Sections modal of one pipeline: what Save will add and remove. Kept
+ * here, not in the modal, because Pick on the map folds the modal away and
+ * the map changes the same draft (Figma `475:17477`).
+ */
+export interface SectionsDraft {
+  kind: "sections"
+  pipelineId: string
+  add: readonly string[]
+  remove: readonly string[]
+  /** Picking on the map: the draft as it was, for Cancel. null otherwise. */
+  picking: { add: readonly string[]; remove: readonly string[] } | null
+}
 
 export interface FitRequest {
   bounds: Bounds
@@ -150,14 +167,10 @@ export interface StudioState {
   agentAsked: number
   /** Questions sent in this visit, each with what was attached to it. */
   sentQuestions: SentQuestion[]
-  /**
-   * The person is choosing where sections go (Change pipeline, Add to a
-   * pipeline), or reading what a change they made came to. Docked at the
-   * bottom of the right panel. Not in the URL.
-   */
-  pipelineEdit: PipelineEdit | null
   /** The citation pop-up: null while closed. */
   openedCitation: OpenCitation | null
+  /** The modal a change is being made in; null while none is open. */
+  editing: Editing | null
 
   /** Choose a status; the one already chosen goes back to all. */
   setStatus: (status: SectionStatus | "all") => void
@@ -239,8 +252,19 @@ export interface StudioState {
   sendQuestion: (sent: SentQuestion) => void
   /** Empty the composer after a question went to the Agent service. */
   clearAgentDraft: () => void
-  /** Open the dock for choosing where sections go, or close it (null). */
-  editPipeline: (edit: PipelineEdit | null) => void
+  /** Open a change's modal, or close it (null). */
+  edit: (editing: Editing | null) => void
+  /** The Sections modal's draft: what Save will add and remove. */
+  draftSections: (add: readonly string[], remove: readonly string[]) => void
+  /** Fold the Sections modal into the bar on the map. */
+  startPicking: () => void
+  /** Back to the modal: Done keeps the picks, Cancel drops only them. */
+  stopPicking: (keep: boolean) => void
+  /**
+   * A click on the map while picking: a section of the pipeline is marked
+   * for removal, or kept; any other is added, or taken off again.
+   */
+  togglePick: (sectionId: string, member: boolean) => void
   /** Open the citation pop-up at one claim's citation; 0 when not given. */
   openCitation: (
     sectionId: string,
@@ -391,8 +415,8 @@ export const useStudio = create<StudioState>((set) => ({
   agentAsked: 0,
   agentAskFocused: 0,
   sentQuestions: [],
-  pipelineEdit: null,
   openedCitation: null,
+  editing: null,
 
   setStatus: (status) =>
     set((s) => ({ status: s.status === status ? "all" : status })),
@@ -557,7 +581,48 @@ export const useStudio = create<StudioState>((set) => ({
     })),
   clearAgentDraft: () =>
     set({ agentAttachments: [], agentRefs: [], agentDraft: null }),
-  editPipeline: (edit) => set({ pipelineEdit: edit }),
+  edit: (editing) => set({ editing }),
+  draftSections: (add, remove) =>
+    set((s) =>
+      s.editing?.kind === "sections"
+        ? { editing: { ...s.editing, add, remove } }
+        : {}
+    ),
+  startPicking: () =>
+    set((s) =>
+      s.editing?.kind === "sections"
+        ? {
+            editing: {
+              ...s.editing,
+              picking: { add: s.editing.add, remove: s.editing.remove },
+            },
+          }
+        : {}
+    ),
+  stopPicking: (keep) =>
+    set((s) => {
+      const draft = s.editing
+      if (draft?.kind !== "sections" || !draft.picking) return {}
+      return {
+        editing: keep
+          ? { ...draft, picking: null }
+          : { ...draft, ...draft.picking, picking: null },
+      }
+    }),
+  togglePick: (sectionId, member) =>
+    set((s) => {
+      const draft = s.editing
+      if (draft?.kind !== "sections" || !draft.picking) return {}
+      const flip = (ids: readonly string[]) =>
+        ids.includes(sectionId)
+          ? ids.filter((id) => id !== sectionId)
+          : [...ids, sectionId]
+      return {
+        editing: member
+          ? { ...draft, remove: flip(draft.remove) }
+          : { ...draft, add: flip(draft.add) },
+      }
+    }),
   detachFromAgent: (pipelineId) =>
     set((s) => ({
       agentAttachments: s.agentAttachments.filter(

@@ -9,3 +9,6 @@ dist/
 tokens/figma-tokens.json
 src/styles/tokens.css
 .agents/skills/
+
+# Studio's value rules, shared with the Agent; the two copies are kept byte for byte.
+src/data/attribute-rules.json

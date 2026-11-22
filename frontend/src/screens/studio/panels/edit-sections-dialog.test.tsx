@@ -6,13 +6,13 @@ import { toast } from "sonner"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { withClaims, type Network, type Section } from "@/data/schema"
-import { testNetwork } from "@/test/network"
+import { evidenceNetwork, testNetwork } from "@/test/network"
 
 import { StudioDataProvider } from "../studio-data"
 import { EditSectionsDialog } from "./edit-sections-dialog"
 
 vi.mock("sonner", () => ({
-  toast: Object.assign(vi.fn(), { error: vi.fn() }),
+  toast: Object.assign(vi.fn(), { error: vi.fn(), success: vi.fn() }),
 }))
 
 afterEach(() => {
@@ -111,7 +111,7 @@ describe("EditSectionsDialog", () => {
     await user.clear(diameter)
     await user.type(diameter, "14 in")
     await user.click(screen.getByRole("button", { name: "Save" }))
-    expect(toast).toHaveBeenCalledWith(
+    expect(toast.success).toHaveBeenCalledWith(
       "Updated Diameter on 1 section.",
       expect.anything()
     )
@@ -166,7 +166,51 @@ describe("EditSectionsDialog", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled()
   })
 
+  it("says a diameter must be a number, and will not save one that is not", async () => {
+    const user = await renderDialog(testNetwork(), ["s-1"])
+    const diameter = screen.getByLabelText("Diameter")
+    await user.clear(diameter)
+    await user.type(diameter, "about 12")
+    expect(diameter).toHaveAccessibleDescription(
+      "Give a number and a unit, like 12 in."
+    )
+    expect(diameter).toBeInvalid()
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled()
+
+    await user.clear(diameter)
+    await user.type(diameter, "16 in")
+    expect(diameter).toBeValid()
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled()
+  })
+
   describe("on the store", () => {
+    it("does not offer Geometry as text: store needs a line", async () => {
+      vi.stubEnv("VITE_DATA_SOURCE", "store")
+      await renderDialog(evidenceNetwork(), ["s-6"])
+      expect(screen.getByLabelText("Geometry")).toBeDisabled()
+    })
+
+    it("shows store's reason when it refuses an edit", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(() =>
+          Promise.resolve(json({ detail: "diameter must be positive" }, 422))
+        )
+      )
+      vi.stubEnv("VITE_DATA_SOURCE", "store")
+      const user = await renderDialog(testNetwork(), ["s-1"])
+      const diameter = screen.getByLabelText("Diameter")
+      await user.clear(diameter)
+      await user.type(diameter, "16 in")
+      await user.click(screen.getByRole("button", { name: "Save" }))
+      expect(toast.error).toHaveBeenCalledWith(
+        "Couldn't save. Nothing was changed. The change was not accepted.",
+        { description: "diameter must be positive" }
+      )
+      expect(toast.success).not.toHaveBeenCalled()
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
+    })
+
     it("blocks clearing Diameter rather than saving a clear the store cannot keep", async () => {
       const fetchMock = vi.fn()
       vi.stubGlobal("fetch", fetchMock)
@@ -177,7 +221,7 @@ describe("EditSectionsDialog", () => {
       expect(toast.error).toHaveBeenCalledWith(
         "Studio cannot clear Diameter on the store yet."
       )
-      expect(toast).not.toHaveBeenCalled()
+      expect(toast.success).not.toHaveBeenCalled()
       expect(fetchMock).not.toHaveBeenCalled()
     })
 
@@ -192,8 +236,8 @@ describe("EditSectionsDialog", () => {
       await user.clear(diameter)
       await user.type(diameter, "14 in")
       await user.click(screen.getByRole("button", { name: "Save" }))
-      expect(toast).toHaveBeenCalledTimes(1)
-      expect(vi.mocked(toast).mock.calls[0][1]).toBeUndefined()
+      expect(toast.success).toHaveBeenCalledTimes(1)
+      expect(vi.mocked(toast.success).mock.calls[0][1]).toBeUndefined()
     })
 
     it("disables a field store cannot keep, with a Not editable yet hint", async () => {

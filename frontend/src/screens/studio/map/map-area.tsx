@@ -3,6 +3,7 @@ import { Suspense, lazy } from "react"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { Hint } from "@/components/hint"
 
+import { PickingBar } from "./pick-bar"
 import { AgentBar } from "./selection-bar"
 
 /*
@@ -38,8 +39,10 @@ export function MapArea() {
           Put your public token in .env.local as VITE_MAPBOX_TOKEN and restart
           the dev server. The lists and panels work without it.
         </Message>
-        {/* A selection made in the list still offers the Agent. */}
+        {/* A selection made in the list still offers the Agent; a pick
+            started without a map can still be finished or cancelled. */}
         <AgentBar />
+        <PickingBar />
       </div>
     )
   }

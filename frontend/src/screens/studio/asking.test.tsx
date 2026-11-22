@@ -97,12 +97,13 @@ describe("asking the Agent", () => {
     const user = await open()
     await user.click(screen.getByRole("option", { name: /North line/ }))
     const section = screen.getByRole("treeitem", { name: /Birch to Cedar/ })
-    // The row is ticked with its pipeline, so the changes are the selection's.
+    // The row is ticked with its pipeline, so the changes are the selection's,
+    // under the Edit items (Figma 472:17496).
     expect(await menu(user, section)).toEqual([
-      "Make pipeline",
-      "Add to a pipeline",
       "Edit",
       "Edit selected (2)",
+      "Make pipeline",
+      "Add to a pipeline",
       "Ask",
     ])
   })
@@ -164,7 +165,7 @@ describe("asking the Agent", () => {
     expect(agentBar).toBe(selection)
   })
 
-  it("offers questions that only read on a claim, by what the claim is", async () => {
+  it("offers Edit and Ask on a claim; Edit opens that section's Edit window", async () => {
     const user = await open()
     const claims = await openSection(user)
     const row = (name: string) =>
@@ -172,30 +173,24 @@ describe("asking the Agent", () => {
         .getAllByRole("treeitem")
         .find((r) => r.textContent?.startsWith(name))!
 
-    // Unknown, with a proposal waiting: all three, then the plain item.
-    expect(await menu(user, row("Diameter"))).toEqual([
-      "What does store say about this?",
-      "Why is this Unknown?",
-      "What is proposed here, and why?",
-      "Add to the Agent chat",
-    ])
-    await user.keyboard("{Escape}")
-    // Nothing that searches the sources or changes a claim.
-    expect(screen.queryByRole("menuitem", { name: /Find|Change/ })).toBeNull()
+    // Edit the section, or Ask: nothing more (the owner, 2026-11-22).
+    expect(await menu(user, row("Diameter"))).toEqual(["Edit", "Ask"])
+    await user.click(screen.getByRole("menuitem", { name: "Edit" }))
+    expect(
+      await screen.findByRole("dialog", { name: /Edit section Birch to Cedar/ })
+    ).toBeTruthy()
   })
 
-  it("starts the question: attaches the claim, opens the chat, puts the words in", async () => {
+  it("asks about a claim: attaches it, opens the chat, the box empty for the words", async () => {
     const user = await open()
     const claims = await openSection(user)
     const build = claims
       .getAllByRole("treeitem")
       .find((r) => r.textContent?.startsWith("Build date"))!
     await menu(user, build)
-    await user.click(
-      screen.getByRole("menuitem", { name: "Why is this Unknown?" })
-    )
+    await user.click(screen.getByRole("menuitem", { name: "Ask" }))
 
-    expect(message()).toHaveValue("Why is this Unknown?")
+    expect(message()).toHaveValue("")
     expect(message()).toHaveFocus()
     expect(agent()).toHaveTextContent("Build date")
     expect(agent()).toHaveTextContent("Claim · Birch to Cedar")
@@ -212,9 +207,8 @@ describe("asking the Agent", () => {
       .getAllByRole("treeitem")
       .find((r) => r.textContent?.startsWith("Build date"))!
     await menu(user, build)
-    await user.click(
-      screen.getByRole("menuitem", { name: "Why is this Unknown?" })
-    )
+    await user.click(screen.getByRole("menuitem", { name: "Ask" }))
+    await user.type(message(), "Why is this Unknown?")
     await user.click(within(agent()).getByRole("button", { name: "Send" }))
 
     const log = within(agent()).getByRole("log")
@@ -260,9 +254,7 @@ describe("asking the Agent", () => {
     const own = screen.getByRole("group", { name: "Claims about North line" })
     const owner = within(own).getAllByText("Owner")[1].closest("div")!
     await menu(user, owner)
-    await user.click(
-      screen.getByRole("menuitem", { name: "Add to the Agent chat" })
-    )
+    await user.click(screen.getByRole("menuitem", { name: "Ask" }))
     expect(useStudio.getState().agentRefs).toEqual([
       {
         kind: "claim",
@@ -276,9 +268,7 @@ describe("asking the Agent", () => {
     act(() => useStudio.getState().selectAttribute("s-1", "Diameter"))
     const sources = screen.getByRole("list", { name: "Sources" })
     await menu(user, within(sources).getByRole("listitem"))
-    await user.click(
-      screen.getByRole("menuitem", { name: "Add to the Agent chat" })
-    )
+    await user.click(screen.getByRole("menuitem", { name: "Ask" }))
     expect(useStudio.getState().agentRefs).toHaveLength(2)
     expect(useStudio.getState().agentRefs[1]).toMatchObject({
       kind: "citation",

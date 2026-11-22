@@ -26,9 +26,14 @@ export interface Placed {
   membershipId?: string
 }
 
-/** Where the sections go: an existing pipeline, a new one, or none. */
+/**
+ * Where the sections go: an existing pipeline, a new one (with a name a
+ * person gave it, or none until a source gives one), or none.
+ */
 export type Target =
-  { kind: "pipeline"; pipelineId: string } | { kind: "new" } | { kind: "none" }
+  | { kind: "pipeline"; pipelineId: string }
+  | { kind: "new"; name?: string }
+  | { kind: "none" }
 
 export interface BundleReview {
   link: string
@@ -36,7 +41,26 @@ export interface BundleReview {
   note?: string
 }
 
+/** A claim as a bundle carries it: a person's edit, with its citation. */
+export interface BundleClaim {
+  ref?: string
+  feature: string
+  attribute: string
+  value_text?: string
+  value_num?: number
+  value_unit?: string | null
+  citations: { citation: string; role: string }[]
+}
+
 export interface Bundle {
+  sources?: {
+    ref: string
+    kind: string
+    title: string
+    external_key?: { system: string; key: string }
+  }[]
+  citations?: { ref: string; source: string; quote?: string }[]
+  claims?: BundleClaim[]
   features?: {
     ref: string
     kind: "line"
@@ -63,7 +87,7 @@ export function actionKey(): string {
  * Put `sections` in `target`, as one bundle: the memberships they leave are
  * rejected (a section is in one pipeline for its whole life, so leaving one
  * says it was wrong), then the new ones confirmed. A section already in the
- * target is left alone. Makes a pipeline, adds to one, moves and takes out.
+ * target is left alone. Makes a pipeline, adds to one, moves and removes.
  */
 export function placeBundle(
   sections: readonly Placed[],
@@ -102,6 +126,25 @@ export function placeBundle(
 }
 
 /**
+ * Several bundle parts as one bundle, sent in one transaction. Their refs
+ * must not clash: each builder names its own.
+ */
+export function mergeBundles(...parts: readonly Bundle[]): Bundle {
+  const merged: Bundle = {}
+  for (const part of parts) {
+    for (const key of Object.keys(part) as (keyof Bundle)[]) {
+      const rows = part[key]
+      if (!rows || rows.length === 0) continue
+      ;(merged[key] as unknown[]) = [
+        ...((merged[key] as unknown[]) ?? []),
+        ...rows,
+      ]
+    }
+  }
+  return merged
+}
+
+/**
  * Confirm or reject proposed memberships, as one bundle: a proposed pipeline
  * is decided whole. The caller leaves out, for a confirm, the sections
  * already in another pipeline.
@@ -116,22 +159,30 @@ export function decideMembershipsBundle(
 export type WriteErrorKind =
   "unreachable" | "refused" | "decided" | "placed" | "invalid"
 
-const messages: Record<WriteErrorKind, string> = {
-  unreachable: "Store cannot be reached. Nothing was changed.",
-  refused: "Store refused this change. Nothing was changed.",
-  decided: "Someone has already decided this. Nothing was changed.",
-  placed: "A section is already in a pipeline. Nothing was changed.",
-  invalid: "Store did not accept this change. Nothing was changed.",
+/** What every failed save says first (Figma `471:17432`). */
+export const NOT_SAVED = "Couldn't save. Nothing was changed."
+
+/** Why, in plain words: nothing a person reads names store. */
+const reasons: Record<WriteErrorKind, string> = {
+  unreachable: "The connection dropped. Try again.",
+  refused: "You are not allowed to make this change.",
+  decided: "Someone has already decided this.",
+  placed: "A section is already in another pipeline.",
+  invalid: "The change was not accepted.",
 }
 
 /** Why a write failed, in words a person can act on. */
 export class WriteError extends Error {
   readonly kind: WriteErrorKind
+  /** The reason in plain words, without the "Couldn't save" before it. */
+  readonly reason: string
+  /** The refusal's own words, when it gave some (a value's rule). */
   readonly detail: string
   constructor(kind: WriteErrorKind, detail = "") {
-    super(messages[kind])
+    super(`${NOT_SAVED} ${reasons[kind]}`)
     this.name = "WriteError"
     this.kind = kind
+    this.reason = reasons[kind]
     this.detail = detail
   }
 }
@@ -173,6 +224,17 @@ export async function post(path: string, body: unknown): Promise<unknown> {
     throw new WriteError(writeErrorKind(response.status, detail), detail)
   }
   return json
+}
+
+/** The claim ids a bundle's answer gives for its claim refs ("claim-0"…). */
+export function claimIdsOf(answer: unknown): string[] {
+  const ids =
+    answer && typeof answer === "object" && "ids" in answer
+      ? (answer as { ids: Record<string, unknown> }).ids
+      : {}
+  return Object.entries(ids ?? {})
+    .filter(([ref]) => ref.startsWith("claim-"))
+    .map(([, id]) => String(id))
 }
 
 export function postBundle(bundle: Bundle): Promise<unknown> {

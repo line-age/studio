@@ -1,5 +1,7 @@
 import "mapbox-gl/dist/mapbox-gl.css"
 
+import type { ExpressionSpecification } from "mapbox-gl"
+
 import { useEffect, useMemo, useRef, useState } from "react"
 import MapGL, {
   AttributionControl,
@@ -14,14 +16,14 @@ import { MapControl } from "@/components/map-control"
 import { ToolPalette } from "@/components/tool-palette"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
-import { unionBounds, type Bounds } from "@/data/derive"
+import { pipelineLabel, unionBounds, type Bounds } from "@/data/derive"
 import { useSectionDetail } from "@/data/detail-store"
 import { proposedEndsFor } from "@/data/evidence"
 import { cn } from "@/lib/utils"
 
 import { SEARCH_INPUT_ID } from "../panels/pipelines-panel"
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
-import { usePipelineChanges } from "../pipeline-actions"
+import { useSectionChanges } from "../pipeline-actions"
 import { useLeftPanel } from "../left-panel-context"
 import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
@@ -31,7 +33,13 @@ import { readMapColors } from "./map-colors"
 import { addKeyName, holdsAddKey, mapClick } from "./click-selection"
 import { FollowMapToggle } from "./follow-map-toggle"
 import { DOTTED_EXTRA, LINE_WEIGHT, statusesDrawn } from "./line-style"
-import { sectionFeatures, type SectionFeature } from "./section-features"
+import { MapPickLabel } from "./map-pick-label"
+import { PickingBar } from "./pick-bar"
+import {
+  everyFeature,
+  sectionFeatures,
+  type SectionFeature,
+} from "./section-features"
 import { MapKey } from "./map-key"
 import { AgentBar } from "./selection-bar"
 
@@ -69,6 +77,8 @@ export function StudioMap({ token }: { token: string }) {
   const { openPanel } = useLeftPanel()
   const mapRef = useRef<MapRef>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  /** Where the pointer is, for the label beside it while picking. */
+  const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null)
   const [failed, setFailed] = useState(false)
 
   const layers = useStudio((s) => s.layers)
@@ -89,6 +99,11 @@ export function StudioMap({ token }: { token: string }) {
   const stepBack = useStudio((s) => s.stepBack)
   const select = useStudio((s) => s.select)
   const tool = useStudio((s) => s.tool)
+  // Picking a pipeline's sections on the map (Figma 475:17477): clicks
+  // change the Sections modal's draft, never the selection.
+  const editing = useStudio((s) => s.editing)
+  const togglePick = useStudio((s) => s.togglePick)
+  const draft = editing?.kind === "sections" && editing.picking ? editing : null
   const setTool = useStudio((s) => s.setTool)
 
   // The loop being drawn with the Lasso, in screen pixels.
@@ -107,7 +122,8 @@ export function StudioMap({ token }: { token: string }) {
   const setCamera = useCamera((s) => s.setCamera)
 
   const selection = useSelectionAttachments()
-  const pipelineChanges = usePipelineChanges()
+  const sectionChanges = useSectionChanges()
+  const edit = useStudio((s) => s.edit)
   const boxRef = useRef<HTMLDivElement>(null)
   /** The last move asked for, so a resize right after can redo it. */
   const lastFit = useRef<{
@@ -156,10 +172,16 @@ export function StudioMap({ token }: { token: string }) {
 
   // The sections the switch shows, sorted by the filters. What the switch
   // leaves out is in neither source: see sectionFeatures.
+  const picking = draft !== null
   const [current, faint] = useMemo(() => {
+    if (picking)
+      return [
+        collection(everyFeature(network.sections, criteria.rule)),
+        collection([]),
+      ]
     const features = sectionFeatures(summaries, criteria)
     return [collection(features.drawn), collection(features.faint)]
-  }, [summaries, criteria])
+  }, [picking, network, summaries, criteria])
 
   // The lines traced as gone behind the proposal being read: an end on Last
   // seen, a cut on Geometry. Drawn only while that claim is open.
@@ -308,6 +330,7 @@ export function StudioMap({ token }: { token: string }) {
       }
       if (event.key === "Escape") {
         if (loopRef.current) cancelLoop()
+        else if (useStudio.getState().editing?.kind === "sections") return
         else if (bar) dismissAgentBar()
         else setTool("select")
       } else if (event.key === "v" || event.key === "V") setTool("select")
@@ -324,17 +347,25 @@ export function StudioMap({ token }: { token: string }) {
 
   const onMouseDown = (event: MapMouseEvent) => {
     const { button, ctrlKey } = event.originalEvent
-    // Ctrl and drag turns the map, whatever the tool.
-    if (tool !== "lasso" || button !== 0 || ctrlKey) return
+    // Ctrl and drag turns the map, whatever the tool. Picking is by click.
+    if (tool !== "lasso" || picking || button !== 0 || ctrlKey) return
     event.preventDefault()
     loopRef.current = [[event.point.x, event.point.y]]
     setLoop(loopRef.current)
   }
 
   const onClick = (event: MapMouseEvent) => {
-    if (skipClick.current || tool === "lasso") return
     const properties = event.features?.[0]?.properties
     const id = properties?.id ? String(properties.id) : null
+    if (draft) {
+      // A click adds a section or takes it off; one of the pipeline's own
+      // is marked for removal, or kept. Empty map does nothing.
+      const section = id ? network.sections.find((s) => s.id === id) : null
+      if (section)
+        togglePick(section.id, section.pipelineId === draft.pipelineId)
+      return
+    }
+    if (skipClick.current || tool === "lasso") return
     // A click selects one section. With Cmd (Ctrl off a Mac) held it adds
     // one, or takes a selected one off.
     const action = mapClick({
@@ -370,12 +401,77 @@ export function StudioMap({ token }: { token: string }) {
     }
     const id = event.features?.[0]?.properties?.id
     setHoveredId(id ? String(id) : null)
+    setPointer(id ? { x: event.point.x, y: event.point.y } : null)
   }
 
+  // While picking, blue is what the clicks added and faint what they will
+  // remove (never dashed: dashed means proposed).
   const selectedFilter = useMemo(
-    () => ["in", ["get", "id"], ["literal", [...selected]]],
-    [selected]
+    () => [
+      "in",
+      ["get", "id"],
+      ["literal", draft ? [...draft.add] : [...selected]],
+    ],
+    [draft, selected]
   )
+  // While picking, what the person is working on stands out: the pipeline's
+  // own sections and the ones added. The rest of the network is dimmed.
+  const focusFilter = useMemo(
+    () => [
+      "in",
+      ["get", "id"],
+      [
+        "literal",
+        draft
+          ? [
+              ...network.sections
+                .filter((s) => s.pipelineId === draft.pipelineId)
+                .map((s) => s.id),
+              ...draft.add,
+            ]
+          : [],
+      ],
+    ],
+    [draft, network]
+  )
+  const lineOpacity: ExpressionSpecification | number = draft
+    ? ["case", focusFilter as ExpressionSpecification, 1, 0.35]
+    : 1
+  const removedFilter = useMemo(
+    () => ["in", ["get", "id"], ["literal", draft ? [...draft.remove] : []]],
+    [draft]
+  )
+  const hoverLabel = (() => {
+    if (!draft || !hoveredId || !pointer) return null
+    const section = network.sections.find((s) => s.id === hoveredId)
+    if (!section) return null
+    const nameOf = (id: string | null) => {
+      const p = network.pipelines.find((x) => x.id === id)
+      return p ? pipelineLabel(p) : null
+    }
+    const own = section.pipelineId === draft.pipelineId
+    const where = draft.add.includes(section.id)
+      ? "Picked"
+      : draft.remove.includes(section.id)
+        ? "Will be removed"
+        : own
+          ? `In ${nameOf(section.pipelineId)}`
+          : section.pipelineId
+            ? `In ${nameOf(section.pipelineId)}`
+            : "In no pipeline"
+    const click =
+      draft.add.includes(section.id) || draft.remove.includes(section.id)
+        ? "click to undo"
+        : own
+          ? "click to remove"
+          : "click to add"
+    return {
+      section: [section.code, section.name].filter(Boolean).join(" · "),
+      where,
+      click,
+      ...pointer,
+    }
+  })()
   const visibility = (on: boolean) => (on ? "visible" : "none")
 
   if (failed) {
@@ -387,7 +483,28 @@ export function StudioMap({ token }: { token: string }) {
       {/* Right click on the map offers what is selected to the Agent. */}
       <AddToAgentMenu
         items={selection}
-        changes={pipelineChanges([...selected])}
+        changes={sectionChanges([...selected])}
+        edit={
+          selected.size > 0
+            ? {
+                name: "",
+                count: selected.size,
+                // On the map no row was clicked: one is Edit, several are
+                // Edit selected (n) alone, never more than the menu says.
+                ...(selected.size === 1
+                  ? {
+                      onEditOne: () =>
+                        edit({
+                          kind: "edit-sections",
+                          sectionIds: [...selected],
+                        }),
+                    }
+                  : {}),
+                onEditAll: () =>
+                  edit({ kind: "edit-sections", sectionIds: [...selected] }),
+              }
+            : undefined
+        }
       >
         <div className="absolute inset-0">
           {/* On a Mac, Ctrl and click is a right click: it turns the map
@@ -427,7 +544,10 @@ export function StudioMap({ token }: { token: string }) {
               }}
               onClick={onClick}
               onMouseMove={onMouseMove}
-              onMouseLeave={() => setHoveredId(null)}
+              onMouseLeave={() => {
+                setHoveredId(null)
+                setPointer(null)
+              }}
               onError={(event) => {
                 console.error(event.error)
                 if (!mapRef.current?.isStyleLoaded()) setFailed(true)
@@ -482,8 +602,11 @@ export function StudioMap({ token }: { token: string }) {
                     "line-join": "round",
                   }}
                   paint={{
+                    "line-opacity": lineOpacity,
                     "line-color": [
                       "case",
+                      removedFilter,
+                      colors.ghost,
                       selectedFilter,
                       colors.selected,
                       colors.line,
@@ -505,8 +628,11 @@ export function StudioMap({ token }: { token: string }) {
                     "line-join": "round",
                   }}
                   paint={{
+                    "line-opacity": lineOpacity,
                     "line-color": [
                       "case",
+                      removedFilter,
+                      colors.ghost,
                       selectedFilter,
                       colors.selected,
                       colors.line,
@@ -577,13 +703,14 @@ export function StudioMap({ token }: { token: string }) {
         </svg>
       )}
 
-      <AgentBar />
+      {picking ? <PickingBar /> : <AgentBar />}
+      {hoverLabel && <MapPickLabel {...hoverLabel} />}
 
       {/* How to select several: said while exactly one section is selected
           and the Select tool is in hand. At the top centre, under the
           SelectionBar when that shows; never by the tools. No border, no
           shadow: it is not a control and takes no click. */}
-      {tool === "select" && selected.size === 1 && (
+      {!picking && tool === "select" && selected.size === 1 && (
         <p
           className={cn(
             "pointer-events-none absolute left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-md bg-background/80 px-1.5 py-0.5 type-ui-xs whitespace-nowrap text-muted-foreground",

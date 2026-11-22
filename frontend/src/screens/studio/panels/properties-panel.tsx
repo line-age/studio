@@ -33,24 +33,17 @@ import {
 } from "@/data/derive"
 import { OWNER_ROW, PIPELINE_ROW, proposedEndsFor } from "@/data/evidence"
 import { ON_PIPELINE, sectionStatus } from "@/data/status"
-import { useDetailLookup, useSectionDetail } from "@/data/detail-store"
+import { useSectionDetail } from "@/data/detail-store"
 import type { Geometry, Section } from "@/data/schema"
 import { Button } from "@/components/ui/button"
 import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
-import { usePipelineChanges } from "../pipeline-actions"
-import {
-  claimStarters,
-  pipelineRowStarters,
-  sectionClaimStarters,
-} from "../starters"
+import { useSectionChanges } from "../pipeline-actions"
 import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { ClaimDetail } from "./claim-detail"
-import { EditSectionsDialog } from "./edit-sections-dialog"
-import { PipelineDock } from "./pipeline-dock"
 import { useStudio } from "../studio-store"
 
 export function PropertiesPanel() {
@@ -65,7 +58,6 @@ export function PropertiesPanel() {
           and which of their claims are cited.
         </Hint>
         <div className="flex-1" />
-        <PipelineDock />
       </>
     )
   }
@@ -97,7 +89,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const [menuTargetIds, setMenuTargetIds] = useState<ReadonlySet<string>>(
     new Set()
   )
-  const [editTarget, setEditTarget] = useState<Section[]>([])
+  const edit = useStudio((s) => s.edit)
   const showPipelines = useStudio((s) => s.showPipelines)
   const selectPipeline = useStudio((s) => s.selectPipeline)
   const pipelineById = new Map(network.pipelines.map((p) => [p.id, p]))
@@ -140,7 +132,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const allSections = groups.flatMap((g) => g.summary.sections)
   const allIds = allSections.map((s) => s.id)
   const isChecked = (id: string) => selection.has(id)
-  const pipelineChanges = usePipelineChanges()
+  const sectionChanges = useSectionChanges()
   const checkedCount = selection.size
   // The header speaks for what is selected, not for the pipeline around it.
   const progress = multi
@@ -253,7 +245,14 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                     index: nth,
                   },
                 ]}
-                starters={claimStarters(claim)}
+                edit={{
+                  name: pipelineLabel(owner),
+                  count: 1,
+                  onEditOne: () =>
+                    edit({ kind: "edit-pipeline", pipelineId: owner.id }),
+                  onEditAll: () =>
+                    edit({ kind: "edit-pipeline", pipelineId: owner.id }),
+                }}
               >
                 <AttributeRow
                   className="pl-3"
@@ -309,7 +308,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
               return (
                 <Fragment key={section.id}>
                   <AddToAgentMenu
-                    changes={pipelineChanges(
+                    changes={sectionChanges(
                       isChecked(section.id) ? [...selection] : [section.id]
                     )}
                     items={
@@ -324,9 +323,17 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                     }
                     edit={{
                       name: sectionLabel(section),
-                      onEditOne: () => setEditTarget([section]),
+                      onEditOne: () =>
+                        edit({
+                          kind: "edit-sections",
+                          sectionIds: [section.id],
+                        }),
                       count: targetSections.length,
-                      onEditAll: () => setEditTarget(targetSections),
+                      onEditAll: () =>
+                        edit({
+                          kind: "edit-sections",
+                          sectionIds: targetSections.map((s) => s.id),
+                        }),
                     }}
                     onOpenChange={(open) =>
                       setMenuTargetIds(
@@ -394,7 +401,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                                   sectionIds: [section.id],
                                 },
                               ]}
-                              starters={pipelineRowStarters(section)}
+                              changes={sectionChanges([section.id])}
                             >
                               <AttributeRow
                                 role="treeitem"
@@ -473,17 +480,9 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
         ))}
       </div>
       <ClaimDetail />
-      <PipelineDock />
       <PanelFooter>
         <span className="truncate">{selectionSize(groups)}</span>
       </PanelFooter>
-      <EditSectionsDialog
-        open={editTarget.length > 0}
-        onOpenChange={(open) => {
-          if (!open) setEditTarget([])
-        }}
-        sections={editTarget}
-      />
     </>
   )
 }
@@ -510,7 +509,7 @@ function SectionClaimRows({
   onLeft: () => void
 }) {
   const { status, detail, retry } = useSectionDetail(section)
-  const lookup = useDetailLookup()
+  const edit = useStudio((s) => s.edit)
   return (
     <>
       {section.values
@@ -540,7 +539,14 @@ function SectionClaimRows({
                   attribute: value.attribute,
                 },
               ]}
-              starters={sectionClaimStarters(section, value, lookup)}
+              edit={{
+                name: sectionLabel(section),
+                count: 1,
+                onEditOne: () =>
+                  edit({ kind: "edit-sections", sectionIds: [section.id] }),
+                onEditAll: () =>
+                  edit({ kind: "edit-sections", sectionIds: [section.id] }),
+              }}
             >
               <AttributeRow
                 role="treeitem"

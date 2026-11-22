@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { usePanelWidth } from "../panel-width-context"
-import { usePipelineChanges } from "../pipeline-actions"
+import { usePipelineRowChanges, useSectionChanges } from "../pipeline-actions"
 import { useSettings } from "../settings"
 import { useSelectionGroups, useStudioData } from "../studio-data"
 import { listFollowsMap, useStudio } from "../studio-store"
@@ -90,7 +90,8 @@ export function PipelineList({
   const selection = useStudio((s) => s.selection)
   const [descending, setDescending] = useState(false)
   const attachments = useSelectionAttachments()
-  const pipelineChanges = usePipelineChanges()
+  const sectionChanges = useSectionChanges()
+  const pipelineRowChanges = usePipelineRowChanges()
   const listRef = useRef<HTMLDivElement>(null)
   /** The row last clicked or ticked: where a Shift-click run starts. */
   const anchor = useRef<string | null>(null)
@@ -204,10 +205,16 @@ export function PipelineList({
       )
     return (
       <Fragment key={summary.id}>
-        {/* On a row of the selection the menu offers all of the selection. */}
+        {/* A pipeline row edits that pipeline (never makes one again); a
+            group in none, as a row of the selection, offers the selection's
+            changes. A proposed pipeline is decided in the Agent's inbox. */}
         <AddToAgentMenu
           changes={
-            checked !== "unchecked" ? pipelineChanges([...selection]) : []
+            summary.kind === "pipeline"
+              ? pipelineRowChanges(summary.id)
+              : summary.kind === "first-seen" && checked !== "unchecked"
+                ? sectionChanges([...selection])
+                : []
           }
           items={
             checked !== "unchecked"

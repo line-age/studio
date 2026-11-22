@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import {
-  parseQuantity,
-  persistableEdits,
-  saveEditsToStore,
-} from "./write-edits"
+import { persistableEdits, saveEditsToStore, typedError } from "./write-edits"
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -24,19 +20,12 @@ describe("persistableEdits", () => {
   })
 })
 
-describe("parseQuantity", () => {
-  it("splits a number from its unit", () => {
-    expect(parseQuantity("12 in")).toEqual({ value: 12, unit: "in" })
-    expect(parseQuantity("6in")).toEqual({ value: 6, unit: "in" })
-  })
-
-  it("allows a bare number, with no unit", () => {
-    expect(parseQuantity("12")).toEqual({ value: 12, unit: null })
-  })
-
-  it("says null for text with no number in it", () => {
-    expect(parseQuantity("Mixed")).toBeNull()
-    expect(parseQuantity("")).toBeNull()
+describe("typedError", () => {
+  it("checks a typed value by store's rules, and only where store keeps the claim", () => {
+    expect(typedError("Diameter", "12 in")).toBeUndefined()
+    expect(typedError("Diameter", "12")).toBe("Give the unit: in or mm.")
+    expect(typedError("First seen", "whenever")).toBeUndefined()
+    expect(typedError("Diameter", "  ")).toBeUndefined()
   })
 })
 
@@ -93,22 +82,52 @@ describe("saveEditsToStore", () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it("writes a text claim, with no value_num, for a non-quantity attribute", async () => {
-    const fetchMock = vi.fn<
-      (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
-    >(() => Promise.resolve(json({ ids: {}, created: {} })))
+  it("never writes Status or Geometry as typed text: store needs its own word or a line", async () => {
+    const fetchMock = vi.fn()
     vi.stubGlobal("fetch", fetchMock)
     await saveEditsToStore(
-      [{ sectionId: "s-1", attribute: "Status", value: "Done" }],
+      [
+        { sectionId: "s-1", attribute: "Status", value: "Shown by 1932" },
+        { sectionId: "s-1", attribute: "Geometry", value: "Traced line" },
+      ],
       ""
     )
-    const body = JSON.parse(fetchMock.mock.calls[0][1]!.body as string)
-    expect(body.claims).toEqual([
-      expect.objectContaining({
-        feature: "s-1",
-        attribute: "status",
-        value_text: "Done",
-      }),
-    ])
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("refuses a diameter that is not a number instead of saving nothing quietly", async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal("fetch", fetchMock)
+    await expect(
+      saveEditsToStore(
+        [{ sectionId: "s-1", attribute: "Diameter", value: "about 12" }],
+        ""
+      )
+    ).rejects.toThrow(
+      'Diameter "about 12": Give a number and a unit, like 12 in. Nothing was changed.'
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("says why store refused, in its own words", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(
+          json({ detail: "diameter needs a unit store knows" }, 422)
+        )
+      )
+    )
+    await expect(
+      saveEditsToStore(
+        [{ sectionId: "s-1", attribute: "Diameter", value: "12 in" }],
+        ""
+      )
+    ).rejects.toMatchObject({
+      kind: "invalid",
+      message:
+        "Couldn't save. Nothing was changed. The change was not accepted.",
+      detail: "diameter needs a unit store knows",
+    })
   })
 })

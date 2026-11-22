@@ -48,15 +48,6 @@ export function useAskAgent(): (
 }
 
 /**
- * A question that only reads, offered in a menu: its words, and what it
- * attaches when that is not the menu's own thing (a proposal on a claim).
- */
-export interface Starter {
-  words: string
-  refs?: readonly AgentRef[]
-}
-
-/**
  * Right click on `children` offers to attach `items` to the next question
  * for the Agent, and opens the Agent panel. The menu is stock shadcn: it is
  * not in Figma yet (the owner asked for it on 2026-11-12). With nothing to
@@ -65,15 +56,18 @@ export interface Starter {
  */
 
 /**
- * What a right-click on a section row offers to edit: "Edit" always acts on
- * just the row clicked. A second "Edit selected (N)" item, naming how many
+ * What a right-click on a section offers to edit: "Edit" acts on just the
+ * row clicked. A second "Edit selected (N)" item, naming how many
  * `onEditAll` reaches, only appears when the row is ticked as part of a
- * larger selection — so a click never silently changes more than it says.
+ * larger selection, so a click never silently changes more than it says.
+ * On the map there is no row clicked: one section selected is "Edit",
+ * several are "Edit selected (N)" alone.
  */
 export interface EditTarget {
   /** The clicked row's own name, for the muted header above "Edit". */
   name: string
-  onEditOne: () => void
+  /** Edit the row alone. Left out where there is no row (the map). */
+  onEditOne?: () => void
   /** How many sections are selected; 1 hides the bulk item entirely. */
   count: number
   onEditAll: () => void
@@ -82,15 +76,14 @@ export interface EditTarget {
 export function AddToAgentMenu({
   items = [],
   refs = [],
-  starters = [],
   changes = [],
   edit,
   onOpenChange,
   children,
 }: {
   /**
-   * Changes the person makes at once, at the top (Make pipeline, Change
-   * pipeline). Only where a change can be made.
+   * Changes, each opening a modal (Move to a pipeline, Make pipeline, Edit
+   * pipeline), under the Edit items. Only where a change can be made.
    */
   changes?: readonly MenuChange[]
   /** Sections, by the pipeline or group they are in. */
@@ -98,14 +91,8 @@ export function AddToAgentMenu({
   /** Finer things: a claim, a source, a proposal. */
   refs?: readonly AgentRef[]
   /**
-   * Questions that only read, above "Add to the Agent chat". Each attaches
-   * the same things and puts its words in the message box.
-   */
-  starters?: readonly Starter[]
-  /**
-   * Section rows only: puts "Edit …" first, above "Add to Agent chat", both
-   * naming the same target, with a muted line at the top naming it too. Not
-   * offered with `starters` (section rows drop those three questions).
+   * Puts "Edit …" first, with a muted line at the top naming how many when
+   * several: a section's own Edit window, or a pipeline's.
    */
   edit?: EditTarget
   /** So the row(s) this menu acts on can be highlighted while it is open. */
@@ -121,14 +108,7 @@ export function AddToAgentMenu({
     askAgent(items, more)
   }
   const empty =
-    changes.length === 0 &&
-    !edit &&
-    items.length === 0 &&
-    refs.length === 0 &&
-    starters.every((starter) => !starter.refs?.length)
-  // Section rows (edit present) say plain "Ask"; claims, sources and the map
-  // keep their own, unrelated "Add to the Agent chat" wording.
-  const askLabel = edit ? "Ask" : "Add to the Agent chat"
+    changes.length === 0 && !edit && items.length === 0 && refs.length === 0
   return (
     <ContextMenu
       disabled={empty}
@@ -139,44 +119,30 @@ export function AddToAgentMenu({
     >
       <ContextMenuTrigger render={children} />
       <ContextMenuContent finalFocus={() => !chosen.current}>
-        {changes.map((item) => (
-          <ContextMenuItem key={item.label} onClick={item.onSelect}>
-            {item.label}
-          </ContextMenuItem>
-        ))}
-        {changes.length > 0 && <ContextMenuSeparator />}
         {edit && (
           <ContextMenuGroup>
             {edit.count > 1 && (
               <ContextMenuLabel>{`${edit.count} sections selected`}</ContextMenuLabel>
             )}
-            <ContextMenuItem onClick={edit.onEditOne}>Edit</ContextMenuItem>
+            {edit.onEditOne && (
+              <ContextMenuItem onClick={edit.onEditOne}>Edit</ContextMenuItem>
+            )}
             {edit.count > 1 && (
               <ContextMenuItem onClick={edit.onEditAll}>
                 {`Edit selected (${edit.count})`}
               </ContextMenuItem>
             )}
-            <ContextMenuSeparator />
           </ContextMenuGroup>
         )}
-        {starters.map((starter) => (
-          <ContextMenuItem
-            key={starter.words}
-            onClick={() =>
-              ask(items, {
-                refs: starter.refs ?? refs,
-                words: starter.words,
-              })
-            }
-          >
-            <Icon name="ask" />
-            {starter.words}
+        {changes.map((item) => (
+          <ContextMenuItem key={item.label} onClick={item.onSelect}>
+            {item.label}
           </ContextMenuItem>
         ))}
-        {starters.length > 0 && <ContextMenuSeparator />}
+        {(edit || changes.length > 0) && <ContextMenuSeparator />}
         <ContextMenuItem onClick={() => ask(items, { refs })}>
           <Icon name="ask" />
-          {askLabel}
+          Ask
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

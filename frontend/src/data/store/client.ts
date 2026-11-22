@@ -23,9 +23,9 @@ export const LIST_LIMIT = 10000
 export type StoreErrorKind = "unreachable" | "refused" | "unreadable"
 
 const messages: Record<StoreErrorKind, string> = {
-  unreachable: "Store cannot be reached.",
-  refused: "Store refused the request.",
-  unreadable: "Store answered in a form Studio does not understand.",
+  unreachable: "Couldn't load. The connection dropped.",
+  refused: "Couldn't load. You do not have access.",
+  unreadable: "Couldn't load. The answer was not in a form Studio understands.",
 }
 
 /** Why reading from store failed, in words a person can act on. */
@@ -257,89 +257,6 @@ export async function fetchLinks(
     )
   }
   return links
-}
-
-/** One bundle write: everything one source supports, in one transaction
- * (store's model/shapes.py Bundle). A claim never goes without its citation. */
-export interface BundleRequest {
-  sources?: {
-    ref: string
-    kind: string
-    title: string
-    external_key?: { system: string; key: string }
-  }[]
-  citations?: { ref: string; source: string; quote?: string }[]
-  claims?: {
-    ref?: string
-    feature: string
-    attribute: string
-    value_text?: string
-    value_num?: number
-    value_unit?: string | null
-    citations: { citation: string; role: string }[]
-  }[]
-}
-
-const bundleResult = z.object({
-  ids: z.record(z.string(), z.string()),
-  created: z.record(z.string(), z.boolean()),
-})
-
-export type BundleResult = z.infer<typeof bundleResult>
-
-/** Writes a bundle to store. Throws StoreError on anything but 2xx. */
-export async function postBundle(bundle: BundleRequest): Promise<BundleResult> {
-  let response: Response
-  try {
-    response = await studioFetch(`${BASE}/bundles`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(bundle),
-    })
-  } catch {
-    throw new StoreError("unreachable", `No answer from ${BASE}/bundles.`)
-  }
-  if (response.status === 401 || response.status === 403) {
-    throw new StoreError(
-      "refused",
-      `/bundles answered ${response.status}. Is the sign-in still on?`
-    )
-  }
-  if ([502, 503, 504].includes(response.status)) {
-    throw new StoreError(
-      "unreachable",
-      `/bundles answered ${response.status}. Is store running, and is STORE_URL right?`
-    )
-  }
-  if (!response.ok) {
-    let detail = ""
-    try {
-      detail = await response.text()
-    } catch {
-      // No body to read; the status itself is detail enough.
-    }
-    throw new StoreError(
-      "unreadable",
-      `/bundles answered ${response.status}.${detail ? ` ${detail}` : ""}`
-    )
-  }
-  let json: unknown
-  try {
-    json = await response.json()
-  } catch {
-    throw new StoreError("unreadable", "/bundles did not answer with JSON.")
-  }
-  const result = bundleResult.safeParse(json)
-  if (!result.success) {
-    throw new StoreError(
-      "unreadable",
-      `/bundles\n${z.prettifyError(result.error)}`
-    )
-  }
-  return result.data
 }
 
 /** Most features store gives in one answer. */
