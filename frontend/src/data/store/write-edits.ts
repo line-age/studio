@@ -46,27 +46,31 @@ export function typedError(
   return read.ok ? undefined : read.message
 }
 
-/**
- * Writes the edits store can keep as one bundle: a shared "Studio edit"
- * source (idempotent: the same external key every time), one citation per
- * claim carrying the edit's note, and one claim per attribute per section.
- * No `status` is asked for: store decides candidate or accepted by who
- * Studio's token speaks for (see AGENTS.md on what that means today). A
- * value it cannot write is an error, never skipped: the person is told
- * nothing was saved rather than that it was.
- */
-export async function saveEditsToStore(
-  edits: readonly SectionEdit[],
-  note: string
-): Promise<void> {
-  const writable = persistableEdits(edits)
-  if (writable.length === 0) return
+/** One claim a person types, on any feature: store's key and the text. */
+export interface FeatureEdit {
+  /** A feature's id, or a ref to one made in the same bundle. */
+  feature: string
+  /** Store's attribute key. */
+  key: string
+  /** The attribute as Studio names it, for the words of a mistake. */
+  label: string
+  value: string
+}
 
+/**
+ * The part of a bundle that writes a person's typed values: a shared "Studio
+ * edit" source (idempotent: the same external key every time), one citation
+ * per claim carrying the edit's note, and one claim per edit. A value the
+ * rules refuse is an error, never skipped.
+ */
+export function editsBundle(
+  edits: readonly FeatureEdit[],
+  note: string
+): Required<Pick<Bundle, "sources" | "citations" | "claims">> {
   const citations: NonNullable<Bundle["citations"]> = []
   const claims: BundleClaim[] = []
 
-  writable.forEach((edit, index) => {
-    const key = attributeStoreKey(edit.attribute)!
+  edits.forEach((edit, index) => {
     const citationRef = `citation-${index}`
     citations.push({
       ref: citationRef,
@@ -75,20 +79,20 @@ export async function saveEditsToStore(
     })
     const base = {
       ref: `claim-${index}`,
-      feature: edit.sectionId,
-      attribute: key,
+      feature: edit.feature,
+      attribute: edit.key,
       citations: [{ citation: citationRef, role: "confirms" }],
     }
-    const read = readTyped(key, edit.value)
+    const read = readTyped(edit.key, edit.value)
     if (!read.ok) {
       throw new Error(
-        `${edit.attribute} "${edit.value}": ${read.message} Nothing was changed.`
+        `${edit.label} "${edit.value}": ${read.message} Nothing was changed.`
       )
     }
     claims.push({ ...base, ...read.value })
   })
 
-  await postBundle({
+  return {
     sources: [
       {
         ref: STUDIO_SOURCE_REF,
@@ -99,5 +103,29 @@ export async function saveEditsToStore(
     ],
     citations,
     claims,
-  })
+  }
+}
+
+/**
+ * Writes the edits store can keep as one bundle (`editsBundle`). No `status`
+ * is asked for: store decides candidate or accepted by who Studio's token
+ * speaks for (see AGENTS.md on what that means today).
+ */
+export async function saveEditsToStore(
+  edits: readonly SectionEdit[],
+  note: string
+): Promise<void> {
+  const writable = persistableEdits(edits)
+  if (writable.length === 0) return
+  await postBundle(
+    editsBundle(
+      writable.map((edit) => ({
+        feature: edit.sectionId,
+        key: attributeStoreKey(edit.attribute)!,
+        label: edit.attribute,
+        value: edit.value,
+      })),
+      note
+    )
+  )
 }
