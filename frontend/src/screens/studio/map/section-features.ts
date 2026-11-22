@@ -5,7 +5,7 @@ import {
   type PipelineSummary,
   type SectionCriteria,
 } from "@/data/derive"
-import type { Geometry } from "@/data/schema"
+import type { Geometry, Section } from "@/data/schema"
 import { sectionStatus } from "@/data/status"
 
 export type SectionFeature = {
@@ -52,4 +52,24 @@ export function sectionFeatures(
     }
   }
   return { drawn, faint }
+}
+
+/**
+ * Every section of the network, while a pipeline's sections are picked on
+ * the map: the whole network is shown whatever the switch and the filters
+ * say, so a section in no pipeline can be found and added (Figma, flow 4.2).
+ */
+export function everyFeature(
+  sections: readonly Section[],
+  rule: SectionCriteria["rule"]
+): SectionFeature[] {
+  return sections.map((section) => ({
+    type: "Feature",
+    geometry: section.geometry,
+    properties: {
+      id: section.id,
+      status: sectionStatus(section, rule),
+      placed: isPlaced(section),
+    },
+  }))
 }
