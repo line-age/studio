@@ -6,9 +6,6 @@ import { storybookTest } from "@storybook/addon-vitest/vitest-plugin"
 import { playwright } from "@vitest/browser-playwright"
 import { defineConfig } from "vitest/config"
 
-// Any token is taken by the fake GitHub; this one names itself in store's logs.
-const LOCAL_DEV_TOKEN = "local-dev"
-
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   // STORE_URL is read here, on the server side. Store refuses a request with no
@@ -18,7 +15,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, import.meta.dirname, "")
   const localToken =
     env.VITE_AUTH === "local"
-      ? { Authorization: `Bearer ${LOCAL_DEV_TOKEN}` }
+      ? { Authorization: "Bearer local-dev" }
       : undefined
   // With GATE_URL, sign-in, store and the Agent all go through the gate, which
   // adds the signed-in person's token (plan 2026-11-21-003). It keeps the
@@ -27,7 +24,7 @@ export default defineConfig(({ mode }) => {
     ? Object.fromEntries(
         ["/auth", "/store", "/agent"].map((path) => [
           path,
-          { target: env.GATE_URL, changeOrigin: false },
+          { target: env.GATE_URL },
         ])
       )
     : null

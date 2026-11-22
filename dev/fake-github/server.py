@@ -14,7 +14,6 @@ Standard library only, so it runs in a bare Python image.
 
 from __future__ import annotations
 
-import argparse
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -22,7 +21,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 # fake can never give its Local developer to a real account.
 LOGIN = "local_developer"
 NAME = "Local developer"
-TEAM = ("local", "dev")
+# The team store is told to admit (LINEAGE_GITHUB_TEAMS=local/dev).
+MEMBERSHIP_PATH = f"/orgs/local/teams/dev/memberships/{LOGIN}"
 
 USER = {"login": LOGIN, "id": 1, "name": NAME, "email": None, "type": "User"}
 MEMBERSHIP = {"state": "active", "role": "member"}
@@ -34,8 +34,7 @@ def answer(path: str, authorization: str) -> tuple[int, dict]:
         return 401, {"message": "Requires authentication"}
     if path == "/user":
         return 200, USER
-    org, slug = TEAM
-    if path == f"/orgs/{org}/teams/{slug}/memberships/{LOGIN}":
+    if path == MEMBERSHIP_PATH:
         return 200, MEMBERSHIP
     return 404, {"message": "Not Found"}
 
@@ -50,17 +49,10 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
-    def log_message(self, format: str, *args: object) -> None:
-        # Path and status only; never a header, so never a token.
-        print(f"{self.command} {self.path.split('?', 1)[0]} {args[1] if len(args) > 1 else ''}", flush=True)
-
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8000)
-    args = parser.parse_args()
-    ThreadingHTTPServer((args.host, args.port), Handler).serve_forever()
+    # Inside its container only; compose publishes no port.
+    ThreadingHTTPServer(("0.0.0.0", 8000), Handler).serve_forever()
 
 
 if __name__ == "__main__":

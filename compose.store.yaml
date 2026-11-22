@@ -15,7 +15,6 @@ services:
     build:
       args:
         VITE_DATA_SOURCE: store
-        # On one machine, with no gate: Local developer, by the token below.
         VITE_AUTH: local
     image: lineage-studio-frontend:local
     environment:

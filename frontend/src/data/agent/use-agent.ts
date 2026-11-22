@@ -50,16 +50,11 @@ export function savedMessage(raw: unknown): RawMessage {
   return (raw ?? {}) as RawMessage
 }
 
-let shared: Client | null = null
-
 /** The one client for the Agent service, sending through studioFetch. */
-function agentClient(): Client {
-  shared ??= new Client({
-    apiUrl: `${window.location.origin}/agent`,
-    callerOptions: { fetch: studioFetch },
-  })
-  return shared
-}
+const client = new Client({
+  apiUrl: `${window.location.origin}/agent`,
+  callerOptions: { fetch: studioFetch },
+})
 
 /** Turns from the thread's messages: each question, and the answer that names it. */
 export function turnsFrom(messages: readonly RawMessage[]): AgentTurn[] {
@@ -103,8 +98,8 @@ export function useSharedThread(epoch: number): "ready" | "down" | "starting" {
   const [state, setState] = useState<"ready" | "down" | "starting">("starting")
   useEffect(() => {
     let live = true
-    agentClient()
-      .threads.create({ threadId: SHARED_THREAD_ID, ifExists: "do_nothing" })
+    client.threads
+      .create({ threadId: SHARED_THREAD_ID, ifExists: "do_nothing" })
       .then(() => live && setState("ready"))
       .catch(() => live && setState("down"))
     return () => {
@@ -116,7 +111,7 @@ export function useSharedThread(epoch: number): "ready" | "down" | "starting" {
 
 export function useAgent() {
   const stream = useStream({
-    client: agentClient(),
+    client: client,
     assistantId: ASSISTANT,
     threadId: SHARED_THREAD_ID,
   })
@@ -133,8 +128,8 @@ export function useAgent() {
   useEffect(() => {
     if (working) return
     let current = true
-    agentClient()
-      .threads.getState(SHARED_THREAD_ID)
+    client.threads
+      .getState(SHARED_THREAD_ID)
       .then((state) => {
         const values = state.values as { messages?: unknown[] } | null
         if (current) setSaved(values?.messages ?? [])
@@ -199,8 +194,8 @@ export function useAgent() {
   // where an answer ends (no search left to follow) makes it idle again.
   const stop = async () => {
     await stream.stop({ cancel: true })
-    await agentClient()
-      .threads.updateState(SHARED_THREAD_ID, {
+    await client.threads
+      .updateState(SHARED_THREAD_ID, {
         values: { cite_job: null },
         asNode: "answer",
       })
@@ -209,7 +204,6 @@ export function useAgent() {
 
   const clear = async () => {
     if (stream.isLoading) await stop().catch(() => undefined)
-    const client = agentClient()
     await client.threads.delete(SHARED_THREAD_ID).catch(() => undefined)
     await client.threads.create({
       threadId: SHARED_THREAD_ID,
