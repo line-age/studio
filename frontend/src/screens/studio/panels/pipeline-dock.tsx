@@ -95,10 +95,13 @@ function Chooser({
         ]
       : []),
   ]
-  const [choice, setChoice] = useState<string | null>(items[0]?.value ?? null)
+  // Nothing is chosen until the person chooses: a default would move or take
+  // out a section on one press of Change.
+  const [choice, setChoice] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // One key per choice made, so a retry after a lost answer makes nothing twice.
+  // One key per choice made, so a retry after a lost answer makes nothing
+  // twice, and a different choice is a new change, never the last one again.
   const key = useRef(actionKey())
   if (!first) return null
 
@@ -168,10 +171,13 @@ function Chooser({
             <Select
               items={items}
               value={choice}
-              onValueChange={(value) => setChoice(value as string | null)}
+              onValueChange={(value) => {
+                if (value !== choice) key.current = actionKey()
+                setChoice(value as string | null)
+              }}
             >
               <SelectTrigger id="pipeline-dock-choice" className="w-full">
-                <SelectValue />
+                <SelectValue placeholder="Choose where it goes" />
               </SelectTrigger>
               <SelectContent
                 align="start"

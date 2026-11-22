@@ -23,7 +23,13 @@ vi.mock("@/data/load-network", async (original) => ({
 }))
 vi.mock("./map/map-area", () => ({ MapArea: () => null }))
 // The real change, counted: a decision pressed twice must be made once.
-const applied = vi.hoisted(() => ({ count: 0, decidedElsewhere: false }))
+const applied = vi.hoisted(() => ({
+  count: 0,
+  decidedElsewhere: false,
+  // The next change gets no answer, as when store did it but the reply is lost.
+  loseNext: false,
+  keys: [] as string[],
+}))
 vi.mock("@/data/changes", async (original) => {
   const real = await original<typeof import("@/data/changes")>()
   const { WriteError } = await import("@/data/store/write")
@@ -31,13 +37,20 @@ vi.mock("@/data/changes", async (original) => {
     ...real,
     applyChange: (...args: Parameters<typeof real.applyChange>) => {
       applied.count += 1
+      applied.keys.push(args[2])
       if (applied.decidedElsewhere) throw new WriteError("decided")
+      if (applied.loseNext) {
+        applied.loseNext = false
+        throw new WriteError("unreachable")
+      }
       return real.applyChange(...args)
     },
   }
 })
 
 beforeEach(() => {
+  applied.keys = []
+  applied.loseNext = false
   localStorage.clear()
   useSettings.getState().reset()
   window.history.replaceState(null, "", "/")
@@ -151,5 +164,76 @@ describe("Change pipeline", () => {
     expect(
       await screen.findByText("The section is in no pipeline now.")
     ).toBeTruthy()
+  })
+
+  it("opens with nothing chosen, so one press of Change cannot move a section", async () => {
+    const user = await open()
+    await user.click(screen.getByRole("option", { name: /North line/ }))
+    await user.click(
+      screen.getByRole("checkbox", { name: "Select Birch to Cedar" })
+    )
+    const row = screen.getByRole("treeitem", { name: /Alder to Birch/ })
+    await user.pointer({ keys: "[MouseRight]", target: row })
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Change pipeline" })
+    )
+    const dock = within(screen.getByRole("region", { name: "Change pipeline" }))
+    expect(dock.getByRole("combobox")).toHaveTextContent("Choose where it goes")
+    expect(dock.getByRole("button", { name: "Change" })).toBeDisabled()
+  })
+
+  async function changeDockFor(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole("option", { name: /North line/ }))
+    await user.click(
+      screen.getByRole("checkbox", { name: "Select Birch to Cedar" })
+    )
+    const row = screen.getByRole("treeitem", { name: /Alder to Birch/ })
+    await user.pointer({ keys: "[MouseRight]", target: row })
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Change pipeline" })
+    )
+    return within(screen.getByRole("region", { name: "Change pipeline" }))
+  }
+
+  async function choose(
+    user: ReturnType<typeof userEvent.setup>,
+    dock: ReturnType<typeof within>,
+    name: string
+  ) {
+    await user.click(dock.getByRole("combobox"))
+    await user.click(await screen.findByRole("option", { name }))
+  }
+
+  it("retries the same choice with the same key, so store makes it once", async () => {
+    const user = await open()
+    const dock = await changeDockFor(user)
+    await choose(user, dock, "Not in a pipeline")
+    applied.loseNext = true
+    await user.click(dock.getByRole("button", { name: "Change" }))
+    expect(await dock.findByRole("alert")).toHaveTextContent(
+      "Store cannot be reached."
+    )
+    await user.click(dock.getByRole("button", { name: "Change" }))
+    expect(
+      await screen.findByText("The section is in no pipeline now.")
+    ).toBeTruthy()
+    expect(applied.keys).toHaveLength(2)
+    expect(applied.keys[1]).toBe(applied.keys[0])
+  })
+
+  it("sends a different choice as a new change, never as the lost one", async () => {
+    const user = await open()
+    const dock = await changeDockFor(user)
+    await choose(user, dock, "New pipeline")
+    applied.loseNext = true
+    await user.click(dock.getByRole("button", { name: "Change" }))
+    expect(await dock.findByRole("alert")).toBeTruthy()
+    await choose(user, dock, "Not in a pipeline")
+    await user.click(dock.getByRole("button", { name: "Change" }))
+    expect(
+      await screen.findByText("The section is in no pipeline now.")
+    ).toBeTruthy()
+    expect(applied.keys).toHaveLength(2)
+    expect(applied.keys[1]).not.toBe(applied.keys[0])
   })
 })
