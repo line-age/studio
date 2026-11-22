@@ -1,4 +1,4 @@
-import { actionKey } from "@/data/store/write"
+import { pipelineLabel } from "@/data/derive"
 
 import { useStudioData } from "./studio-data"
 import { useStudio } from "./studio-store"
@@ -10,57 +10,75 @@ export interface MenuChange {
 }
 
 /**
- * What the right-click menu offers for changing pipelines (Figma `213:8451`
- * and `209:7993`), acting as the person using Studio. One section: Change
- * pipeline (move it, take it out, start a new one), in the dock. Several:
- * Make pipeline, at once, and Add to a pipeline, in the dock.
+ * What the right-click menu offers for changing sections' pipelines (Figma
+ * section 20, `472:17474` and `472:17496`), the same in the list and on the
+ * map; each opens a modal. One section in a pipeline: Move to a pipeline,
+ * Remove from <pipeline>. One in none: Add to a pipeline, Make pipeline.
+ * Several: Make pipeline, Add to a pipeline. Items carry no dots.
  */
-export function usePipelineChanges(): (
+export function useSectionChanges(): (
   sectionIds: readonly string[]
 ) => MenuChange[] {
-  const { change, network } = useStudioData()
-  const editPipeline = useStudio((s) => s.editPipeline)
+  const { network, sectionById } = useStudioData()
+  const edit = useStudio((s) => s.edit)
   return (sectionIds) => {
     if (sectionIds.length === 0) return []
-    if (sectionIds.length === 1) {
+    const ids = [...sectionIds]
+    const add: MenuChange[] =
+      network.pipelines.length > 0
+        ? [
+            {
+              label: "Add to a pipeline",
+              onSelect: () => edit({ kind: "move", sectionIds: ids }),
+            },
+          ]
+        : []
+    const make: MenuChange = {
+      label: "Make pipeline",
+      onSelect: () => edit({ kind: "make", sectionIds: ids }),
+    }
+    const only = ids.length === 1 ? sectionById.get(ids[0]) : undefined
+    const from = only?.pipelineId
+      ? network.pipelines.find((p) => p.id === only.pipelineId)
+      : undefined
+    if (from) {
       return [
         {
-          label: "Change pipeline",
-          onSelect: () => editPipeline({ mode: "change", sectionIds }),
+          label: "Move to a pipeline",
+          onSelect: () => edit({ kind: "move", sectionIds: ids }),
+        },
+        {
+          label: `Remove from ${pipelineLabel(from)}`,
+          onSelect: () =>
+            edit({ kind: "move", sectionIds: ids, removing: true }),
         },
       ]
     }
-    const make: MenuChange = {
-      label: "Make pipeline",
-      onSelect: () => {
-        const key = actionKey()
-        change(
-          { kind: "place", sectionIds, target: { kind: "new" } },
-          key
-        ).then(
-          () =>
-            editPipeline({
-              mode: "done",
-              failed: false,
-              text: `${sectionIds.length} sections are in a new pipeline now. It has no name until a source gives one.`,
-            }),
-          (e: unknown) =>
-            editPipeline({
-              mode: "done",
-              failed: true,
-              text: e instanceof Error ? e.message : String(e),
-            })
-        )
-      },
-    }
-    return network.pipelines.length > 0
-      ? [
-          make,
-          {
-            label: "Add to a pipeline",
-            onSelect: () => editPipeline({ mode: "add", sectionIds }),
-          },
-        ]
-      : [make]
+    return ids.length === 1 ? [...add, make] : [make, ...add]
   }
+}
+
+/**
+ * A pipeline row's menu (Figma `472:17456`): Edit pipeline and Sections. A
+ * pipeline is edited, never made again: no Make pipeline here.
+ */
+export function usePipelineRowChanges(): (pipelineId: string) => MenuChange[] {
+  const edit = useStudio((s) => s.edit)
+  return (pipelineId) => [
+    {
+      label: "Edit pipeline",
+      onSelect: () => edit({ kind: "edit-pipeline", pipelineId }),
+    },
+    {
+      label: "Sections",
+      onSelect: () =>
+        edit({
+          kind: "sections",
+          pipelineId,
+          add: [],
+          remove: [],
+          picking: null,
+        }),
+    },
+  ]
 }

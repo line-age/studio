@@ -65,15 +65,18 @@ export interface Starter {
  */
 
 /**
- * What a right-click on a section row offers to edit: "Edit" always acts on
- * just the row clicked. A second "Edit selected (N)" item, naming how many
+ * What a right-click on a section offers to edit: "Edit" acts on just the
+ * row clicked. A second "Edit selected (N)" item, naming how many
  * `onEditAll` reaches, only appears when the row is ticked as part of a
- * larger selection — so a click never silently changes more than it says.
+ * larger selection, so a click never silently changes more than it says.
+ * On the map there is no row clicked: one section selected is "Edit",
+ * several are "Edit selected (N)" alone.
  */
 export interface EditTarget {
   /** The clicked row's own name, for the muted header above "Edit". */
   name: string
-  onEditOne: () => void
+  /** Edit the row alone. Left out where there is no row (the map). */
+  onEditOne?: () => void
   /** How many sections are selected; 1 hides the bulk item entirely. */
   count: number
   onEditAll: () => void
@@ -89,8 +92,8 @@ export function AddToAgentMenu({
   children,
 }: {
   /**
-   * Changes the person makes at once, at the top (Make pipeline, Change
-   * pipeline). Only where a change can be made.
+   * Changes, each opening a modal (Move to a pipeline, Make pipeline, Edit
+   * pipeline), under the Edit items. Only where a change can be made.
    */
   changes?: readonly MenuChange[]
   /** Sections, by the pipeline or group they are in. */
@@ -103,9 +106,9 @@ export function AddToAgentMenu({
    */
   starters?: readonly Starter[]
   /**
-   * Section rows only: puts "Edit …" first, above "Add to Agent chat", both
-   * naming the same target, with a muted line at the top naming it too. Not
-   * offered with `starters` (section rows drop those three questions).
+   * Sections only: puts "Edit …" first, with a muted line at the top naming
+   * how many when several. Not offered with `starters` (section rows drop
+   * those three questions).
    */
   edit?: EditTarget
   /** So the row(s) this menu acts on can be highlighted while it is open. */
@@ -139,26 +142,27 @@ export function AddToAgentMenu({
     >
       <ContextMenuTrigger render={children} />
       <ContextMenuContent finalFocus={() => !chosen.current}>
-        {changes.map((item) => (
-          <ContextMenuItem key={item.label} onClick={item.onSelect}>
-            {item.label}
-          </ContextMenuItem>
-        ))}
-        {changes.length > 0 && <ContextMenuSeparator />}
         {edit && (
           <ContextMenuGroup>
             {edit.count > 1 && (
               <ContextMenuLabel>{`${edit.count} sections selected`}</ContextMenuLabel>
             )}
-            <ContextMenuItem onClick={edit.onEditOne}>Edit</ContextMenuItem>
+            {edit.onEditOne && (
+              <ContextMenuItem onClick={edit.onEditOne}>Edit</ContextMenuItem>
+            )}
             {edit.count > 1 && (
               <ContextMenuItem onClick={edit.onEditAll}>
                 {`Edit selected (${edit.count})`}
               </ContextMenuItem>
             )}
-            <ContextMenuSeparator />
           </ContextMenuGroup>
         )}
+        {changes.map((item) => (
+          <ContextMenuItem key={item.label} onClick={item.onSelect}>
+            {item.label}
+          </ContextMenuItem>
+        ))}
+        {(edit || changes.length > 0) && <ContextMenuSeparator />}
         {starters.map((starter) => (
           <ContextMenuItem
             key={starter.words}

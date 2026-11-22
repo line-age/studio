@@ -40,7 +40,7 @@ import { isActivate, moveRovingFocus } from "@/lib/roving"
 import { cn } from "@/lib/utils"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
-import { usePipelineChanges } from "../pipeline-actions"
+import { useSectionChanges } from "../pipeline-actions"
 import {
   claimStarters,
   pipelineRowStarters,
@@ -49,7 +49,6 @@ import {
 import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { ClaimDetail } from "./claim-detail"
-import { PipelineDock } from "./pipeline-dock"
 import { useStudio } from "../studio-store"
 
 export function PropertiesPanel() {
@@ -64,7 +63,6 @@ export function PropertiesPanel() {
           and which of their claims are cited.
         </Hint>
         <div className="flex-1" />
-        <PipelineDock />
       </>
     )
   }
@@ -139,7 +137,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const allSections = groups.flatMap((g) => g.summary.sections)
   const allIds = allSections.map((s) => s.id)
   const isChecked = (id: string) => selection.has(id)
-  const pipelineChanges = usePipelineChanges()
+  const sectionChanges = useSectionChanges()
   const checkedCount = selection.size
   // The header speaks for what is selected, not for the pipeline around it.
   const progress = multi
@@ -308,7 +306,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
               return (
                 <Fragment key={section.id}>
                   <AddToAgentMenu
-                    changes={pipelineChanges(
+                    changes={sectionChanges(
                       isChecked(section.id) ? [...selection] : [section.id]
                     )}
                     items={
@@ -480,7 +478,6 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
         ))}
       </div>
       <ClaimDetail />
-      <PipelineDock />
       <PanelFooter>
         <span className="truncate">{selectionSize(groups)}</span>
       </PanelFooter>

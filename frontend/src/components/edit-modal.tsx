@@ -198,7 +198,7 @@ export function EditModalFooter({
           Cancel
         </DialogClose>
         <Button type="submit" disabled={saving || !ready}>
-          {failure ? "Try again" : action}
+          {saving ? "Saving" : failure ? "Try again" : action}
         </Button>
       </DialogFooter>
     </>

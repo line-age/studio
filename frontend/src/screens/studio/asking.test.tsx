@@ -97,12 +97,13 @@ describe("asking the Agent", () => {
     const user = await open()
     await user.click(screen.getByRole("option", { name: /North line/ }))
     const section = screen.getByRole("treeitem", { name: /Birch to Cedar/ })
-    // The row is ticked with its pipeline, so the changes are the selection's.
+    // The row is ticked with its pipeline, so the changes are the selection's,
+    // under the Edit items (Figma 472:17496).
     expect(await menu(user, section)).toEqual([
-      "Make pipeline",
-      "Add to a pipeline",
       "Edit",
       "Edit selected (2)",
+      "Make pipeline",
+      "Add to a pipeline",
       "Ask",
     ])
   })

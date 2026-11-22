@@ -2,6 +2,9 @@ import { act, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { toast } from "sonner"
+
+import { Toaster } from "@/components/ui/sonner"
 import { testNetwork } from "@/test/network"
 
 import { useSettings } from "./settings"
@@ -49,6 +52,8 @@ vi.mock("@/data/changes", async (original) => {
 })
 
 beforeEach(() => {
+  // Sonner keeps its toasts between renders: start each test with none.
+  toast.dismiss()
   applied.keys = []
   applied.loseNext = false
   localStorage.clear()
@@ -60,7 +65,12 @@ beforeEach(() => {
 
 async function open() {
   await act(async () => {
-    render(<StudioScreen />)
+    render(
+      <>
+        <StudioScreen />
+        <Toaster />
+      </>
+    )
   })
   return userEvent.setup()
 }
@@ -142,98 +152,227 @@ describe("a proposal someone else decided first", () => {
   })
 })
 
-describe("Change pipeline", () => {
-  it("takes one section out of its pipeline, from the right-click menu", async () => {
+type User = ReturnType<typeof userEvent.setup>
+
+async function rightClick(user: User, target: Element, item: string) {
+  await user.pointer({ keys: "[MouseRight]", target })
+  await user.click(await screen.findByRole("menuitem", { name: item }))
+  return within(await screen.findByRole("dialog"))
+}
+
+/** Alder to Birch, ticked alone in North line, right-clicked. */
+async function oneSection(user: User, item: string) {
+  await user.click(screen.getByRole("option", { name: /North line/ }))
+  // Leave one section ticked: the menu then changes that section alone.
+  await user.click(
+    screen.getByRole("checkbox", { name: "Select Birch to Cedar" })
+  )
+  const row = screen.getByRole("treeitem", { name: /Alder to Birch/ })
+  return rightClick(user, row, item)
+}
+
+const pipelineRow = () => screen.getByRole("option", { name: /North line/ })
+
+describe("a section's menu", () => {
+  it("offers Edit, Move to a pipeline and Remove from its pipeline, no dots", async () => {
     const user = await open()
-    await user.click(screen.getByRole("option", { name: /North line/ }))
-    // Leave one section ticked: the menu then changes that section alone.
+    await user.click(pipelineRow())
     await user.click(
       screen.getByRole("checkbox", { name: "Select Birch to Cedar" })
     )
     const row = screen.getByRole("treeitem", { name: /Alder to Birch/ })
     await user.pointer({ keys: "[MouseRight]", target: row })
-    await user.click(
-      await screen.findByRole("menuitem", { name: "Change pipeline" })
+    const items = (await screen.findAllByRole("menuitem")).map(
+      (item) => item.textContent
     )
-    const dock = within(screen.getByRole("region", { name: "Change pipeline" }))
-    await user.click(dock.getByRole("combobox"))
-    await user.click(
-      await screen.findByRole("option", { name: "Not in a pipeline" })
-    )
-    await user.click(dock.getByRole("button", { name: "Change" }))
+    expect(items).toEqual([
+      "Edit",
+      "Move to a pipeline",
+      "Remove from North line",
+      "Ask",
+    ])
+  })
+
+  it("removes a section from its pipeline: the modal opens on Not in a pipeline", async () => {
+    const user = await open()
+    const modal = await oneSection(user, "Remove from North line")
     expect(
-      await screen.findByText("The section is in no pipeline now.")
+      modal.getByRole("radio", { name: "Not in a pipeline" })
+    ).toBeChecked()
+    expect(
+      modal.getByText("Will take 1 section out of North line")
+    ).toBeTruthy()
+    await user.click(
+      modal.getByRole("button", { name: "Remove from pipeline" })
+    )
+    expect(
+      await screen.findAllByText("The section is in no pipeline now.")
+    ).not.toHaveLength(0)
+    expect(screen.queryByRole("dialog")).toBeNull()
+  })
+
+  it("opens Move with nothing chosen, so one press cannot move a section", async () => {
+    const user = await open()
+    const modal = await oneSection(user, "Move to a pipeline")
+    for (const radio of modal.getAllByRole("radio")) {
+      expect(radio).not.toBeChecked()
+    }
+    expect(modal.getByText("No changes yet")).toBeTruthy()
+    expect(modal.getByRole("button", { name: /^Move/ })).toBeDisabled()
+    // Its own pipeline is not a place to move it to; a search narrows.
+    expect(modal.queryByRole("radio", { name: /North line/ })).toBeNull()
+    await user.type(
+      modal.getByRole("textbox", { name: "Find a pipeline" }),
+      "south"
+    )
+    expect(
+      modal.getAllByRole("radio").map((r) => r.getAttribute("aria-label"))
+    ).toEqual(["South line · P-002", "Not in a pipeline"])
+  })
+
+  it("moves a section, and the toast says where it is now", async () => {
+    const user = await open()
+    const modal = await oneSection(user, "Move to a pipeline")
+    await user.click(modal.getByRole("radio", { name: "South line · P-002" }))
+    expect(modal.getByText("Will move 1 section to South line")).toBeTruthy()
+    await user.click(modal.getByRole("button", { name: "Move 1 section" }))
+    expect(
+      await screen.findByText("The section is in South line now.")
     ).toBeTruthy()
   })
 
-  it("opens with nothing chosen, so one press of Change cannot move a section", async () => {
+  it("stays open when not saved, and Try again sends the same change with the same key", async () => {
     const user = await open()
-    await user.click(screen.getByRole("option", { name: /North line/ }))
-    await user.click(
-      screen.getByRole("checkbox", { name: "Select Birch to Cedar" })
-    )
-    const row = screen.getByRole("treeitem", { name: /Alder to Birch/ })
-    await user.pointer({ keys: "[MouseRight]", target: row })
-    await user.click(
-      await screen.findByRole("menuitem", { name: "Change pipeline" })
-    )
-    const dock = within(screen.getByRole("region", { name: "Change pipeline" }))
-    expect(dock.getByRole("combobox")).toHaveTextContent("Choose where it goes")
-    expect(dock.getByRole("button", { name: "Change" })).toBeDisabled()
-  })
-
-  async function changeDockFor(user: ReturnType<typeof userEvent.setup>) {
-    await user.click(screen.getByRole("option", { name: /North line/ }))
-    await user.click(
-      screen.getByRole("checkbox", { name: "Select Birch to Cedar" })
-    )
-    const row = screen.getByRole("treeitem", { name: /Alder to Birch/ })
-    await user.pointer({ keys: "[MouseRight]", target: row })
-    await user.click(
-      await screen.findByRole("menuitem", { name: "Change pipeline" })
-    )
-    return within(screen.getByRole("region", { name: "Change pipeline" }))
-  }
-
-  async function choose(
-    user: ReturnType<typeof userEvent.setup>,
-    dock: ReturnType<typeof within>,
-    name: string
-  ) {
-    await user.click(dock.getByRole("combobox"))
-    await user.click(await screen.findByRole("option", { name }))
-  }
-
-  it("retries the same choice with the same key, so store makes it once", async () => {
-    const user = await open()
-    const dock = await changeDockFor(user)
-    await choose(user, dock, "Not in a pipeline")
+    const modal = await oneSection(user, "Remove from North line")
     applied.loseNext = true
-    await user.click(dock.getByRole("button", { name: "Change" }))
-    expect(await dock.findByRole("alert")).toHaveTextContent(
-      "Couldn't save. Nothing was changed. The connection dropped. Try again."
+    await user.click(
+      modal.getByRole("button", { name: "Remove from pipeline" })
     )
-    await user.click(dock.getByRole("button", { name: "Change" }))
+    const alert = await modal.findByRole("alert")
+    expect(alert).toHaveTextContent("Couldn't save. Nothing was changed.")
+    expect(alert).toHaveTextContent("The connection dropped. Try again.")
+    await user.click(modal.getByRole("button", { name: "Try again" }))
     expect(
-      await screen.findByText("The section is in no pipeline now.")
-    ).toBeTruthy()
+      await screen.findAllByText("The section is in no pipeline now.")
+    ).not.toHaveLength(0)
     expect(applied.keys).toHaveLength(2)
     expect(applied.keys[1]).toBe(applied.keys[0])
   })
 
   it("sends a different choice as a new change, never as the lost one", async () => {
     const user = await open()
-    const dock = await changeDockFor(user)
-    await choose(user, dock, "New pipeline")
+    const modal = await oneSection(user, "Move to a pipeline")
+    await user.click(modal.getByRole("radio", { name: "South line · P-002" }))
     applied.loseNext = true
-    await user.click(dock.getByRole("button", { name: "Change" }))
-    expect(await dock.findByRole("alert")).toBeTruthy()
-    await choose(user, dock, "Not in a pipeline")
-    await user.click(dock.getByRole("button", { name: "Change" }))
+    await user.click(modal.getByRole("button", { name: "Move 1 section" }))
+    expect(await modal.findByRole("alert")).toBeTruthy()
+    await user.click(modal.getByRole("radio", { name: "Not in a pipeline" }))
+    await user.click(
+      modal.getByRole("button", { name: "Remove from pipeline" })
+    )
     expect(
-      await screen.findByText("The section is in no pipeline now.")
-    ).toBeTruthy()
+      await screen.findAllByText("The section is in no pipeline now.")
+    ).not.toHaveLength(0)
     expect(applied.keys).toHaveLength(2)
     expect(applied.keys[1]).not.toBe(applied.keys[0])
+  })
+})
+
+describe("a pipeline row's menu", () => {
+  it("edits the pipeline and its sections, and never makes one again", async () => {
+    const user = await open()
+    await user.click(pipelineRow())
+    await user.pointer({ keys: "[MouseRight]", target: pipelineRow() })
+    const items = (await screen.findAllByRole("menuitem")).map(
+      (item) => item.textContent
+    )
+    expect(items).toEqual([
+      "Edit pipeline",
+      "Sections",
+      "Add to the Agent chat",
+    ])
+  })
+
+  it("edits a pipeline's name: Save waits for a change, then the list shows it", async () => {
+    const user = await open()
+    const modal = await rightClick(user, pipelineRow(), "Edit pipeline")
+    expect(modal.getByText(/P-001 · 2 sections/)).toBeTruthy()
+    const name = modal.getByRole("textbox", { name: "Name" })
+    expect(name).toHaveValue("North line")
+    expect(modal.getByRole("button", { name: "Save" })).toBeDisabled()
+    await user.clear(name)
+    await user.type(name, "Calder Valley")
+    expect(modal.getByText("Will update Name")).toBeTruthy()
+    await user.click(modal.getByRole("button", { name: "Save" }))
+    expect(
+      await screen.findByText("Updated Name on Calder Valley.")
+    ).toBeTruthy()
+    expect(screen.getByRole("option", { name: /Calder Valley/ })).toBeTruthy()
+  })
+
+  it("changes a pipeline's sections in one save: one removed, one found and added", async () => {
+    const user = await open()
+    const modal = await rightClick(user, pipelineRow(), "Sections")
+    await user.click(
+      modal.getByRole("button", { name: /^Remove .*Alder to Birch/ })
+    )
+    expect(modal.getByText("Will be removed")).toBeTruthy()
+    await user.type(
+      modal.getByRole("combobox", { name: "Add a section: code or name" }),
+      "Dale"
+    )
+    await user.click(modal.getByRole("option", { name: /Dale to Elm/ }))
+    expect(modal.getByText("New · leaves South line")).toBeTruthy()
+    expect(modal.getByText("Will add 1 section and remove 1")).toBeTruthy()
+    await user.click(modal.getByRole("button", { name: "Save changes" }))
+    expect(
+      await screen.findByText("Added 1 section and removed 1 on North line.")
+    ).toBeTruthy()
+    expect(applied.count).toBeGreaterThan(0)
+  })
+
+  it("lists a section already in the pipeline as found but greyed", async () => {
+    const user = await open()
+    const modal = await rightClick(user, pipelineRow(), "Sections")
+    await user.type(
+      modal.getByRole("combobox", { name: "Add a section: code or name" }),
+      "Birch"
+    )
+    for (const option of modal.getAllByRole("option")) {
+      expect(option).toHaveAttribute("aria-disabled", "true")
+    }
+  })
+
+  it("folds into the bar to pick on the map, and Cancel there keeps the draft as it was", async () => {
+    const user = await open()
+    const modal = await rightClick(user, pipelineRow(), "Sections")
+    await user.click(
+      modal.getByRole("button", { name: /Remove .*Alder to Birch/ })
+    )
+    await user.click(modal.getByRole("button", { name: "Pick on the map" }))
+    expect(screen.queryByRole("dialog")).toBeNull()
+    act(() => useStudio.getState().togglePick("s-3", false))
+    act(() => useStudio.getState().stopPicking(false))
+    const back = within(await screen.findByRole("dialog"))
+    expect(back.getByText("Will remove 1 section")).toBeTruthy()
+  })
+})
+
+describe("several sections' menu", () => {
+  it("makes a pipeline with a name, in one change", async () => {
+    const user = await open()
+    await user.click(pipelineRow())
+    const row = screen.getByRole("treeitem", { name: /Alder to Birch/ })
+    const modal = await rightClick(user, row, "Make pipeline")
+    expect(modal.getByText("2 sections")).toBeTruthy()
+    expect(modal.getByText(/is in North line and will leave it/)).toBeTruthy()
+    await user.type(
+      modal.getByRole("textbox", { name: "Name" }),
+      "Calder Valley"
+    )
+    await user.click(modal.getByRole("button", { name: "Make pipeline" }))
+    expect(
+      await screen.findByText("Made Calder Valley, a pipeline of 2 sections.")
+    ).toBeTruthy()
   })
 })

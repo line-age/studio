@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils"
 
 import { SEARCH_INPUT_ID } from "../panels/pipelines-panel"
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
-import { usePipelineChanges } from "../pipeline-actions"
+import { useSectionChanges } from "../pipeline-actions"
 import { useLeftPanel } from "../left-panel-context"
 import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
@@ -107,7 +107,8 @@ export function StudioMap({ token }: { token: string }) {
   const setCamera = useCamera((s) => s.setCamera)
 
   const selection = useSelectionAttachments()
-  const pipelineChanges = usePipelineChanges()
+  const sectionChanges = useSectionChanges()
+  const edit = useStudio((s) => s.edit)
   const boxRef = useRef<HTMLDivElement>(null)
   /** The last move asked for, so a resize right after can redo it. */
   const lastFit = useRef<{
@@ -387,7 +388,28 @@ export function StudioMap({ token }: { token: string }) {
       {/* Right click on the map offers what is selected to the Agent. */}
       <AddToAgentMenu
         items={selection}
-        changes={pipelineChanges([...selected])}
+        changes={sectionChanges([...selected])}
+        edit={
+          selected.size > 0
+            ? {
+                name: "",
+                count: selected.size,
+                // On the map no row was clicked: one is Edit, several are
+                // Edit selected (n) alone, never more than the menu says.
+                ...(selected.size === 1
+                  ? {
+                      onEditOne: () =>
+                        edit({
+                          kind: "edit-sections",
+                          sectionIds: [...selected],
+                        }),
+                    }
+                  : {}),
+                onEditAll: () =>
+                  edit({ kind: "edit-sections", sectionIds: [...selected] }),
+              }
+            : undefined
+        }
       >
         <div className="absolute inset-0">
           {/* On a Mac, Ctrl and click is a right click: it turns the map
