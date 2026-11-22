@@ -9,7 +9,7 @@ import { GitHubMark } from "./github-mark"
 import { SignInCard } from "./sign-in-card"
 import { SignInMessage } from "./sign-in-message"
 
-/*
+/**
  * The sign-in page (Figma section 19, `425:15687`): the form on the left, the
  * editions on the right. What a person sees before Studio shows any of
  * store's data. Four states: signed out (`432:16219`), signing in once the
@@ -28,6 +28,7 @@ export function SignInScreen({
   session,
   go = (url) => window.location.assign(url),
 }: {
+  /** Signed out (perhaps after a failure), or signed in to GitHub but in no team. */
   session: SignedOut
   /** Leaves for GitHub. Tests pass their own. */
   go?: (url: string) => void

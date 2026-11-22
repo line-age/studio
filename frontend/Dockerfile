@@ -28,11 +28,15 @@ ENV VITE_MAPBOX_TOKEN=$VITE_MAPBOX_TOKEN \
     VITE_STORE_NETWORK=$VITE_STORE_NETWORK \
     VITE_AUTH=$VITE_AUTH
 RUN pnpm build
+# nginx with the local token only in the local build; any other image adds
+# no token and leaves /store to the gate.
+RUN if [ "$VITE_AUTH" = "local" ]; then cp nginx.local.conf.template nginx.conf.chosen; \
+    else cp nginx.conf.template nginx.conf.chosen; fi
 
 # Serve it. Runs as a non-root user and listens on 8080.
 FROM nginxinc/nginx-unprivileged:stable-alpine
 # Where /store is passed on to, read when the container starts.
 ENV STORE_URL=http://api:8000
-COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY --from=build /app/nginx.conf.chosen /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 8080

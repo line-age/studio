@@ -3,7 +3,7 @@ import type { ReactNode } from "react"
 import { Icon } from "@/components/icons/icon"
 import { cn } from "@/lib/utils"
 
-/*
+/**
  * The card every sign-in state is drawn in (Figma section 19, `425:15687`):
  * the app mark, a heading with an optional line under it, then what the state
  * says and its buttons. On the sign-in page it sits on the white half; over
@@ -21,8 +21,9 @@ export function SignInCard({
   heading: string
   /** One line under the heading. */
   description?: string
-  /** Name and describe the card for a dialog that wraps it. */
+  /** Names the dialog that wraps the card. */
   headingId?: string
+  /** Describes the dialog that wraps the card. */
   descriptionId?: string
   /** What the state says and its buttons. */
   children: ReactNode

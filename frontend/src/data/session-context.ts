@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react"
+import { createContext, use } from "react"
 
 import type { Session } from "./session"
 
@@ -10,5 +10,5 @@ import type { Session } from "./session"
 export const SessionContext = createContext<Session | null>(null)
 
 export function useSession(): Session | null {
-  return useContext(SessionContext)
+  return use(SessionContext)
 }

@@ -54,7 +54,7 @@ describe("SessionGate", () => {
   })
 
   it("opens Studio for a person signed in", async () => {
-    gate({ kind: "signed-in", name: "Ada Example", login: "a", chat: "c" })
+    gate({ kind: "signed-in", name: "Ada Example", login: "a" })
     expect(await screen.findByText("The Studio screen")).toBeInTheDocument()
   })
 
@@ -66,7 +66,7 @@ describe("SessionGate", () => {
   it("asks to sign in again even when the 401 came back before the screen was up", async () => {
     refused()
     await studioFetch("/store/sections")
-    gate({ kind: "signed-in", name: "Ada Example", login: "a", chat: "c" })
+    gate({ kind: "signed-in", name: "Ada Example", login: "a" })
     expect(
       await screen.findByRole("dialog", { name: "Sign in again" })
     ).toBeInTheDocument()
@@ -81,11 +81,9 @@ describe("SessionGate", () => {
   })
 
   it("asks to sign in again over the screen when store answers 401", async () => {
-    gate({ kind: "signed-in", name: "Ada Example", login: "a", chat: "c" })
+    gate({ kind: "signed-in", name: "Ada Example", login: "a" })
     await screen.findByText("The Studio screen")
-    vi.stubGlobal("fetch", () =>
-      Promise.resolve(new Response("", { status: 401 }))
-    )
+    refused()
     await act(() => studioFetch("/store/sections"))
     expect(
       await screen.findByRole("dialog", { name: "Sign in again" })

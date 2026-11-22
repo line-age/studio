@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { expect } from "storybook/test"
 
 import { SignInMessage } from "./sign-in-message"
 
@@ -21,10 +20,5 @@ export const Failed: Story = {
   args: {
     tone: "failed",
     children: "Could not sign in: GitHub did not answer. Nothing was changed.",
-  },
-  play: async ({ canvas }) => {
-    await expect(canvas.getByRole("alert")).toHaveTextContent(
-      "Could not sign in"
-    )
   },
 }

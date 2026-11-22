@@ -265,7 +265,9 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   at its own `/store` path, and nothing in the browser holds a token: on store's data a
   person signs in with GitHub through the gate (plan `2026-11-21-003`), which adds their
   token on the way. Locally (`VITE_AUTH=local`) the dev server and nginx send a fixed token that a store started with the fake
-  GitHub (`dev/fake-github`) takes as "Local developer", who reads and decides. No token,
+  GitHub (`dev/fake-github`) takes as "Local developer", who reads and decides. Only that
+  build's image gets the nginx config that adds it (`nginx.local.conf.template`); any other
+  image serves the files alone and leaves `/store` and `/agent` to the gate. No token,
   and no name starting with `VITE_` that holds one, ever goes in the code or the bundle.
 - Sign-in (`src/screens/sign-in/`, Figma section 19, `425:15687`). `src/data/session.ts`
   says who is using Studio (`loadSession`: the sample, Local developer, signed in, signed
@@ -278,9 +280,10 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   shows before. The gate sends a sign-in that did not end in a session back with
   `?sign_in=not_in_team&login=` or `?sign_in=failed`; `signInReturn` reads it once and the
   words leave the address. `SessionGate` hands the session down (`SessionContext`); the
-  top bar's right end shows who it is (`AccountMenu`, Figma `459:16690`; parts
+  top bar's right end shows who it is (`screens/studio/account/`: `AccountMenu`, Figma `459:16690`; parts
   `AccountButton` and `PersonAvatar`): signed in, the avatar and name open a menu with the
-  GitHub login and Sign out (`signOut`: `POST /auth/logout`, then the same view again);
+  GitHub login and Sign out (`signOut`: `POST /auth/logout`, then the same view loaded in
+  place; if the gate does not answer, the person stays signed in and a toast says so);
   Local developer, a grey avatar and a popover that says there is no sign-in; on the
   sample, nothing.
 - Writing (plan 005). `src/data/store/write.ts` is the frontend's only place for store's

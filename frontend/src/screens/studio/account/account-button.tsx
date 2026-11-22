@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react"
 
 import { Icon } from "@/components/icons/icon"
-import { PersonAvatar } from "./person-avatar"
+import { PersonAvatar, type AccountKind } from "./person-avatar"
 import { cn } from "@/lib/utils"
 
 /**
@@ -18,7 +18,7 @@ export function AccountButton({
   /** The person's name, as GitHub has it, or "Local developer". */
   name: string
   /** A person signed in with GitHub, or Local developer on one machine. */
-  kind: "person" | "local"
+  kind: AccountKind
 } & ComponentProps<"button">) {
   return (
     <button

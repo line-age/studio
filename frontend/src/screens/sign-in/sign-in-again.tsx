@@ -8,8 +8,8 @@ import { signInUrl } from "@/data/session"
 import { GitHubMark } from "./github-mark"
 import { SignInCard } from "./sign-in-card"
 
-/*
- * Over the open screen when a request comes back 401: the sign-in ended
+/**
+ * Over the open screen when the sign-in ended (a 401, or a read refused with 403)
  * (Figma `425:15755`). The screen stays as it is behind it, and the view is in
  * the URL, so signing in again comes back to the same place. It cannot be
  * dismissed: nothing on store's data works until the person signs in again.
@@ -18,7 +18,9 @@ export function SignInAgain({
   open,
   go = (url) => window.location.assign(url),
 }: {
+  /** Whether the sign-in has ended while signed in. */
   open: boolean
+  /** Leaves for the gate's sign-in. Tests pass their own. */
   go?: (url: string) => void
 }) {
   const heading = useId()

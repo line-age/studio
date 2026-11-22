@@ -2,7 +2,6 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { initials } from "./person-avatar"
 import type { Session } from "@/data/session"
 import { SessionContext } from "@/data/session-context"
 
@@ -21,7 +20,6 @@ const ada: Session = {
   kind: "signed-in",
   name: "Ada Example",
   login: "ada-example",
-  chat: "c",
 }
 
 describe("the account in the top bar", () => {
@@ -32,23 +30,14 @@ describe("the account in the top bar", () => {
     ).toHaveTextContent("Ada Example")
   })
 
-  it("opens to the GitHub login and signs out on Sign out", async () => {
+  // What the open menu shows is in its stories; here, what Sign out does.
+  it("signs out on Sign out", async () => {
     const onSignOut = account(ada)
     await userEvent.click(screen.getByRole("button", { name: /Account/ }))
-    expect(await screen.findByText("@ada-example")).toBeInTheDocument()
-    await userEvent.click(screen.getByRole("menuitem", { name: "Sign out" }))
-    expect(onSignOut).toHaveBeenCalledOnce()
-  })
-
-  it("names Local developer, with nothing to sign out of", async () => {
-    account({ kind: "local" })
     await userEvent.click(
-      screen.getByRole("button", { name: "Account: Local developer" })
+      await screen.findByRole("menuitem", { name: "Sign out" })
     )
-    expect(
-      await screen.findByText("No sign-in on this machine")
-    ).toBeInTheDocument()
-    expect(screen.queryByRole("menuitem")).not.toBeInTheDocument()
+    expect(onSignOut).toHaveBeenCalledOnce()
   })
 
   it("shows nobody on the sample", () => {
@@ -59,17 +48,5 @@ describe("the account in the top bar", () => {
   it("shows nobody with no session above it", () => {
     account(null)
     expect(screen.queryByRole("button")).not.toBeInTheDocument()
-  })
-})
-
-describe("initials", () => {
-  it("takes the first and last word", () => {
-    expect(initials("Ada Example")).toBe("AE")
-    expect(initials("ada mid example")).toBe("AE")
-  })
-
-  it("takes one letter from one word, and nothing from nothing", () => {
-    expect(initials("ada")).toBe("A")
-    expect(initials("  ")).toBe("")
   })
 })

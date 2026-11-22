@@ -1,6 +1,9 @@
 import { Avatar } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 
+/** Who an avatar stands for: a person signed in with GitHub, or Local developer. */
+export type AccountKind = "person" | "local"
+
 /** The first letters of the first and last word of a name: "Ada Example" is AE. */
 export function initials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean)
@@ -22,7 +25,7 @@ export function PersonAvatar({
   /** Whose initials: "Ada Example" shows AE. */
   name: string
   /** A person signed in with GitHub, or Local developer on one machine. */
-  kind: "person" | "local"
+  kind: AccountKind
   /** `sm` (24) in the top bar, `default` (32) in the account menu. */
   size?: "sm" | "default"
 }) {

@@ -34,7 +34,6 @@ export const SignedIn: Story = {
     kind: "signed-in",
     name: "Ada Example",
     login: "ada-example",
-    chat: "c",
   }),
   play: async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("button", { name: /Account/ }))
