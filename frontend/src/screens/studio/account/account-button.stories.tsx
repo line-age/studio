@@ -4,7 +4,7 @@ import { AccountButton } from "./account-button"
 
 /** Who is signed in, at the right end of the dark top bar (Figma `AccountButton`, `463:17264`). */
 const meta = {
-  title: "Parts/AccountButton",
+  title: "Studio/TopBar/AccountButton",
   component: AccountButton,
   args: { name: "Ada Example", kind: "person" },
   // It only ever sits on the top bar.

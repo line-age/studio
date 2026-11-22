@@ -19,7 +19,7 @@ const as = (session: Session) => [
 
 /** Who is using Studio, and Sign out (Figma section 19, `459:16690`). */
 const meta = {
-  title: "Sign in/AccountMenu",
+  title: "Studio/TopBar/AccountMenu",
   component: AccountMenu,
   args: { onSignOut: fn() },
 } satisfies Meta<typeof AccountMenu>

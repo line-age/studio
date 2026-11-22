@@ -4,7 +4,7 @@ import { PersonAvatar } from "./person-avatar"
 
 /** Who is using Studio, as initials in a circle (Figma `Avatar`, `463:17223`). */
 const meta = {
-  title: "Parts/PersonAvatar",
+  title: "Studio/TopBar/PersonAvatar",
   component: PersonAvatar,
   args: { name: "Ada Example", kind: "person" },
 } satisfies Meta<typeof PersonAvatar>

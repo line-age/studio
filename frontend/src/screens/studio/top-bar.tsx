@@ -16,8 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { AccountMenu } from "@/screens/sign-in/account-menu"
-
+import { AccountMenu } from "./account/account-menu"
 import { HELP_BUTTON_ID } from "./help/help-store"
 
 /*

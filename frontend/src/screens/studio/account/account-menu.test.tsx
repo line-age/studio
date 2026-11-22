@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import { initials } from "@/components/person-avatar"
+import { initials } from "./person-avatar"
 import type { Session } from "@/data/session"
 import { SessionContext } from "@/data/session-context"
 

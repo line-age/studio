@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react"
 
 import { Icon } from "@/components/icons/icon"
-import { PersonAvatar } from "@/components/person-avatar"
+import { PersonAvatar } from "./person-avatar"
 import { cn } from "@/lib/utils"
 
 /**

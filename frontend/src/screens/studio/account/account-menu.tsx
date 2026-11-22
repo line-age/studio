@@ -1,6 +1,6 @@
-import { AccountButton } from "@/components/account-button"
+import { AccountButton } from "./account-button"
 import { Icon } from "@/components/icons/icon"
-import { PersonAvatar } from "@/components/person-avatar"
+import { PersonAvatar } from "./person-avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
