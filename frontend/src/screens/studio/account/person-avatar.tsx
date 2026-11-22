@@ -1,4 +1,3 @@
-import { Avatar } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 
 /** Who an avatar stands for: a person signed in with GitHub, or Local developer. */
@@ -13,8 +12,7 @@ export function initials(name: string): string {
 }
 
 /**
- * The circle with a person's initials (Figma Avatar, `463:17223`; shadcn
- * Avatar, fallback only). Local developer is grey, so it never reads as
+ * The circle with a person's initials (Figma Avatar, `463:17223`). Local developer is grey, so it never reads as
  * an account.
  */
 export function PersonAvatar({
@@ -29,20 +27,21 @@ export function PersonAvatar({
   /** `sm` (24) in the top bar, `default` (32) in the account menu. */
   size?: "sm" | "default"
 }) {
+  // Initials only, never a picture, so a circle and no shadcn Avatar.
   return (
-    <Avatar size={size} className="after:hidden" aria-hidden="true">
-      {/* Initials only, never a picture: a plain span, at the design's own type. */}
-      <span
-        className={cn(
-          "flex size-full items-center justify-center rounded-full",
-          size === "sm" ? "type-ui-2xs-medium" : "type-ui-xs-medium",
-          kind === "person"
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted text-foreground"
-        )}
-      >
-        {initials(name)}
-      </span>
-    </Avatar>
+    <span
+      aria-hidden="true"
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-full select-none",
+        size === "sm"
+          ? "size-6 type-ui-2xs-medium"
+          : "size-8 type-ui-xs-medium",
+        kind === "person"
+          ? "bg-primary text-primary-foreground"
+          : "bg-muted text-foreground"
+      )}
+    >
+      {initials(name)}
+    </span>
   )
 }
