@@ -27,3 +27,12 @@ dist-ssr
 public/fixtures/local/
 coverage/
 storybook-static/
+
+# User flows: the app built for them, and what a failed run leaves.
+e2e/.dist/
+e2e/.results/
+# Visual test: approved screenshots are Linux ones made by scripts/visual.sh;
+# a run on another system writes its own, which are never committed.
+visual/**/*-darwin.png
+visual/**/*-win32.png
+.vitest-attachments/

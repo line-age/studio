@@ -38,7 +38,9 @@ notes. This file wins for anything inside this directory.
   token in `.env.local` (see `.env.example`); without it the app runs and says so.
 - State: one small zustand store per screen. Data validated with zod.
 - Tests: Vitest and React Testing Library in jsdom; Storybook 10 stories with play
-  functions, run as Vitest tests in a real browser (Playwright Chromium).
+  functions, run as Vitest tests in a real browser (Playwright Chromium), each also
+  checked for accessibility and compared with its approved screenshot; Playwright for
+  the user flows (`e2e/`).
 - pnpm. Node 22.
 
 ## How to work here
@@ -68,9 +70,26 @@ The workspace `AGENTS.md` two levels up says how, in three sections; they hold h
   controlled one through `controlled()` in `src/test/controlled.tsx`), so its docs
   show real usage. Every story is also checked for accessibility (axe, through
   `@storybook/addon-a11y`); a problem fails the test. Only a token question for
-  Figma may be set to `a11y: { test: "todo" }`, with a comment saying which. A panel, or anything that needs the screen's data and store, gets an
-  RTL test instead; a pure function, a unit test. A visible change to a component
-  updates its stories. The pull request reports coverage of the changed files.
+  Figma may be set to `a11y: { test: "todo" }`, with a comment saying which. A
+  panel, or anything that needs the screen's data and store, gets an RTL test
+  instead; a pure function, a unit test. A visible change to a component updates
+  its stories. The pull request reports coverage of the changed files.
+- **The UI test pipeline** (Storybook's UI Testing Handbook; `.github/workflows/frontend.yml`,
+  four jobs on every pull request): `check` (everything in `pnpm check`: unit and RTL
+  tests, every story's play function and accessibility), `storybook` (it builds on its
+  own), `visual` and `e2e`.
+  - **Visual.** Every story, once its play function passed, is compared with its
+    approved screenshot in `visual/` (Vitest's `toMatchScreenshot`; no outside
+    service). Screenshots are made on Linux in the Playwright image CI uses:
+    `pnpm test:visual` compares, `pnpm test:visual:update` approves what the stories
+    look like now (needs Docker). A change that is meant: update, look at every
+    changed PNG, commit them with the change. One that is not: fix it. CI keeps the
+    differences as the `visual-differences` artifact.
+  - **User flows** (`e2e/`, Playwright, `pnpm test:e2e`): the built app on the
+    sample, no store and no map token. Only flows a person cannot do without
+    (open Studio, the switch and its link, a filter and its chip, a selection
+    across a switch); everything else is a story or an RTL test. A flow that
+    lands gets one here when it crosses panels.
 
 ### Storybook for agents (MCP)
 
@@ -103,7 +122,11 @@ component that has stories:
 | `pnpm format:check` / `pnpm format` | Prettier                                                           |
 | `pnpm test`                         | Vitest, once: the unit tests and every story                       |
 | `pnpm coverage`                     | The same, with line and branch coverage per file                   |
+| `pnpm test:visual`                  | Every story against its approved screenshot, on Linux (Docker)     |
+| `pnpm test:visual:update`           | Approve what the stories look like now; review the PNGs            |
+| `pnpm test:e2e`                     | The user flows in Chromium, on the built app and the sample        |
 | `pnpm storybook`                    | The stories, to look at beside Figma; MCP for agents (port 6006)   |
+| `pnpm build-storybook`              | Storybook as a static site in `storybook-static/`                  |
 | `pnpm fixtures:sample`              | Rebuild the invented sample `public/fixtures/sample.json`          |
 | `pnpm tokens:build`                 | Regenerate `src/styles/tokens.css` from `tokens/figma-tokens.json` |
 

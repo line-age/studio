@@ -69,6 +69,48 @@ export default defineConfig(({ mode }) => {
             },
           },
         },
+        {
+          // The visual test: every story, then a screenshot compared with the
+          // approved one in visual/. Run on Linux only (CI, or Docker), never
+          // in `pnpm check`: see src/test/visual-setup.ts.
+          extends: true,
+          plugins: [
+            storybookTest({
+              configDir: resolve(import.meta.dirname, ".storybook"),
+            }),
+          ],
+          test: {
+            name: "visual",
+            setupFiles: ["./src/test/visual-setup.ts"],
+            browser: {
+              enabled: true,
+              headless: true,
+              provider: playwright(),
+              instances: [{ browser: "chromium" }],
+              viewport: { width: 480, height: 640 },
+              expect: {
+                toMatchScreenshot: {
+                  resolveScreenshotPath: ({
+                    root,
+                    testFileDirectory,
+                    testFileName,
+                    arg,
+                    browserName,
+                    platform,
+                    ext,
+                  }) =>
+                    resolve(
+                      root,
+                      "visual",
+                      testFileDirectory.replace(/^src\//, ""),
+                      testFileName.replace(/\.stories\.tsx$/, ""),
+                      `${arg}-${browserName}-${platform}${ext}`
+                    ),
+                },
+              },
+            },
+          },
+        },
       ],
       // `pnpm coverage`: lines and branches of the app's own code. What a
       // change touches is read from this, file by file; no number is a goal.
