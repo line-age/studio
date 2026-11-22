@@ -9,11 +9,18 @@ import { YearPicker } from "@/components/year-picker"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { isProposedEndKind, plural, PROPOSED_END_LABEL } from "@/data/derive"
+import {
+  formatCount,
+  isProposedEndKind,
+  plural,
+  PROPOSED_END_LABEL,
+  SCOPE,
+} from "@/data/derive"
 import { isSectionStatus, STATUSES, STATUS_LABEL } from "@/data/status"
 
 import { HidePanels } from "../panel-toggle"
 import { filtersApplied, useStudio } from "../studio-store"
+import { filtersInForce } from "../filters"
 import { CheckList, Group, Km, MultiPick, OptionRow } from "./filter-controls"
 import { useFilterOptions } from "./filter-options"
 
@@ -80,6 +87,9 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
     }))
   )
   const filtered = useStudio(filtersApplied)
+  const scope = useStudio((x) => x.scope)
+  // The filters in force on this tab, as the chips under the search count them.
+  const onCount = useStudio((x) => filtersInForce(x).length)
 
   const {
     counts,
@@ -106,7 +116,9 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
   return (
     <>
       <PanelHeader
-        title="Filters"
+        // Which tab it filters, and how many are on (Figma `406:15648`).
+        title={`Filters · ${SCOPE[scope].label}`}
+        meta={onCount === 0 ? "None on" : `${formatCount(onCount)} on`}
         divider
         className="pl-1.5"
         leading={
@@ -197,7 +209,7 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
           >
             <MultiPick
               noun="editions"
-              placeholder="Type to find an edition"
+              placeholder="Type to find an edition…"
               options={editions}
               value={s.firstSeenEditions}
               onChange={s.setFirstSeenEditions}
@@ -214,7 +226,7 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
           >
             <MultiPick
               noun="tracers"
-              placeholder="Type to find a tracer"
+              placeholder="Type to find a tracer…"
               options={tracers}
               value={s.tracers}
               onChange={s.setTracers}
@@ -247,6 +259,7 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
             <div className="flex items-center gap-2">
               <Km
                 label="Length from, km"
+                name="length-from"
                 placeholder={lengths ? String(lengths[0]) : "From"}
                 value={s.lengthFrom}
                 onChange={(km) => s.setLength(km, s.lengthTo)}
@@ -256,6 +269,7 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
               <span className="type-ui-sm text-muted-foreground">to</span>
               <Km
                 label="Length to, km"
+                name="length-to"
                 placeholder={lengths ? String(lengths[1]) : "To"}
                 value={s.lengthTo}
                 onChange={(km) => s.setLength(s.lengthFrom, km)}

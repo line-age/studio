@@ -729,7 +729,7 @@ describe("Studio panels", () => {
     await renderPanels()
     await user.click(screen.getByRole("button", { name: /^Filters/ }))
     const box = screen.getByRole("combobox", { name: "Search editions" })
-    expect(box).toHaveAttribute("placeholder", "Type to find an edition")
+    expect(box).toHaveAttribute("placeholder", "Type to find an edition…")
     await user.click(box)
     const options = await screen.findAllByRole("option")
     expect(options.map((o) => o.textContent)).toEqual([
@@ -772,7 +772,7 @@ describe("Studio panels", () => {
     })
     await user.click(screen.getByRole("button", { name: /^Filters/ }))
     const box = screen.getByRole("combobox", { name: "Search tracers" })
-    expect(box).toHaveAttribute("placeholder", "Type to find a tracer")
+    expect(box).toHaveAttribute("placeholder", "Type to find a tracer…")
     await user.type(box, "Ann")
     const option = await screen.findByRole("option", { name: /Ann Example/ })
     expect(option).toHaveTextContent("Ann Example2")
@@ -1036,5 +1036,19 @@ describe("Progress says what it counts", () => {
     await renderPanels()
     act(() => useStudio.getState().select(["s-1", "s-3"]))
     expect(screen.getAllByText(/^1 of \d selected$/).length).toBe(2)
+  })
+})
+
+describe("the Filters panel's head", () => {
+  it("names the tab it filters and how many filters are on", async () => {
+    localStorage.clear()
+    useStudio.setState(useStudio.getInitialState(), true)
+    const user = userEvent.setup()
+    await renderPanels()
+    await user.click(screen.getByRole("button", { name: "Filters" }))
+    expect(screen.getByText("Filters · All")).toBeVisible()
+    expect(screen.getByText("None on")).toBeVisible()
+    act(() => useStudio.getState().setDiameters(["6 in"]))
+    expect(screen.getByText("1 on")).toBeVisible()
   })
 })

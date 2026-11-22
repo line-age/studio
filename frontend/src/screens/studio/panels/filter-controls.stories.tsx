@@ -43,7 +43,7 @@ function Editions({
   return (
     <MultiPick
       noun="editions"
-      placeholder="Type to find an edition"
+      placeholder="Type to find an edition…"
       options={EDITIONS}
       value={value}
       onChange={(next) => {
@@ -60,7 +60,7 @@ export const MultiPickEmpty: Story = {
   play: async ({ canvas }) => {
     await expect(
       canvas.getByRole("combobox", { name: "Search editions" })
-    ).toHaveAttribute("placeholder", "Type to find an edition")
+    ).toHaveAttribute("placeholder", "Type to find an edition…")
   },
 }
 
@@ -153,6 +153,7 @@ function Length({ from, to }: { from: number | null; to: number | null }) {
       <div className="flex items-center gap-2">
         <Km
           label="Length from, km"
+          name="length-from"
           placeholder="0"
           value={range.from}
           onChange={(km) => setRange((r) => ({ ...r, from: km }))}
@@ -162,6 +163,7 @@ function Length({ from, to }: { from: number | null; to: number | null }) {
         <span className="type-ui-sm text-muted-foreground">to</span>
         <Km
           label="Length to, km"
+          name="length-to"
           placeholder="1652"
           value={range.to}
           onChange={(km) => setRange((r) => ({ ...r, to: km }))}

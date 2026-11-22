@@ -1,6 +1,7 @@
 import { useId, useMemo } from "react"
 
 import { GroupLabel } from "@/components/group-label"
+import { Icon } from "@/components/icons/icon"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -170,6 +171,11 @@ export function MultiPick({
       onValueChange={(next) => onChange(next)}
     >
       <ComboboxChips ref={anchor} className="w-full">
+        {/* A search, as Figma draws it: the glass before what is typed. */}
+        <Icon
+          name="search"
+          className="size-3.5 shrink-0 text-muted-foreground"
+        />
         <ComboboxValue>
           {(chosen: string[]) => (
             <>
@@ -180,6 +186,9 @@ export function MultiPick({
               ))}
               <ComboboxChipsInput
                 aria-label={`Search ${noun}`}
+                name={`filter-${noun}`}
+                autoComplete="off"
+                spellCheck={false}
                 placeholder={chosen.length === 0 ? placeholder : ""}
               />
             </>
@@ -206,6 +215,7 @@ export function MultiPick({
 /** One end of a range of lengths, in whole km. Empty asks for nothing. */
 export function Km({
   label,
+  name,
   placeholder,
   value,
   onChange,
@@ -213,6 +223,8 @@ export function Km({
   describedBy,
 }: {
   label: string
+  /** The field's name, for the browser: "length-from". */
+  name: string
   placeholder: string
   value: number | null
   onChange: (km: number | null) => void
@@ -229,6 +241,8 @@ export function Km({
       min={0}
       step={1}
       aria-label={label}
+      name={name}
+      autoComplete="off"
       placeholder={placeholder}
       value={value ?? ""}
       onChange={(event) => {
