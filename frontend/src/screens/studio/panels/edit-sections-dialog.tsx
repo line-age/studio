@@ -1,19 +1,17 @@
-import { useMemo, useState, type FormEvent } from "react"
+import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import { Icon } from "@/components/icons/icon"
 import { GroupLabel } from "@/components/group-label"
+import {
+  EditModal,
+  EditModalBody,
+  EditModalField,
+  EditModalFooter,
+  EditModalHeader,
+} from "@/components/edit-modal"
 import { Hint } from "@/components/hint"
 import { Badge } from "@/components/ui/badge"
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import {
   InputGroup,
   InputGroupAddon,
@@ -83,29 +81,28 @@ export function EditSectionsDialog({
   onOpenChange: (open: boolean) => void
   sections: Section[]
 }) {
+  if (sections.length === 0) return null
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-0 p-0 sm:max-w-md">
-        {sections.length > 0 && (
-          <EditSectionsForm
-            // A fresh form, with its own state, whenever the target changes.
-            key={sections.map((s) => s.id).join(",")}
-            sections={sections}
-            onDone={() => onOpenChange(false)}
-          />
-        )}
-      </DialogContent>
-    </Dialog>
+    <EditSectionsForm
+      // A fresh form, with its own state, whenever the target changes.
+      key={sections.map((s) => s.id).join(",")}
+      open={open}
+      onOpenChange={onOpenChange}
+      sections={sections}
+    />
   )
 }
 
 function EditSectionsForm({
+  open,
+  onOpenChange,
   sections,
-  onDone,
 }: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   sections: Section[]
-  onDone: () => void
 }) {
+  const onDone = () => onOpenChange(false)
   const [excludedIds, setExcludedIds] = useState<ReadonlySet<string>>(new Set())
   const active = sections.filter((s) => !excludedIds.has(s.id))
   const bulk = sections.length > 1
@@ -186,8 +183,7 @@ function EditSectionsForm({
     attribute === "Last seen" ? dateOrderError : typedErrors.get(attribute)
   const blocked = !!dateOrderError || typedErrors.size > 0
 
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault()
+  const onSubmit = async () => {
     if (blocked) return
     if (changedAttributes.length === 0) {
       onDone()
@@ -220,17 +216,28 @@ function EditSectionsForm({
     }
   }
 
+  const summary =
+    changedAttributes.length > 0
+      ? `Will update ${listWords(changedAttributes)} on ${plural(active.length, "section")}`
+      : undefined
+
   return (
-    <form onSubmit={onSubmit}>
-      <DialogHeader className="gap-1 border-b p-4">
-        <DialogTitle>{title}</DialogTitle>
-        {bulk && excludedIds.size > 0 && (
-          <Hint>
-            {active.length} of {sections.length} selected
-          </Hint>
-        )}
-      </DialogHeader>
-      <div className="flex flex-col gap-4 p-4">
+    <EditModal
+      open={open}
+      onOpenChange={onOpenChange}
+      onSubmit={() => void onSubmit()}
+    >
+      <EditModalHeader
+        title={title}
+        meta={
+          bulk && excludedIds.size > 0 ? (
+            <Hint>
+              {active.length} of {sections.length} selected
+            </Hint>
+          ) : undefined
+        }
+      />
+      <EditModalBody>
         {bulk && (
           <div className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto">
             {sections.map((section) => {
@@ -265,160 +272,132 @@ function EditSectionsForm({
             })}
           </div>
         )}
-        {groups.map((group, groupIndex) => {
-          return (
-            <div
-              key={group.label}
-              className={cn(
-                "flex flex-col gap-2",
-                groupIndex > 0 && "border-t pt-4"
-              )}
-            >
-              <GroupLabel className="h-auto">{group.label}</GroupLabel>
-              <div className="flex flex-col gap-2.5">
-                {group.attrs.map((attribute) => {
-                  const isMixed = shared.get(attribute) === MIXED
-                  const disabled = storeMode && !writableOnStore(attribute)
-                  const fieldId = `edit-${attribute}`
-                  const changed = changedAttributes.includes(attribute)
-                  const isDate = DATE_FIELDS.includes(attribute)
-                  const fieldError = errorOf(attribute)
-                  return (
-                    <div key={attribute} className="flex flex-col gap-1">
-                      <div className="flex items-center gap-3">
-                        <label
-                          htmlFor={fieldId}
-                          className="flex w-24 shrink-0 items-center gap-1.5 type-ui-xs text-muted-foreground"
-                        >
-                          {attribute}
-                          {changed && (
-                            <span
-                              aria-hidden="true"
-                              className="size-1.5 shrink-0 rounded-full bg-ring"
-                            />
-                          )}
-                        </label>
-                        {isDate ? (
-                          <DateField
-                            id={fieldId}
-                            value={current(attribute)}
-                            isMixed={isMixed}
-                            disabled={disabled}
-                            autoFocus={fieldId === firstFieldId}
-                            error={fieldError}
-                            onChange={(next) =>
-                              setFields((prev) => ({
-                                ...prev,
-                                [attribute]: next,
-                              }))
-                            }
-                          />
-                        ) : (
-                          <InputGroup className="flex-1">
-                            <InputGroupInput
-                              id={fieldId}
-                              value={current(attribute)}
-                              placeholder={isMixed ? "Mixed" : undefined}
-                              disabled={disabled}
-                              autoFocus={fieldId === firstFieldId}
-                              className="placeholder:italic"
-                              aria-invalid={!!fieldError}
-                              aria-describedby={
-                                fieldError ? `${fieldId}-error` : undefined
-                              }
-                              onChange={(event) =>
-                                setFields((prev) => ({
-                                  ...prev,
-                                  [attribute]: event.target.value,
-                                }))
-                              }
-                            />
-                            {changed && (
-                              <InputGroupAddon align="inline-end">
-                                <InputGroupButton
-                                  aria-label={`Reset ${attribute}`}
-                                  onClick={() =>
-                                    setFields((prev) => {
-                                      const next = { ...prev }
-                                      delete next[attribute]
-                                      return next
-                                    })
-                                  }
-                                >
-                                  <Icon name="undo" className="size-3" />
-                                  Reset
-                                </InputGroupButton>
-                              </InputGroupAddon>
-                            )}
-                            {!changed && isMixed && (
-                              <InputGroupAddon align="inline-end">
-                                <Badge variant="outline" className="type-ui-xs">
-                                  Mixed
-                                </Badge>
-                              </InputGroupAddon>
-                            )}
-                          </InputGroup>
-                        )}
-                      </div>
-                      {fieldError && !isDate && (
-                        <p
-                          id={`${fieldId}-error`}
-                          className="pl-[7.5rem] type-ui-xs text-destructive"
-                        >
-                          {fieldError}
-                        </p>
-                      )}
-                      {!changed && disabled && (
-                        <Hint className="pl-[7.5rem] type-ui-xs">
-                          Not editable yet
-                        </Hint>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })}
-        <div className="flex items-center gap-3 border-t pt-4">
-          <label
-            htmlFor="edit-note"
-            className="flex w-24 shrink-0 items-center type-ui-xs text-muted-foreground"
+        {groups.map((group, groupIndex) => (
+          <div
+            key={group.label}
+            className={cn(
+              "flex flex-col gap-2",
+              groupIndex > 0 && "border-t pt-4"
+            )}
           >
-            Note (optional)
-          </label>
-          <Input
-            id="edit-note"
-            value={note}
-            placeholder="Why this changed"
-            className="flex-1 placeholder:italic"
-            onChange={(event) => setNote(event.target.value)}
-          />
+            <GroupLabel className="h-auto">{group.label}</GroupLabel>
+            <div className="flex flex-col gap-2.5">
+              {group.attrs.map((attribute) => {
+                const isMixed = shared.get(attribute) === MIXED
+                const disabled = storeMode && !writableOnStore(attribute)
+                const fieldId = `edit-${attribute}`
+                const changed = changedAttributes.includes(attribute)
+                const isDate = DATE_FIELDS.includes(attribute)
+                const fieldError = errorOf(attribute)
+                return (
+                  <EditModalField
+                    key={attribute}
+                    id={fieldId}
+                    label={
+                      <>
+                        {attribute}
+                        {changed && (
+                          <span
+                            aria-hidden="true"
+                            className="size-1.5 shrink-0 rounded-full bg-ring"
+                          />
+                        )}
+                      </>
+                    }
+                    // A date field says its own mistake, under its own parts.
+                    error={isDate ? undefined : fieldError}
+                    hint={
+                      !changed && disabled ? (
+                        <Hint className="type-ui-xs">Not editable yet</Hint>
+                      ) : undefined
+                    }
+                  >
+                    {isDate ? (
+                      <DateField
+                        id={fieldId}
+                        value={current(attribute)}
+                        isMixed={isMixed}
+                        disabled={disabled}
+                        autoFocus={fieldId === firstFieldId}
+                        error={fieldError}
+                        onChange={(next) =>
+                          setFields((prev) => ({
+                            ...prev,
+                            [attribute]: next,
+                          }))
+                        }
+                      />
+                    ) : (
+                      <InputGroup className="flex-1">
+                        <InputGroupInput
+                          id={fieldId}
+                          value={current(attribute)}
+                          placeholder={isMixed ? "Mixed" : undefined}
+                          disabled={disabled}
+                          autoFocus={fieldId === firstFieldId}
+                          className="placeholder:italic"
+                          aria-invalid={!!fieldError}
+                          aria-describedby={
+                            fieldError ? `${fieldId}-error` : undefined
+                          }
+                          onChange={(event) =>
+                            setFields((prev) => ({
+                              ...prev,
+                              [attribute]: event.target.value,
+                            }))
+                          }
+                        />
+                        {changed && (
+                          <InputGroupAddon align="inline-end">
+                            <InputGroupButton
+                              aria-label={`Reset ${attribute}`}
+                              onClick={() =>
+                                setFields((prev) => {
+                                  const next = { ...prev }
+                                  delete next[attribute]
+                                  return next
+                                })
+                              }
+                            >
+                              <Icon name="undo" className="size-3" />
+                              Reset
+                            </InputGroupButton>
+                          </InputGroupAddon>
+                        )}
+                        {!changed && isMixed && (
+                          <InputGroupAddon align="inline-end">
+                            <Badge variant="outline" className="type-ui-xs">
+                              Mixed
+                            </Badge>
+                          </InputGroupAddon>
+                        )}
+                      </InputGroup>
+                    )}
+                  </EditModalField>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+        <div className="border-t pt-4">
+          <EditModalField id="edit-note" label="Note (optional)">
+            <Input
+              id="edit-note"
+              value={note}
+              placeholder="Why this changed"
+              className="placeholder:italic"
+              onChange={(event) => setNote(event.target.value)}
+            />
+          </EditModalField>
         </div>
-      </div>
-      <DialogFooter className="m-0 items-center rounded-none border-t bg-transparent p-4">
-        <span
-          className="min-h-5 min-w-0 flex-1 self-center truncate type-ui-sm text-muted-foreground"
-          title={
-            changedAttributes.length > 0
-              ? `Will update ${listWords(changedAttributes)} on ${plural(active.length, "section")}`
-              : undefined
-          }
-        >
-          {changedAttributes.length > 0
-            ? `Will update ${listWords(changedAttributes)} on ${plural(active.length, "section")}`
-            : "No changes yet"}
-        </span>
-        <DialogClose render={<Button type="button" variant="outline" />}>
-          Cancel
-        </DialogClose>
-        <Button
-          type="submit"
-          disabled={saving || changedAttributes.length === 0 || blocked}
-        >
-          {submitLabel}
-        </Button>
-      </DialogFooter>
-    </form>
+      </EditModalBody>
+      <EditModalFooter
+        summary={summary}
+        action={submitLabel}
+        // With nothing changed the action waits; Cancel closes.
+        ready={changedAttributes.length > 0 && !blocked}
+        saving={saving}
+      />
+    </EditModal>
   )
 }
