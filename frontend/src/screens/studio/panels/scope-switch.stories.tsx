@@ -13,7 +13,7 @@ const on = (scope: Scope) => () => {
 }
 
 const meta = {
-  title: "Studio/ScopeSwitch",
+  title: "Studio/List/ScopeSwitch",
   component: ScopeSwitch,
   beforeEach: on("all"),
 } satisfies Meta<typeof ScopeSwitch>
@@ -40,7 +40,8 @@ export const Pipelines: Story = { beforeEach: on("pipelines") }
 export const Unplaced: Story = { beforeEach: on("unplaced") }
 
 /** Pressing a choice moves the switch; pressing it again leaves it on. */
-export const PickPipelines: Story = {
+export const PipelinesPicked: Story = {
+  name: "Pipelines, picked",
   play: async ({ canvas, userEvent, step }) => {
     await step("Press Pipelines", async () => {
       await userEvent.click(canvas.getByRole("button", { name: "Pipelines" }))
@@ -55,7 +56,8 @@ export const PickPipelines: Story = {
 }
 
 /** Reached by keyboard: Tab to the switch, the arrows move, Enter presses. */
-export const ByKeyboard: Story = {
+export const PickedByKeyboard: Story = {
+  name: "Unplaced, picked by keyboard",
   play: async ({ canvas, userEvent }) => {
     await userEvent.tab()
     await expect(canvas.getByRole("button", { name: "All" })).toHaveFocus()

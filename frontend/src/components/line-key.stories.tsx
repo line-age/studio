@@ -26,6 +26,7 @@ const KINDS: LineKind[] = [
 
 /** Every kind, side by side with its name. */
 export const EveryKind: Story = {
+  name: "Every kind",
   render: () => (
     <ul className="flex flex-col gap-2">
       {KINDS.map((kind) => (
@@ -39,7 +40,8 @@ export const EveryKind: Story = {
 }
 
 /** The two rows the map key gained: heavy in a pipeline, thin in none. */
-export const HeavyAndThinRows: Story = {
+export const HeavyAndThin: Story = {
+  name: "Heavy and thin",
   render: () => (
     <ul className="flex flex-col gap-0.5">
       <LayerRow

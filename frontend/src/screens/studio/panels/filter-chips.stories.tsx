@@ -5,7 +5,7 @@ import { FilterChips } from "./filter-chips"
 
 /** The chips under the search: the filters in force, each with its remove. */
 const meta = {
-  title: "Studio/FilterChips",
+  title: "Studio/List/FilterChips",
   component: FilterChips,
 } satisfies Meta<typeof FilterChips>
 
@@ -44,7 +44,7 @@ export const One: Story = {
 }
 
 /** Several: Clear all takes every one off. */
-export const ManyClearAll: Story = {
+export const Many: Story = {
   args: {
     chips: [
       chip("Not started", "Only sections that are not started."),
