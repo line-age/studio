@@ -1,7 +1,7 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
-import { signInUrl, type Session } from "@/data/session"
+import { signInUrl, type SignedOut, type SignInFailure } from "@/data/session"
 
 import { DevelopedBy } from "./developed-by"
 import { EditionsPanel } from "./editions-panel"
@@ -17,17 +17,12 @@ import { SignInMessage } from "./sign-in-message"
  * that failed (`425:15741`). GitHub asks for the password; Studio never sees it.
  */
 
-export type SignedOut = Extract<
-  Session,
-  { kind: "signed-out" } | { kind: "not-in-team" }
->
-
 /** What a failed sign-in says, by what did not answer. */
 const FAILED = {
   github: "Could not sign in: GitHub did not answer. Nothing was changed.",
   unreachable:
     "Could not sign in: Studio's sign-in did not answer. Nothing was changed.",
-}
+} satisfies Record<SignInFailure, string>
 
 export function SignInScreen({
   session,
@@ -38,6 +33,15 @@ export function SignInScreen({
   go?: (url: string) => void
 }) {
   const [signing, setSigning] = useState(false)
+  // Back from GitHub without signing in, the browser may show this page as it
+  // was left, still signing in. It starts over instead.
+  useEffect(() => {
+    const shown = (event: PageTransitionEvent) => {
+      if (event.persisted) setSigning(false)
+    }
+    window.addEventListener("pageshow", shown)
+    return () => window.removeEventListener("pageshow", shown)
+  }, [])
   const signIn = (chooseAccount = false) => {
     setSigning(true)
     go(signInUrl({ chooseAccount }))

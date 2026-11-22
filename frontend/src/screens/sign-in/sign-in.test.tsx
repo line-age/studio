@@ -4,22 +4,32 @@ import userEvent from "@testing-library/user-event"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import type { Session } from "@/data/session"
-import { studioFetch } from "@/data/session"
+import { forgetSignInEnded, studioFetch } from "@/data/session"
 
 import { SessionGate } from "./session-gate"
 import { SignInAgain } from "./sign-in-again"
 import { SignInScreen } from "./sign-in-screen"
 
 afterEach(() => {
+  forgetSignInEnded()
+  vi.unstubAllEnvs()
   vi.unstubAllGlobals()
   window.history.replaceState(null, "", "/")
 })
 
-const gate = (session: Session) =>
-  render(
+/** Studio on store's data, with who is using it already known. */
+const gate = (session: Session) => {
+  vi.stubEnv("VITE_DATA_SOURCE", "store")
+  return render(
     <SessionGate load={() => Promise.resolve(session)}>
       <p>The Studio screen</p>
     </SessionGate>
+  )
+}
+
+const refused = () =>
+  vi.stubGlobal("fetch", () =>
+    Promise.resolve(new Response("", { status: 401 }))
   )
 
 describe("SessionGate", () => {
@@ -53,6 +63,23 @@ describe("SessionGate", () => {
     expect(await screen.findByText("The Studio screen")).toBeInTheDocument()
   })
 
+  it("asks to sign in again even when the 401 came back before the screen was up", async () => {
+    refused()
+    await studioFetch("/store/sections")
+    gate({ kind: "signed-in", name: "Ada Example", login: "a", chat: "c" })
+    expect(
+      await screen.findByRole("dialog", { name: "Sign in again" })
+    ).toBeInTheDocument()
+  })
+
+  it("does not ask Local developer to sign in again: there is no gate", async () => {
+    gate({ kind: "local" })
+    await screen.findByText("The Studio screen")
+    refused()
+    await act(() => studioFetch("/store/sections"))
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+  })
+
   it("asks to sign in again over the screen when store answers 401", async () => {
     gate({ kind: "signed-in", name: "Ada Example", login: "a", chat: "c" })
     await screen.findByText("The Studio screen")
@@ -84,6 +111,21 @@ describe("SignInScreen", () => {
     expect(
       screen.getByRole("button", { name: "Sign in with GitHub" })
     ).toBeDisabled()
+  })
+
+  it("starts over when the browser comes back to it from GitHub", async () => {
+    render(<SignInScreen session={{ kind: "signed-out" }} go={vi.fn()} />)
+    await userEvent.click(
+      screen.getByRole("button", { name: "Sign in with GitHub" })
+    )
+    expect(screen.getByRole("heading", { name: "Signing in" })).toBeVisible()
+    const back = Object.assign(new Event("pageshow"), { persisted: true })
+    act(() => {
+      window.dispatchEvent(back)
+    })
+    expect(
+      screen.getByRole("button", { name: "Sign in with GitHub" })
+    ).toBeEnabled()
   })
 
   it("says which account is in no team, and offers another", async () => {
@@ -123,7 +165,18 @@ describe("SignInScreen", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Could not sign in: GitHub did not answer. Nothing was changed."
     )
-    expect(screen.getByRole("button", { name: "Try again" })).toBeEnabled()
+  })
+
+  it("tries again after a failed sign-in", async () => {
+    const go = vi.fn()
+    render(
+      <SignInScreen
+        session={{ kind: "signed-out", failure: "github" }}
+        go={go}
+      />
+    )
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }))
+    expect(go).toHaveBeenCalledWith("/auth/login?next=%2F")
   })
 
   it("says when Studio's own sign-in did not answer", () => {
@@ -178,6 +231,5 @@ describe("Coming back from the gate", () => {
     ).toBeInTheDocument()
     expect(window.location.search).toBe("?sc=all")
     expect(fetchMock).not.toHaveBeenCalled()
-    vi.unstubAllEnvs()
   })
 })

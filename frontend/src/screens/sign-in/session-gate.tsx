@@ -1,12 +1,19 @@
-import { useEffect, useState, type ReactNode } from "react"
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react"
 
 import { LoadBar } from "@/components/load-bar"
 import { dataSource } from "@/data/load-network"
 import {
   currentView,
+  isSignedOut,
   loadSession,
-  onSignInEnded,
+  signInHasEnded,
   signInReturn,
+  subscribeSignInEnded,
   type Session,
 } from "@/data/session"
 
@@ -17,12 +24,13 @@ import { SignInScreen } from "./sign-in-screen"
  * What decides whether Studio opens. On the sample it always does. On
  * store's data it asks who is using it first: signed in (or, locally, Local
  * developer) opens Studio; anything else is the sign-in page, so nothing of
- * store's shows before a sign-in. A 401 while working raises "Sign in again"
- * over the screen.
+ * store's shows before a sign-in. A 401 while signed in raises "Sign in
+ * again" over the screen. Locally there is no gate to sign in again through,
+ * so a 401 there shows only where the request failed.
  */
 export function SessionGate({
   children,
-  load,
+  load = () => loadSession(dataSource()),
 }: {
   children: ReactNode
   /** Who is using Studio. Tests pass their own. */
@@ -30,12 +38,12 @@ export function SessionGate({
 }) {
   // Known at once, with nobody to ask: the sample, and what the gate said in
   // the address after a sign-in that did not end in a session.
-  const [session, setSession] = useState<Session | null>(() => {
-    if (load) return null
-    if (dataSource() === "fixture") return { kind: "sample" }
-    return signInReturn(window.location.search)
-  })
-  const [ended, setEnded] = useState(false)
+  const [session, setSession] = useState<Session | null>(() =>
+    dataSource() === "fixture"
+      ? { kind: "sample" }
+      : signInReturn(window.location.search)
+  )
+  const ended = useSyncExternalStore(subscribeSignInEnded, signInHasEnded)
 
   // Once read, the gate's words leave the address; the view stays.
   useEffect(() => {
@@ -47,21 +55,14 @@ export function SessionGate({
   useEffect(() => {
     if (session) return
     let live = true
-    void (load ?? (() => loadSession(dataSource())))().then(
-      (found) => live && setSession(found)
-    )
+    // load() never throws: a gate that does not answer is a session too.
+    void load().then((found) => live && setSession(found))
     return () => {
       live = false
     }
     // Asked once, when Studio opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  const signedIn = session?.kind === "signed-in"
-  useEffect(() => {
-    if (!signedIn) return
-    return onSignInEnded(() => setEnded(true))
-  }, [signedIn])
 
   if (!session) {
     return (
@@ -70,13 +71,11 @@ export function SessionGate({
       </div>
     )
   }
-  if (session.kind === "signed-out" || session.kind === "not-in-team") {
-    return <SignInScreen session={session} />
-  }
+  if (isSignedOut(session)) return <SignInScreen session={session} />
   return (
     <>
       {children}
-      <SignInAgain open={ended} />
+      <SignInAgain open={ended && session.kind === "signed-in"} />
     </>
   )
 }

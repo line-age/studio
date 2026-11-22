@@ -31,18 +31,18 @@ def get(url, token="any-token"):
 def test_names_local_developer_for_any_token(base):
     status, body = get(f"{base}/user", token="local-dev")
     assert status == 200
-    assert body["login"] == "local-developer"
+    assert body["login"] == "local_developer"
     assert body["name"] == "Local developer"
 
 
 def test_local_developer_is_an_active_member_of_local_dev(base):
-    status, body = get(f"{base}/orgs/local/teams/dev/memberships/local-developer")
+    status, body = get(f"{base}/orgs/local/teams/dev/memberships/local_developer")
     assert (status, body["state"]) == (200, "active")
 
 
 def test_no_other_team_or_person(base):
-    assert get(f"{base}/orgs/local/teams/other/memberships/local-developer")[0] == 404
-    assert get(f"{base}/orgs/local/teams/dev/memberships/someone-else")[0] == 404
+    assert get(f"{base}/orgs/local/teams/other/memberships/local_developer")[0] == 404
+    assert get(f"{base}/orgs/local/teams/dev/memberships/someone_else")[0] == 404
 
 
 def test_refuses_a_request_with_no_token(base):

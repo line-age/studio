@@ -3,6 +3,7 @@ import { Client } from "@langchain/langgraph-sdk"
 import { useStream } from "@langchain/react"
 
 import type { Question } from "../question"
+import { studioFetch } from "../session"
 import {
   agentAnswer,
   agentStep,
@@ -13,8 +14,10 @@ import {
 /*
  * The conversation with the Agent service, through this app's own /agent path.
  *
- * Studio has no sign-in yet, so every browser opens one shared thread with a
- * fixed id (studio/agent/settings.py). The thread is kept by the service: a
+ * Every request goes through studioFetch, as store's do: it says it comes
+ * from Studio and a 401 raises "Sign in again". Until each person has a chat
+ * of their own (plan 2026-11-21-003, step 4), every browser opens one shared
+ * thread with a fixed id (studio/agent/settings.py). The thread is kept by the service: a
  * reload shows it again, and "Clear chat" deletes it for everyone.
  */
 
@@ -47,8 +50,15 @@ export function savedMessage(raw: unknown): RawMessage {
   return (raw ?? {}) as RawMessage
 }
 
-function apiUrl(): string {
-  return `${window.location.origin}/agent`
+let shared: Client | null = null
+
+/** The one client for the Agent service, sending through studioFetch. */
+function agentClient(): Client {
+  shared ??= new Client({
+    apiUrl: `${window.location.origin}/agent`,
+    callerOptions: { fetch: studioFetch },
+  })
+  return shared
 }
 
 /** Turns from the thread's messages: each question, and the answer that names it. */
@@ -93,8 +103,8 @@ export function useSharedThread(epoch: number): "ready" | "down" | "starting" {
   const [state, setState] = useState<"ready" | "down" | "starting">("starting")
   useEffect(() => {
     let live = true
-    new Client({ apiUrl: apiUrl() }).threads
-      .create({ threadId: SHARED_THREAD_ID, ifExists: "do_nothing" })
+    agentClient()
+      .threads.create({ threadId: SHARED_THREAD_ID, ifExists: "do_nothing" })
       .then(() => live && setState("ready"))
       .catch(() => live && setState("down"))
     return () => {
@@ -106,7 +116,7 @@ export function useSharedThread(epoch: number): "ready" | "down" | "starting" {
 
 export function useAgent() {
   const stream = useStream({
-    apiUrl: apiUrl(),
+    client: agentClient(),
     assistantId: ASSISTANT,
     threadId: SHARED_THREAD_ID,
   })
@@ -123,8 +133,8 @@ export function useAgent() {
   useEffect(() => {
     if (working) return
     let current = true
-    new Client({ apiUrl: apiUrl() }).threads
-      .getState(SHARED_THREAD_ID)
+    agentClient()
+      .threads.getState(SHARED_THREAD_ID)
       .then((state) => {
         const values = state.values as { messages?: unknown[] } | null
         if (current) setSaved(values?.messages ?? [])
@@ -189,8 +199,8 @@ export function useAgent() {
   // where an answer ends (no search left to follow) makes it idle again.
   const stop = async () => {
     await stream.stop({ cancel: true })
-    await new Client({ apiUrl: apiUrl() }).threads
-      .updateState(SHARED_THREAD_ID, {
+    await agentClient()
+      .threads.updateState(SHARED_THREAD_ID, {
         values: { cite_job: null },
         asNode: "answer",
       })
@@ -199,7 +209,7 @@ export function useAgent() {
 
   const clear = async () => {
     if (stream.isLoading) await stop().catch(() => undefined)
-    const client = new Client({ apiUrl: apiUrl() })
+    const client = agentClient()
     await client.threads.delete(SHARED_THREAD_ID).catch(() => undefined)
     await client.threads.create({
       threadId: SHARED_THREAD_ID,

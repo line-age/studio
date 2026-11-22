@@ -32,10 +32,14 @@ export type Session =
 /** Why the last sign-in did not work: GitHub, or the gate itself. */
 export type SignInFailure = "github" | "unreachable"
 
-export type AuthMode = "gate" | "local"
+/** The sessions that show the sign-in page in place of Studio. */
+export type SignedOut = Extract<
+  Session,
+  { kind: "signed-out" } | { kind: "not-in-team" }
+>
 
-export function authMode(): AuthMode {
-  return import.meta.env.VITE_AUTH === "local" ? "local" : "gate"
+export function isSignedOut(session: Session): session is SignedOut {
+  return session.kind === "signed-out" || session.kind === "not-in-team"
 }
 
 const person = z.object({
@@ -60,12 +64,18 @@ export function signInReturn(search: string): Session | null {
   return null
 }
 
-/** The path and query a person is on, without what the gate added. */
-export function currentView(location: Location = window.location): string {
-  const query = new URLSearchParams(location.search)
+/**
+ * The path and query a person is on, without what the gate added. A path
+ * that a browser would read as another site (`//host`, `/\\host`) comes back
+ * as the root: the gate checks `next` too, and this never hands it one.
+ */
+export function currentView(): string {
+  const { pathname, search } = window.location
+  const query = new URLSearchParams(search)
   for (const key of SIGN_IN_KEYS) query.delete(key)
   const rest = query.toString()
-  return `${location.pathname}${rest ? `?${rest}` : ""}`
+  const path = /^\/[/\\]/.test(pathname) ? "/" : pathname
+  return `${path}${rest ? `?${rest}` : ""}`
 }
 
 /** Where "Sign in with GitHub" goes: GitHub, then back to this same view. */
@@ -78,7 +88,10 @@ export function signInUrl(options: { chooseAccount?: boolean } = {}): string {
 /** Who is using Studio. Never throws: a gate that does not answer is a failure. */
 export async function loadSession(source: DataSource): Promise<Session> {
   if (source === "fixture") return { kind: "sample" }
-  const local = authMode() === "local"
+  // Locally a 401 also lands on the sign-in page, whose button leads to a
+  // gate that is not there: store is not on the fake GitHub, or the proxy
+  // sends no token. Studio does not open either way (R15).
+  const local = import.meta.env.VITE_AUTH === "local"
   let response: Response
   try {
     response = await fetch(local ? "/store/me" : "/auth/me", {
@@ -98,29 +111,47 @@ export async function loadSession(source: DataSource): Promise<Session> {
   return { kind: "signed-in", ...parsed.data }
 }
 
-type Listener = () => void
-const listeners = new Set<Listener>()
+/*
+ * Whether a request was refused because the sign-in ended. Kept here and not
+ * in a component, so a 401 that comes back before any component listens (as
+ * one can while Studio first loads) is never lost. Once ended, only a new
+ * page load starts it again.
+ */
+let ended = false
+const listeners = new Set<() => void>()
 
-/** Calls back when a request is refused because the sign-in ended. */
-export function onSignInEnded(listener: Listener): () => void {
+export function subscribeSignInEnded(listener: () => void): () => void {
   listeners.add(listener)
-  return () => listeners.delete(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+
+export function signInHasEnded(): boolean {
+  return ended
+}
+
+/** For tests: as after a new page load. */
+export function forgetSignInEnded(): void {
+  ended = false
 }
 
 /**
- * fetch for Studio's own /store: says the request comes from Studio (the gate
- * refuses a write without it), and reports a 401 as the sign-in ending. The
- * caller still sees the 401 and fails as it always did, so nothing that was
- * refused is shown as done.
+ * fetch for Studio's own /store and /agent: says the request comes from
+ * Studio (the gate refuses a write without it), and records a 401 as the
+ * sign-in ending. The caller still sees the 401 and fails as it always did,
+ * so nothing that was refused is shown as done.
  */
 export async function studioFetch(
-  input: string,
+  input: RequestInfo | URL,
   init: RequestInit = {}
 ): Promise<Response> {
-  const response = await fetch(input, {
-    ...init,
-    headers: { ...(init.headers as Record<string, string>), "X-Studio": "1" },
-  })
-  if (response.status === 401) for (const listener of listeners) listener()
+  const headers = new Headers(init.headers)
+  headers.set("X-Studio", "1")
+  const response = await fetch(input, { ...init, headers })
+  if (response.status === 401 && !ended) {
+    ended = true
+    for (const listener of listeners) listener()
+  }
   return response
 }

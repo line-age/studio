@@ -12,11 +12,12 @@ const LOCAL_DEV_TOKEN = "local-dev"
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   // STORE_URL is read here, on the server side. Store refuses a request with no
-  // token. STUDIO_AUTH=local sends a fixed one, which a local store pointed at the
-  // fake GitHub (dev/fake-github) takes as the person "Local developer".
+  // token. VITE_AUTH=local sends a fixed one, which a local store pointed at the
+  // fake GitHub (dev/fake-github) takes as the person "Local developer". The
+  // same switch tells the app to ask store who this is instead of the gate.
   const env = loadEnv(mode, import.meta.dirname, "")
   const localToken =
-    env.STUDIO_AUTH === "local"
+    env.VITE_AUTH === "local"
       ? { Authorization: `Bearer ${LOCAL_DEV_TOKEN}` }
       : undefined
   // With GATE_URL, sign-in, store and the Agent all go through the gate, which

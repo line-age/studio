@@ -18,7 +18,9 @@ import argparse
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-LOGIN = "local-developer"
+# An underscore: GitHub never issues such a login, so a store made against this
+# fake can never give its Local developer to a real account.
+LOGIN = "local_developer"
 NAME = "Local developer"
 TEAM = ("local", "dev")
 

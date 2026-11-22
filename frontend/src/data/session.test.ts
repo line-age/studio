@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
+  forgetSignInEnded,
   loadSession,
-  onSignInEnded,
+  signInHasEnded,
   signInReturn,
   signInUrl,
   studioFetch,
+  subscribeSignInEnded,
 } from "./session"
 
 const json = (body: unknown, status = 200) =>
@@ -32,6 +34,7 @@ const at = (path: string) => {
 const person = { name: "Ada Example", login: "ada-example", chat: "c-1" }
 
 afterEach(() => {
+  forgetSignInEnded()
   vi.unstubAllGlobals()
   vi.unstubAllEnvs()
   window.history.replaceState(null, "", "/")
@@ -123,6 +126,17 @@ describe("signInUrl", () => {
     )
   })
 
+  it("never hands the gate a path a browser reads as another site", () => {
+    for (const path of ["//elsewhere.test/x", "/\\elsewhere.test/x"]) {
+      window.history.replaceState(null, "", window.location.origin + path)
+      expect(
+        window.location.pathname.startsWith("//") ||
+          window.location.pathname.startsWith("/\\")
+      ).toBe(true)
+      expect(signInUrl()).toBe("/auth/login?next=%2F")
+    }
+  })
+
   it("asks GitHub which account when asked", () => {
     at("/")
     expect(signInUrl({ chooseAccount: true })).toBe(
@@ -134,29 +148,35 @@ describe("signInUrl", () => {
 describe("studioFetch", () => {
   it("says the request comes from Studio, keeping the caller's headers", async () => {
     const fetchMock = answer(() => json({}))
-    await studioFetch("/store/x", { headers: { Accept: "application/json" } })
-    expect(fetchMock.mock.calls[0][1]?.headers).toEqual({
-      Accept: "application/json",
-      "X-Studio": "1",
+    await studioFetch("/store/x", {
+      headers: new Headers({ Accept: "application/json" }),
     })
+    const sent = new Headers(fetchMock.mock.calls[0][1]?.headers)
+    expect(sent.get("Accept")).toBe("application/json")
+    expect(sent.get("X-Studio")).toBe("1")
   })
 
-  it("reports a 401 as the sign-in ending, and still hands back the 401", async () => {
+  it("keeps a 401 as the sign-in ending, and still hands back the 401", async () => {
     answer(() => json({}, 401))
-    const ended = vi.fn()
-    const stop = onSignInEnded(ended)
+    const heard = vi.fn()
+    const stop = subscribeSignInEnded(heard)
     const response = await studioFetch("/store/x")
+    await studioFetch("/store/y")
     stop()
-    expect(ended).toHaveBeenCalledOnce()
     expect(response.status).toBe(401)
+    expect(signInHasEnded()).toBe(true)
+    expect(heard).toHaveBeenCalledOnce()
   })
 
-  it("does not report a refusal that is not a 401", async () => {
-    answer(() => json({}, 403))
-    const ended = vi.fn()
-    const stop = onSignInEnded(ended)
+  it("keeps a 401 that came back before anybody listened", async () => {
+    answer(() => json({}, 401))
     await studioFetch("/store/x")
-    stop()
-    expect(ended).not.toHaveBeenCalled()
+    expect(signInHasEnded()).toBe(true)
+  })
+
+  it("does not take a refusal that is not a 401 as the sign-in ending", async () => {
+    answer(() => json({}, 403))
+    await studioFetch("/store/x")
+    expect(signInHasEnded()).toBe(false)
   })
 })

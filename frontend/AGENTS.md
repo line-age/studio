@@ -264,15 +264,15 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   `loadNetwork()`. One never stands in for the other when it fails. The app reaches store
   at its own `/store` path, and nothing in the browser holds a token: on store's data a
   person signs in with GitHub through the gate (plan `2026-11-21-003`), which adds their
-  token on the way. Locally (`STUDIO_AUTH=local` for the proxy, `VITE_AUTH=local` for the
-  app) the dev server and nginx send a fixed token that a store started with the fake
+  token on the way. Locally (`VITE_AUTH=local`) the dev server and nginx send a fixed token that a store started with the fake
   GitHub (`dev/fake-github`) takes as "Local developer", who reads and decides. No token,
   and no name starting with `VITE_` that holds one, ever goes in the code or the bundle.
 - Sign-in (`src/screens/sign-in/`, Figma section 19, `425:15687`). `src/data/session.ts`
   says who is using Studio (`loadSession`: the sample, Local developer, signed in, signed
   out, in no team) and is the one place a 401 is heard: every request to `/store` goes
-  through `studioFetch`, which sends `X-Studio: 1` and raises "Sign in again" over the
-  screen on a 401 (`SignInAgain`, `425:15755`), the view kept in the URL. `SessionGate`
+  (and the Agent's client) through `studioFetch`, which sends `X-Studio: 1` and, on a
+  401 while signed in, raises "Sign in again" over the screen; the 401 is kept in
+  `session.ts`, so one that comes back before anything listens is not lost (`SignInAgain`, `425:15755`), the view kept in the URL. `SessionGate`
   shows the sign-in page in place of Studio until there is a session; nothing of store's
   shows before. The gate sends a sign-in that did not end in a session back with
   `?sign_in=not_in_team&login=` or `?sign_in=failed`; `signInReturn` reads it once and the
