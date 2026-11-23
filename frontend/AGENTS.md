@@ -586,6 +586,26 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   Confirm and Reject; a candidate claim, cite's findings among them, Accept and Reject;
   a proposed cut no button. Read from the network, no model; twenty at a time. The
   claim detail still decides nothing: its proposal points to the Agent.
+- The Agent's cards (2026-11-23, Figma sections 28 and 29; plan `2026-11-23-001`). Every
+  thing in the chat that waits on a press is one `components/decision-card.tsx` (a dot for
+  whose it is: blue the person's, purple the Agent's or a tool's, grey closed; the title;
+  who and what the press does; a grey block of what will be written; an outcome line with
+  its word; the buttons), at most 560 wide. A change asked in words (`change_offer`) is
+  `panels/agent-change-card.tsx`: Approve reads the network again, checks the card's basis
+  (`data/agent/change-offer.ts`, `staleness`: a section that moved since makes it out of
+  date and nothing is sent), then makes it through the menu's own writes (`writeFor`:
+  `change()` or the Edit window's save) with the offer's id as the action's key, so a
+  second press or a second tab writes once. A search (`search_offer`) is
+  `panels/agent-search-card.tsx`: only Search spends; Not now and Change towns (words in
+  the box) do not. What came of a card is sent back as the action `outcome` and read from
+  the thread (`panels/agent-cards.ts`): the same for everyone and after a reload. A press
+  is drawn on its card, never as a message. Fixed lines are `panels/agent-notice.tsx`. The
+  header reads "Changes nothing until you approve"; the empty chat says what to ask and
+  its box writes examples (`components/use-typed-placeholder.ts`, from
+  `data/agent/composer-examples.json`, the Agent's file held equal by a test): Tab takes
+  one, typing stops them. Stories for the cards run inside `test/studio-story.tsx`'s
+  `inStudio` decorator on the invented test network; the grey block's colours are under
+  AA on muted (a token question for the owner, marked `a11y: todo`).
 - Asking (`src/data/question.ts`): a question carries the words, each attached thing by
   kind and store id (or its section and attribute when the data has no id), the edition
   in force and the network; `buildQuestion` makes it, and nothing else leaves the
@@ -605,14 +625,15 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   the sentence names is a link in the text; a worked-out fact or a lead carries a grey
   prefix ("Inferred", with what it means on hover; "Lead, not in store") and is never
   shown as a claim; "Used n
-  sources" ends it. What cite found is a finding card under its sentence
-  (`panels/agent-finding.tsx`, stock parts, not in Figma yet): the AI badge "Found by
-  cite, not in store", the page's own words, the passage marked on a crop of the page,
-  the reference and "Open page on Internet Archive", why it is in doubt, the places it
-  matched, and Propose, which sends the action `{kind: "propose", finding}` and is the
-  only way a finding reaches store (as a candidate). While cite searches, the answer so
-  far and cite's steps ("cite: ...") stay live; after a proposal Studio reads store
-  again (`reload` in `studio-data.tsx`). About several attached sections it is grouped under each; the rest
+  sources" ends it. What cite found is a finding card (`panels/agent-finding.tsx`, Figma
+section 29 board B), on the DecisionCard like every card: the value as the title, the page's
+words, the source, Goes to (an owner goes to the section's pipeline; "This section only"
+keeps it on the section), why it is in doubt, Open page and Show the page (the crop, in a
+pop-up), Propose and Dismiss. Propose sends the action `{kind: "propose", finding}` and is
+the only way a finding reaches store (as a candidate); Dismiss is recorded in the thread
+and writes nothing. While cite searches, the search card follows it (cite's steps, Stop);
+after a proposal Studio reads store
+again (`reload` in `studio-data.tsx`). About several attached sections it is grouped under each; the rest
   are listed to open. A fixed line (a question back, a refusal, a failure) stands alone. On the sample nothing answers: a
   sent question stays in the thread (`sentQuestions`) with the line "The Agent cannot
   answer yet". Tests always run on the sample (`vite.config.ts`). An answer in the data is

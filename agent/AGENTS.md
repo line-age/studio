@@ -1,9 +1,10 @@
 # AGENTS.md: the Studio Agent
 
 The service that answers Lineage Studio's chat. It reads `store`, searches the journals
-with `cite` when asked, and writes only on the person's button: a finding they pressed
-Propose on, as a candidate claim, or the sections they pressed Propose pipeline on, as a
-new pipeline with proposed memberships. What
+with `cite` when the person presses Search, and writes only one thing, on the person's
+button: a finding they pressed Propose on, as a candidate claim. A change the person asks
+for in words comes back as a card that Studio makes, as the person, on Approve
+(2026-11-23, plan `2026-11-23-001`). What
 it does, takes in and gives out is in the controlplane's
 [components.md](https://github.com/line-age/controlplane/blob/main/components.md#review);
 this file says how it is built and the rules for working on it. It wins over any file
@@ -14,7 +15,9 @@ thing) and section context are built: B17 (which printings show it, what ends it
 (its links and its pipeline), B19 (what it is drawn touching) and B20 (leads found by
 fixed rules). 38 cases pass on three repeats, with the grounding check that blocks an
 answer store does not back. B21 to B27 (searching with cite, Propose) and B28 (proposing
-a pipeline, 2026-11-15: 25 of 25 with what it keeps, three repeats) follow. The cases are
+a pipeline, 2026-11-15: 25 of 25 with what it keeps, three repeats) follow; B28 retired on
+2026-11-23 for B44 (a change asked in words is a card, 14 cases, no model) and B45 (a
+search waits for Search, 2 cases, not yet recorded). The cases are
 drafts until a person reviews them. Built on
 LangChain's agent loop; Deep Agents (planning, files) comes in with whole-network
 questions (B8). Behaviours are added one at a time, each with its eval first.
@@ -41,16 +44,27 @@ questions (B8). Behaviours are added one at a time, each with its eval first.
 - **Read, and propose only on the button.** The store client sends GET requests and
   nothing else, with no token: store takes a request with none as the local person
   (development, while there are no users; plan 005), so that client must never be able
-  to write. The writes are `store_writer.py` (`POST /bundles` only, its own `cite@`
-  pipeline token, so store keeps what it writes a candidate claim or a proposed link),
-  called only by the `propose` and `propose_pipeline` nodes on the person's action,
-  never by the model or from words. A person decides, in Studio's inbox (R12).
-- **A pipeline is offered by code, made on the button.** Words that ask to make the
-  attached sections one pipeline (`pipeline_flow.asks_for_pipeline`) get code's offer
-  (`pipeline_offer`, no model); Studio shows it as a Confirmation. Two or more sections,
-  sections only, one network. A section already in a pipeline is proposed too and says
-  so; it stays where it is until a person moves it (R13). The new line has no label: no
-  name until one is cited.
+  to write. The one write is `store_writer.py` (`POST /bundles` only, its own `cite@`
+  pipeline token, so store keeps what it writes a candidate claim), called only by the
+  `propose` node on the person's action, never by the model or from words. A person
+  decides, in Studio's inbox (R12).
+- **A change asked in words is a card, made by Studio** (`change_flow.py`). Code, never
+  the model, reads the words: add to a pipeline, move, remove, make one (named or not),
+  rename one, set a section's diameter or a pipeline's owner or operator. It checks them
+  against what is attached and store (sections only, one network, at most 200, the
+  value by `value_rules.read_typed`, a pipeline named in the words found by its exact
+  name or code, never a near match) and answers with one `change_offer` or one fixed
+  line. The offer carries its basis (each section's pipeline when offered); Studio
+  checks it again before it writes and makes the change through its own menus' writes.
+  The Agent never writes a person's change: there is no code path for it, and
+  `tests/test_change.py` says so. What came of a card comes back as the action
+  `outcome` and is recorded in the thread, with no model and no write. Deciding what a
+  tool proposed stays in the inbox; words that sound like a change code cannot read get
+  a fixed line, never a guess.
+- **A search waits for Search.** When the guard lets a citation request through, the
+  answer is a `search_offer` card (section, years, towns, ready or not) and the thread
+  keeps the request by id; nothing runs and nothing is spent. Only the action `search`
+  with that id starts cite, once. No towns and no name: the card comes with Search off.
 - **The bundles are store's.** `contract/store-bundle.schema.json` is store's `Bundle`
   as JSON Schema (from `store/model`, `Bundle.model_json_schema(by_alias=True)`);
   `tests/test_pipeline.py` checks every bundle the Agent builds against it with every
@@ -102,7 +116,7 @@ people and for agents working here.
 | Path | What |
 | --- | --- |
 | `graph.py` | Exposes the graph to the server. Nothing else |
-| `agent.py` | The graph: take the question in (`ingress`), read what is attached and say so (`read`), then read its context, let the model draft, render, check, retry once (`answer`). Steps in plain words are kept in the state for Studio. No serving code, no checkpointer |
+| `agent.py` | The graph: take the question in (`ingress`), read what is attached and say so (`read`), then read its context, let the model draft, render, check, retry once (`answer`); a change asked in words is code's card, with no model. Actions: `propose`, `search` (starts a search an offer holds), `outcome` (what came of a card), `fresh_start`. Steps in plain words are kept in the state for Studio. No serving code, no checkpointer |
 | `tools.py` | The model's tools. `read_feature` reads a feature and the traces merged into it; `read_context` gives a section's worked-out facts (W1), leads (L1) and the section pack. Claims are shown by handle (C1) |
 | `context.py` | What code works out about a section: printings, its end, its links, what it is drawn touching |
 | `geometry.py` | Drawn touching, from the traced lines (the 50 m rule) |
@@ -112,8 +126,9 @@ people and for agents working here.
 | `cite_input.py` | A section as cite takes it in: ids, name hint, first printing, the person's places, the window, ruled-out values |
 | `cite_client.py` | cite over HTTP: one search at a time in a background thread; cancelled when nothing polls it for 15 s |
 | `cite_result.py` | What the Agent reads of cite's result (`contract/cite-result.schema.json`) |
-| `store_writer.py` | The writes, `POST /bundles` only: a proposed finding (`bundle`) and a proposed pipeline (`pipeline_bundle`) |
-| `pipeline_flow.py` | Proposing a pipeline: the words that ask for one, code's offer and outcome lines |
+| `store_writer.py` | The one write, `POST /bundles` only: a proposed finding (`bundle`) |
+| `change_flow.py` | A change asked for in words: the words code reads, its checks, the card (`change_offer`) and every fixed line about it |
+| `contract/composer-examples.json` | What Studio's empty message box writes as examples; Studio keeps a copy, tests keep them one |
 | `evals/fake_cite.py` | A scripted cite with invented results, for tests and evals |
 | `grounding.py` | The check every answer passes before it is shown, and what it cannot see |
 | `schemas.py` | The contract: the question, the draft the model writes, the answer Studio renders |
@@ -175,6 +190,11 @@ The service has no sign-in, and a browser can reach `127.0.0.1`. So:
   posted to the service is removed before anything reads it.
 
 ## End-to-end QA in Studio, traced
+
+Not working as of 2026-11-23: Studio no longer opens on the invented world. The world
+server has no `/me` (Studio's sign-in, `VITE_AUTH=local`), no `GET /features?ids=`
+(Studio's light reads), takes no `POST /bundles` from Studio, and no section in the world
+cites a map sheet Studio reads as an edition. Bringing it back is open work.
 
 Everything on invented data, so tracing is safe:
 
