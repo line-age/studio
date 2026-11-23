@@ -903,20 +903,9 @@ def build_graph(
             for st in statements
         ]
 
-    def cite_start(state: AgentState) -> dict:
-        job = dict(state["cite_job"] or {})
-        ask = cite_input.CiteAsk(
-            section_id=job["section_id"],
-            attributes=job["attributes"],
-            places=job["places"],
-            years=tuple(job["years"]) if job.get("years") else None,
-            ruled_out=[tuple(r) for r in job.get("ruled_out") or []],
-            from_line=bool(job.get("from_line")),
-        )
-
-        def stop(line: str) -> dict:
-            return _reply(state, _replace_request(state, line), cite_job=None)
-
+    def _cite_input(ask: cite_input.CiteAsk) -> dict[str, Any] | str:
+        """cite's input for one search, read from store; or the line saying why there is
+        none (no printing shows it, store cannot be read, nothing to search by)."""
         try:
             feature = store.feature(ask.section_id)
             merged, _ = _with_merged(store, feature)
@@ -940,11 +929,33 @@ def build_graph(
                 editions = context.Editions([], complete=False)
             section = cite_input.build(ask, feature, merged, pipeline, editions)
         except cite_input.NoEdition:
-            return stop(cite_flow.CITE_LINES["no_edition"])
+            return cite_flow.CITE_LINES["no_edition"]
         except StoreError as error:
-            return stop(FIXED_LINES[STORE_FAILURES.get(error.kind, "store_unreachable")])
+            return FIXED_LINES[STORE_FAILURES.get(error.kind, "store_unreachable")]
         if not section["places"] and not section["name"]:
-            return stop(cite_flow.CITE_LINES["nothing_to_search_by"])
+            return cite_flow.CITE_LINES["nothing_to_search_by"]
+        return section
+
+    def _ask_of(job: dict[str, Any]) -> cite_input.CiteAsk:
+        return cite_input.CiteAsk(
+            section_id=job["section_id"],
+            attributes=job["attributes"],
+            places=job["places"],
+            years=tuple(job["years"]) if job.get("years") else None,
+            ruled_out=[tuple(r) for r in job.get("ruled_out") or []],
+            from_line=bool(job.get("from_line")),
+        )
+
+    def cite_start(state: AgentState) -> dict:
+        job = dict(state["cite_job"] or {})
+        ask = _ask_of(job)
+
+        def stop(line: str) -> dict:
+            return _reply(state, _replace_request(state, line), cite_job=None)
+
+        section = _cite_input(ask)
+        if isinstance(section, str):
+            return stop(section)
         try:
             run = cite.start(section)
         except CiteBusy:
