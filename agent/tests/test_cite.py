@@ -518,3 +518,18 @@ def test_a_search_started_from_words_fails_its_case(world):
     assert "started without" not in check(case, world, pressed)["forbidden"]["comment"]
     unpressed = {"answer": out["answer"], "tools": [], "pressed": False}
     assert "started without" in check(case, world, unpressed)["forbidden"]["comment"]
+
+
+def test_a_search_cite_was_too_busy_to_start_can_be_pressed_again(world):
+    """Found in review: the offer was marked run before cite started."""
+    s01 = world["codes"]["s01"]
+    cite = FakeCite("owner_found")
+    chat = Chat(world, request(s01, places=["Sampleton"]), cite=cite)
+    out = chat.ask("Find who owned it; it runs through Sampleton.", [s01], press=False)
+    offer = offered(out)["search"]["id"]
+    cite.busy = True
+    busy = chat.ask("Search", action={"kind": "search", "offer": offer})
+    assert busy["answer"]["statements"][0]["text"] == CITE_LINES["busy"]
+    cite.busy = False
+    again = chat.ask("Search", action={"kind": "search", "offer": offer})
+    assert "finding" in kinds(again)

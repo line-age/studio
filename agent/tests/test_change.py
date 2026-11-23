@@ -375,3 +375,89 @@ def test_every_example_the_message_box_offers_is_read_as_it_means():
             assert change_flow.read_request(words) is None, words
             assert not change_flow.sounds_like_a_change(words), words
             assert not change_flow.asks_to_decide(words), words
+
+
+# Found in review, 2026-11-23 ------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "words",
+    [
+        "The name is wrong",
+        "The owner is who?",
+        "The diameter is unknown",
+        "Their diameter is correct",
+    ],
+)
+def test_a_complaint_or_a_question_is_not_a_change(words):
+    assert change_flow.read_request(words) is None, words
+
+
+@pytest.mark.parametrize(
+    ("words", "attribute", "value"),
+    [
+        ("set the owner to Example Co. please", "owner", "Example Co."),
+        ("Set the diameter of these sections to 12 inches", "diameter", "12 in"),
+        ("set the diameter of these two to 300 mm, thanks", "diameter", "300 mm"),
+        ("Change the diameter of the selected sections to 16 in", "diameter", "16 in"),
+    ],
+)
+def test_set_reads_the_natural_phrasings_and_leaves_politeness_out(words, attribute, value):
+    request = change_flow.read_request(words)
+    assert request is not None, words
+    assert (request.kind, request.attribute, request.value) == ("edit", attribute, value)
+
+
+def test_a_pipeline_is_found_by_its_name_with_or_without_the_and_pipeline():
+    found = []
+
+    def find(wanted):
+        found.append(wanted)
+        return (
+            [
+                {
+                    "id": "00000000-0000-4000-8000-000000000001",
+                    "kind": "line",
+                    "label": "The Dalles line",
+                }
+            ]
+            if wanted == change_flow.name_key("The Dalles line")
+            else []
+        )
+
+    for words in ("The Dalles line", "the Dalles line", "Dalles line pipeline", "The Dalles"):
+        target = change_flow._target(words, [], find)
+        assert isinstance(target, dict), (words, target)
+
+
+def test_the_attached_pipeline_said_politely_is_still_the_attached_one(world):
+    codes = world["codes"]
+    s = offer_of(Chat(world).ask("Add it to this pipeline please", ["s01", "l01"]))
+    assert s.change.pipeline_id == codes["l01"]
+
+
+def test_a_named_pipeline_with_the_word_pipeline_after_it(world):
+    codes = world["codes"]
+    s = offer_of(Chat(world).ask("Move these to the Example trunk line pipeline", ["s01"]))
+    assert s.change.pipeline_id == codes["l01"]
+
+
+def test_a_name_edit_without_a_pipeline_asks_for_the_pipeline(world):
+    s = only(Chat(world).ask("Set the name to Elm trunk", ["s01"]))
+    assert (s.kind, s.text) == ("refusal", change_flow.LINES["attach_pipeline"])
+
+
+def test_a_pipeline_list_cut_short_is_a_failure_never_no_such_pipeline(world, monkeypatch):
+    from store_client import StoreClient
+
+    real = StoreClient.links
+
+    def cut(self, *args, **kwargs):
+        import dataclasses
+
+        return dataclasses.replace(real(self, *args, **kwargs), cut=True)
+
+    monkeypatch.setattr(StoreClient, "links", cut)
+    s = only(Chat(world).ask("Add these to Example trunk line", ["s01"]))
+    assert s.kind == "failure"
+    assert "no pipeline called" not in s.text

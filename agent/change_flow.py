@@ -102,7 +102,8 @@ _RENAME = re.compile(
 _ATTRIBUTES = r"(?P<attr>diameter|owner|operator|name|status|commodity)"
 _SET = re.compile(
     r"\b(?:set|change|make|update|correct|fix)\s+(?:the\s+|their\s+|its\s+|this\s+\w+'s\s+)?"
-    rf"{_ATTRIBUTES}\b(?:\s+of\s+(?:it|them|these|this|the\s+\w+))?\s+(?:to|as)\s+(?P<value>.+)$",
+    rf"{_ATTRIBUTES}\b(?:\s+of\s+(?:{_THEM}|the\s+pipeline|this\s+pipeline))?\s+(?:to|as)\s+"
+    r"(?P<value>.+)$",
     re.IGNORECASE,
 )
 _IS = re.compile(
@@ -128,12 +129,26 @@ _INCH = re.compile(r"^(\d+(?:\.\d+)?)\s*(?:-\s*)?(?:inch(?:es)?|in\.?|\"|”)$",
 _MM = re.compile(r"^(\d+(?:\.\d+)?)\s*(?:mm|millimet(?:er|re)s?)$", re.IGNORECASE)
 
 
+# Politeness after the value: "12 in, please", "Example Co. please", "16 in thanks".
+_POLITE = re.compile(r"[,\s]+(?:please|thanks|thank\s+you|cheers)[.!]*$", re.IGNORECASE)
+
+
 def _end(text: str) -> str:
-    """Text without the sentence's own end: "Example Co." keeps its full stop."""
+    """Text without the sentence's own end or politeness: "Example Co." keeps its full
+    stop."""
+    text = _POLITE.sub("", text.strip())
     text = re.sub(r"[!?]+$", "", text.strip()).strip()
     if text.endswith(".") and not _ABBREVIATION.search(text):
         text = text[:-1].rstrip()
     return text
+
+
+# "The name is wrong", "the diameter is unknown": a verdict on a value, never a value.
+_VERDICT = re.compile(
+    r"^(?:wrong|right|correct|incorrect|unknown|missing|empty|blank|off|bad|fine|ok|okay|"
+    r"who|what|which|when|where|why|how|not\b.*|probably\b.*|maybe\b.*)$",
+    re.IGNORECASE,
+)
 
 
 def _clean(text: str) -> str:
@@ -172,7 +187,7 @@ def read_request(words: str) -> Request | None:
         return Request("make", name=_clean(named.group("name")) if named else None)
     if m := _RENAME.search(words):
         return Request("rename", name=_clean(m.group("name") or m.group("name2")))
-    if m := _SET.search(words) or _IS.search(words):
+    if m := _SET.search(words) or _stated(words):
         attribute = m.group("attr").lower()
         typed = _typed(attribute, _end(m.group("value")))
         return Request("edit", attribute=attribute, value=_clean(typed))
@@ -183,6 +198,16 @@ def read_request(words: str) -> Request | None:
     if _REMOVE.search(words):
         return Request("remove")
     return None
+
+
+def _stated(words: str) -> re.Match[str] | None:
+    """ "The diameter is 300 mm": a value stated, not asked ("is it?") or judged ("wrong")."""
+    if words.strip().endswith("?"):
+        return None
+    m = _IS.search(words)
+    if m is None or _VERDICT.match(_clean(m.group("value"))):
+        return None
+    return m
 
 
 def asks_to_decide(words: str) -> bool:
@@ -385,6 +410,15 @@ def offer(
     )
 
 
+def name_key(name: str) -> str:
+    """A pipeline's name as words and store's label are matched: case, a leading "the",
+    and a trailing "pipeline" or "line" left out ("The Dalles line" is "dalles")."""
+    key = re.sub(r"\s+", " ", name.casefold()).strip()
+    key = re.sub(r"^the\s+", "", key)
+    key = re.sub(r"(?:\s+(?:pipe)?line)+$", "", key)
+    return key.strip()
+
+
 def _target(
     words: str,
     pipelines: list[dict[str, Any]],
@@ -396,9 +430,9 @@ def _target(
         if len(pipelines) == 1:
             return pipelines[0]
         return LINES["attach_pipeline" if not pipelines else "one_pipeline"]
-    wanted = re.sub(r"^the\s+", "", words, flags=re.IGNORECASE).casefold()
+    wanted = name_key(words)
     for p in pipelines:
-        if wanted in {feature_name(p).casefold(), short_id(p["id"]).casefold()}:
+        if wanted in {name_key(feature_name(p)), short_id(p["id"]).casefold()}:
             return p
     found = find_pipeline(wanted)
     if not found:
@@ -437,6 +471,8 @@ def _edit(
             value=value,
             note=note,
         )
+    if key == "name":
+        return _refusal(LINES["attach_pipeline"])
     if key != "diameter":
         return _refusal(LINES["not_from_chat"])
     if not sections:

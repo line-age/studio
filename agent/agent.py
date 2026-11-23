@@ -824,18 +824,25 @@ def build_graph(
             return out
 
         def find(wanted: str) -> list[dict[str, Any]]:
+            # Store has no search by name yet: the pipelines are the lines sections are
+            # placed or proposed in. A list cut short, or a line that cannot be read,
+            # is store's failure, never "no such pipeline".
+            links = store.links(relation="part_of")
+            if links.cut:
+                raise StoreError("error", "too many memberships to find a pipeline by name")
             ids = list(
                 dict.fromkeys(
-                    link["to_feature_id"]
-                    for link in store.links(relation="part_of").rows
-                    if link["status"] != "rejected"
+                    link["to_feature_id"] for link in links.rows if link["status"] != "rejected"
                 )
             )
+            read = context.read_many(store, ids)
+            if len(read) < len(ids):
+                raise StoreError("unreachable", "a pipeline could not be read")
             return [
                 f
-                for f in context.read_many(store, ids).values()
+                for f in read.values()
                 if f.get("kind") == "line"
-                and wanted in {feature_name(f).casefold(), short_id(f["id"]).casefold()}
+                and wanted in {change_flow.name_key(feature_name(f)), short_id(f["id"]).casefold()}
             ]
 
         try:
@@ -924,15 +931,9 @@ def build_graph(
                     },
                 }
         first = rendered.statements.index(pairs[0][1])
-        searched = set(job["attributes"]) if job else set()
-        # The search goes ahead: "Store does not say" about what it searches for is
-        # already on screen, in the claims, so it is left out here.
-        kept = [
-            st
-            for st in rendered.statements
-            if st.kind != "citation_request"
-            and not (st.kind == "unknown" and st.attribute in searched)
-        ]
+        # Nothing is searched yet (it waits for Search), so what the answer says is not
+        # known stays: the person reads it above the search card.
+        kept = [st for st in rendered.statements if st.kind != "citation_request"]
         answer_ = Answer(statements=[*kept[:first], line, *kept[first:]])
         out = _finish(answer_, message, tools, seen, blocked, steps=steps)
         return {**out, "cite": cite_state, "cite_job": job}
@@ -1061,6 +1062,10 @@ def build_graph(
             else st
             for st in Answer.model_validate(state["answer"]).statements
         ]
+        if job.get("offer") in (cite_state.get("offers") or {}):
+            offers = dict(cite_state["offers"])
+            offers[job["offer"]] = {**offers[job["offer"]], "ran": True}
+            cite_state["offers"] = offers
         out = _reply(state, statements, cite_job={**job, "run": run.id}, cite=cite_state)
         out["steps"] = [
             *out["steps"],
@@ -1268,8 +1273,6 @@ def build_graph(
             return say(cite_flow.CITE_LINES["already_searched"])
         if cite is None:
             return say(cite_flow.CITE_LINES["failed"])
-        offers[offer_id] = {**job, "ran": True}
-        cite_state["offers"] = offers
         ask = _ask_of(job)
         ref = Ref(type="feature", id=job["section_id"], label=job["subject"])
         line = Statement(
@@ -1284,11 +1287,10 @@ def build_graph(
         )
         out = _finish(Answer(statements=[line]), message, [], seen)
         out["steps"] = [{"text": "Starting the search", "done": False}]
-        return {
-            **out,
-            "cite": cite_state,
-            "cite_job": {k: v for k, v in job.items() if k != "hints"},
-        }
+        # Marked run only once cite has started it (cite_start): a search that could
+        # not start can be pressed again.
+        job = {k: v for k, v in job.items() if k != "hints"}
+        return {**out, "cite_job": {**job, "offer": offer_id}}
 
     def fresh_start(state: AgentState) -> dict:
         """The person pressed Start fresh: every message goes, what cite found stays (its
