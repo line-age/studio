@@ -83,7 +83,7 @@ describe("a search card", () => {
     })
     expect(screen.getByRole("button", { name: "Search" })).toBeDisabled()
     expect(
-      screen.getByText("None. Store holds no name for it either.")
+      screen.getByText("None. It has no name to search by either.")
     ).toBeVisible()
     expect(screen.getByText(/Say a town it runs through/)).toBeVisible()
   })

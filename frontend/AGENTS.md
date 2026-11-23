@@ -626,14 +626,14 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   prefix ("Inferred", with what it means on hover; "Lead, not in store") and is never
   shown as a claim; "Used n
   sources" ends it. What cite found is a finding card (`panels/agent-finding.tsx`, Figma
-section 29 board B), on the DecisionCard like every card: the value as the title, the page's
-words, the source, Goes to (an owner goes to the section's pipeline; "This section only"
-keeps it on the section), why it is in doubt, Open page and Show the page (the crop, in a
-pop-up), Propose and Dismiss. Propose sends the action `{kind: "propose", finding}` and is
-the only way a finding reaches store (as a candidate); Dismiss is recorded in the thread
-and writes nothing. While cite searches, the search card follows it (cite's steps, Stop);
-after a proposal Studio reads store
-again (`reload` in `studio-data.tsx`). About several attached sections it is grouped under each; the rest
+  section 29 board B), on the DecisionCard like every card: the value as the title, the page's
+  words, the source, Goes to (an owner goes to the section's pipeline; "This section only"
+  keeps it on the section), why it is in doubt, Open page and Show the page (the crop, in a
+  pop-up), Propose and Dismiss. Propose sends the action `{kind: "propose", finding}` and is
+  the only way a finding reaches store (as a candidate); Dismiss is recorded in the thread
+  and writes nothing. While cite searches, the search card follows it (cite's steps, Stop);
+  after a proposal Studio reads store
+  again (`reload` in `studio-data.tsx`). About several attached sections it is grouped under each; the rest
   are listed to open. A fixed line (a question back, a refusal, a failure) stands alone. On the sample nothing answers: a
   sent question stays in the thread (`sentQuestions`) with the line "The Agent cannot
   answer yet". Tests always run on the sample (`vite.config.ts`). An answer in the data is

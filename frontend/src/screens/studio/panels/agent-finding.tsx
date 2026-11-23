@@ -85,9 +85,9 @@ function PageCrop({ finding }: { finding: AgentFinding }) {
 }
 
 const IN_STORE_WORDS = {
-  accepted: "Already in store, accepted",
+  accepted: "Already accepted",
   candidate: "Already proposed",
-  rejected: "Already in store, rejected",
+  rejected: "Already rejected",
 } as const
 
 /** An issue's date as the Agent words it: "1 March 1932". */

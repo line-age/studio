@@ -59,7 +59,7 @@ export function AgentSearchCard({
   const towns =
     offer.places.length > 0
       ? offer.places.join(", ")
-      : "None. Store holds no name for it either."
+      : "None. It has no name to search by either."
   const busy = cards.start === null
 
   const rows = (
