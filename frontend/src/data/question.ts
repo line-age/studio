@@ -94,10 +94,13 @@ export interface QuestionItem {
 /** A button the person pressed: code acts on it, no model reads it. */
 export interface QuestionAction {
   /**
-   * propose: write a finding to store; propose_pipeline: write the sections
-   * as a proposed pipeline; fresh_start: clear the messages, keep findings.
+   * propose: write a finding to store; search: start the search an offer in
+   * the thread holds, by its id; outcome: what came of a card (a change made
+   * by Studio, declined, failed, out of date; a search not run; a finding
+   * dismissed), recorded in the thread; fresh_start: clear the messages, keep
+   * findings.
    */
-  kind: "propose" | "propose_pipeline" | "fresh_start"
+  kind: "propose" | "search" | "outcome" | "fresh_start"
   /** For propose: the finding's handle in the conversation (F1). */
   finding?: string
   /**
@@ -105,9 +108,17 @@ export interface QuestionAction {
    * left out; or the pipeline that section is confirmed part of, for an owner.
    */
   target?: string
-  /** For propose_pipeline: the sections, by store id. */
-  section_ids?: string[]
+  /** For search and outcome: the offer's id, or for outcome a finding's handle. */
+  offer?: string
+  /** For outcome: what came of it. */
+  state?: OutcomeState
+  /** For outcome: what happened, in Studio's words (who, when, or why it failed). */
+  detail?: string
 }
+
+/** What came of a card (studio/agent/schemas.py, OutcomeState). */
+export type OutcomeState =
+  "done" | "declined" | "failed" | "out_of_date" | "dismissed"
 
 /** Everything a question carries. Nothing else is sent. */
 export interface Question {
