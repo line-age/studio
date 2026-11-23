@@ -1,8 +1,9 @@
 # Lineage Studio frontend
 
 The React app for Lineage Studio, the Lineage review desk. So far: the theme exported from
-Figma and one screen, Studio, read-only: on fixture data by default, or on a local
-Lineage store.
+Figma, a sign-in page and one screen, Studio: on fixture data by default (changes are
+kept in memory only), or on a local Lineage store, which it reads and writes. What the
+screen does is in the repo [`README.md`](../README.md) and, in the app, under Help.
 
 ## Run
 
@@ -28,18 +29,24 @@ file without changing code, see `docs/fixtures.md`.
 
 Set `VITE_STORE_BBOX=minx,miny,maxx,maxy` as well to load only the sections that cross one area (for a demo, or a network too large to open whole).
 
-Set `VITE_DATA_SOURCE=store` in `.env.local` and the app reads a local Lineage store
-through its own `/store` path, and writes to it as the local person (store takes a
-request with no token so while there are no users); `vite.config.ts` and
-`nginx.conf.template` pass that on to `STORE_URL`. `src/data/store/client.ts` fetches,
+Set `VITE_DATA_SOURCE=store` in `.env.local` and the app reads and writes a local
+Lineage store through its own `/store` path. Store refuses a request with no token, and
+nothing in the browser holds one. With `VITE_AUTH=local` the dev server (and the local
+image's nginx, `nginx.local.conf.template`) adds a fixed token that a store started with
+the fake GitHub (`../dev/fake-github`) takes as "Local developer". With `GATE_URL` set,
+sign-in, `/store` and `/agent` all go through a sign-in gate in place of that: a person
+signs in with GitHub and must be in the team. `.env.example` lists the settings. `src/data/store/client.ts` fetches,
 `src/data/store/to-network.ts` turns the answers into the fixture schema, and nothing
 else in the app knows the difference. The repo `README.md` has the commands.
 
 ## Check
 
 ```sh
-pnpm check   # tokens, types, lint, format, tests
+pnpm check          # tokens, types, lint, format, unit tests and every story
 pnpm build
+pnpm test:e2e       # the user flows, on the built app and the sample
+pnpm test:visual    # every story against its approved screenshot (needs Docker)
+pnpm storybook      # the components and their states, port 6006
 ```
 
 ## Docker
