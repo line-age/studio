@@ -178,3 +178,11 @@ describe("a finding store already holds", () => {
     expect(screen.queryByRole("button", { name: "Propose" })).toBeNull()
   })
 })
+
+describe("an issue's date", () => {
+  it("reads as the Agent words it, and a date it cannot read stays as given", async () => {
+    const { issueDate } = await import("./agent-finding")
+    expect(issueDate("1932-03-01")).toBe("1 March 1932")
+    expect(issueDate("1932")).toBe("1932")
+  })
+})

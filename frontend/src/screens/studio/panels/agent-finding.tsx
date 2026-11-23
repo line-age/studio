@@ -90,9 +90,21 @@ const IN_STORE_WORDS = {
   rejected: "Already in store, rejected",
 } as const
 
+/** An issue's date as the Agent words it: "1 March 1932". */
+export function issueDate(iso: string): string {
+  const [year, month, day] = iso.slice(0, 10).split("-").map(Number)
+  if (!year || !month || !day) return iso
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  })
+}
+
 function reference(f: AgentFinding): string {
   const issue = f.volume && f.number ? `, vol. ${f.volume} no. ${f.number}` : ""
-  return `${f.journal}${issue}, ${f.page} · ${f.date}`
+  return `${f.journal}${issue}, ${f.page} · ${issueDate(f.date)}`
 }
 
 /** The card's title: what was found, as a fact would read. */

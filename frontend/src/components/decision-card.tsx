@@ -129,8 +129,9 @@ export function DecisionCardDoubt({ children }: { children: ReactNode }) {
 }
 
 /**
- * A search while it runs: its steps (the last one still going) and a bar.
- * cite gives no share done, so the bar moves without a number.
+ * A search while it runs: its steps (the last one still going) and a bar,
+ * drawn still as Figma has it. cite gives no share done, so the bar carries no
+ * number; the steps say how far it is.
  */
 export function DecisionCardProgress({
   steps,
@@ -160,7 +161,7 @@ export function DecisionCardProgress({
         aria-busy
         className="h-0.75 w-full overflow-hidden rounded-full bg-muted"
       >
-        <div className="h-full w-3/5 animate-pulse rounded-full bg-primary motion-reduce:animate-none" />
+        <div className="h-full w-3/5 rounded-full bg-primary" />
       </div>
     </div>
   )
