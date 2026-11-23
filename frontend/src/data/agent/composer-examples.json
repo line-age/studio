@@ -1,0 +1,27 @@
+{
+  "about": "What the empty chat's message box writes as its placeholder, one at a time, by what is attached (Figma section 28, board E). Only what the Agent does today: `ask` are questions, `do` are changes code reads (change_flow.py). tests/test_change.py checks both.",
+  "none": {
+    "ask": [
+      "What is a section?",
+      "Which pipelines have no owner?",
+      "How many sections are in no pipeline?"
+    ],
+    "do": []
+  },
+  "section": {
+    "ask": [
+      "What surrounds this section?",
+      "Which maps show it?",
+      "Who owned it?"
+    ],
+    "do": ["Set its diameter to 12 in"]
+  },
+  "sections": {
+    "ask": ["Which maps show them?", "How are these the same?"],
+    "do": ["Make these one pipeline", "Set their diameter to 12 in"]
+  },
+  "pipeline": {
+    "ask": ["Who owns this pipeline?", "Which sections are in it?"],
+    "do": ["Rename this pipeline to North main"]
+  }
+}

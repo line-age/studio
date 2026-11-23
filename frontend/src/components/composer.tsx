@@ -3,7 +3,10 @@ import { useId, useState, type ReactNode, type Ref } from "react"
 
 import { Icon } from "@/components/icons/icon"
 import { Button } from "@/components/ui/button"
+import { Kbd } from "@/components/ui/kbd"
 import { cn } from "@/lib/utils"
+
+import { useTypedPlaceholder } from "./use-typed-placeholder"
 
 /**
  * The chat input of the Agent panel (Figma calls this component "Composer").
@@ -20,8 +23,10 @@ export function Composer({
   picker,
   inputRef,
   draft,
+  examples = [],
   className,
 }: {
+  /** What the box says while empty; a screen reader hears this, never an example. */
   placeholder: string
   /** Returns false when the message was not taken; the words stay in the box. */
   onSend?: (message: string) => boolean | void
@@ -40,6 +45,11 @@ export function Composer({
    * `nonce` puts them in again; the person can change them before sending.
    */
   draft?: { text: string; nonce: number }
+  /**
+   * Examples the empty box writes as its placeholder, one at a time (Figma
+   * board E). Tab takes the one showing; typing anything stops them for good.
+   */
+  examples?: readonly string[]
   className?: string
 }) {
   const id = useId()
@@ -52,96 +62,136 @@ export function Composer({
     setMessage(draft.text)
   }
   const empty = message.trim().length === 0
+  // Once the person types, the examples stop for good in this box.
+  const [touched, setTouched] = useState(false)
+  const typed = useTypedPlaceholder(examples, message === "" && !touched)
 
   return (
-    <form
-      className={cn(
-        "flex flex-col gap-6 rounded-2xl bg-muted p-3 transition-shadow duration-100 focus-within:shadow-focus-ring",
-        className
-      )}
-      onSubmit={(event) => {
-        event.preventDefault()
-        if (empty || !onSend) return
-        if (onSend(message) === false) return
-        setMessage("")
-      }}
-    >
-      {attachments && (
-        <div className="-mb-4 flex max-h-48 flex-wrap gap-1.5 overflow-y-auto">
-          {attachments}
-        </div>
-      )}
-      {picker}
-      <label htmlFor={id} className="sr-only">
-        Message to the Agent
-      </label>
-      <textarea
-        id={id}
-        ref={inputRef}
-        name="message"
-        rows={1}
-        autoComplete="off"
-        value={message}
-        onChange={(event) => setMessage(event.target.value)}
-        // Enter sends, Shift+Enter starts a new line. Not while an input
-        // method is still composing a character.
-        onKeyDown={(event) => {
-          // "#" at the start of a word picks a section to attach, as the
-          // placeholder says. Elsewhere it is just a character.
-          if (event.key === "#" && onAttach) {
-            const box = event.currentTarget
-            const before = box.value.slice(0, box.selectionStart)
-            if (before === "" || /\s$/.test(before)) {
-              event.preventDefault()
-              onAttach()
-              return
-            }
-          }
-          if (
-            event.key !== "Enter" ||
-            event.shiftKey ||
-            event.nativeEvent.isComposing
-          )
-            return
+    <div className={cn("flex flex-col gap-1.5", className)}>
+      <form
+        className="flex flex-col gap-6 rounded-2xl bg-muted p-3 transition-shadow duration-100 focus-within:shadow-focus-ring"
+        onSubmit={(event) => {
           event.preventDefault()
-          event.currentTarget.form?.requestSubmit()
+          if (empty || !onSend) return
+          if (onSend(message) === false) return
+          setMessage("")
         }}
-        placeholder={placeholder}
-        className="field-sizing-content max-h-40 min-h-5 resize-none bg-transparent type-ui-sm outline-none placeholder:text-muted-foreground"
-      />
-      <div className="flex items-center justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          aria-label="Attach a section"
-          className="rounded-full"
-          onClick={onAttach}
-        >
-          <Icon name="plus" />
-        </Button>
-        {onStop ? (
+      >
+        {attachments && (
+          <div className="-mb-4 flex max-h-48 flex-wrap gap-1.5 overflow-y-auto">
+            {attachments}
+          </div>
+        )}
+        {picker}
+        <label htmlFor={id} className="sr-only">
+          Message to the Agent
+        </label>
+        <div className="relative flex">
+          <textarea
+            id={id}
+            ref={inputRef}
+            name="message"
+            rows={1}
+            autoComplete="off"
+            value={message}
+            onChange={(event) => {
+              setTouched(true)
+              setMessage(event.target.value)
+            }}
+            // Enter sends, Shift+Enter starts a new line. Not while an input
+            // method is still composing a character.
+            onKeyDown={(event) => {
+              // Tab in the empty box takes the example showing, as the person's
+              // own words to edit or send. With text in the box it moves focus.
+              if (
+                event.key === "Tab" &&
+                !event.shiftKey &&
+                typed &&
+                message === ""
+              ) {
+                event.preventDefault()
+                setTouched(true)
+                setMessage(typed.full)
+                return
+              }
+              // "#" at the start of a word picks a section to attach, as the
+              // placeholder says. Elsewhere it is just a character.
+              if (event.key === "#" && onAttach) {
+                const box = event.currentTarget
+                const before = box.value.slice(0, box.selectionStart)
+                if (before === "" || /\s$/.test(before)) {
+                  event.preventDefault()
+                  onAttach()
+                  return
+                }
+              }
+              if (
+                event.key !== "Enter" ||
+                event.shiftKey ||
+                event.nativeEvent.isComposing
+              )
+                return
+              event.preventDefault()
+              event.currentTarget.form?.requestSubmit()
+            }}
+            placeholder={typed ? "" : placeholder}
+            aria-placeholder={placeholder}
+            aria-describedby={typed ? `${id}-tab` : undefined}
+            className="field-sizing-content max-h-40 min-h-5 w-full resize-none bg-transparent type-ui-sm outline-none placeholder:text-muted-foreground"
+          />
+          {typed && (
+            // The example being written. A screen reader hears the plain
+            // placeholder once, never each letter.
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 truncate type-ui-sm text-muted-foreground"
+            >
+              {typed.shown}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center justify-between">
           <Button
             type="button"
+            variant="outline"
             size="icon"
-            aria-label="Stop"
+            aria-label="Attach a section"
             className="rounded-full"
-            onClick={onStop}
+            onClick={onAttach}
           >
-            <SquareIcon className="size-3 fill-current" />
+            <Icon name="plus" />
           </Button>
-        ) : (
-          <Button
-            type="submit"
-            size="icon"
-            aria-label="Send"
-            disabled={empty}
-            className="rounded-full"
-          >
-            <Icon name="arrow-up" />
-          </Button>
-        )}
-      </div>
-    </form>
+          {onStop ? (
+            <Button
+              type="button"
+              size="icon"
+              aria-label="Stop"
+              className="rounded-full"
+              onClick={onStop}
+            >
+              <SquareIcon className="size-3 fill-current" />
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              size="icon"
+              aria-label="Send"
+              disabled={empty}
+              className="rounded-full"
+            >
+              <Icon name="arrow-up" />
+            </Button>
+          )}
+        </div>
+      </form>
+      {typed && (
+        <p
+          id={`${id}-tab`}
+          className="flex items-center gap-1.5 px-1 type-ui-xs text-muted-foreground"
+        >
+          <Kbd>Tab</Kbd> to use this example
+        </p>
+      )}
+    </div>
   )
 }

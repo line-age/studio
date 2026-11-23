@@ -54,6 +54,7 @@ import {
 } from "./agent-cards"
 import { AgentStatementView, ProposeFinding } from "./agent-statement"
 import { AgentSteps } from "./agent-steps"
+import { EmptyChat } from "./empty-chat"
 
 /*
  * The conversation with the Agent service, on store's data. Every answer shown
@@ -573,7 +574,7 @@ function Conversation({
             </PipelineOfSection>
           </ProposeFinding>
         </AgentCards>
-        {agent.turns.length === 0 && <Marker>No conversation yet.</Marker>}
+        {agent.turns.length === 0 && <EmptyChat />}
         {agent.error && (
           <Marker>
             The Agent could not answer. Send the question again to retry.

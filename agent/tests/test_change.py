@@ -357,3 +357,21 @@ def test_an_offer_for_a_section_not_attached_fails_the_case(world):
     result = check(case, world, {"answer": answer, "tools": []})
     assert not result["case_passed"]["score"]
     assert "not attached" in result["forbidden"]["comment"]
+
+
+# The empty chat's examples (contract/composer-examples.json) ----------------------------
+
+
+def test_every_example_the_message_box_offers_is_read_as_it_means():
+    import json
+
+    from settings import ROOT
+
+    examples = json.loads((ROOT / "contract" / "composer-examples.json").read_text())
+    for attached in ("none", "section", "sections", "pipeline"):
+        for words in examples[attached]["do"]:
+            assert change_flow.read_request(words) is not None, words
+        for words in examples[attached]["ask"]:
+            assert change_flow.read_request(words) is None, words
+            assert not change_flow.sounds_like_a_change(words), words
+            assert not change_flow.asks_to_decide(words), words

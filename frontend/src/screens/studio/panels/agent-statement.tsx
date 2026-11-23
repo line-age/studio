@@ -19,6 +19,7 @@ import type { AgentAnswerRef, AgentStatement } from "@/data/agent/answer"
 import { useStudio } from "../studio-store"
 import { AgentChangeCard } from "./agent-change-card"
 import { AgentFindingCard } from "./agent-finding"
+import { AgentNotice, NOTICE_KINDS } from "./agent-notice"
 import { AgentSearchCard } from "./agent-search-card"
 
 /** Proposes a finding by its handle; null while nothing may be sent. */
@@ -375,6 +376,9 @@ export function AgentStatementView({
     return <AgentChangeCard title={statement.text} offer={statement.change} />
   if (statement.kind === "search_offer" && statement.search)
     return <AgentSearchCard title={statement.text} offer={statement.search} />
+  // A fixed line stands alone, as a notice (Figma 28 board C 5).
+  if (NOTICE_KINDS.has(statement.kind))
+    return <AgentNotice statement={statement} />
   const prefix = KIND_PREFIX[statement.kind]
   // Only what Studio has loaded can be opened.
   const loaded = (id: string) => name(id) !== null

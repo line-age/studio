@@ -295,7 +295,7 @@ describe("reviewing", () => {
     expect(within(agent).getByText("North line")).toBeVisible()
     expect(within(agent).getByText("South line")).toBeVisible()
     expect(
-      within(agent).getByPlaceholderText(/Ask about a section/)
+      within(agent).getByRole("textbox", { name: "Message to the Agent" })
     ).toHaveFocus()
   })
 

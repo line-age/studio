@@ -7,6 +7,9 @@ import { Icon } from "@/components/icons/icon"
 import { Marker } from "@/components/marker"
 import { Note } from "@/components/note"
 import { PanelHeader } from "@/components/panel-header"
+import { examplesFor } from "@/data/agent/composer-examples"
+
+import { EmptyChat } from "./empty-chat"
 import { ProposalLink } from "@/components/proposal-link"
 import { Button } from "@/components/ui/button"
 import {
@@ -359,6 +362,7 @@ export function AgentPanel() {
   // The attach picker is open above the message.
   const [picking, setPicking] = useState(false)
 
+  const attachments = useStudio((s) => s.agentAttachments)
   const composer = (agent: Agent | null) => (
     <div className="flex shrink-0 flex-col gap-2 px-3 pb-3">
       {held === "working" && agent?.working && (
@@ -368,7 +372,14 @@ export function AgentPanel() {
         <Marker>The Agent is not running. Your message waits here.</Marker>
       )}
       <Composer
-        placeholder="Ask about a section. Type # to pick one."
+        placeholder="Ask about anything on screen. Type # to add it."
+        // An empty chat writes examples in the box (Figma board E); off once
+        // the chat has a question in it.
+        examples={
+          (agent ? agent.turns.length === 0 : sent.length === 0)
+            ? examplesFor(attachments)
+            : []
+        }
         attachments={<PendingAttachments />}
         onAttach={() => setPicking(true)}
         picker={
@@ -455,7 +466,11 @@ export function AgentPanel() {
 
   return (
     <>
-      <PanelHeader title="Agent" divider>
+      <PanelHeader
+        title="Agent"
+        meta="Changes nothing until you approve"
+        divider
+      >
         <HidePanels />
       </PanelHeader>
       {INBOX_SHOWN && <AgentInbox />}
@@ -475,7 +490,7 @@ export function AgentPanel() {
               <Sent key={i} sent={question} />
             ))}
             {network.agentThread.length === 0 && sent.length === 0 && (
-              <Marker>No conversation yet.</Marker>
+              <EmptyChat />
             )}
           </div>
           {composer(null)}
