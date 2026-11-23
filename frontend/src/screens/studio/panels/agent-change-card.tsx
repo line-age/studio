@@ -1,4 +1,4 @@
-import { use, useLayoutEffect, useRef, useState } from "react"
+import { use, useState } from "react"
 
 import {
   DecisionCard,
@@ -71,19 +71,13 @@ export function AgentChangeCard({
   title: string
   offer: ChangeOffer
 }) {
-  const { network, sectionById, change, reload } = useStudioData()
+  const { network, sectionById, change, readAgain } = useStudioData()
   const saveEdits = useSaveSectionEdits()
   const select = useStudio((s) => s.select)
   const edit = useStudio((s) => s.edit)
   const cards = use(AgentCards)
   const question = use(CardQuestion)
   const [local, setLocal] = useState<Shown>({ state: "waiting" })
-  // The network as it is after a read, for the check before the write.
-  const latest = useRef(network)
-  useLayoutEffect(() => {
-    latest.current = network
-  }, [network])
-
   // A press made here is newer than the thread's record until it catches up;
   // otherwise the thread says, the same for everyone and after a reload.
   const recorded = cards.outcome(offer.id)
@@ -102,20 +96,21 @@ export function AgentChangeCard({
 
   const approve = async () => {
     setLocal({ state: "saving" })
-    // Read again, then check the card is still true (D3).
-    await reload()
-    await new Promise((resolve) => setTimeout(resolve, 0))
-    const why = staleness(offer, latest.current)
+    // Read again, and check the card against what was read (D3): never
+    // against what was on screen, which may be older than what is true now.
+    const fresh = await readAgain()
+    if (fresh === null)
+      return report(
+        "failed",
+        "Studio could not read the data again, so nothing was written."
+      )
+    const why = staleness(offer, fresh)
     if (why) return report("out_of_date", why)
     try {
       const write = writeFor(offer)
-      if (write.kind === "change") await change(write.change, offer.id)
+      if (write.kind === "change") await change(write.change, offer.id, fresh)
       else await saveEdits(write.sectionIds, write.edits, "", offer.id)
-      await new Promise((resolve) => setTimeout(resolve, 0))
-      await report(
-        "done",
-        `${doneWords(offer, latest.current)} ${byYou(new Date())}`
-      )
+      await report("done", `${doneWords(offer, fresh)} ${byYou(new Date())}`)
     } catch (error) {
       const reason =
         error instanceof WriteError

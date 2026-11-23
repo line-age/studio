@@ -82,29 +82,49 @@ export function StudioScreen() {
   // one. If it fails, what is on screen stays and says so until dismissed.
   // Resolves true once the new data is in, false when it is not.
   const reading = useRef<AbortController | null>(null)
-  const reload = useMemo(() => {
-    const again = async (): Promise<boolean> => {
+  // One read: shown once in, and handed back. "superseded" when a newer read
+  // took its place, "failed" when store could not be read.
+  const readOnce = useMemo(
+    () => async (): Promise<Network | "failed" | "superseded"> => {
       reading.current?.abort()
       const mine = new AbortController()
       reading.current = mine
       const next = loadNetwork(mine.signal)
+      let read: Network
       try {
-        await next
+        read = await next
       } catch {
-        if (mine.signal.aborted) return false
+        return mine.signal.aborted ? "superseded" : "failed"
+      }
+      if (mine.signal.aborted) return "superseded"
+      startTransition(() => setNetwork(next))
+      return read
+    },
+    []
+  )
+  // For a check just before a write: what was read, or null. Says nothing
+  // itself: a failed read before a write is not a failed read after one.
+  const readAgain = useMemo(
+    () => async (): Promise<Network | null> => {
+      const read = await readOnce()
+      return typeof read === "string" ? null : read
+    },
+    [readOnce]
+  )
+  const reload = useMemo(() => {
+    const again = async (): Promise<boolean> => {
+      const read = await readOnce()
+      if (read === "failed") {
         toast.error("Done in store. Studio could not read it again.", {
           duration: Infinity,
           closeButton: true,
           action: { label: "Try again", onClick: () => void again() },
         })
-        return false
       }
-      if (mine.signal.aborted) return false
-      startTransition(() => setNetwork(next))
-      return true
+      return typeof read !== "string"
     }
     return again
-  }, [])
+  }, [readOnce])
   const [loading, setLoading] = useState(true)
   const [panel, setPanel] = useState<LeftPanel>("pipelines")
   const [leftOpen, setLeftOpen] = useState(true)
@@ -171,7 +191,11 @@ export function StudioScreen() {
           )}
         >
           <Suspense fallback={<Frame busy />}>
-            <StudioDataProvider network={network} reload={reload}>
+            <StudioDataProvider
+              network={network}
+              reload={reload}
+              readAgain={readAgain}
+            >
               <Loaded linked={linked} />
             </StudioDataProvider>
           </Suspense>

@@ -14,13 +14,20 @@ import { testNetwork } from "./network"
  */
 export async function renderInStudio(
   ui: ReactNode,
-  network: Network = testNetwork()
+  network: Network = testNetwork(),
+  /** What a read just before a write finds: data changed elsewhere, or null. */
+  readAgain?: () => Promise<Network | null>
 ) {
   let result!: ReturnType<typeof render>
   await act(async () => {
     result = render(
       <Suspense fallback={null}>
-        <StudioDataProvider network={Promise.resolve(network)} source="fixture">
+        <StudioDataProvider
+          network={Promise.resolve(network)}
+          source={readAgain ? "store" : "fixture"}
+          readAgain={readAgain}
+          reload={async () => true}
+        >
           {ui}
         </StudioDataProvider>
       </Suspense>

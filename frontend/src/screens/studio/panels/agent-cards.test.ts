@@ -129,3 +129,16 @@ describe("a press is drawn on its card", () => {
     ).toEqual([finding])
   })
 })
+
+describe("found in review", () => {
+  it("shows nothing under the card of a search that never started: the card says why", () => {
+    const refusal: AgentStatement = {
+      kind: "refusal",
+      text: "A search is already running.",
+      refs: [],
+    }
+    expect(
+      shownOfSearch(turn({ kind: "search", offer: "s1" }, [refusal]))
+    ).toEqual([])
+  })
+})

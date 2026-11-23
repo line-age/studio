@@ -91,20 +91,33 @@ export function isPress(turn: AgentTurn): boolean {
   return kind === "outcome" || kind === "propose" || kind === "search"
 }
 
-/** The statements of a search turn the thread shows under its card. */
+/**
+ * The statements of a search turn the thread shows under its card: what the
+ * search said and found. One that never started shows nothing: its card says
+ * why.
+ */
 export function shownOfSearch(turn: AgentTurn): AgentStatement[] {
-  return searchStatements(turn)
+  const started = (turn.answer?.statements ?? []).some(
+    (s) => s.kind === "citation_request" && s.request
+  )
+  return started ? searchStatements(turn) : []
 }
 
 /** What a card can do, from the conversation. Null while it cannot. */
 export interface AgentCardsValue {
   outcome: (id: string) => CardOutcome | undefined
   search: (id: string) => SearchRun | undefined
-  /** Report what came of a card; null while the Agent is busy. */
+  /**
+   * Report what came of a card: held until the Agent is free, so it is never
+   * lost (use-outcome-queue.ts). Null only where nothing can record it.
+   */
   report:
     ((id: string, state: OutcomeState, detail?: string) => Promise<void>) | null
-  /** Start a search an offer holds; null while the Agent is busy. */
-  start: ((id: string) => void) | null
+  /**
+   * Start a search an offer holds: resolves false when it was not taken. Null
+   * while the Agent is busy.
+   */
+  start: ((id: string) => Promise<boolean> | void) | null
   /** Stop the search going on. */
   stop: () => void
   /** Ask a question again: the card's own, for Ask again. */

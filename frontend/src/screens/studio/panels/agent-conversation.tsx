@@ -33,7 +33,7 @@ import {
   useSharedThread,
   type AgentTurn,
 } from "@/data/agent/use-agent"
-import type { OutcomeState, Question } from "@/data/question"
+import type { Question } from "@/data/question"
 
 import { useRevealSection, useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
@@ -54,6 +54,7 @@ import {
 } from "./agent-cards"
 import { AgentStatementView, ProposeFinding } from "./agent-statement"
 import { AgentSteps } from "./agent-steps"
+import { useOutcomeQueue } from "./use-outcome-queue"
 import { EmptyChat } from "./empty-chat"
 
 /*
@@ -251,15 +252,6 @@ function AnswerBody({
   )
 }
 
-/** The words an outcome is sent with: it is a press, never shown as a message. */
-const OUTCOME_WORDS: Record<OutcomeState, string> = {
-  done: "Approve",
-  declined: "Decline",
-  failed: "Approve",
-  out_of_date: "Approve",
-  dismissed: "Dismiss",
-}
-
 /** From this many turns the header suggests starting fresh. */
 const LONG_CHAT_TURNS = 12
 
@@ -454,33 +446,33 @@ function Conversation({
     return pipeline ? { id: pipeline.id, name: pipelineLabel(pipeline) } : null
   }
   const askAgent = useStudio((s) => s.askAgent)
+  const report = useOutcomeQueue(agent, network.name)
   const cards: AgentCardsValue = {
     outcome: (id) => outcomesIn(agent.turns).get(id),
     search: (id) =>
       searchesIn(agent.turns, agent.working, agent.liveSteps).get(id),
-    report: agent.working
-      ? null
-      : async (id: string, state: OutcomeState, detail?: string) => {
-          await agent.ask({
-            words: OUTCOME_WORDS[state],
-            about: [],
-            network: network.name,
-            action: {
-              kind: "outcome",
-              offer: id,
-              state,
-              ...(detail ? { detail } : {}),
-            },
-          })
-        },
+    report: async (id, state, detail) => report(id, state, detail),
     start: agent.working
       ? null
       : (id: string) =>
-          void agent.ask({
-            words: "Search",
-            about: [],
-            network: network.name,
-            action: { kind: "search", offer: id },
+          new Promise<boolean>((resolve) => {
+            let refused = false
+            void Promise.resolve(
+              agent.ask(
+                {
+                  words: "Search",
+                  about: [],
+                  network: network.name,
+                  action: { kind: "search", offer: id },
+                },
+                () => {
+                  refused = true
+                  resolve(false)
+                }
+              )
+            ).then(() => {
+              if (!refused) resolve(true)
+            })
           }),
     stop: () => void agent.stop(),
     ask: agent.working

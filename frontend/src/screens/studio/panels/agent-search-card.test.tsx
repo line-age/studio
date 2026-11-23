@@ -156,3 +156,13 @@ describe("the years a search reads", () => {
     expect(yearsWords(years)).toBe(words)
   })
 })
+
+describe("found in review", () => {
+  it("goes back to Ready when the Search was not taken", async () => {
+    const value = cards({ start: vi.fn(async () => false) })
+    const { user } = await show(offer, value)
+    await user.click(screen.getByRole("button", { name: "Search" }))
+    expect(await screen.findByRole("button", { name: "Search" })).toBeVisible()
+    expect(screen.queryByRole("button", { name: "Stop the search" })).toBeNull()
+  })
+})

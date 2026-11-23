@@ -171,7 +171,12 @@ export function AgentSearchCard({
           disabled={!offer.ready || busy}
           onClick={() => {
             setPressed(true)
-            cards.start?.(offer.id)
+            // Not taken (the Agent was busy after all): back to Ready.
+            const taken = cards.start?.(offer.id)
+            if (taken instanceof Promise)
+              void taken.then((ok) => {
+                if (!ok) setPressed(false)
+              })
           }}
         >
           Search

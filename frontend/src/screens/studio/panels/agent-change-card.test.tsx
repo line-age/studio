@@ -4,7 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { AgentStatement, ChangeOffer } from "@/data/agent/answer"
 import { pipelineLabel } from "@/data/derive"
+import type { Network } from "@/data/schema"
 import { renderInStudio } from "@/test/in-studio"
+import { testNetwork } from "@/test/network"
 
 import { useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
@@ -63,7 +65,11 @@ const cards = (more: Partial<AgentCardsValue> = {}): AgentCardsValue => ({
   ...more,
 })
 
-async function show(statement: AgentStatement, value = cards()) {
+async function show(
+  statement: AgentStatement,
+  value = cards(),
+  readAgain?: () => Promise<Network | null>
+) {
   await renderInStudio(
     <AgentCards value={value}>
       <CardQuestion
@@ -76,7 +82,9 @@ async function show(statement: AgentStatement, value = cards()) {
         />
       </CardQuestion>
       <Probe />
-    </AgentCards>
+    </AgentCards>,
+    testNetwork(),
+    readAgain
   )
   return { user: userEvent.setup(), value }
 }
@@ -207,5 +215,44 @@ describe("an edit card", () => {
       sectionIds: ["s-4"],
       prefill: { Diameter: "16 in" },
     })
+  })
+})
+
+describe("the check just before the write (found in review)", () => {
+  it("checks the card against what was just read, not what was on screen", async () => {
+    // Elsewhere, Unnamed section was put in South line after the card was offered.
+    const moved = (): Network => {
+      const n = testNetwork()
+      return {
+        ...n,
+        sections: n.sections.map((s) =>
+          s.id === "s-4" ? { ...s, pipelineId: "p-2" } : s
+        ),
+      }
+    }
+    const { user, value } = await show(offer({}), cards(), async () => moved())
+    await user.click(screen.getByRole("button", { name: "Approve" }))
+    expect(await within(card()).findByRole("status")).toHaveTextContent(
+      "Out of date. Nothing was changed."
+    )
+    expect(value.report).toHaveBeenCalledWith(
+      "offer-1",
+      "out_of_date",
+      "Unnamed section was moved to South line after this was offered."
+    )
+  })
+
+  it("writes nothing when the data could not be read again", async () => {
+    const { user, value } = await show(offer({}), cards(), async () => null)
+    await user.click(screen.getByRole("button", { name: "Approve" }))
+    expect(await within(card()).findByRole("status")).toHaveTextContent(
+      "Couldn't save. Nothing was changed."
+    )
+    expect(value.report).toHaveBeenCalledWith(
+      "offer-1",
+      "failed",
+      "Studio could not read the data again, so nothing was written."
+    )
+    expect(probe()).toHaveTextContent("s-4 in none")
   })
 })
