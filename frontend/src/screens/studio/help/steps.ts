@@ -49,7 +49,7 @@ export const HELP_STEPS: readonly HelpStep[] = [
   {
     id: "layers",
     title: "The map key",
-    body: 'The map key says how each line is drawn. Its two eyes show or hide the paths a tool proposed and, faint, the sections the filters leave out. "List follows the map", below it, keeps the list to the sections in view; while the list is a table it waits.',
+    body: 'The map key says how each line is drawn. Its two eyes show or hide the paths a tool proposed and, faint, the sections the filters leave out. "List follows the map", below it, keeps the list to the sections in view once you turn it on; while the list is a table it waits.',
     targets: ["layers", "map"],
   },
   {

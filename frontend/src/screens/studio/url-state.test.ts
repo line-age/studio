@@ -159,3 +159,15 @@ describe("the view in the URL", () => {
     expect(window.location.search).toContain("s=done")
   })
 })
+
+describe("the list follows the map only when asked (2026-11-23)", () => {
+  it("opens with the whole network listed; v=1 follows the map; an older v=0 link lists it all", () => {
+    expect(parse("").followMap).toBe(false)
+    expect(parse("v=1").followMap).toBe(true)
+    expect(parse("v=0").followMap).toBe(false)
+    expect(
+      toSearchParams({ ...DEFAULT_VIEW, followMap: true }).toString()
+    ).toBe("v=1")
+    expect(useStudio.getInitialState().onlyInView).toBe(false)
+  })
+})

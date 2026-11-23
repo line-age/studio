@@ -71,7 +71,7 @@ export const DEFAULT_VIEW: UrlView = {
   changedOnly: false,
   diameters: [],
   states: [],
-  followMap: true,
+  followMap: false,
   camera: null,
   section: null,
   scope: "all",
@@ -104,7 +104,9 @@ export function toSearchParams(view: UrlView): URLSearchParams {
   if (view.changedOnly) params.set("ch", "1")
   for (const d of view.diameters) params.append("d", d)
   for (const state of view.states) params.append("st", state)
-  if (!view.followMap) params.set("v", "0")
+  // The list holds the whole network unless the person asked it to follow the
+  // map (the owner, 2026-11-23). An older link's v=0 reads as the default.
+  if (view.followMap) params.set("v", "1")
   if (view.camera) {
     const { lng, lat, zoom } = view.camera
     params.set("m", [round(lng, 4), round(lat, 4), round(zoom, 2)].join(","))
@@ -152,7 +154,7 @@ export function fromSearchParams(params: URLSearchParams): UrlView {
   view.changedOnly = params.get("ch") === "1"
   view.diameters = [...new Set(params.getAll("d").filter(Boolean))]
   view.states = [...new Set(params.getAll("st").filter(Boolean))]
-  view.followMap = params.get("v") !== "0"
+  view.followMap = params.get("v") === "1"
   view.section = params.get("sel") || null
   view.pipeline = params.get("p") || null
   const scope = params.get("sc")
