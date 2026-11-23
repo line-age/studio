@@ -4,7 +4,7 @@ fill the draft's slots, check it against what was read, and only then attach it.
     ingress -> read -> answer -> END
                         answer -> cite_start -> cite_wait (loops) -> cite_report -> END
     ingress -> propose -> END                          (a Propose button, no model)
-    ingress -> propose_pipeline -> END                 (a Propose pipeline button, no model)
+    ingress -> outcome -> END                          (what came of a card, no model)
 
 `answer` runs the model loop (`create_agent`, tools read store), renders the draft and
 checks it (grounding.py). A draft that fails goes back once with what failed; a second
@@ -30,16 +30,25 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.graph.message import REMOVE_ALL_MESSAGES
 
+import change_flow
 import cite_flow
 import cite_input
 import context
-import pipeline_flow
 import prompts
 import store_writer
 from cite_client import CiteBusy, CiteClient, CiteService
 from cite_result import CiteResult
 from grounding import problems_of, reads_from
-from render import FIXED_LINES, Unfillable, as_text, failure, feature_name, render, say_once
+from render import (
+    FIXED_LINES,
+    Unfillable,
+    as_text,
+    failure,
+    feature_name,
+    render,
+    say_once,
+    short_id,
+)
 from schemas import Answer, CitationRequest, Draft, DraftRef, Question, Ref, Statement
 from settings import MAX_QUESTION_CHARS, load
 from store_client import StoreClient, StoreError
@@ -508,6 +517,24 @@ def _people_words(messages: list[Any]) -> list[str]:
     return words
 
 
+CARD_GONE = "That card is no longer in this chat. Ask again."
+
+
+def _cards_in(state: AgentState) -> set[str]:
+    """The ids of every card in this thread: change and search offers, and the handles
+    of what cite found."""
+    ids = set(((state.get("cite") or {}).get("findings") or {}).keys())
+    for m in state["messages"]:
+        if not isinstance(m, AIMessage):
+            continue
+        answer = (m.additional_kwargs or {}).get("answer") or {}
+        for st in answer.get("statements") or []:
+            for field in ("change", "search"):
+                if st.get(field):
+                    ids.add(st[field]["id"])
+    return ids
+
+
 def build_graph(
     store: StoreClient | None = None,
     model: Any = None,
@@ -592,12 +619,17 @@ def build_graph(
         if len(question.words) > MAX_QUESTION_CHARS:
             blocked = [[f"the question is longer than {MAX_QUESTION_CHARS} characters"]]
             return _finish(failure("check_failed"), message, [], seen, blocked)
-        if pipeline_flow.asks_for_pipeline(question.words):
-            # Making a pipeline is a button, never words: code offers it (plan 005).
-            return _pipeline_offer(question, message, taken, seen)
-        if pipeline_flow.asks_to_decide(question.words):
-            # Deciding and changing store is a person's, in Studio (R12): code says where.
-            line = Statement(kind="refusal", text=pipeline_flow.LINES["person_decides"])
+        request = change_flow.read_request(question.words)
+        if request is not None:
+            # A change asked for in words: code's card, made by Studio on Approve (D1, D4).
+            return _change_offer(question, request, message, taken, seen)
+        if change_flow.asks_to_decide(question.words):
+            # Deciding what a tool proposed is a person's, in the inbox (R12).
+            line = Statement(kind="refusal", text=change_flow.LINES["person_decides"])
+            return _finish(Answer(statements=[line]), message, [], seen)
+        if change_flow.sounds_like_a_change(question.words):
+            # A change code could not read: a fixed line, never a wrong card (R9).
+            line = Statement(kind="refusal", text=change_flow.LINES["cannot_read"])
             return _finish(Answer(statements=[line]), message, [], seen)
         if cite_state.get("findings") and _PROPOSE_WORDS.search(question.words):
             # A go-ahead is a button, never words (plan D6).
@@ -751,54 +783,60 @@ def build_graph(
                 ]
         return _finish(failure("check_failed"), message, tools, seen, blocked, steps=steps)
 
-    def _read_sections(ids: list[str], reader: Any = None) -> list[dict[str, Any]] | str:
-        """The sections by id, read in parallel; or the line saying why not. Raises
-        StoreError when store cannot be read."""
-        reader = reader if reader is not None else _Prefetched(store, ids)
-        sections = []
-        for fid in ids:
-            try:
-                sections.append(reader.feature(fid))
-            except StoreError as error:
-                if error.kind == "not_found":
-                    return pipeline_flow.LINES["gone"]
-                raise
-        return pipeline_flow.check(sections) or sections
+    def _change_offer(question: Question, request, message, taken, seen: int) -> dict:
+        """The card for a change asked for in words, or its fixed line. Reads what is
+        attached and, for a pipeline named in the words, store's pipelines. No model."""
 
-    def _pipeline_offer(question: Question, message, taken, seen: int) -> dict:
+        def say(statement: Statement, steps=None) -> dict:
+            return _finish(Answer(statements=[statement]), message, [], seen, steps=steps)
+
         attached = [i for i in question.about if i.id]
-        ids = [i.id for i in attached if i.kind == "section"]
-        if len(ids) != len(attached):
-            line = pipeline_flow.LINES["not_sections" if attached else "too_few"]
-            return _finish(
-                Answer(statements=[Statement(kind="refusal", text=line)]), message, [], seen
-            )
-        steps = _Steps()
-        if len(ids) > pipeline_flow.MAX_SECTIONS:
-            got: Any = pipeline_flow.LINES["too_many"]
-        else:
-            try:
-                got = _read_sections(ids, taken)
-            except StoreError as error:
-                return _finish(
-                    failure(STORE_FAILURES.get(error.kind, "store_unreachable")), message, [], seen
+        section_ids = list(dict.fromkeys(i.id for i in attached if i.kind == "section"))
+        pipeline_ids = list(dict.fromkeys(i.id for i in attached if i.kind == "pipeline"))
+        if len(section_ids) > change_flow.MAX_SECTIONS:
+            return say(Statement(kind="refusal", text=change_flow.LINES["too_many"]))
+        reader = taken if taken is not None else _Prefetched(store, [*section_ids, *pipeline_ids])
+        try:
+            sections = [reader.feature(i) for i in section_ids]
+            pipelines = [reader.feature(i) for i in pipeline_ids]
+        except StoreError as error:
+            if error.kind == "not_found":
+                return say(Statement(kind="refusal", text=change_flow.LINES["gone"]))
+            return say(failure(STORE_FAILURES.get(error.kind, "store_unreachable")).statements[0])
+
+        def names(ids: list[str]) -> dict[str, str]:
+            out = {}
+            for fid in dict.fromkeys(ids):
+                try:
+                    out[fid] = feature_name(store.feature(fid))
+                except StoreError:
+                    continue
+            return out
+
+        def find(wanted: str) -> list[dict[str, Any]]:
+            ids = list(
+                dict.fromkeys(
+                    link["to_feature_id"]
+                    for link in store.links(relation="part_of").rows
+                    if link["status"] != "rejected"
                 )
-        if isinstance(got, str):
-            return _finish(
-                Answer(statements=[Statement(kind="refusal", text=got)]), message, [], seen
             )
-        steps.add_done(read_words(len(got), 0))
-        return _finish(
-            Answer(
-                statements=[
-                    pipeline_flow.offer(got, named=bool(pipeline_flow.NAMED.search(question.words)))
-                ]
-            ),
-            message,
-            [],
-            seen,
-            steps=steps,
-        )
+            return [
+                f
+                for f in context.read_many(store, ids).values()
+                if f.get("kind") == "line"
+                and wanted in {feature_name(f).casefold(), short_id(f["id"]).casefold()}
+            ]
+
+        try:
+            statement = change_flow.offer(request, sections, pipelines, find, names)
+        except StoreError as error:
+            return say(failure(STORE_FAILURES.get(error.kind, "store_unreachable")).statements[0])
+        steps = _Steps()
+        steps.add_done(read_words(len(sections), len(pipelines)))
+        if statement.kind == "change_offer":
+            steps.add_done("Checked the change against the rules")
+        return say(statement, steps)
 
     def _with_search(state, draft, rendered, read, message, tools, seen, blocked, steps):
         """The checked answer asks for a search: the guard decides (plan D8), and the
@@ -1158,36 +1196,21 @@ def build_graph(
         )
         return say("proposed", text, refs)
 
-    def propose_pipeline(state: AgentState) -> dict:
-        """The person pressed Propose pipeline: write a new line and a proposed part_of
-        link per section. No model; code reads the sections again and sends the bundle."""
+    def outcome(state: AgentState) -> dict:
+        """The person's press on a card, reported by Studio once it is done: recorded in
+        the thread so every reader sees the card's state. No model, nothing written; a
+        change was already made by Studio, as the person."""
         message = next(
             (m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None
         )
         seen = len(state["messages"])
-        question = _question(message)
-
-        def say(kind: str, text: str) -> dict:
-            return _finish(Answer(statements=[Statement(kind=kind, text=text)]), message, [], seen)
-
-        ids = pipeline_flow.canonical(question.action.section_ids or [])
-        if ids is None or len(ids) < 2:
-            return say("refusal", pipeline_flow.LINES["too_few"])
-        if len(ids) > pipeline_flow.MAX_SECTIONS:
-            return say("refusal", pipeline_flow.LINES["too_many"])
-        if writer is None:
-            return say("failure", pipeline_flow.LINES["write_failed"])
-        try:
-            got = _read_sections(ids)
-        except StoreError as error:
-            return say("failure", FIXED_LINES[STORE_FAILURES.get(error.kind, "store_unreachable")])
-        if isinstance(got, str):
-            return say("refusal", got)
-        try:
-            written = writer.propose(store_writer.pipeline_bundle(ids, got[0]["network"]))
-        except StoreError:
-            return say("failure", pipeline_flow.LINES["write_failed"])
-        return _finish(Answer(statements=[pipeline_flow.outcome(got, written)]), message, [], seen)
+        action = _question(message).action
+        known = _cards_in(state)
+        if action.state is None or (action.offer or "") not in known:
+            line = Statement(kind="refusal", text=CARD_GONE)
+        else:
+            line = Statement(kind="changed", text=change_flow.OUTCOME_LINES[action.state])
+        return _finish(Answer(statements=[line]), message, [], seen)
 
     def fresh_start(state: AgentState) -> dict:
         """The person pressed Start fresh: every message goes, what cite found stays (its
@@ -1214,7 +1237,7 @@ def build_graph(
             return "read"
         if question is None or question.action is None:
             return "read"
-        return question.action.kind  # propose, propose_pipeline or fresh_start
+        return question.action.kind  # propose, search, outcome or fresh_start
 
     builder = StateGraph(AgentState)
 
@@ -1285,7 +1308,7 @@ def build_graph(
     builder.add_node("cite_report", cite_report)
     builder.add_edge(START, "ingress")
     builder.add_conditional_edges(
-        "ingress", _route_in, ["read", "propose", "propose_pipeline", "fresh_start"]
+        "ingress", _route_in, ["read", "propose", "outcome", "fresh_start"]
     )
     builder.add_edge("read", "answer")
     builder.add_conditional_edges(
@@ -1297,8 +1320,8 @@ def build_graph(
     builder.add_conditional_edges("cite_wait", _searching, ["cite_wait", "cite_report"])
     builder.add_edge("cite_report", END)
     builder.add_edge("propose", END)
-    builder.add_node("propose_pipeline", propose_pipeline)
-    builder.add_edge("propose_pipeline", END)
+    builder.add_node("outcome", outcome)
+    builder.add_edge("outcome", END)
     builder.add_node("fresh_start", fresh_start)
     builder.add_edge("fresh_start", END)
     # A search is followed one pass at a time, so its run takes many steps.

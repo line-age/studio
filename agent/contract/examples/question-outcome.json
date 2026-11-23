@@ -1,0 +1,10 @@
+{
+  "words": "Approve",
+  "about": [],
+  "network": "gas",
+  "action": {
+    "kind": "outcome",
+    "offer": "0b6f3c1e-2d4a-4f7b-9c1e-5a6b7c8d9e01",
+    "state": "done"
+  }
+}

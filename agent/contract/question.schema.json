@@ -2,12 +2,13 @@
   "$defs": {
     "Action": {
       "additionalProperties": false,
-      "description": "A button the person pressed, not words: code acts on it, no model reads it.\n\npropose: write a finding to store as a candidate claim, on its section or, by\n`target`, on the pipeline that section is confirmed part of.\npropose_pipeline: write a new pipeline (a line) with a proposed part_of link for each\nof `section_ids`; a person decides it.\nfresh_start: drop the conversation's messages, keep what cite found.",
+      "description": "A button the person pressed, not words: code acts on it, no model reads it.\n\npropose: write a finding to store as a candidate claim, on its section or, by\n`target`, on the pipeline that section is confirmed part of.\nsearch: start the search a search_offer in this thread offered, by its id.\noutcome: what came of a card (a change offer, a search offer, a finding), by its id\nor handle: recorded in the thread, so every reader sees the card's state. Nothing is\nwritten to store; a change was made by Studio, as the person, before this is sent.\nfresh_start: drop the conversation's messages, keep what cite found.",
       "properties": {
         "kind": {
           "enum": [
             "propose",
-            "propose_pipeline",
+            "search",
+            "outcome",
             "fresh_start"
           ],
           "title": "Kind",
@@ -37,20 +38,48 @@
           "default": null,
           "title": "Target"
         },
-        "section_ids": {
+        "offer": {
           "anyOf": [
             {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
+              "type": "string"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "title": "Section Ids"
+          "title": "Offer"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "enum": [
+                "done",
+                "declined",
+                "failed",
+                "out_of_date",
+                "dismissed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "State"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
         }
       },
       "required": [
