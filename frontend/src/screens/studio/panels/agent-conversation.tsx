@@ -44,11 +44,18 @@ import {
   type ProposeOutcome,
 } from "./agent-finding"
 import {
-  AgentStatementView,
-  ProposeFinding,
-  ProposePipeline,
-} from "./agent-statement"
+  AgentCards,
+  CardQuestion,
+  isPress,
+  outcomesIn,
+  searchesIn,
+  shownOfSearch,
+  type AgentCardsValue,
+} from "./agent-cards"
+import { AgentStatementView, ProposeFinding } from "./agent-statement"
 import { AgentSteps } from "./agent-steps"
+import { useOutcomeQueue } from "./use-outcome-queue"
+import { EmptyChat } from "./empty-chat"
 
 /*
  * The conversation with the Agent service, on store's data. Every answer shown
@@ -327,6 +334,28 @@ function Turn({
     const pipeline = network.pipelines.find((p) => p.id === id)
     return pipeline ? pipelineLabel(pipeline) : name(id)
   }
+  const action = turn.question.action?.kind
+  // A press is drawn on its card, not as a message (plan 2026-11-23-001, D2).
+  // A search's own findings follow the card that started it.
+  if (action === "search") {
+    const shown = shownOfSearch(turn)
+    if (shown.length === 0) return null
+    return (
+      <div
+        className="flex flex-col gap-3"
+        role="article"
+        aria-label="What the search found"
+      >
+        <AnswerBody
+          turn={{ ...turn, answer: { ...turn.answer!, statements: shown } }}
+          name={name}
+          open={open}
+        />
+        <AgentSources statements={shown} open={open} />
+      </div>
+    )
+  }
+  if (isPress(turn)) return null
   const about = asked(turn.question, attachedName)
   const now = last && working && !turn.answer
   // A search goes on after its first lines are shown: its steps stay live.
@@ -347,11 +376,13 @@ function Turn({
             steps={searchingNow ? liveSteps : turn.steps}
             working={searchingNow}
           />
-          <AnswerBody
-            turn={{ ...turn, answer: turn.answer }}
-            name={name}
-            open={open}
-          />
+          <CardQuestion value={turn.question}>
+            <AnswerBody
+              turn={{ ...turn, answer: turn.answer }}
+              name={name}
+              open={open}
+            />
+          </CardQuestion>
           <AgentSources statements={turn.answer.statements} open={open} />
           {!searchingNow && searchLeftUnfinished(turn.answer.statements) && (
             <Marker>
@@ -414,15 +445,41 @@ function Conversation({
     const pipeline = network.pipelines.find((p) => p.id === pipelineId)
     return pipeline ? { id: pipeline.id, name: pipelineLabel(pipeline) } : null
   }
-  const proposePipeline = agent.working
-    ? null
-    : (sectionIds: string[]) =>
-        void agent.ask({
-          words: `Propose these ${sectionIds.length} sections as one pipeline`,
-          about: [],
-          network: network.name,
-          action: { kind: "propose_pipeline", section_ids: sectionIds },
-        })
+  const askAgent = useStudio((s) => s.askAgent)
+  const report = useOutcomeQueue(agent, network.name)
+  const cards: AgentCardsValue = {
+    outcome: (id) => outcomesIn(agent.turns).get(id),
+    search: (id) =>
+      searchesIn(agent.turns, agent.working, agent.liveSteps).get(id),
+    report: async (id, state, detail) => report(id, state, detail),
+    start: agent.working
+      ? null
+      : (id: string) =>
+          new Promise<boolean>((resolve) => {
+            let refused = false
+            void Promise.resolve(
+              agent.ask(
+                {
+                  words: "Search",
+                  about: [],
+                  network: network.name,
+                  action: { kind: "search", offer: id },
+                },
+                () => {
+                  refused = true
+                  resolve(false)
+                }
+              )
+            ).then(() => {
+              if (!refused) resolve(true)
+            })
+          }),
+    stop: () => void agent.stop(),
+    ask: agent.working
+      ? null
+      : (question: Question) => void agent.ask(question),
+    draft: (words: string) => askAgent([], { words }),
+  }
   // Keep the newest turn in view as it is asked and answered.
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight })
@@ -492,7 +549,7 @@ function Conversation({
         aria-label="Conversation with the Agent"
         className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-3 py-4"
       >
-        <ProposePipeline value={proposePipeline}>
+        <AgentCards value={cards}>
           <ProposeFinding value={propose}>
             <PipelineOfSection value={pipelineOf}>
               <ProposeOutcomes value={outcomesOf(agent.turns, agent.working)}>
@@ -508,8 +565,8 @@ function Conversation({
               </ProposeOutcomes>
             </PipelineOfSection>
           </ProposeFinding>
-        </ProposePipeline>
-        {agent.turns.length === 0 && <Marker>No conversation yet.</Marker>}
+        </AgentCards>
+        {agent.turns.length === 0 && <EmptyChat />}
         {agent.error && (
           <Marker>
             The Agent could not answer. Send the question again to retry.

@@ -100,6 +100,50 @@ export const agentFinding = z.object({
 })
 export type AgentFinding = z.infer<typeof agentFinding>
 
+/**
+ * A change asked for in words, as the Agent's code read it
+ * (studio/agent/schemas.py, ChangeOffer). Studio makes it on Approve through
+ * its own writes; the Agent writes nothing.
+ */
+export const changeOffer = z.object({
+  id: z.string(),
+  kind: z.enum(["add", "move", "remove", "make", "rename", "edit"]),
+  section_ids: z.array(z.string()).default([]),
+  pipeline_id: z.string().nullable().optional(),
+  name: z.string().nullable().optional(),
+  attribute: z.string().nullable().optional(),
+  value: z.string().nullable().optional(),
+  /** Attached sections the change leaves alone. */
+  left_out: z.array(z.string()).default([]),
+  /** The Agent's sentence for what else happens or stays. */
+  note: z.string().nullable().optional(),
+  /** What each section was in when offered: checked again before the write. */
+  basis: z
+    .array(
+      z.object({
+        section_id: z.string(),
+        pipeline_id: z.string().nullable().optional(),
+      })
+    )
+    .default([]),
+})
+export type ChangeOffer = z.infer<typeof changeOffer>
+
+/** A search offered before it runs (studio/agent/schemas.py, SearchOffer). */
+export const searchOffer = z.object({
+  id: z.string(),
+  section_id: z.string(),
+  attributes: z.array(z.string()),
+  /** The years cite will read, [from, to], when known. */
+  years: z.array(z.number()).default([]),
+  places: z.array(z.string()).default([]),
+  /** The towns are the Agent's, along the traced line. */
+  from_line: z.boolean().default(false),
+  /** False: nothing to search by yet; Search stays off. */
+  ready: z.boolean().default(true),
+})
+export type SearchOffer = z.infer<typeof searchOffer>
+
 export const agentStatement = z.object({
   kind: z.enum([
     // The answer in the Agent's own words; every value in it was read.
@@ -133,6 +177,12 @@ export const agentStatement = z.object({
     "edit_offer",
     // Something the Agent cannot do yet: one fixed line for its topic.
     "not_yet",
+    // A change asked for in words, read by code: a card Studio makes on Approve.
+    "change_offer",
+    // A search offered before it runs: only Search starts it.
+    "search_offer",
+    // What came of a card, as the person's action reported it.
+    "changed",
   ]),
   text: z.string(),
   refs: z.array(agentAnswerRef).default([]),
@@ -178,6 +228,10 @@ export const agentStatement = z.object({
     })
     .nullable()
     .optional(),
+  /** For a change offer: the change, for Studio to make on Approve. */
+  change: changeOffer.nullable().optional(),
+  /** For a search offer: the search, for Studio to start on Search. */
+  search: searchOffer.nullable().optional(),
 })
 
 export const agentAnswer = z.object({

@@ -17,14 +17,12 @@ import {
 import type { AgentAnswerRef, AgentStatement } from "@/data/agent/answer"
 
 import { useStudio } from "../studio-store"
+import { AgentChangeCard } from "./agent-change-card"
 import { AgentFindingCard } from "./agent-finding"
+import { AgentNotice, NOTICE_KINDS } from "./agent-notice"
+import { AgentSearchCard } from "./agent-search-card"
 
 /** Proposes a finding by its handle; null while nothing may be sent. */
-/** Propose sections as one pipeline (the action propose_pipeline), or null while the Agent works. */
-export const ProposePipeline = createContext<
-  ((sectionIds: string[]) => void) | null
->(null)
-
 export const ProposeFinding = createContext<
   ((handle: string, target?: string) => void) | null
 >(null)
@@ -361,7 +359,6 @@ export function AgentStatementView({
   subject?: string
 }) {
   const propose = use(ProposeFinding)
-  const proposePipeline = use(ProposePipeline)
   const edit = useStudio((s) => s.edit)
   // The form's fields are named as Studio shows them: "Diameter", "Owner".
   const openEdit = (offer: NonNullable<AgentStatement["edit"]>) => {
@@ -374,6 +371,14 @@ export function AgentStatementView({
         : { kind: "edit-sections", sectionIds: offer.feature_ids, prefill }
     )
   }
+  // A card says it all: its title is the sentence (Figma sections 28, 29).
+  if (statement.kind === "change_offer" && statement.change)
+    return <AgentChangeCard title={statement.text} offer={statement.change} />
+  if (statement.kind === "search_offer" && statement.search)
+    return <AgentSearchCard title={statement.text} offer={statement.search} />
+  // A fixed line stands alone, as a notice (Figma 28 board C 5).
+  if (NOTICE_KINDS.has(statement.kind))
+    return <AgentNotice statement={statement} />
   const prefix = KIND_PREFIX[statement.kind]
   // Only what Studio has loaded can be opened.
   const loaded = (id: string) => name(id) !== null
@@ -407,17 +412,6 @@ export function AgentStatementView({
           {prefix && <KindPrefix kind={statement.kind} prefix={prefix} />}
           {nodes}
         </p>
-      )}
-      {statement.kind === "pipeline_offer" && statement.pipeline && (
-        <div className="flex">
-          <Button
-            size="sm"
-            disabled={proposePipeline === null}
-            onClick={() => proposePipeline?.(statement.pipeline!.section_ids)}
-          >
-            Propose pipeline
-          </Button>
-        </div>
       )}
       {statement.kind === "edit_offer" && statement.edit && (
         <div className="flex">

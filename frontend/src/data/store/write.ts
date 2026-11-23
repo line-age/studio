@@ -15,7 +15,7 @@
 import { studioFetch } from "../session"
 
 const BASE = "/store"
-const SYSTEM = "studio"
+export const SYSTEM = "studio"
 
 /** A section as a change needs it: its id and its confirmed membership. */
 export interface Placed {
@@ -44,6 +44,8 @@ export interface BundleReview {
 /** A claim as a bundle carries it: a person's edit, with its citation. */
 export interface BundleClaim {
   ref?: string
+  /** Made from the action's key: the same press sent again makes nothing new. */
+  external_key?: { system: string; key: string }
   feature: string
   attribute: string
   value_text?: string
@@ -59,7 +61,12 @@ export interface Bundle {
     title: string
     external_key?: { system: string; key: string }
   }[]
-  citations?: { ref: string; source: string; quote?: string }[]
+  citations?: {
+    ref: string
+    source: string
+    quote?: string
+    external_key?: { system: string; key: string }
+  }[]
   claims?: BundleClaim[]
   features?: {
     ref: string

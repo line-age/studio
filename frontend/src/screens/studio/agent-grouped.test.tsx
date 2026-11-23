@@ -125,9 +125,13 @@ describe("a line saying what the Agent cannot do yet", () => {
     })
     await userEvent.click(screen.getByRole("button", { name: /^Agent/ }))
     const answer = screen.getByRole("article", { name: "The Agent's answer" })
-    expect(answer).toHaveTextContent(
-      "I cannot say who traced a section yet. The list's Traced by filter shows it."
-    )
+    // A fixed line is a notice: what happened, then what it means.
+    expect(
+      within(answer).getByText("I cannot say who traced a section yet.")
+    ).toBeVisible()
+    expect(
+      within(answer).getByText("The list's Traced by filter shows it.")
+    ).toBeVisible()
     expect(within(answer).queryByRole("region")).not.toBeInTheDocument()
     expect(answer).not.toHaveTextContent("not in this answer")
   })

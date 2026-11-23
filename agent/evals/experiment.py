@@ -42,6 +42,13 @@ def _key(case: Case) -> str:
     return replay.key_of(json.dumps([case.id, case.world, case.question, case.turns, case.cite]))
 
 
+def _ready_offer(state: dict[str, Any]) -> dict[str, Any] | None:
+    for st in (state.get("answer") or {}).get("statements") or []:
+        if st["kind"] == "search_offer" and st["search"]["ready"]:
+            return st
+    return None
+
+
 def run_case(case: Case, budget: "replay.Budget | None" = None) -> dict[str, Any]:
     """Ask one case's question of the Agent on its world. Returns what the checks read.
 
@@ -88,6 +95,23 @@ def run_case(case: Case, budget: "replay.Budget | None" = None) -> dict[str, Any
         start = time.perf_counter()
         last = _message(question_for(case, world), len(case.turns) + 1)
         state = graph.invoke({"messages": [last]}, config)
+        pressed = False
+        offer = _ready_offer(state)
+        if offer is not None and case.press_search and case.searches:
+            # Search pressed, as Studio does: the search runs in its own turn, and the
+            # case is judged on what the person reads, the offer's place taken by it.
+            press = {
+                "words": "Search",
+                "about": [],
+                "network": "gas",
+                "action": {"kind": "search", "offer": offer["search"]["id"]},
+            }
+            after = graph.invoke({"messages": [_message(press, len(case.turns) + 2)]}, config)
+            before = state["answer"]["statements"]
+            i = before.index(offer)
+            merged = [*before[:i], *after["answer"]["statements"], *before[i + 1 :]]
+            state = {**after, "answer": {**after["answer"], "statements": merged}}
+            pressed = True
     except Exception as exc:  # noqa: BLE001 - a crash is a failed case, not a failed run
         return {"answer": None, "tools": [], "error": f"{type(exc).__name__}: {exc}"[:500]}
     if recorder is not None:
@@ -105,6 +129,7 @@ def run_case(case: Case, budget: "replay.Budget | None" = None) -> dict[str, Any
         # From the question in to the checked answer out, as a person waits for it.
         "seconds": round(time.perf_counter() - start, 2),
         "answer": state.get("answer"),
+        "pressed": pressed,
         "tools": state.get("tools") or [],
         "blocked": state.get("blocked") or [],
         "store_reads": len(store.requests),

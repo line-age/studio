@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "checked": true,
+  "statements": [
+    {
+      "kind": "change_offer",
+      "text": "Add section 06a875ca to Example trunk line",
+      "refs": [],
+      "change": {
+        "id": "0b6f3c1e-2d4a-4f7b-9c1e-5a6b7c8d9e01",
+        "kind": "add",
+        "section_ids": [
+          "0fc87cac-291d-5c57-9d84-7b1c734d02ec"
+        ],
+        "pipeline_id": "adbc7198-9a1e-53c5-b66e-5f418fbd143f",
+        "left_out": [
+          "18dd9183-6303-5ec5-bcc6-5a448f11d365"
+        ],
+        "note": "section 7707ea05 is already in Example trunk line.",
+        "basis": [
+          {
+            "section_id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec"
+          }
+        ]
+      }
+    }
+  ],
+  "carried": []
+}

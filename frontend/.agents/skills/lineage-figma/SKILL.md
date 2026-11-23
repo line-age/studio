@@ -301,3 +301,13 @@ the right panel. Proposals are decided in the Agent on a ProposalCard (`216:9591
 
 Do not invent these in code; ask or design in Figma first: the full-width table,
 Tooltip, Popover, Dropdown Menu, Tabs, Table.
+
+Section "28. The Agent chat" (`532:23947`) and section "29. Searching with cite"
+(`543:24042`) are built (2026-11-23, plan `2026-11-23-001`): the card on boards A and B
+is `components/decision-card.tsx` (frames in Figma, not a library component); a change
+card, a search card and a finding card are built on it in `screens/studio/panels/`; the
+fixed lines of board C are `agent-notice.tsx`; the empty chat's examples (board E) are in
+`components/composer.tsx`. Not built from them: the answer grouped into Saved, Worked
+out and Leads with sources numbered once (board C 4), the 720 wide chat (board D), a
+set found by a rule, the running minutes on a search card, and the inbox's proposals on
+the card. The grey block's colours are under AA on `muted` (a token question).

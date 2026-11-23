@@ -310,6 +310,31 @@ def link_facts(
 GAP_ATTRIBUTES = ("name", "owner", "operator", "diameter")
 
 
+def search_gaps(
+    feature: dict[str, Any], merged: list[dict[str, Any]], pipeline: dict[str, Any] | None
+) -> list[str]:
+    """What cite could look for that no source gives yet, in cite's order: the owner
+    (the section's, its merged traces' or its pipeline's), the diameter, and when it was
+    built (status; a map year is never one). For a search asked with no attribute named."""
+    claims = [c for f in (feature, *merged) for c in f.get("claims") or []]
+    on_pipeline = (pipeline or {}).get("claims") or []
+
+    def accepted(key: str, among: list[dict[str, Any]]) -> bool:
+        return any(c["attribute_key"] == key and c["status"] == "accepted" for c in among)
+
+    out = []
+    if not accepted("owner", claims) and not accepted("owner", on_pipeline):
+        out.append("owner")
+    if not accepted("diameter", claims):
+        out.append("diameter")
+    if not any(
+        c["attribute_key"] == "status" and c["status"] == "accepted" and not shown_on_a_map_only(c)
+        for c in claims
+    ):
+        out.append("status")
+    return out
+
+
 def gap_facts(
     feature: dict[str, Any], merged: list[dict[str, Any]], handle: Callable[[], str]
 ) -> list[WorkedOut]:

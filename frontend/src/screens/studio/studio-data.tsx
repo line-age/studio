@@ -68,7 +68,18 @@ interface StudioData {
    * reflects the change, false when it was made but store could not be read
    * again.
    */
-  change: (change: Change, key?: string) => Promise<boolean>
+  change: (
+    change: Change,
+    key?: string,
+    /** The network to build it from, when one was just read (readAgain). */
+    basis?: Network
+  ) => Promise<boolean>
+  /**
+   * Read the data again and hand back what was read, as it will be shown:
+   * on store a new read (null when it failed), on the sample what is in
+   * memory. For a check just before a write, against what is true now.
+   */
+  readAgain: () => Promise<Network | null>
   /**
    * The same as `change`, for a change a person makes in a modal: resolves
    * with its Undo, which puts back what it did (on the sample the network as
@@ -118,12 +129,15 @@ const noReload = () => Promise.resolve(true)
 export function StudioDataProvider({
   network,
   reload = noReload,
+  readAgain: readStore,
   source = dataSource(),
   children,
 }: {
   /** A promise from loadNetwork(). Suspends until it settles. */
   network: Promise<Network>
   reload?: () => Promise<boolean>
+  /** Read store again and hand back what was read (null when it failed). */
+  readAgain?: () => Promise<Network | null>
   source?: DataSource
   children: ReactNode
 }) {
@@ -140,10 +154,21 @@ export function StudioDataProvider({
     null
   )
   const loaded = edited?.from === fetched ? edited.to : fetched
+  // The network as shown now, for an Undo pressed later and a read on the
+  // sample: its memberships are the ones store holds after the change.
+  const latest = useRef(loaded)
+  useEffect(() => {
+    latest.current = loaded
+  })
   const change = useCallback(
-    async (change: Change, key = actionKey()) => {
+    async (change: Change, key = actionKey(), basis?: Network) => {
       if (source === "store") {
-        await sendChange(loaded, change, key, lookupIn(useDetails.getState()))
+        await sendChange(
+          basis ?? loaded,
+          change,
+          key,
+          lookupIn(useDetails.getState())
+        )
         return reload()
       }
       setEdited({ from: fetched, to: applyChange(loaded, change, key) })
@@ -151,12 +176,10 @@ export function StudioDataProvider({
     },
     [source, loaded, fetched, reload]
   )
-  // The network as shown now, for an Undo pressed later: its memberships
-  // are the ones store holds after the change.
-  const latest = useRef(loaded)
-  useEffect(() => {
-    latest.current = loaded
-  })
+  const readAgain = useCallback(async (): Promise<Network | null> => {
+    if (source === "store" && readStore) return readStore()
+    return latest.current
+  }, [source, readStore])
   const undoable = useCallback(
     async (made: Change, key: string) => {
       const before = loaded
@@ -222,6 +245,7 @@ export function StudioDataProvider({
     return {
       network: loaded,
       reload,
+      readAgain,
       source,
       change,
       undoable,
@@ -245,6 +269,7 @@ export function StudioDataProvider({
     editionYears,
     statesOf,
     reload,
+    readAgain,
     source,
     change,
     undoable,

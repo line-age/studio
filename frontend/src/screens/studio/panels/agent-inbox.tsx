@@ -34,6 +34,7 @@ import type {
 import { actionKey, WriteError } from "@/data/store/write"
 
 import { useStudioData } from "../studio-data"
+import { useStudio } from "../studio-store"
 
 /*
  * The Agent as an inbox of what tools proposed (Figma `216:9658`): proposed
@@ -141,7 +142,12 @@ export function AgentInbox() {
   const entries = useDetails((s) => s.entries)
   const generation = useDetails((s) => s.generation)
   const current = useDetailLookup(true)
-  const [open, setOpen] = useState(false)
+  // Open, by the person's own click or by Open in inbox on a card in the
+  // chat (a new ask opens it until the person closes it again).
+  const asked = useStudio((s) => s.inboxAsked)
+  const [folded, setFolded] = useState({ open: false, asked: 0 })
+  const open = folded.asked !== asked ? true : folded.open
+  const setOpen = (next: boolean) => setFolded({ open: next, asked })
   useEffect(() => {
     if (open) requestDetails(waiting.map((s) => s.id))
   }, [open, waiting, generation])

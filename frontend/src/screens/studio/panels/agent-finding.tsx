@@ -1,17 +1,28 @@
-import { Icon } from "@/components/icons/icon"
-import { Badge } from "@/components/ui/badge"
-import { createContext, use } from "react"
+import { createContext, use, useState } from "react"
 
+import {
+  DecisionCard,
+  DecisionCardActions,
+  DecisionCardDoubt,
+  DecisionCardHead,
+  DecisionCardLink,
+  DecisionCardOutcome,
+  DecisionCardRow,
+  DecisionCardRows,
+  type DecisionTone,
+} from "@/components/decision-card"
 import { Button } from "@/components/ui/button"
 import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import type { AgentFinding } from "@/data/agent/answer"
+import { sectionLabel } from "@/data/derive"
+
+import { useStudioData } from "../studio-data"
+import { useStudio } from "../studio-store"
+import { AgentCards } from "./agent-cards"
 
 /** What became of a Propose, by finding handle, read from the later turns. */
 export type ProposeOutcome =
@@ -30,17 +41,6 @@ export const ProposeOutcomes = createContext<
 export const PipelineOfSection = createContext<
   (sectionId: string) => { id: string; name: string } | null
 >(() => null)
-
-/*
- * What cite found in a journal, under the sentence that says so. Built from
- * stock parts ahead of a Figma design: the passage in the page's own words,
- * the page with the passage marked, the reference and a link to the page,
- * why it is in doubt, which places it matched, and Propose. It is not in
- * store: the AI badge says so in words. Propose writes it as a candidate claim,
- * which a person still has to accept; nothing else on the card writes. The
- * question and its answer are AI Elements' Confirmation (an Item): what Propose
- * does, the button, and once pressed, what came of it.
- */
 
 /** The part of the page around the passage, with the passage marked. */
 function PageCrop({ finding }: { finding: AgentFinding }) {
@@ -84,126 +84,66 @@ function PageCrop({ finding }: { finding: AgentFinding }) {
   )
 }
 
-const IN_STORE = {
-  accepted: "accepted",
-  candidate: "a candidate",
-  rejected: "rejected",
+const IN_STORE_WORDS = {
+  accepted: "Already accepted",
+  candidate: "Already proposed",
+  rejected: "Already rejected",
 } as const
+
+/** An issue's date as the Agent words it: "1 March 1932". */
+export function issueDate(iso: string): string {
+  const [year, month, day] = iso.slice(0, 10).split("-").map(Number)
+  if (!year || !month || !day) return iso
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  })
+}
 
 function reference(f: AgentFinding): string {
   const issue = f.volume && f.number ? `, vol. ${f.volume} no. ${f.number}` : ""
-  return `${f.journal}${issue}, ${f.date}, ${f.page}`
+  return `${f.journal}${issue}, ${f.page} · ${issueDate(f.date)}`
 }
 
-const WHAT = {
-  owner: "the owner",
-  diameter: "the diameter",
-  built: "the build date",
+/** The card's title: what was found, as a fact would read. */
+function titleOf(f: AgentFinding): string {
+  if (f.attribute === "owner") return `Owner: ${f.value}`
+  if (f.attribute === "diameter") return `Diameter: ${f.value}`
+  return `Built: ${f.date_words}`
 }
 
-/** Asks before a finding is written to store, and says what came of it. */
-function ProposeConfirmation({
-  finding,
-  onPropose,
-}: {
-  finding: AgentFinding
-  onPropose?: (handle: string, target?: string) => void
-}) {
-  const outcome = use(ProposeOutcomes).get(finding.handle)
-  // An owner goes to the section's pipeline; a diameter or a build date to the
-  // section. Without a pipeline an owner can go to the section alone.
-  const pipeline =
-    finding.attribute === "owner"
-      ? use(PipelineOfSection)(finding.section_id)
-      : null
-  let title: string
-  let description: string
-  let mark: "check" | "history" | null = null
-  let action = false
-  if (finding.in_store) {
-    title = `In store as ${finding.in_store === "candidate" ? "a candidate" : finding.in_store}`
-    description =
-      finding.in_store === "candidate"
-        ? "Already proposed. A person accepts or rejects it in review."
-        : `Store already holds this value, ${finding.in_store}.`
-    mark = "check"
-  } else if (outcome?.state === "proposed") {
-    title = "Proposed"
-    description =
-      "A candidate claim in store, with this citation. A person decides."
-    mark = "check"
-  } else if (outcome?.state === "refused") {
-    title = "Not proposed"
-    description = outcome.text
-  } else if (outcome?.state === "pending") {
-    title = "Proposing"
-    description = "Writing it to store as a candidate claim."
-    mark = "history"
-  } else if (!finding.proposable) {
-    title = "Not offered to propose"
-    description = finding.not_proposable ?? ""
-  } else if (pipeline) {
-    title = `Propose this as the owner of ${pipeline.name}?`
-    description =
-      "An owner belongs to the pipeline, so it goes there. Writes a candidate claim with this citation to store; a person still accepts or rejects it."
-    action = true
-  } else if (finding.attribute === "owner") {
-    title = "Propose this as the owner of this section?"
-    description =
-      "It is in no pipeline yet, and Studio shows an owner on its pipeline. Make a pipeline first to put it there, or propose it for this section alone. A person still accepts or rejects it."
-    action = true
-  } else {
-    title = `Propose this as ${WHAT[finding.attribute]} of this section?`
-    description =
-      "Writes a candidate claim with this citation to store. A person still accepts or rejects it."
-    action = true
-  }
+/** The page with the passage marked, in a pop-up beside the card. */
+function ShowThePage({ finding }: { finding: AgentFinding }) {
+  if (!finding.image_url || finding.highlight.length === 0) return null
   return (
-    <Item variant="outline" size="sm" aria-label="Propose to store">
-      {mark && (
-        <ItemMedia variant="icon">
-          <Icon name={mark} />
-        </ItemMedia>
-      )}
-      <ItemContent>
-        <ItemTitle>{title}</ItemTitle>
-        <ItemDescription>{description}</ItemDescription>
-      </ItemContent>
-      {action && (
-        <ItemActions>
-          {pipeline ? (
-            <>
-              <Button
-                size="sm"
-                disabled={!onPropose}
-                onClick={() => onPropose?.(finding.handle, pipeline.id)}
-              >
-                Propose for pipeline
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={!onPropose}
-                onClick={() => onPropose?.(finding.handle)}
-              >
-                This section only
-              </Button>
-            </>
-          ) : (
-            <Button
-              size="sm"
-              disabled={!onPropose}
-              onClick={() => onPropose?.(finding.handle)}
-            >
-              Propose
-            </Button>
-          )}
-        </ItemActions>
-      )}
-    </Item>
+    <Popover>
+      <PopoverTrigger
+        render={
+          <button
+            type="button"
+            className="rounded-sm type-ui-xs-medium text-link underline-offset-2 outline-none hover:underline focus-visible:shadow-focus-ring"
+          />
+        }
+      >
+        Show the page
+      </PopoverTrigger>
+      <PopoverContent className="w-96">
+        <PageCrop finding={finding} />
+      </PopoverContent>
+    </Popover>
   )
 }
 
+/*
+ * What cite found in a journal, as one card (Figma section 29, board B): the
+ * value as the title, the page's own words, the source, and where it would
+ * go. Propose writes a candidate claim, never an accepted one; the card then
+ * points to the inbox, where a person decides it. An owner goes to the
+ * section's pipeline unless the person says this section only. Dismiss
+ * writes nothing and is kept in the thread.
+ */
 export function AgentFindingCard({
   finding,
   onPropose,
@@ -212,63 +152,164 @@ export function AgentFindingCard({
   /** Sends the Propose action; absent while the Agent is busy or offline. */
   onPropose?: (handle: string, target?: string) => void
 }) {
-  const doubt = finding.flags.length > 0
+  const outcome = use(ProposeOutcomes).get(finding.handle)
+  const cards = use(AgentCards)
+  const openInbox = useStudio((s) => s.openInbox)
+  const { sectionById } = useStudioData()
+  const pipelineOf = use(PipelineOfSection)
+  const pipeline =
+    finding.attribute === "owner" ? pipelineOf(finding.section_id) : null
+  const [sectionOnly, setSectionOnly] = useState(false)
+  const toPipeline = pipeline !== null && !sectionOnly
+  const dismissed = cards.outcome(finding.handle)?.state === "dismissed"
+  const section = sectionById.get(finding.section_id)
+  const doubt = finding.flags.map((f) => f.reason).join(" ")
+  const title = titleOf(finding)
+  const closed = dismissed
+  const by = closed ? "closed" : "agent"
+
+  let shown: {
+    tone: DecisionTone
+    title: string
+    detail?: string
+    inbox?: boolean
+  } | null = null
+  if (dismissed)
+    shown = {
+      tone: "closed",
+      title: "Dismissed",
+      detail: "Nothing was written. It stays in this chat.",
+    }
+  else if (finding.in_store)
+    shown = {
+      tone: "closed",
+      title: IN_STORE_WORDS[finding.in_store],
+      detail:
+        finding.in_store === "candidate"
+          ? "Proposed earlier, with this page. A person decides it in the inbox."
+          : "Nothing new to propose.",
+      inbox: finding.in_store === "candidate",
+    }
+  else if (outcome?.state === "proposed")
+    shown = {
+      tone: "proposed",
+      title: "Proposed",
+      detail: outcome.text,
+      inbox: true,
+    }
+  else if (outcome?.state === "refused")
+    shown = { tone: "closed", title: "Not proposed", detail: outcome.text }
+  else if (!finding.proposable)
+    shown = {
+      tone: "closed",
+      title: "Not offered to propose",
+      detail: finding.not_proposable ?? undefined,
+    }
+
+  const busy = !onPropose || cards.report === null
+  const links = (
+    <span className="flex items-center gap-3">
+      {pipeline && shown === null && outcome?.state !== "pending" && (
+        <DecisionCardLink onClick={() => setSectionOnly((v) => !v)}>
+          {sectionOnly ? `To ${pipeline.name}` : "This section only"}
+        </DecisionCardLink>
+      )}
+      <ShowThePage finding={finding} />
+    </span>
+  )
+
   return (
-    <div
-      className="flex flex-col gap-2 rounded-md border border-border-subtle p-2.5"
-      aria-label={`Finding ${finding.handle}`}
-    >
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Badge variant="ai">
-          {finding.in_store
-            ? `Found by cite, in store as ${IN_STORE[finding.in_store]}`
-            : "Found by cite, not in store"}
-        </Badge>
-        {doubt && <Badge variant="outline">In doubt</Badge>}
-        <span className="type-ui-mono-xs text-muted-foreground">
-          {finding.handle}
-        </span>
-      </div>
-      <blockquote className="border-l-2 border-border pl-2 type-ui-sm">
-        {finding.quote}
-      </blockquote>
-      <PageCrop finding={finding} />
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 type-ui-xs text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <Icon name="source" className="size-3" />
-          {reference(finding)}
-        </span>
-        <a
-          href={finding.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-sm text-primary underline-offset-2 outline-none hover:underline focus-visible:shadow-focus-ring"
-        >
-          Open page on Internet Archive
-        </a>
-      </div>
-      {doubt && (
-        <ul
-          className="flex flex-col gap-0.5 type-ui-xs"
-          aria-label="Why it is in doubt"
-        >
-          {finding.flags.map((f) => (
-            <li key={f.flag}>{f.reason}</li>
-          ))}
-        </ul>
+    <DecisionCard by={by} label={`Finding ${finding.handle}: ${title}`}>
+      <DecisionCardHead
+        by={by}
+        title={title}
+        who={
+          toPipeline
+            ? "Found by cite, not saved. An owner belongs to the pipeline, so Propose sends it there."
+            : "Found by cite, not saved. Propose sends it to be decided."
+        }
+        aside={
+          <DecisionCardLink href={finding.url}>Open page</DecisionCardLink>
+        }
+      />
+      <DecisionCardRows>
+        <DecisionCardRow label="Section" code>
+          {section ? sectionLabel(section) : finding.section_id.slice(0, 8)}
+        </DecisionCardRow>
+        {toPipeline && (
+          <DecisionCardRow label="Goes to" code>
+            {pipeline.name}
+          </DecisionCardRow>
+        )}
+        <DecisionCardRow label="Page says">“{finding.quote}”</DecisionCardRow>
+        <DecisionCardRow label="Source">{reference(finding)}</DecisionCardRow>
+        {finding.places_matched.length > 0 && (
+          <DecisionCardRow label="Matched">
+            {finding.places_matched
+              .map((p) =>
+                finding.places_given.includes(p) ? `${p} (you gave it)` : p
+              )
+              .join(", ")}
+          </DecisionCardRow>
+        )}
+      </DecisionCardRows>
+      {doubt && <DecisionCardDoubt>In doubt: {doubt}</DecisionCardDoubt>}
+      {shown && (
+        <DecisionCardOutcome tone={shown.tone} title={shown.title}>
+          {shown.detail}
+        </DecisionCardOutcome>
       )}
-      {finding.places_matched.length > 0 && (
-        <p className="type-ui-xs text-muted-foreground">
-          Matched{" "}
-          {finding.places_matched
-            .map((p) =>
-              finding.places_given.includes(p) ? `${p} (you gave it)` : p
-            )
-            .join(", ")}
-          .
-        </p>
+      {shown?.inbox && (
+        <DecisionCardActions>
+          <Button size="sm" variant="outline" onClick={openInbox}>
+            Open in inbox
+          </Button>
+        </DecisionCardActions>
       )}
-      <ProposeConfirmation finding={finding} onPropose={onPropose} />
-    </div>
+      {shown === null && (
+        <DecisionCardActions aside={links}>
+          {outcome?.state === "pending" ? (
+            <Button size="sm" disabled>
+              Proposing
+            </Button>
+          ) : (
+            <>
+              <Button
+                size="sm"
+                disabled={busy}
+                onClick={() =>
+                  onPropose?.(
+                    finding.handle,
+                    toPipeline ? pipeline.id : undefined
+                  )
+                }
+              >
+                Propose
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={busy}
+                onClick={() => void cards.report?.(finding.handle, "dismissed")}
+              >
+                Dismiss
+              </Button>
+            </>
+          )}
+        </DecisionCardActions>
+      )}
+      {shown !== null && !shown.inbox && !closed && !finding.proposable && (
+        <DecisionCardActions>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={cards.report === null}
+            onClick={() => void cards.report?.(finding.handle, "dismissed")}
+          >
+            Dismiss
+          </Button>
+        </DecisionCardActions>
+      )}
+    </DecisionCard>
   )
 }

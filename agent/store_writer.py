@@ -1,11 +1,12 @@
-"""The Agent's writes: a finding the person pressed Propose on, or a pipeline the person
-pressed Propose pipeline on, each as one bundle.
+"""The Agent's one write: a finding the person pressed Propose on, as one bundle. A
+change the person asks for in words (change_flow.py) is never written here: Studio makes
+it, as the person, on the card's Approve.
 
 A client of its own, apart from the read client, with its own token: a pipeline token
 minted for `cite@<version>`, so store records cite as the claim's asserter and keeps it a
 candidate whatever is sent (plan D7). It can send one request, `POST /bundles`, and
 nothing else; the read client still sends only GET. The model has no way to reach it:
-only the `propose` and `propose_pipeline` nodes call it, on the person's action.
+only the `propose` node calls it, on the person's action.
 """
 
 import hashlib
@@ -130,33 +131,3 @@ def bundle(record: dict[str, Any], feature: str | None = None) -> dict[str, Any]
         "key": f"claim/{on}/{claim['attribute']}/{_key(value, issue, f['page'])}",
     }
     return {"sources": [source], "citations": [citation], "claims": [claim]}
-
-
-def pipeline_bundle(section_ids: list[str], network: str) -> dict[str, Any]:
-    """A pipeline the person pressed Propose pipeline on: a new `line` with no label (it
-    has no name until one is cited) and a proposed `part_of` link from each section.
-    External keys under `cite`, keyed on the sections, so a second press for the same
-    sections makes nothing new. The links are sent as proposed; store keeps a pipeline
-    token's link proposed whatever it says."""
-    group = _key(*sorted(section_ids))
-    return {
-        "features": [
-            {
-                "ref": "line",
-                "kind": "line",
-                "network": network,
-                "external_key": {"system": "cite", "key": f"line/{group}"},
-            }
-        ],
-        "links": [
-            {
-                "ref": f"member{n}",
-                "from": section_id,
-                "to": "line",
-                "relation": "part_of",
-                "status": "proposed",
-                "external_key": {"system": "cite", "key": f"part_of/{group}/{section_id}"},
-            }
-            for n, section_id in enumerate(section_ids)
-        ],
-    }

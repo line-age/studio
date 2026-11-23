@@ -30,6 +30,142 @@
       "title": "Box",
       "type": "object"
     },
+    "ChangeBasis": {
+      "additionalProperties": false,
+      "description": "What a section was when the offer was made. Studio compares it with what it reads\nbefore it writes: a section that moved since is out of date, and nothing is sent.",
+      "properties": {
+        "section_id": {
+          "title": "Section Id",
+          "type": "string"
+        },
+        "pipeline_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pipeline Id"
+        }
+      },
+      "required": [
+        "section_id"
+      ],
+      "title": "ChangeBasis",
+      "type": "object"
+    },
+    "ChangeOffer": {
+      "additionalProperties": false,
+      "description": "A change asked for in words, as code read it (change_flow.py). Studio makes it on\nApprove through the same write as its menu and modals; the Agent writes nothing.\n\nadd, move: put `section_ids` in `pipeline_id`. remove: take them out of their own\npipeline. make: a new pipeline of them, named `name` if given. rename: `pipeline_id`\ngets the name `name`. edit: `attribute` gets `value`, as typed text Studio's rules\nread, on `section_ids` or, with no sections, on `pipeline_id`.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "add",
+            "move",
+            "remove",
+            "make",
+            "rename",
+            "edit"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "section_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Section Ids",
+          "type": "array"
+        },
+        "pipeline_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pipeline Id"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "attribute": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attribute"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "left_out": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Left Out",
+          "type": "array"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "basis": {
+          "items": {
+            "$ref": "#/$defs/ChangeBasis"
+          },
+          "title": "Basis",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "ChangeOffer",
+      "type": "object"
+    },
     "CitationRequest": {
       "additionalProperties": false,
       "description": "What a citation request to store would hold (`POST /citation-requests`).",
@@ -539,6 +675,58 @@
       "title": "Ref",
       "type": "object"
     },
+    "SearchOffer": {
+      "additionalProperties": false,
+      "description": "A search the guard let through, read out before it runs. Studio sends its id back\nin the action search; the request itself stays in the thread, so nothing Studio sends\ncan change what is searched.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "section_id": {
+          "title": "Section Id",
+          "type": "string"
+        },
+        "attributes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Attributes",
+          "type": "array"
+        },
+        "years": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Years",
+          "type": "array"
+        },
+        "places": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Places",
+          "type": "array"
+        },
+        "from_line": {
+          "default": false,
+          "title": "From Line",
+          "type": "boolean"
+        },
+        "ready": {
+          "default": true,
+          "title": "Ready",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "section_id",
+        "attributes"
+      ],
+      "title": "SearchOffer",
+      "type": "object"
+    },
     "Statement": {
       "additionalProperties": false,
       "properties": {
@@ -563,7 +751,10 @@
             "proposed",
             "pipeline_offer",
             "edit_offer",
-            "not_yet"
+            "not_yet",
+            "change_offer",
+            "search_offer",
+            "changed"
           ],
           "title": "Kind",
           "type": "string"
@@ -649,6 +840,28 @@
           "anyOf": [
             {
               "$ref": "#/$defs/EditOffer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "change": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChangeOffer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "search": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SearchOffer"
             },
             {
               "type": "null"

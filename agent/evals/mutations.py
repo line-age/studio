@@ -17,6 +17,15 @@ def _first(answer: Answer, kind: str) -> dict[str, Any] | None:
     return next((s for s in answer["statements"] if s["kind"] == kind and s["refs"]), None)
 
 
+def an_offer_for_a_section_never_read(answer: Answer) -> Answer | None:
+    """A change card names a section store does not hold."""
+    statement = next((s for s in answer["statements"] if s["kind"] == "change_offer"), None)
+    if statement is None:
+        return None
+    statement["change"]["section_ids"][0] = OTHER_ID
+    return answer
+
+
 def an_id_never_read(answer: Answer) -> Answer | None:
     """The sentence stays; its reference points at something store does not have."""
     statement = _first(answer, "fact")

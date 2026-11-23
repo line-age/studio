@@ -12,10 +12,11 @@ import math
 import re
 from typing import Any
 
+import change_flow
 import geometry
+import value_rules
 from cite_flow import CITE_LINES, FOUND, IN_DOUBT, IN_STORE_WORDS
 from evals.make_world import scope
-from pipeline_flow import LINES as PIPELINE_LINES
 from places import END_M, all_places
 from render import FIXED_LINES, feature_name
 from states import all_states, states_of
@@ -824,61 +825,68 @@ def _slots(line: str) -> str:
     return re.sub(r"\\\{\w+\\\}", ".+", re.escape(line))
 
 
-# Proposing a pipeline: code's lines, the offer with or without its "already in a
-# pipeline" part and its "no name" part.
-_PIPELINE_LINES = [
+# A change asked for in words: code's lines, and the offer re-checked against the world.
+_CHANGE_LINES = [
     re.compile("^" + _slots(line) + "$")
-    for key, line in PIPELINE_LINES.items()
-    if key not in ("offer", "offer_placed", "no_name")
+    for line in [*change_flow.LINES.values(), *change_flow.OUTCOME_LINES.values()]
 ] + [
-    re.compile(
-        "^"
-        + _slots(PIPELINE_LINES["offer"])
-        + "(?:"
-        + _slots(PIPELINE_LINES["offer_placed"])
-        + ")?(?:"
-        + _slots(PIPELINE_LINES["no_name"])
-        + ")?$"
-    )
+    re.compile(r"^That card is no longer in this chat\. Ask again\.$"),
+    re.compile(r"^.+ is already in .+\.$"),
+    re.compile(r"^These \d+ sections are already in .+\.$"),
+    re.compile(r"^(?:Diameter|Owner|Operator|Name) .*: .+ Nothing was offered\.$"),
 ]
 
 
-def _pipeline_line(text: str) -> bool:
-    return any(p.match(text) for p in _PIPELINE_LINES)
+def _change_line(text: str) -> bool:
+    return any(p.match(text) for p in _CHANGE_LINES)
 
 
-def _confirmed_in(world: dict[str, Any], section_id: str) -> bool:
-    return any(
-        link["from_feature_id"] == section_id
-        and link["relation"] == "part_of"
-        and link["status"] == "confirmed"
-        for link in world["links"]
+def _placed_in(world: dict[str, Any], section_id: str) -> str | None:
+    return next(
+        (
+            link["to_feature_id"]
+            for link in world["links"]
+            if link["from_feature_id"] == section_id
+            and link["relation"] == "part_of"
+            and link["status"] == "confirmed"
+        ),
+        None,
     )
 
 
-def _pipeline_problems(where: str, statement: dict[str, Any], world: dict[str, Any]) -> list[str]:
-    """An offer or outcome about proposing a pipeline, re-checked against the world: code's
-    line, every feature in store, the count is the sections it names, and the offer lists
-    those sections and, of them, the ones already in a pipeline."""
-    text, refs = statement["text"], statement.get("refs", [])
-    problems = [] if _pipeline_line(text) else [f"{where}: not code's line"]
-    features = [r["id"] for r in refs if r["type"] == "feature"]
-    problems += [
-        f"{where}: feature {f} is not in store" for f in features if f not in world["features"]
-    ]
-    sections = [f for f in features if world["features"].get(f, {}).get("kind") == "section"]
-    numbers = re.findall(r"\d+", text)
-    if numbers and sections and numbers[0] != str(len(sections)):
-        problems.append(f"{where}: says {numbers[0]} sections and names {len(sections)}")
-    if statement["kind"] == "pipeline_offer":
-        offer = statement.get("pipeline") or {}
-        if offer.get("section_ids") != sections:
-            problems.append(f"{where}: the offer is not the sections it names")
-        placed = [s for s in sections if _confirmed_in(world, s)]
-        if offer.get("in_pipeline") != placed:
-            problems.append(f"{where}: in a pipeline: {placed}, not {offer.get('in_pipeline')}")
-        if bool(placed) != (len(numbers) > 1):
-            problems.append(f"{where}: says wrongly whether any is already in a pipeline")
+def _change_problems(where: str, statement: dict[str, Any], world: dict[str, Any]) -> list[str]:
+    """A change offer, re-checked against the world: every section and pipeline it names
+    is in store as one, what it says a section is in now is true, its count is the
+    sections it changes, it changes something, and a typed value keeps the rules."""
+    offer = statement.get("change") or {}
+    features = world["features"]
+    kind, ids = offer.get("kind"), offer.get("section_ids") or []
+    problems = []
+    for sid in [*ids, *(offer.get("left_out") or [])]:
+        if features.get(sid, {}).get("kind") != "section":
+            problems.append(f"{where}: section {sid} is not in store")
+    to = offer.get("pipeline_id")
+    if to and features.get(to, {}).get("kind") != "line":
+        problems.append(f"{where}: pipeline {to} is not in store")
+    for basis in offer.get("basis") or []:
+        if basis.get("pipeline_id") != _placed_in(world, basis["section_id"]):
+            problems.append(f"{where}: says wrongly which pipeline {basis['section_id']} is in")
+    count = re.match(r"^\w+ (?:a pipeline of |the \w+ of )?(\d+) sections", statement["text"])
+    if count and int(count.group(1)) != len(ids):
+        problems.append(f"{where}: says {count.group(1)} sections and changes {len(ids)}")
+    if kind in ("add", "move", "remove", "make") and not ids:
+        problems.append(f"{where}: changes no section")
+    if kind in ("add", "move") and any(_placed_in(world, sid) == to for sid in ids):
+        problems.append(f"{where}: adds a section already in the pipeline")
+    if kind == "remove" and any(_placed_in(world, sid) is None for sid in ids):
+        problems.append(f"{where}: removes a section that is in no pipeline")
+    if kind == "edit":
+        try:
+            value_rules.read_typed(offer.get("attribute") or "", offer.get("value") or "")
+        except value_rules.RuleError as error:
+            problems.append(f"{where}: the value breaks the rules: {error}")
+    if statement.get("refs"):
+        problems.append(f"{where}: an offer carries a reference")
     return problems
 
 
@@ -895,10 +903,19 @@ def ungrounded(
     for n, statement in enumerate(answer.get("statements", [])):
         kind, text, refs = statement["kind"], statement["text"], statement.get("refs", [])
         where = f"statement {n + 1} ({kind})"
-        if kind == "pipeline_offer" or (
-            kind in ("proposed", "refusal", "failure") and _pipeline_line(text)
-        ):
-            problems += _pipeline_problems(where, statement, world)
+        if kind == "search_offer":
+            offer = statement.get("search") or {}
+            if world["features"].get(offer.get("section_id"), {}).get("kind") != "section":
+                problems.append(f"{where}: section {offer.get('section_id')} is not in store")
+            if not re.match(r"^Search the journals for the .+$", text):
+                problems.append(f"{where}: not code's line")
+            continue
+        if kind == "change_offer":
+            problems += _change_problems(where, statement, world)
+            continue
+        if kind in ("refusal", "changed") and _change_line(text):
+            if refs:
+                problems.append(f"{where}: a fixed line carries a reference")
             continue
         about_search = kind in CITE_KINDS or (
             kind == "worked_out" and text.startswith("The sources disagree")

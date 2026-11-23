@@ -21,11 +21,13 @@ export type { SectionEdit }
 export function useSaveSectionEdits(): (
   sectionIds: readonly string[],
   edits: readonly SectionEdit[],
-  note: string
+  note: string,
+  /** The action's key: sent again with it, the same edit makes nothing new. */
+  key?: string
 ) => Promise<(() => Promise<void>) | undefined> {
   const updateNetwork = useUpdateNetwork()
   const { reload } = useStudioData()
-  return async (sectionIds, edits, note) => {
+  return async (sectionIds, edits, note, key) => {
     const onStore = dataSource() === "store"
     if (onStore) {
       const cleared = edits.filter(
@@ -49,7 +51,8 @@ export function useSaveSectionEdits(): (
               value: edit.value,
             }))
           ),
-        note
+        note,
+        key
       )
       // Store said yes: read it again, so what shows is what it holds.
       await reload()

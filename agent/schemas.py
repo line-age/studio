@@ -49,9 +49,19 @@ StatementKind = Literal[
     "edit_offer",
     # Something the Agent cannot do yet, said as one fixed line for its topic (B31).
     "not_yet",
+    # A change the person asked for in words, read by code (change_flow.py): Studio shows
+    # it as a card and makes it as the person on Approve. The Agent writes nothing.
+    "change_offer",
+    # A search the guard let through, offered before anything runs: only the person's
+    # Search (the action search) starts cite, which costs money and minutes.
+    "search_offer",
+    # What came of a card, as the person's action reported it: code's line.
+    "changed",
 ]
 # Kinds whose text is written by code, never by the model, and which carry no reference.
-FIXED_KINDS: frozenset[str] = frozenset({"refusal", "greeting", "failure", "not_yet", "help"})
+FIXED_KINDS: frozenset[str] = frozenset(
+    {"refusal", "greeting", "failure", "not_yet", "help", "changed"}
+)
 # Kinds that must rest on something read from store in this run.
 GROUNDED_KINDS: frozenset[str] = frozenset({"fact", "unknown", "set", "reading"})
 
@@ -77,23 +87,31 @@ class QuestionItem(_Strict):
     on: Where | None = None
 
 
+OutcomeState = Literal["done", "declined", "failed", "out_of_date", "dismissed"]
+
+
 class Action(_Strict):
     """A button the person pressed, not words: code acts on it, no model reads it.
 
     propose: write a finding to store as a candidate claim, on its section or, by
     `target`, on the pipeline that section is confirmed part of.
-    propose_pipeline: write a new pipeline (a line) with a proposed part_of link for each
-    of `section_ids`; a person decides it.
+    search: start the search a search_offer in this thread offered, by its id.
+    outcome: what came of a card (a change offer, a search offer, a finding), by its id
+    or handle: recorded in the thread, so every reader sees the card's state. Nothing is
+    written to store; a change was made by Studio, as the person, before this is sent.
     fresh_start: drop the conversation's messages, keep what cite found."""
 
-    kind: Literal["propose", "propose_pipeline", "fresh_start"]
+    kind: Literal["propose", "search", "outcome", "fresh_start"]
     # For propose: the finding's handle in this thread (F1).
     finding: str | None = None
     # For propose: the feature to write it to, the finding's section (the default) or
     # the pipeline that section is confirmed part of. An owner belongs to the pipeline.
     target: str | None = None
-    # For propose_pipeline: the sections, as the offer listed them.
-    section_ids: list[str] | None = None
+    # For search and outcome: the offer's id (or, for outcome, a finding's handle).
+    offer: str | None = None
+    # For outcome: what came of it, and Studio's words for why when it failed.
+    state: OutcomeState | None = None
+    detail: str | None = None
 
 
 class Question(_Strict):
@@ -368,6 +386,58 @@ class EditOffer(_Strict):
     value: str
 
 
+ChangeKind = Literal["add", "move", "remove", "make", "rename", "edit"]
+
+
+class ChangeBasis(_Strict):
+    """What a section was when the offer was made. Studio compares it with what it reads
+    before it writes: a section that moved since is out of date, and nothing is sent."""
+
+    section_id: str
+    # The pipeline it was confirmed part of, or None.
+    pipeline_id: str | None = None
+
+
+class ChangeOffer(_Strict):
+    """A change asked for in words, as code read it (change_flow.py). Studio makes it on
+    Approve through the same write as its menu and modals; the Agent writes nothing.
+
+    add, move: put `section_ids` in `pipeline_id`. remove: take them out of their own
+    pipeline. make: a new pipeline of them, named `name` if given. rename: `pipeline_id`
+    gets the name `name`. edit: `attribute` gets `value`, as typed text Studio's rules
+    read, on `section_ids` or, with no sections, on `pipeline_id`."""
+
+    id: str
+    kind: ChangeKind
+    section_ids: list[str] = Field(default_factory=list)
+    pipeline_id: str | None = None
+    name: str | None = None
+    attribute: str | None = None
+    value: str | None = None
+    # Attached sections the change leaves alone (already there, in no pipeline).
+    left_out: list[str] = Field(default_factory=list)
+    # Code's sentence for what else happens or stays ("It moves.").
+    note: str | None = None
+    basis: list[ChangeBasis] = Field(default_factory=list)
+
+
+class SearchOffer(_Strict):
+    """A search the guard let through, read out before it runs. Studio sends its id back
+    in the action search; the request itself stays in the thread, so nothing Studio sends
+    can change what is searched."""
+
+    id: str
+    section_id: str
+    attributes: list[str]
+    # The years cite will read, [from, to], when known.
+    years: list[int] = Field(default_factory=list)
+    places: list[str] = Field(default_factory=list)
+    # The towns are code's, along the traced line, not the person's.
+    from_line: bool = False
+    # False: nothing to search by yet (no towns, no name); Search stays off.
+    ready: bool = True
+
+
 class Statement(_Strict):
     kind: StatementKind
     text: str
@@ -384,6 +454,10 @@ class Statement(_Strict):
     pipeline: PipelineOffer | None = None
     # For kind edit_offer: what Studio's Edit form is opened with.
     edit: "EditOffer | None" = None
+    # For kind change_offer: the change, for Studio to make on Approve.
+    change: ChangeOffer | None = None
+    # For kind search_offer: the search, for Studio to start on Search.
+    search: SearchOffer | None = None
 
 
 class Answer(_Strict):

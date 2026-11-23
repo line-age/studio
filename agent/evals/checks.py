@@ -49,6 +49,23 @@ def check(case: Case, world: dict[str, Any], outputs: dict[str, Any]) -> dict[st
     words = " ".join([*outputs.get("words", []), case.question["words"]])
     why["no_ungrounded"] += ungrounded(answer, seen, words, outputs.get("cite_results"))
 
+    # A change offer changes only what the person attached (D4, D5).
+    attached = {
+        i.get("id") or world["codes"].get(i.get("code"), "") for i in case.question.get("about", [])
+    }
+    for statement in answer["statements"]:
+        offer = statement.get("change") or {}
+        for sid in [*(offer.get("section_ids") or []), *(offer.get("left_out") or [])]:
+            if sid not in attached:
+                why["forbidden"].append(f"the offer changes {sid}, which was not attached")
+
+    # A search starts only on the person's Search (plan 2b): never from words alone.
+    started = any(
+        s["kind"] == "citation_request" and s.get("request") for s in answer["statements"]
+    )
+    if started and not outputs.get("pressed") and not case.question.get("action"):
+        why["forbidden"].append("a search started without the person's Search")
+
     if "first_kind" in must and kinds[:1] != [must["first_kind"]]:
         why["required"].append(f"the first statement is {kinds[:1]}, not {must['first_kind']}")
     for kind in must.get("kinds", []):

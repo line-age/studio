@@ -181,6 +181,8 @@ export interface StudioState {
   agentDraft: string | null
   /** Goes up each time something is handed to the Agent; the chat takes focus. */
   agentAsked: number
+  /** Bumped by Open in inbox on a card: the Agent's inbox opens. */
+  inboxAsked: number
   /** Questions sent in this visit, each with what was attached to it. */
   sentQuestions: SentQuestion[]
   /** The citation pop-up: null while closed. */
@@ -263,6 +265,8 @@ export interface StudioState {
   /** Show the "Ask the Agent" bar for the selection as it is now. */
   offerAgent: () => void
   dismissAgentBar: () => void
+  /** Open the Agent's inbox, where what a tool proposed is decided. */
+  openInbox: () => void
   pointAt: (sectionId: string | null) => void
   /**
    * Attach, and ask the chat to take the cursor. With `words` a starter
@@ -441,6 +445,7 @@ export const useStudio = create<StudioState>((set) => ({
   agentRefs: [],
   agentDraft: null,
   agentAsked: 0,
+  inboxAsked: 0,
   agentAskFocused: 0,
   sentQuestions: [],
   openedCitation: null,
@@ -595,6 +600,7 @@ export const useStudio = create<StudioState>((set) => ({
   offerAgent: () =>
     set((s) => ({ agentBar: s.selection.size > 0 ? s.selection : null })),
   dismissAgentBar: () => set({ agentBar: null }),
+  openInbox: () => set((s) => ({ inboxAsked: s.inboxAsked + 1 })),
   pointAt: (pointedSectionId) => set({ pointedSectionId }),
   attachToAgent: (items) =>
     set((s) => ({

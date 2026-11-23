@@ -9,6 +9,7 @@ claim that breaks the rules is caught before it leaves, in the words store uses.
 """
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -59,3 +60,32 @@ def check_bundle(bundle: dict[str, Any]) -> None:
     """Check every claim in a bundle; the first that breaks a rule raises."""
     for claim in bundle.get("claims", []):
         check_claim(claim)
+
+
+_NUMBER_AND_UNIT = re.compile(r"^(-?\d+(?:\.\d+)?)\s*(.*)$")
+
+
+def read_typed(key: str, text: str) -> dict[str, Any]:
+    """Typed text as a claim's value, read as Studio's Edit window reads it
+    (`frontend/src/data/edit-rules.ts`, `readTyped`), with the same words for a mistake.
+    Raises RuleError with them."""
+    rule = RULES.get(key)
+    if rule is None or rule["value_type"] not in ("text", "quantity"):
+        raise RuleError(f"{key} is not typed.")
+    text = text.strip()
+    if rule["value_type"] == "text":
+        if not text:
+            raise RuleError("Give a value.")
+        return {"value_text": text}
+    units = rule["units"]
+    example = f"12{' ' + units[0] if units else ''}"
+    match = _NUMBER_AND_UNIT.match(text)
+    if not match:
+        raise RuleError(f"Give a number{' and a unit' if units else ''}, like {example}.")
+    value = float(match.group(1))
+    unit = match.group(2).strip() or None
+    if units and unit not in units:
+        raise RuleError(f"Give the unit: {' or '.join(units)}.")
+    if rule["min_value"] is not None and value <= rule["min_value"]:
+        raise RuleError(f"Must be more than {rule['min_value']:g}.")
+    return {"value_num": value, "value_unit": unit}

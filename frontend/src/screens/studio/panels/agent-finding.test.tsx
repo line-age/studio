@@ -1,15 +1,18 @@
-import { render, screen, within } from "@testing-library/react"
+import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 import { agentAnswer } from "@/data/agent/answer"
+import { renderInStudio } from "@/test/in-studio"
 
+import { AgentCards, type AgentCardsValue } from "./agent-cards"
 import { PipelineOfSection, ProposeOutcomes } from "./agent-finding"
 import { AgentStatementView, ProposeFinding } from "./agent-statement"
 
 /*
- * What cite found, as the service sends it (its own invented example): the
- * sentence, then the passage, the page, the reference, the doubt and Propose.
+ * What cite found, as one card (Figma section 29, board B), from the
+ * service's own invented example: the value as the title, the page's words,
+ * the source, where it goes, why it is in doubt, Propose and Dismiss.
  */
 
 const EXAMPLES = import.meta.glob(
@@ -19,122 +22,167 @@ const EXAMPLES = import.meta.glob(
 const answer = agentAnswer.parse(Object.values(EXAMPLES)[0])
 const findings = answer.statements.filter((s) => s.kind === "finding")
 const name = () => null
+const first = findings[0]
+const asOwner = {
+  ...first,
+  finding: { ...first.finding!, attribute: "owner" as const },
+}
+
+const cards = (more: Partial<AgentCardsValue> = {}): AgentCardsValue => ({
+  outcome: () => undefined,
+  search: () => undefined,
+  report: vi.fn(async () => undefined),
+  start: vi.fn(),
+  stop: vi.fn(),
+  ask: vi.fn(),
+  draft: vi.fn(),
+  ...more,
+})
+
+function card() {
+  return screen.getByRole("article", { name: /^Finding F1/ })
+}
 
 describe("a finding", () => {
-  it("shows the passage, the page and a link to it, and is not in store", () => {
-    render(
-      <AgentStatementView statement={findings[0]} name={name} open={vi.fn()} />
+  it("shows the value, the page's words and its source, and says it is not saved", async () => {
+    await renderInStudio(
+      <AgentStatementView statement={first} name={name} open={vi.fn()} />
     )
-    const card = screen.getByLabelText("Finding F1")
-    expect(within(card).getByText("Found by cite, not in store")).toBeVisible()
-    expect(within(card).getByText(findings[0].finding!.quote)).toBeVisible()
-    expect(
-      within(card).getByRole("link", { name: "Open page on Internet Archive" })
-    ).toHaveAttribute("href", findings[0].finding!.url)
-    expect(within(card).getByRole("img")).toBeInTheDocument()
+    const it = within(card())
+    expect(it.getByText(/^Found by cite, not saved/)).toBeVisible()
+    expect(it.getByText(`“${first.finding!.quote}”`)).toBeVisible()
+    expect(it.getByRole("link", { name: /Open page/ })).toHaveAttribute(
+      "href",
+      first.finding!.url
+    )
   })
 
-  it("offers an owner for the section's pipeline, or the section alone", async () => {
-    // The example finds diameters; the same finding, as an owner.
-    const owner = {
-      ...findings[0],
-      finding: { ...findings[0].finding!, attribute: "owner" as const },
-    }
+  it("sends an owner to the section's pipeline, or this section only", async () => {
     const propose = vi.fn()
-    render(
-      <ProposeFinding value={propose}>
-        <PipelineOfSection value={() => ({ id: "line-1", name: "North line" })}>
-          <AgentStatementView statement={owner} name={name} open={vi.fn()} />
-        </PipelineOfSection>
-      </ProposeFinding>
+    await renderInStudio(
+      <AgentCards value={cards()}>
+        <ProposeFinding value={propose}>
+          <PipelineOfSection
+            value={() => ({ id: "line-1", name: "North line" })}
+          >
+            <AgentStatementView
+              statement={asOwner}
+              name={name}
+              open={vi.fn()}
+            />
+          </PipelineOfSection>
+        </ProposeFinding>
+      </AgentCards>
     )
-    expect(
-      screen.getByText("Propose this as the owner of North line?")
-    ).toBeVisible()
-    await userEvent.click(
-      screen.getByRole("button", { name: "Propose for pipeline" })
-    )
-    expect(propose).toHaveBeenLastCalledWith(owner.finding!.handle, "line-1")
-    await userEvent.click(
-      screen.getByRole("button", { name: "This section only" })
-    )
-    expect(propose).toHaveBeenLastCalledWith(owner.finding!.handle)
+    const user = userEvent.setup()
+    expect(within(card()).getByText("Goes to")).toBeVisible()
+    await user.click(screen.getByRole("button", { name: "Propose" }))
+    expect(propose).toHaveBeenLastCalledWith("F1", "line-1")
+    await user.click(screen.getByRole("button", { name: "This section only" }))
+    expect(within(card()).queryByText("Goes to")).toBeNull()
+    await user.click(screen.getByRole("button", { name: "Propose" }))
+    expect(propose).toHaveBeenLastCalledWith("F1", undefined)
   })
 
-  it("says why it is in doubt", () => {
-    render(
+  it("says why it is in doubt", async () => {
+    await renderInStudio(
       <AgentStatementView statement={findings[1]} name={name} open={vi.fn()} />
     )
-    expect(screen.getByText("In doubt")).toBeVisible()
-    const reasons = screen.getByRole("list", { name: "Why it is in doubt" })
-    expect(within(reasons).getAllByRole("listitem")).toHaveLength(2)
+    const reasons = findings[1].finding!.flags.map((f) => f.reason).join(" ")
+    expect(screen.getByText(`In doubt: ${reasons}`)).toBeVisible()
   })
 
   it("proposes only when pressed, and only while the Agent may be asked", async () => {
     const propose = vi.fn()
-    const { rerender } = render(
-      <ProposeFinding value={propose}>
-        <AgentStatementView
-          statement={findings[0]}
-          name={name}
-          open={vi.fn()}
-        />
-      </ProposeFinding>
+    const view = await renderInStudio(
+      <AgentCards value={cards()}>
+        <ProposeFinding value={propose}>
+          <AgentStatementView statement={first} name={name} open={vi.fn()} />
+        </ProposeFinding>
+      </AgentCards>
     )
     expect(propose).not.toHaveBeenCalled()
     await userEvent.click(screen.getByRole("button", { name: "Propose" }))
-    expect(propose).toHaveBeenCalledWith("F1")
-    rerender(
-      <ProposeFinding value={null}>
-        <AgentStatementView
-          statement={findings[0]}
-          name={name}
-          open={vi.fn()}
-        />
-      </ProposeFinding>
+    expect(propose).toHaveBeenCalledWith("F1", undefined)
+    view.unmount()
+    await renderInStudio(
+      <AgentCards value={cards()}>
+        <ProposeFinding value={null}>
+          <AgentStatementView statement={first} name={name} open={vi.fn()} />
+        </ProposeFinding>
+      </AgentCards>
     )
     expect(screen.getByRole("button", { name: "Propose" })).toBeDisabled()
   })
 
-  it("says what came of Propose in place of the question", () => {
-    render(
+  it("once proposed, says so and points to the inbox", async () => {
+    await renderInStudio(
       <ProposeOutcomes
         value={
           new Map([["F1", { state: "proposed" as const, text: "Proposed." }]])
         }
       >
-        <AgentStatementView
-          statement={findings[0]}
-          name={name}
-          open={vi.fn()}
-        />
+        <AgentStatementView statement={first} name={name} open={vi.fn()} />
       </ProposeOutcomes>
     )
-    const confirmation = screen.getByLabelText("Propose to store")
-    expect(within(confirmation).getByText("Proposed")).toBeVisible()
+    expect(within(card()).getByRole("status")).toHaveTextContent("Proposed")
+    expect(screen.getByRole("button", { name: "Open in inbox" })).toBeVisible()
+    expect(screen.queryByRole("button", { name: "Propose" })).toBeNull()
+  })
+
+  it("is dismissed in the thread, and then writes nothing", async () => {
+    const report = vi.fn(async () => undefined)
+    await renderInStudio(
+      <AgentCards value={cards({ report })}>
+        <ProposeFinding value={vi.fn()}>
+          <AgentStatementView statement={first} name={name} open={vi.fn()} />
+        </ProposeFinding>
+      </AgentCards>
+    )
+    await userEvent.click(screen.getByRole("button", { name: "Dismiss" }))
+    expect(report).toHaveBeenCalledWith("F1", "dismissed")
+  })
+
+  it("reads Dismissed for everyone once the thread holds it", async () => {
+    await renderInStudio(
+      <AgentCards value={cards({ outcome: () => ({ state: "dismissed" }) })}>
+        <ProposeFinding value={vi.fn()}>
+          <AgentStatementView statement={first} name={name} open={vi.fn()} />
+        </ProposeFinding>
+      </AgentCards>
+    )
+    expect(within(card()).getByRole("status")).toHaveTextContent("Dismissed")
     expect(screen.queryByRole("button", { name: "Propose" })).toBeNull()
   })
 })
 
 describe("a finding store already holds", () => {
-  it("says so and offers no Propose", () => {
+  it("says it is already proposed and offers no Propose", async () => {
     const held = {
-      ...findings[0],
+      ...first,
       finding: {
-        ...findings[0].finding!,
+        ...first.finding!,
         in_store: "candidate" as const,
         proposable: false,
         not_proposable: "store already holds it (a candidate)",
       },
     }
-    render(
+    await renderInStudio(
       <ProposeFinding value={vi.fn()}>
         <AgentStatementView statement={held} name={name} open={vi.fn()} />
       </ProposeFinding>
     )
-    expect(
-      screen.getByText("Found by cite, in store as a candidate")
-    ).toBeVisible()
+    expect(within(card()).getByRole("status")).toHaveTextContent(
+      "Already proposed"
+    )
     expect(screen.queryByRole("button", { name: "Propose" })).toBeNull()
+  })
+})
+
+describe("an issue's date", () => {
+  it("reads as the Agent words it, and a date it cannot read stays as given", async () => {
+    const { issueDate } = await import("./agent-finding")
+    expect(issueDate("1932-03-01")).toBe("1 March 1932")
+    expect(issueDate("1932")).toBe("1932")
   })
 })
