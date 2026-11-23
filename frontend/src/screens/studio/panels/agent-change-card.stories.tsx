@@ -39,8 +39,28 @@ const meta = {
 export default meta
 type Story = StoryObj<Args>
 
+/** The clock a story reads, so its Done line and screenshot are the same every run. */
+const AT = new Date("2026-11-23T14:02:00").getTime()
+
+function fixedClock() {
+  const RealDate = Date
+  class FixedDate extends RealDate {
+    constructor(...args: ConstructorParameters<typeof Date>) {
+      super(...((args.length > 0 ? args : [AT]) as [number]))
+    }
+    static now() {
+      return AT
+    }
+  }
+  globalThis.Date = FixedDate as DateConstructor
+  return () => {
+    globalThis.Date = RealDate
+  }
+}
+
 /** Waiting for a press; Approve makes it and the card says Done. */
 export const Waiting: Story = {
+  beforeEach: fixedClock,
   play: async ({ canvas, userEvent, args, step }) => {
     await step("Approve makes it, as the menu would", async () => {
       await userEvent.click(canvas.getByRole("button", { name: "Approve" }))
