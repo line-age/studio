@@ -36,7 +36,7 @@ def unknown_owner(feature_id):
         "statements": [
             {
                 "kind": "unknown",
-                "text": "Store does not say who owns this section.",
+                "text": "No source says who owns this section.",
                 "refs": [{"key": "f1", "type": "feature", "id": feature_id}],
                 "attribute": "owner",
             }
@@ -54,7 +54,7 @@ def test_store_does_not_say_end_to_end(world):
     answer = Answer.model_validate(out["answer"])
     assert answer.checked and out["answers"] == "q1"
     assert [(s.kind, s.text, s.attribute) for s in answer.statements] == [
-        ("unknown", "Store does not say who owns it.", "owner")
+        ("unknown", "No source says who owns it.", "owner")
     ]
     assert out["tools"] == ["read_feature", "read_context"]
     # The section once, and the printings in store for its context.
@@ -122,6 +122,7 @@ def test_two_bad_drafts_end_with_the_fixed_line(world):
             "rule": None,
             "finding": None,
             "pipeline": None,
+            "edit": None,
         }
     ]
 
@@ -267,6 +268,29 @@ def test_the_launcher_reads_the_switch_from_the_env_file(tmp_path, monkeypatch):
     assert env["LANGGRAPH_CLI_NO_ANALYTICS"] == "1"
 
 
+@pytest.mark.parametrize("switch", ["", "AGENT_TRACING=false\n"])
+def test_a_real_run_traces_nothing_unless_its_file_says_so(tmp_path, monkeypatch, switch):
+    import serve
+
+    (tmp_path / ".env.real").write_text(switch + "LANGSMITH_API_KEY=lsv2_invented\n")
+    monkeypatch.setattr(serve, "ROOT", tmp_path)
+    monkeypatch.setenv("LANGCHAIN_TRACING_V2", "true")
+    monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    env = serve.real_environment()
+    assert {env[name] for name in TRACING_VARIABLES} == {"false"}
+    assert "LANGSMITH_API_KEY" not in env
+
+
+def test_a_real_run_traces_when_its_file_switches_it_on(tmp_path, monkeypatch):
+    import serve
+
+    (tmp_path / ".env.real").write_text("AGENT_TRACING=true\nLANGSMITH_API_KEY=lsv2_invented\n")
+    monkeypatch.setattr(serve, "ROOT", tmp_path)
+    env = serve.real_environment()
+    assert {env[name] for name in TRACING_VARIABLES} == {"true"}
+    assert env["LANGSMITH_API_KEY"] == "lsv2_invented"
+
+
 def test_the_agents_address_wins_over_a_project_left_in_the_shell(tmp_path, monkeypatch):
     import serve
 
@@ -401,11 +425,12 @@ def test_everything_attached_is_read_at_once_before_the_model_starts(world):
 
     model = Watching(messages=iter(scripted(unknown_owner(codes[0])).messages))
     out, store = ask(world, model, "Who owns these?", codes)
-    # The first time the model is called, all three reads and their context are there.
-    assert len(seen_by_model[0]) == 6
+    # The first time the model is called, all three reads, their context and the
+    # sections taken together are there.
+    assert len(seen_by_model[0]) == 7
     features = [r for r in store.requests if r.startswith("/features")]
     assert sorted(features) == sorted(f"/features/{c}" for c in codes)
-    assert out["tools"] == ["read_feature"] * 3 + ["read_context"] * 3
+    assert out["tools"] == (["read_feature"] * 3 + ["read_context"] * 3 + ["sections_together"])
 
 
 def test_two_claims_read_at_once_never_share_a_handle():
@@ -515,3 +540,47 @@ def test_plain_text_never_says_a_source_twice():
         refs=[Ref(type="claim", id="c", source="A journal, p. 9")],
     )
     assert as_text(Answer(statements=[said])).count("A journal, p. 9") == 1
+
+
+def test_a_model_that_keeps_calling_tools_is_stopped_after_a_few_calls(world):
+    """A loop with no limit once made hundreds of model calls for one question."""
+    from langchain_core.messages import AIMessage
+
+    import agent as agent_module
+    from tests.support import ScriptedModel
+
+    made = []
+
+    class Counting(ScriptedModel):
+        def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+            made.append(1)
+            return super()._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
+
+    s01 = world["codes"]["s01"]
+    forever = (
+        AIMessage(
+            content="",
+            tool_calls=[
+                {"name": "find_sections", "args": {}, "id": f"again_{n}", "type": "tool_call"}
+            ],
+        )
+        for n in range(500)
+    )
+    out, _ = ask(world, Counting(messages=forever), "Who owns it?", [s01])
+    # Two tries at most (the draft, then one more after the check), each limited.
+    assert len(made) <= 2 * agent_module.MODEL_CALLS + 2
+    assert out["answer"]["statements"][0]["kind"] == "failure"
+
+
+def test_past_the_tool_limit_the_model_answers_from_what_it_has(world):
+    """A real question died after twelve tool calls with nothing written: the limit ended
+    the loop. Now a call past the limit is refused and the next draft is the answer."""
+    import agent as agent_module
+
+    s01 = world["codes"]["s01"]
+    again = [("find_sections", {})]
+    model = scripted(*[again] * (agent_module.TOOL_CALLS + 1), unknown_owner(s01))
+
+    out, _ = ask(world, model, "Who owns it?", [s01])
+
+    assert out["answer"]["statements"][0]["kind"] == "unknown"

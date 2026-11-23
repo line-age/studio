@@ -14,7 +14,7 @@ from tools import make_tools
 def _read(*codes):
     world = load_world("small")
     store = FakeStore(world).client()
-    read_feature, _ = make_tools(store)
+    read_feature, _, *_ = make_tools(store)
     artifacts = [read_feature.func(world["codes"][code])[1] for code in codes]
     return world, reads_from(artifacts)
 
@@ -43,7 +43,7 @@ def test_a_claim_on_a_merged_trace_names_the_trace_and_the_section():
 def test_a_line_traced_as_gone_is_named_so():
     world, read = _read("s08", "r01")
     (ref,) = _refs(read, [{"key": "f1", "type": "feature", "id": world["codes"]["r01"]}])
-    assert ref.label == f"line traced as gone {_short(world, 'r01')}"
+    assert ref.label == f"line no longer shown {_short(world, 'r01')}"
 
 
 def test_a_section_and_a_pipeline_go_by_their_names():
@@ -71,7 +71,7 @@ def test_a_link_says_what_it_links():
         ],
     )
     # A line traced as gone that is the same pipe ends the section (Studio: an end).
-    assert end_ref.label == "End, traced as gone"
+    assert end_ref.label == "End, no longer shown"
     assert member_ref.label == "Part of a pipeline"
 
 

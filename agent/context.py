@@ -18,7 +18,9 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 import geometry
-from render import feature_name, is_traced_as_gone
+import places
+import states
+from render import feature_name, is_traced_as_gone, shown_on_a_map_only, value_words
 from schemas import WorkedOut
 from store_client import MAX_LIMIT, StoreError
 
@@ -123,10 +125,17 @@ def edition_facts(
         # An earlier printing that store's tracing does not show it on. Not "the one
         # before": printings that only removed lines are not known here.
         before = [y for y in editions.years if y < year] if editions.complete else []
-        text = f"{name} is first traced on the {year} printing"
-        text += f", and is not traced on the earlier {before[-1]} printing." if before else "."
+        text = f"{name} is first shown on the {year} map"
+        text += f", and is not shown on the earlier {before[-1]} map." if before else "."
+        values = {"year": str(year)} | ({"before": str(before[-1])} if before else {})
         facts.append(
-            WorkedOut(handle=handle(), what="first_edition", text=text, rests_on=[claim["id"]])
+            WorkedOut(
+                handle=handle(),
+                what="first_edition",
+                text=text,
+                rests_on=[claim["id"]],
+                values=values,
+            )
         )
 
     ended = part_ended = unread = False
@@ -147,21 +156,19 @@ def edition_facts(
             ),
             None,
         )
-        on = f"on the {year} printing" if year else "on a later printing"
-        part = "the same pipe as" if link["relation"] == "same_as" else "along part of"
+        later = f"The {year} map" if year else "A later map"
+        whole = link["relation"] == "same_as"
+        shows = f"no longer shows {name if whole else f'part of {name}'}"
         if link["status"] == "confirmed":
-            ended = ended or link["relation"] == "same_as"
+            ended = ended or whole
             part_ended = part_ended or link["relation"] == "overlaps"
-            shows = (
-                "that printing is the first in store not to show it"
-                if link["relation"] == "same_as"
-                else "that printing no longer shows that part"
-            )
-            text = f"A line traced as gone {on} is {part} {name}, by a confirmed link, so {shows}."
+            text = f"{later} {shows}, and that is confirmed."
+            if whole:
+                text += " It is the first map not to show it."
         else:
             text = (
-                f"It is proposed, and not yet decided, that a line traced as gone {on} "
-                f"is {part} {name}. Until someone decides, when it ended stays Unknown."
+                f"It is proposed, and not yet decided, that {later[0].lower()}{later[1:]} "
+                f"{shows}. Until someone decides, when it ended stays Unknown."
             )
         facts.append(WorkedOut(handle=handle(), what="removal", text=text, rests_on=[link["id"]]))
 
@@ -171,7 +178,7 @@ def edition_facts(
                 handle=handle(),
                 what="not_traced_later",
                 text=(
-                    f"Whether store holds an end for {name} could not be read in full just "
+                    f"Whether an end is recorded for {name} could not be read in full just "
                     "now, so when it ended is not known here."
                 ),
                 rests_on=[feature["id"]],
@@ -183,11 +190,11 @@ def edition_facts(
                 handle=handle(),
                 what="not_traced_later",
                 text=(
-                    f"Store does not say when the rest of {name} ended. No line traced as "
-                    "gone is confirmed for the rest of it, which is no proof that it lasted."
+                    f"No source says when the rest of {name} ended. No later map is "
+                    "confirmed to have dropped the rest of it, which is no proof that it lasted."
                     if part_ended
-                    else f"Store does not say when {name} ended. No line traced as gone is "
-                    "confirmed for it, which is no proof that it lasted."
+                    else f"No source says when {name} ended. No later map is confirmed to "
+                    "have dropped it, which is no proof that it lasted."
                 ),
                 rests_on=[feature["id"]],
             )
@@ -259,7 +266,7 @@ def _link_clause(
         return f"{a} runs along part of {b}", "overlap"
     if relation == "parallel_to":
         return f"{them} is drawn as a second pipe beside {me}", "parallel"
-    return f"store holds a {relation.replace('_', ' ')} link between {me} and {them}", "link"
+    return f"there is a {relation.replace('_', ' ')} link between {me} and {them}", "link"
 
 
 def link_facts(
@@ -289,15 +296,78 @@ def link_facts(
             # Studio finds names in the text to make them links.
             text = f"{clause}, by a confirmed link."
             if what == "pipeline":
-                text += " What store holds about the pipeline is the pipeline's, not the section's."
+                text += " What is known about the pipeline is the pipeline's, not the section's."
             elif what in ("same_pipe", "split") and not mine:
-                text += f" Store counts its claims as {name}'s."
+                text += f" Its facts count as {name}'s."
         else:
             text = f"It is proposed, and not yet decided, that {clause}."
             if what == "pipeline" and not in_one:
                 text += " Until someone decides, it is in no pipeline."
         facts.append(WorkedOut(handle=handle(), what=what, text=text, rests_on=[link["id"]]))
     return facts
+
+
+GAP_ATTRIBUTES = ("name", "owner", "operator", "diameter")
+
+
+def gap_facts(
+    feature: dict[str, Any], merged: list[dict[str, Any]], handle: Callable[[], str]
+) -> list[WorkedOut]:
+    """What is not known yet, each said once: when the section was built (a map year is
+    never one), and which of its name, owner, operator and diameter no source gives."""
+    name = feature_name(feature)
+    claims = [c for f in (feature, *merged) for c in f.get("claims") or []]
+    facts: list[WorkedOut] = []
+    dated = any(
+        c["attribute_key"] == "status" and c["status"] == "accepted" and not shown_on_a_map_only(c)
+        for c in claims
+    )
+    if not dated:
+        shown = [s for f in (feature, *merged) if (s := first_shown(f))]
+        text = f"No source gives a build date for {name}."
+        rests_on = [feature["id"]]
+        if shown:
+            year, claim = min(shown, key=lambda pair: pair[0])
+            text += f" The {year} map is the first to show it, and a map year is not a build date."
+            rests_on.append(claim["id"])
+        facts.append(WorkedOut(handle=handle(), what="built", text=text, rests_on=rests_on))
+
+    def has(attribute: str, status: str) -> bool:
+        return any(c["attribute_key"] == attribute and c["status"] == status for c in claims)
+
+    lacking = [a for a in GAP_ATTRIBUTES if not has(a, "accepted")]
+    proposed = [a for a in lacking if has(a, "candidate")]
+    if lacking:
+        text = f"Not known yet for {name}: " + _and([f"the {a}" for a in lacking]) + "."
+        if proposed:
+            text += f" A value is proposed, and not decided yet, for {_and([f'the {a}' for a in proposed])}."
+    else:
+        text = f"A source gives the {_and(list(GAP_ATTRIBUTES))} of {name}."
+    if not dated:
+        text += " A build date is not known either." if lacking else " A build date is not known."
+    facts.append(WorkedOut(handle=handle(), what="missing", text=text, rests_on=[feature["id"]]))
+    return facts
+
+
+def no_pipeline_fact(feature: dict[str, Any], handle: Callable[[], str]) -> list[WorkedOut]:
+    """That a section is in no pipeline, when no link, confirmed or proposed, puts it in
+    one. A proposed link is link_facts' to say: it already says "in no pipeline" there."""
+    placed = any(
+        link["relation"] == "part_of"
+        and link["status"] != "rejected"
+        and link["from_feature_id"] == feature["id"]
+        for link in feature.get("links") or []
+    )
+    if placed or feature.get("kind") == "line":
+        return []
+    return [
+        WorkedOut(
+            handle=handle(),
+            what="pipeline",
+            text=f"{feature_name(feature)} is not in a pipeline.",
+            rests_on=[feature["id"]],
+        )
+    ]
 
 
 # Neighbours read in full per section, nearest first: enough to see around it.
@@ -340,13 +410,13 @@ class Neighbours:
 def find_neighbours(store: Any, feature: dict[str, Any]) -> Neighbours:
     mine = route_lines(feature)
     if not mine:
-        return Neighbours([], "store holds no accepted traced line for it")
+        return Neighbours([], "no accepted line is drawn for it")
     try:
         listing = store.sections(
             network=feature.get("network"), bbox=geometry.bbox_around(mine), limit=MAX_LIMIT
         )
     except StoreError:
-        return Neighbours([], "store could not be searched just now")
+        return Neighbours([], "the data could not be searched just now")
     skip = _same_pipe(feature) | {feature["id"]}
     theirs: dict[str, list[list[tuple[float, float]]]] = {}
     for row in listing.rows:
@@ -361,7 +431,7 @@ def find_neighbours(store: Any, feature: dict[str, Any]) -> Neighbours:
         ),
         key=lambda f: f[2],
     )[:NEIGHBOURS_MAX]
-    return Neighbours(found, "store's listing around it was cut off" if listing.cut else None)
+    return Neighbours(found, "the list of sections around it was cut off" if listing.cut else None)
 
 
 _MEETS = {
@@ -409,8 +479,259 @@ def neighbour_facts(
             WorkedOut(
                 handle=handle(),
                 what="drawn_touching",
-                text=f"No section in store is drawn touching {me}.",
+                text=f"No other section is drawn touching {me}.",
                 rests_on=[feature["id"]],
             )
         )
     return facts
+
+
+# Nearby: the sections nearest one, however far, compared on what both hold. For "which
+# sections near it are like it": drawn touching is too narrow for that.
+NEARBY_MAX = 5
+# Searched outwards until NEARBY_MAX are found: a few km first, then the whole region.
+NEARBY_RADII_M = (5_000.0, 25_000.0, 100_000.0, 400_000.0, 1_500_000.0)
+# Beyond this, the nearest section is far enough that a likeness says little.
+FAR_M = 100_000.0
+# What two sections are compared on: their own accepted claims, and the first printing.
+COMPARED = ("owner", "operator", "diameter")
+
+
+def distance_m(mine: list[list[geometry.Point]], theirs: list[list[geometry.Point]]) -> float:
+    """The shortest gap between two traced lines, in metres; 0 where they cross or meet.
+    Measured from each line's points to the other line: close enough at map scale."""
+    if not mine or not theirs:
+        return float("inf")
+    return min(
+        min(geometry.to_line(p, theirs) for line in mine for p in line),
+        min(geometry.to_line(q, mine) for line in theirs for q in line),
+    )
+
+
+class Nearby:
+    """The sections nearest one, nearest first: (id, gap in m). `unmeasured` says why the
+    search is not complete, when it is not."""
+
+    def __init__(self, found: list[tuple[str, float]], unmeasured: str | None = None) -> None:
+        self.found, self.unmeasured = found, unmeasured
+
+
+def find_nearby(store: Any, feature: dict[str, Any]) -> Nearby:
+    mine = route_lines(feature)
+    if not mine:
+        return Nearby([], "no accepted line is drawn for it")
+    skip = _same_pipe(feature) | {feature["id"]}
+    theirs: dict[str, list[list[geometry.Point]]] = {}
+    cut = False
+    for radius in NEARBY_RADII_M:
+        try:
+            listing = store.sections(
+                network=feature.get("network"),
+                bbox=geometry.bbox_around(mine, radius),
+                limit=MAX_LIMIT,
+            )
+        except StoreError:
+            return Nearby([], "the data could not be searched just now")
+        theirs = {}
+        for row in listing.rows:
+            sid = row["properties"].get("section_id")
+            if sid and sid not in skip:
+                theirs.setdefault(sid, []).extend(geometry.lines_of(row.get("geometry")))
+        cut = listing.cut
+        gaps = sorted((distance_m(mine, lines), sid) for sid, lines in theirs.items())
+        # Enough within this radius (a box reaches past it at the corners), or no wider
+        # search to make.
+        if cut or sum(1 for gap, _ in gaps if gap <= radius) >= NEARBY_MAX:
+            break
+    found = [(sid, gap) for gap, sid in gaps[:NEARBY_MAX]]
+    return Nearby(found, "the list of sections around it was cut off" if cut else None)
+
+
+def _accepted(feature: dict[str, Any], attribute: str) -> list[dict[str, Any]]:
+    return [
+        c
+        for c in feature.get("claims") or []
+        if c["attribute_key"] == attribute and c["status"] == "accepted"
+    ]
+
+
+def _distance_words(gap: float) -> str:
+    if gap < 1_000:
+        return "drawn within 1 km of"
+    return f"about {round(gap / 1_000):,} km from"
+
+
+def compare(
+    feature: dict[str, Any], other: dict[str, Any]
+) -> tuple[list[str], list[str], list[str]]:
+    """What two sections share and where they differ, on what both hold, in code's words,
+    and the claims that rests on."""
+    same, differ, rests_on = [], [], []
+    for attribute in COMPARED:
+        mine, theirs = _accepted(feature, attribute), _accepted(other, attribute)
+        if not mine or not theirs:
+            continue
+        my_values = {value_words(c) for c in mine}
+        their_values = {value_words(c) for c in theirs}
+        rests_on += [c["id"] for c in (*mine, *theirs)]
+        shared = sorted(my_values & their_values)
+        if shared:
+            same.append(f"same {attribute} ({', '.join(shared)})")
+        else:
+            differ.append(
+                f"different {attribute} ({', '.join(sorted(my_values))} here, "
+                f"{', '.join(sorted(their_values))} there)"
+            )
+    a, b = first_shown(feature), first_shown(other)
+    if a and b:
+        rests_on += [a[1]["id"], b[1]["id"]]
+        if a[0] == b[0]:
+            same.append(f"first shown on the same map ({a[0]})")
+        else:
+            differ.append(f"first shown on different maps ({a[0]} here, {b[0]} there)")
+    return same, differ, rests_on
+
+
+def nearby_facts(
+    feature: dict[str, Any],
+    found: list[tuple[dict[str, Any], float]],
+    unmeasured: str | None,
+    handle: Callable[[], str],
+) -> list[WorkedOut]:
+    """The nearest sections and how each compares, in code's words, nearest first.
+    Alike on a map and in its claims is a clue that they may be one pipe, never proof."""
+    me = feature_name(feature)
+    facts: list[WorkedOut] = []
+    if found and found[0][1] > FAR_M:
+        facts.append(
+            WorkedOut(
+                handle=handle(),
+                what="nearby",
+                text=(
+                    f"The nearest section is {_distance_words(found[0][1])} {me}, "
+                    "so how alike they are says little."
+                ),
+                rests_on=[feature["id"], found[0][0]["id"]],
+            )
+        )
+    holds = any(_accepted(feature, a) for a in COMPARED) or first_shown(feature)
+    if found and not holds:
+        facts.append(
+            WorkedOut(
+                handle=handle(),
+                what="nearby",
+                text=(
+                    f"{me} has no accepted owner, operator, diameter or first map to "
+                    "compare with, so only the distance is known."
+                ),
+                rests_on=[feature["id"]],
+            )
+        )
+    compared = [(other, gap, *compare(feature, other)) for other, gap in found]
+    for other, gap, same, differ, rests_on in compared:
+        # "Here" is the section asked about, "there" the other.
+        text = f"{feature_name(other)} is {_distance_words(gap)} {me}."
+        alike = [*same, *differ]
+        if alike:
+            text += f" {_and(alike)[0].upper()}{_and(alike)[1:]}."
+        elif holds:
+            text += " Nothing is known for both that could be compared."
+        facts.append(
+            WorkedOut(
+                handle=handle(),
+                what="nearby",
+                text=text,
+                rests_on=[feature["id"], other["id"], *rests_on],
+            )
+        )
+    if unmeasured:
+        facts.append(
+            WorkedOut(
+                handle=handle(),
+                what="nearby",
+                text=f"Which sections are nearest {me} is not known in full here: {unmeasured}.",
+                rests_on=[feature["id"]],
+            )
+        )
+    elif not found:
+        facts.append(
+            WorkedOut(
+                handle=handle(),
+                what="nearby",
+                text=f"There is no other section to compare with {me}.",
+                rests_on=[feature["id"]],
+            )
+        )
+    return facts
+
+
+_MILE_M = 1_609.344
+
+
+def _about(metres: float, unit: float) -> str:
+    n = metres / unit
+    return f"{n:.0f}" if n >= 10 else f"{n:.1f}"
+
+
+def place_facts(feature: dict[str, Any], handle: Callable[[], str]) -> list[WorkedOut]:
+    """Where the section's traced line lies and how long it is drawn: the states it runs
+    through, today's towns along it (places.py) and its length. Worked out from the
+    line, never claims: a town of today is not a place the pipe served. They rest on the
+    section, not on the map it was traced from: the map names no town."""
+    lines = route_lines(feature)
+    if not lines:
+        return []
+    name = feature_name(feature)
+    on = [feature["id"]]
+    facts: list[WorkedOut] = []
+    crossed = states.states_of(lines)
+    if crossed:
+        where = f"lies in {crossed[0]}" if len(crossed) == 1 else f"runs through {_and(crossed)}"
+        facts.append(
+            WorkedOut(
+                handle=handle(),
+                what="place",
+                text=f"{name}'s drawn line {where}.",
+                rests_on=on,
+                values={"states": _and(crossed)},
+            )
+        )
+    towns = places.towns_along(lines)
+    if towns:
+        facts.append(
+            WorkedOut(
+                handle=handle(),
+                what="place",
+                text=f"Along {name}'s drawn line, by today's towns: {_and(towns)}.",
+                rests_on=on,
+                values={"towns": _and(towns)},
+            )
+        )
+    else:
+        facts.append(
+            WorkedOut(
+                handle=handle(),
+                what="place",
+                text=(
+                    f"No town of today lies within {places.END_M / 1000:.0f} km of the ends "
+                    f"of {name}'s drawn line, or within {places.ALONG_M / 1000:.0f} km of it."
+                ),
+                rests_on=on,
+            )
+        )
+    metres = geometry.length_m(lines)
+    km, miles = f"{_about(metres, 1_000)} km", f"{_about(metres, _MILE_M)} miles"
+    facts.append(
+        WorkedOut(
+            handle=handle(),
+            what="length",
+            text=f"{name} is about {km} ({miles}) long as drawn.",
+            rests_on=on,
+            values={"km": km, "miles": miles},
+        )
+    )
+    return facts
+
+
+def _and(parts: list[str]) -> str:
+    return parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]

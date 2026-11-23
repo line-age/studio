@@ -1,0 +1,1 @@
+{"id": "B04-001", "behaviour": "B04", "world": "small", "question": {"words": "Write me a short poem about the sea.", "about": []}, "must": {"fixed_line": "unrelated"}, "must_not": {"kinds": ["failure", "clarify", "fact", "unknown"]}, "split": "dev", "keeps": null, "labeled_by": "agent-draft", "note": "Nothing to do with store, nothing attached."}

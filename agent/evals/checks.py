@@ -61,6 +61,15 @@ def check(case: Case, world: dict[str, Any], outputs: dict[str, Any]) -> dict[st
         if words not in text:
             why["required"].append(f"does not say {words!r}")
 
+    if "max_statements" in must and len(kinds) > must["max_statements"]:
+        why["required"].append(f"{len(kinds)} statements, more than {must['max_statements']}")
+    if "carried" in must and bool(answer.get("carried")) != must["carried"]:
+        why["required"].append(
+            "does not say it is about the last question's things"
+            if must["carried"]
+            else "says it is about the last question's things"
+        )
+
     for kind in must_not.get("kinds", []):
         if kind in kinds:
             why["forbidden"].append(f"has a {kind} statement")
@@ -84,8 +93,13 @@ def check(case: Case, world: dict[str, Any], outputs: dict[str, Any]) -> dict[st
             why["unknown_kept"].append(
                 f"does not say store has no {unknown['attribute']} for {unknown['feature']}"
             )
-        elif not said[0]["text"].startswith("Store does not say"):
-            why["unknown_kept"].append('the statement does not open with "Store does not say"')
+        elif not (
+            said[0]["text"].startswith("No source says")
+            or said[0]["text"].endswith("is not decided yet.")
+        ):
+            why["unknown_kept"].append(
+                'the statement neither opens with "No source says" nor ends "is not decided yet."'
+            )
 
     for tool in must.get("tools", []):
         if tool not in tools:

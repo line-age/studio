@@ -3,12 +3,14 @@
 The chat answers from what read_context gathers; the pack is the same thing kept whole,
 so cite can take it as its brief (contract/section-pack.schema.json). Its fields follow
 cite's input: ids, line type (the network), name, states, place names, observations.
-States and places stay empty until place data comes in (owner, 2026-11-14).
+States and places are worked out from the traced line (states.py, places.py).
 """
 
 from typing import Any
 
 import geometry
+import places
+import states
 from context import route_lines
 from render import feature_name, period_words, short_id, source_line, value_words
 from schemas import Lead, Neighbour, PackClaim, PackLink, SectionPack, WorkedOut
@@ -72,6 +74,8 @@ def build_pack(
         network=feature.get("network"),
         name=feature.get("label"),
         endpoints=[(round(x, 6), round(y, 6)) for x, y in endpoints],
+        states=states.states_of(route),
+        places=places.towns_along(route),
         claims=[c for f in (feature, *merged) for c in pack_claims(f, handle_of)],
         pipeline_id=lines[0]["id"] if lines else None,
         pipeline_claims=pack_claims(lines[0], handle_of) if lines else [],
@@ -99,7 +103,8 @@ def brief(pack: SectionPack) -> str:
     if pack.endpoints:
         (x1, y1), (x2, y2) = pack.endpoints[0], pack.endpoints[-1]
         out.append(f"Ends: {y1:.4f}, {x1:.4f} and {y2:.4f}, {x2:.4f} (latitude, longitude)")
-    out.append("States and places: Unknown (no place data yet)")
+    out.append(f"States: {', '.join(pack.states) or 'none found'}")
+    out.append(f"Today's towns along it: {', '.join(pack.places) or 'none near'}")
     out.append("What store holds:")
     out += [f"  {c.attribute}: {c.value}, {c.period}, {c.status}" for c in pack.claims] or [
         "  nothing but its traced line"

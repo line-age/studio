@@ -4,7 +4,7 @@
   "statements": [
     {
       "kind": "failure",
-      "text": "I could not give an answer I can back with store. Try asking about one thing at a time.",
+      "text": "I could not give an answer I can back with the data. Try asking about one thing at a time.",
       "refs": [],
       "attribute": null,
       "request": null

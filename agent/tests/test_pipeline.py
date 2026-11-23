@@ -246,3 +246,15 @@ def test_a_name_in_the_words_is_said_to_need_a_source():
     assert pf.NAMED.search("Make these one pipeline and call it the Example line")
     assert pf.LINES["no_name"] in pf.offer(sections, named=True).text
     assert pf.LINES["no_name"] not in pf.offer(sections).text
+
+
+def test_asking_how_to_make_a_pipeline_is_not_asking_for_one():
+    import pipeline_flow
+
+    asks = pipeline_flow.asks_for_pipeline if hasattr(pipeline_flow, "asks_for_pipeline") else None
+    check = asks or (
+        lambda w: bool(pipeline_flow.WORDS.search(w)) and not pipeline_flow.HOW.search(w)
+    )
+    assert not check("How do I make a pipeline?")
+    assert not check("how can I group these into one pipeline")
+    assert check("Make these one pipeline")

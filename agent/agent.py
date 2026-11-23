@@ -21,6 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from langchain.agents import create_agent
+from langchain.agents.middleware import ModelCallLimitMiddleware, ToolCallLimitMiddleware
 from langchain.agents.structured_output import ProviderStrategy
 from langchain.chat_models import init_chat_model
 from langchain_anthropic.middleware import AnthropicPromptCachingMiddleware
@@ -38,7 +39,7 @@ import store_writer
 from cite_client import CiteBusy, CiteClient, CiteService
 from cite_result import CiteResult
 from grounding import problems_of, reads_from
-from render import FIXED_LINES, Unfillable, as_text, failure, feature_name, render
+from render import FIXED_LINES, Unfillable, as_text, failure, feature_name, render, say_once
 from schemas import Answer, CitationRequest, Draft, DraftRef, Question, Ref, Statement
 from settings import MAX_QUESTION_CHARS, load
 from store_client import StoreClient, StoreError
@@ -117,10 +118,19 @@ def _question(message: HumanMessage) -> Question:
     return question
 
 
-def _prompt(question: Question, steering: dict[str, Any] | None = None) -> str:
+def _prompt(
+    question: Question, steering: dict[str, Any] | None = None, carried: bool = False
+) -> str:
     lines = [question.words, ""]
     if question.about:
-        lines.append("Attached:")
+        lines.append(
+            "Nothing is attached to this message. The person's last question was about "
+            "these, read again for you now. If this message goes on about them (a "
+            'follow-up, "try again", "and its diameter?"), answer about them. If it '
+            "asks for something else, answer it as if nothing were attached:"
+            if carried
+            else "Attached:"
+        )
         for item in question.about:
             where = f" on {item.on.model_dump(exclude_none=True)}" if item.on else ""
             if item.kind in ("claim", "citation") and item.on and item.on.sectionId:
@@ -140,6 +150,57 @@ def _prompt(question: Question, steering: dict[str, Any] | None = None) -> str:
     else:
         lines.append("Nothing is attached.")
     return "\n".join(lines)
+
+
+# How much of the chat the model is shown, to know what the person means.
+# The most tool calls one try at one question may make, and the most model calls. Past
+# the tool limit a call is refused and the model has to answer from what it has, so the
+# model limit leaves room for that answer.
+TOOL_CALLS = 4
+MODEL_CALLS = TOOL_CALLS + 2
+HISTORY_TURNS = 4
+HISTORY_ANSWER_CHARS = 500
+
+
+def _carried(messages: list[Any], current: HumanMessage) -> list[Any]:
+    """What the person's last question was about, when this one has nothing attached:
+    the whole attached set of the latest earlier question that had one."""
+    for m in reversed(messages):
+        if m.id == current.id or not isinstance(m, HumanMessage):
+            continue
+        try:
+            about = _question(m).about
+        except ValueError:
+            continue
+        if about:
+            return about
+    return []
+
+
+def _history(messages: list[Any], current: HumanMessage) -> str:
+    """The last few turns as words, so the model knows what "it" or "try again" means.
+    Never a source: a value still enters only through a slot filled from this run."""
+    lines: list[str] = []
+    for m in messages:
+        if m.id == current.id:
+            continue
+        if isinstance(m, HumanMessage):
+            try:
+                question = _question(m)
+            except ValueError:
+                continue
+            attached = f" (attached: {len(question.about)})" if question.about else ""
+            lines.append(f"Person{attached}: {question.words[:300]}")
+        elif isinstance(m, AIMessage) and isinstance(m.content, str) and m.content:
+            lines.append(f"You: {m.content[:HISTORY_ANSWER_CHARS]}")
+    lines = lines[-2 * HISTORY_TURNS :]
+    if not lines:
+        return ""
+    return (
+        "\n\nEarlier in this chat, oldest first. It tells you what the person means "
+        '("it", "try again", "and the other one"). It is never a source: say only what '
+        "was read for this message.\n" + "\n".join(lines)
+    )
 
 
 def _to_read(question: Question, steering: str | None = None) -> list[str]:
@@ -221,6 +282,8 @@ def _read_attached(
     config: Any,
     pipelines: list[str] | None = None,
     steering: str | None = None,
+    sections_together: Any = None,
+    pipeline_sections: Any = None,
 ) -> list[Any]:
     """Read everything attached before the model starts, as if the model had asked: one
     model turn fewer. Then the pipelines those sections are in, and the first sections'
@@ -254,7 +317,34 @@ def _read_attached(
         }
         for n, fid in enumerate(sections[:CONTEXT_FOR])
     ]
-    tools = {"read_feature": read_feature, "read_context": read_context}
+    if sections_together is not None and len(sections) > 1:
+        # Several sections: what they share and where they differ, worked out once.
+        calls.append(
+            {
+                "name": "sections_together",
+                "args": {"section_ids": sections},
+                "id": "together_0",
+                "type": "tool_call",
+            }
+        )
+    if pipeline_sections is not None:
+        # An attached pipeline: its sections, counted and taken together, worked out once.
+        calls += [
+            {
+                "name": "pipeline_sections",
+                "args": {"pipeline_id": i.id},
+                "id": f"members_{n}",
+                "type": "tool_call",
+            }
+            for n, i in enumerate(question.about)
+            if i.kind == "pipeline" and i.id
+        ]
+    tools = {
+        "read_feature": read_feature,
+        "read_context": read_context,
+        "sections_together": sections_together,
+        "pipeline_sections": pipeline_sections,
+    }
     results = [tools[call["name"]].invoke(call, config) for call in calls]
     return [AIMessage(content="", tool_calls=calls), *results]
 
@@ -333,6 +423,20 @@ class _Steps:
                 self.add_done(f"Read its pipeline, {name}" if pipeline else f"Read {name}")
         for a in contexts:
             self.add_done(f"Read what surrounds {feature_name(a['features'][0])}")
+        for a in artifacts:
+            if "nearby_of" in a:
+                me = feature_name(a["context_features"][0])
+                self.add_done(f"Looked for the sections nearest {me}")
+            if "network_pipelines" in a:
+                self.add_done(
+                    f"Looked through the network's {_many(a['network_pipelines'], 'pipeline')}"
+                )
+            if "network" in a:
+                self.add_done(f"Looked through the network's {_many(a['network'], 'section')}")
+            if "sections_of" in a:
+                self.add_done(f"Read its {_many(len(a['members']), 'section')}")
+            if "together" in a:
+                self.add_done(f"Took the {len(a['together'])} sections together")
 
 
 def _finish(
@@ -418,7 +522,7 @@ def build_graph(
     searches nothing."""
     settings = load()
     if store is None:
-        store = StoreClient(settings.store_url)
+        store = StoreClient(settings.store_url, token=settings.store_token)
     if cite is _UNSET:
         cite = CiteClient(settings.cite_url) if settings.cite_url else None
     if writer is _UNSET:
@@ -444,9 +548,9 @@ def build_graph(
     # Reads `read` made for a question, handed to `answer` in the same process.
     prefetched: dict[str, _Prefetched] = {}
 
-    def new_loop(handles: Handles, reader: Any = store):
+    def new_loop(handles: Handles, reader: Any = store, network: str | None = None):
         # Made for each question, so each question starts with tools that have read nothing.
-        tools = make_tools(reader, handles)
+        tools = make_tools(reader, handles, network)
         return tools, create_agent(
             model,
             tools=tools,
@@ -455,7 +559,16 @@ def build_graph(
             # The system prompt and the tools are the same for every question, and each
             # call of a loop repeats the one before: cached, they are read at a tenth of
             # the price. A model that is not Anthropic's (a test's fake) runs uncached.
-            middleware=[AnthropicPromptCachingMiddleware(unsupported_model_behavior="ignore")],
+            middleware=[
+                # A question is a handful of model calls at most. On 2026-11-22 a loop
+                # with no limit made about 370 calls in ten minutes: never again. Past
+                # the tool limit a call is refused and the model answers from what it
+                # has read; at the model limit the loop ends, and the question gets the
+                # fixed "could not answer" line.
+                ModelCallLimitMiddleware(run_limit=MODEL_CALLS, exit_behavior="end"),
+                ToolCallLimitMiddleware(run_limit=TOOL_CALLS, exit_behavior="continue"),
+                AnthropicPromptCachingMiddleware(unsupported_model_behavior="ignore"),
+            ],
             name="studio-agent-loop",
         )
 
@@ -492,22 +605,35 @@ def build_graph(
             return _finish(Answer(statements=[line]), message, [], seen)
         if question.about:
             steering = None
+        # A follow-up: nothing attached and no search to steer, so the things of the
+        # last question are read again and the question is asked of them (B32).
+        carried = [] if question.about or steering else _carried(state["messages"], message)
+        if carried:
+            question = question.model_copy(update={"about": carried})
 
         tools: list[str] = []
         artifacts: list[dict[str, Any]] = []
         blocked: list[list[str]] = []
         handles = Handles()
         steps = _Steps()
-        steps.start("Reading store")
+        steps.start("Reading the data")
         reader = (
             taken
-            if taken is not None and not steering
+            if taken is not None and not steering and not carried
             else _Prefetched(store, _to_read(question, steering))
         )
-        (read_feature, read_context), loop = new_loop(handles, reader)
+        made, loop = new_loop(handles, reader, question.network)
+        read_feature, read_context, _, sections_together, pipeline_sections, *_ = made
         try:
             first_reads = _read_attached(
-                question, read_feature, read_context, config, reader.pipelines, steering
+                question,
+                read_feature,
+                read_context,
+                config,
+                reader.pipelines,
+                steering,
+                sections_together,
+                pipeline_sections,
             )
         except StoreError as error:
             return _finish(
@@ -519,7 +645,7 @@ def build_graph(
             )
         tools += [c["name"] for m in first_reads[:1] for c in m.tool_calls]
         artifacts += [m.artifact for m in first_reads if isinstance(m, ToolMessage) and m.artifact]
-        steps.items.clear()  # "Reading store" becomes what was read
+        steps.items.clear()  # "Reading the data" becomes what was read
         steps.reads(artifacts, {i.id for i in question.about if i.id})
         # Nothing attached is left in store: the answer is fixed, no model needed.
         if _all_gone(question, artifacts):
@@ -531,8 +657,10 @@ def build_graph(
             if a.get("features")
         }
         shown = {"id": steering, "name": names.get(steering, "a section")} if steering else None
-        prompt = _prompt(question, shown) + (
-            cite_flow.so_far(cite_state, names) if cite is not None else ""
+        prompt = (
+            _prompt(question, shown, carried=bool(carried))
+            + (cite_flow.so_far(cite_state, names) if cite is not None else "")
+            + _history(state["messages"], message)
         )
         messages: list[Any] = [HumanMessage(prompt), *first_reads]
         retried = False
@@ -547,7 +675,7 @@ def build_graph(
                     # Once per question. Fresh tools, so nothing from the failed try
                     # counts as already read; the handles stay, so C1 still means C1.
                     retried = True
-                    _, loop = new_loop(handles, reader)
+                    _, loop = new_loop(handles, reader, question.network)
                     result = loop.invoke({"messages": messages}, config)
             except StoreError as error:
                 return _finish(
@@ -574,6 +702,8 @@ def build_graph(
             draft = result.get("structured_response")
             read = reads_from(artifacts)
             read.findings = cite_state.get("findings") or {}
+            read.asked_about = _to_read(question, steering)
+            read.words = question.words
             if isinstance(draft, Draft):
                 for statement in draft.statements:
                     for ref in statement.refs:
@@ -591,13 +721,20 @@ def build_graph(
                 except Exception as error:  # noqa: BLE001 - a bug here must not show an answer
                     problems = [f"the answer could not be checked: {type(error).__name__}"]
             if not problems:
+                if carried and any(st.refs for st in rendered.statements):
+                    # The answer rests on what was carried: say which things.
+                    rendered.carried = [
+                        Ref(type="feature", id=fid, label=feature_name(read.features[fid]))
+                        for fid in dict.fromkeys(_to_read(question))
+                        if fid in read.features
+                    ]
                 if cite is not None and any(
                     st.kind == "citation_request" for st in rendered.statements
                 ):
                     return _with_search(
                         state, draft, rendered, read, message, tools, seen, blocked, steps
                     )
-                return _finish(rendered, message, tools, seen, blocked, steps=steps)
+                return _finish(say_once(rendered), message, tools, seen, blocked, steps=steps)
             blocked.append(
                 [
                     *problems,
@@ -711,9 +848,18 @@ def build_graph(
                 "years": list(verdict.years) if verdict.years else None,
                 "ruled_out": [list(r) for r in verdict.ruled_out],
                 "subject": subject,
+                "from_line": verdict.from_line,
             }
         first = rendered.statements.index(pairs[0][1])
-        kept = [st for st in rendered.statements if st.kind != "citation_request"]
+        searched = set(job["attributes"]) if job else set()
+        # The search goes ahead: "Store does not say" about what it searches for is
+        # already on screen, in the claims, so it is left out here.
+        kept = [
+            st
+            for st in rendered.statements
+            if st.kind != "citation_request"
+            and not (st.kind == "unknown" and st.attribute in searched)
+        ]
         answer_ = Answer(statements=[*kept[:first], line, *kept[first:]])
         out = _finish(answer_, message, tools, seen, blocked, steps=steps)
         if job:
@@ -765,6 +911,7 @@ def build_graph(
             places=job["places"],
             years=tuple(job["years"]) if job.get("years") else None,
             ruled_out=[tuple(r) for r in job.get("ruled_out") or []],
+            from_line=bool(job.get("from_line")),
         )
 
         def stop(line: str) -> dict:
@@ -813,6 +960,7 @@ def build_graph(
                 "places": ask.places,
                 "years": [window["from"], window["to"]] if window else None,
                 "ruled_out": [list(r) for r in ask.ruled_out],
+                "from_line": ask.from_line,
                 "outcome": "running",
             },
         ]
@@ -823,6 +971,7 @@ def build_graph(
             ask.places,
             (window["from"], window["to"]) if window else None,
             ask.ruled_out,
+            ask.from_line,
         )
         statements = [
             st.model_copy(update={"text": cite_flow.looking_line(asked, job["subject"])})
@@ -943,6 +1092,25 @@ def build_graph(
             merged, _ = _with_merged(store, feature)
         except StoreError as error:
             return say("failure", FIXED_LINES[STORE_FAILURES.get(error.kind, "store_unreachable")])
+        # Where it goes: its section, or the pipeline that section is confirmed part of.
+        # An owner belongs to the pipeline; a diameter or a build date to the section.
+        target = (question.action.target or "").strip() or feature["id"]
+        if target != feature["id"]:
+            in_it = any(
+                link["relation"] == "part_of"
+                and link["status"] == "confirmed"
+                and link["from_feature_id"] == feature["id"]
+                and link["to_feature_id"] == target
+                for link in feature.get("links") or []
+            )
+            if not in_it or record["store_key"] != "owner":
+                return say("refusal", cite_flow.CITE_LINES["not_its_pipeline"])
+            try:
+                feature, merged = store.feature(target), []
+            except StoreError as error:
+                return say(
+                    "failure", FIXED_LINES[STORE_FAILURES.get(error.kind, "store_unreachable")]
+                )
         subject = feature_name(feature)
         what = {"built": "build date"}.get(f["attribute"], f["attribute"])
         held = cite_flow.held_in_store(record, [feature, *merged])
@@ -952,7 +1120,7 @@ def build_graph(
             )
             return say("refusal", text, [Ref(type="feature", id=feature["id"], label=subject)])
         try:
-            written = writer.propose(store_writer.bundle(record))
+            written = writer.propose(store_writer.bundle(record, feature["id"]))
         except StoreError:
             return say("failure", cite_flow.CITE_LINES["store_write_failed"])
         claim_id = written["ids"].get("claim")

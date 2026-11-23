@@ -90,7 +90,7 @@ def a_proposal_passed_off_as_accepted(answer: Answer) -> Answer | None:
 
 
 def unknown_where_store_holds_a_value(answer: Answer) -> Answer | None:
-    """ "Store does not say" about something store does say."""
+    """ "No source says" about something store does say."""
     statement = _first(answer, "fact")
     if statement is None or not statement["refs"][0].get("feature_id"):
         return None
@@ -100,7 +100,7 @@ def unknown_where_store_holds_a_value(answer: Answer) -> Answer | None:
     answer["statements"] = [
         {
             "kind": "unknown",
-            "text": "Store does not say.",
+            "text": "No source says.",
             "refs": [{"type": "feature", "id": ref["feature_id"]}],
             "attribute": ref["attribute"],
         }
@@ -123,6 +123,13 @@ def a_fixed_line_reworded(answer: Answer) -> Answer | None:
     return answer
 
 
+def a_not_yet_line_reworded(answer: Answer) -> Answer | None:
+    answer["statements"] = [
+        {"kind": "not_yet", "text": "I cannot do lengths, but it looks fairly long.", "refs": []}
+    ]
+    return answer
+
+
 MUTATIONS: list[Callable[[Answer], Answer | None]] = [
     an_id_never_read,
     a_changed_year,
@@ -135,6 +142,7 @@ MUTATIONS: list[Callable[[Answer], Answer | None]] = [
     unknown_where_store_holds_a_value,
     unknown_that_checked_nothing,
     a_fixed_line_reworded,
+    a_not_yet_line_reworded,
 ]
 
 

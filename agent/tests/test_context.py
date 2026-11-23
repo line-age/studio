@@ -37,8 +37,8 @@ def test_the_printings_are_the_years_sections_are_first_shown(world):
 
 def test_first_traced_names_the_printing_before_it(world):
     (first,) = by(facts(world, "s14"), "first_edition")
-    assert "first traced on the 1932 printing" in first.text
-    assert "is not traced on the earlier 1926 printing" in first.text
+    assert "first shown on the 1932 map" in first.text
+    assert "is not shown on the earlier 1926 map" in first.text
     assert "built" not in first.text
     status = next(
         c
@@ -50,7 +50,7 @@ def test_first_traced_names_the_printing_before_it(world):
 
 def test_the_first_printing_in_store_names_none_before_it(world):
     (first,) = by(facts(world, "s08"), "first_edition")
-    assert "first traced on the 1926 printing." in first.text
+    assert "first shown on the 1926 map." in first.text
 
 
 def test_a_proposed_end_stays_unknown(world):
@@ -63,7 +63,7 @@ def test_a_proposed_end_stays_unknown(world):
 def test_a_confirmed_end_is_said_and_unknown_is_not(world):
     found = facts(world, "s09")
     (removal,) = by(found, "removal")
-    assert "confirmed link" in removal.text and "1951" in removal.text
+    assert "that is confirmed" in removal.text and "The 1951 map no longer shows" in removal.text
     assert not by(found, "not_traced_later")
 
 
@@ -72,7 +72,7 @@ def test_a_proposed_twin_is_not_an_end(world):
     found = facts(world, "s14")
     assert not by(found, "removal")
     (unknown,) = by(found, "not_traced_later")
-    assert unknown.text.startswith("Store does not say when")
+    assert unknown.text.startswith("No source says when")
 
 
 def test_a_section_with_no_map_date_has_no_first_printing(world):
@@ -86,7 +86,7 @@ def _answer_for(world, code):
     from schemas import Draft
     from tools import make_tools
 
-    _, read_context = make_tools(FakeStore(world).client())
+    _, read_context, *_ = make_tools(FakeStore(world).client())
     read = reads_from([read_context.func(world["codes"][code])[1]])
     draft = Draft.model_validate(
         {
@@ -173,7 +173,7 @@ def test_a_proposed_pipeline_leaves_it_in_none(world):
 def test_a_merged_trace_is_another_trace_of_the_same_pipe(world):
     (fact,) = links_of(world, "s13")
     assert fact.what == "same_pipe" and ", by a confirmed link." in fact.text
-    assert "claims as" in fact.text
+    assert "facts count as" in fact.text
 
 
 def test_a_proposed_twin_is_never_said_as_settled(world):
@@ -223,8 +223,8 @@ def test_a_confirmed_part_removal_leaves_the_rest_unknown(world):
         section, {gone_id: gone}, context.Editions([], True), lambda: f"W{next(counter)}"
     )
     (unknown,) = by(found, "not_traced_later")
-    assert unknown.text.startswith("Store does not say when the rest of ")
-    assert "confirmed for the rest of it" in unknown.text
+    assert unknown.text.startswith("No source says when the rest of ")
+    assert "dropped the rest of it" in unknown.text
 
 
 def test_a_worked_out_statement_carrying_another_handles_sentence_is_blocked(world):
@@ -350,3 +350,161 @@ def test_a_link_store_has_no_words_for_is_said_as_it_is():
     link = _link("serves", a, b)
     (fact,) = context.link_facts(_section(a, [link]), {b: _section(b, [link])}, lambda: "W1")
     assert "serves link between" in fact.text and "second pipe" not in fact.text
+
+
+# A sentence the model writes about what code worked out: values through slots only.
+
+
+def _written(world, code, text, pick):
+    """One worked_out statement with the model's own text, about a section's place and
+    length. `pick` names the facts by a value each holds: {"w1": "km"}."""
+    from grounding import problems_of, reads_from
+    from render import render
+    from schemas import Draft
+    from tools import make_tools
+
+    _, read_context, *_ = make_tools(FakeStore(world).client())
+    read = reads_from([read_context.func(world["codes"][code])[1]])
+    handle = {
+        key: next(h for h, w in read.worked.items() if value in (w.get("values") or {}))
+        for key, value in pick.items()
+    }
+    refs = [{"key": k, "type": "worked_out", "id": h} for k, h in handle.items()]
+    draft = Draft.model_validate(
+        {"statements": [{"kind": "worked_out", "text": text, "refs": refs}]}
+    )
+    return draft, read, render, problems_of
+
+
+def test_a_written_sentence_takes_its_values_from_what_code_worked_out(world):
+    from evals.score import ungrounded
+
+    draft, read, render, problems_of = _written(
+        world,
+        "s01",
+        "It is about {w1.km} long as drawn, in {w2.states}, by today's towns {w3.towns}.",
+        {"w1": "km", "w2": "states", "w3": "towns"},
+    )
+    answer = render(draft, read)
+    text = answer.statements[0].text
+    assert text.startswith("It is about 76 km long as drawn, in Oklahoma, by today's towns Tribbey")
+    assert [r.type for r in answer.statements[0].refs] == ["feature"]  # the section, no map
+    assert problems_of(draft, answer, read) == []
+    assert ungrounded(answer.model_dump(), world) == []
+
+
+@pytest.mark.parametrize(
+    ("text", "why"),
+    [
+        ("It is about 80 km long, or {w1.km}.", "a number in your own words"),
+        ("It passes Tulsa and is {w1.km} long.", "a name or capitalised word"),
+        ("It was built {w1.km} long.", "'built' in your own words"),
+        ("It serves towns along {w1.km}.", "'serves' in your own words"),
+        ("The store has it at {w1.km}.", "'store' is a word of the system"),
+        ("The printing gives {w1.km}.", "'printing' is a word of the system"),
+    ],
+)
+def test_a_written_sentence_with_a_value_of_its_own_is_blocked(world, text, why):
+    draft, read, render, problems_of = _written(world, "s01", text, {"w1": "km"})
+    assert any(why in p for p in problems_of(draft, render(draft, read), read))
+
+
+@pytest.mark.parametrize(
+    ("text", "pick", "why"),
+    [
+        ("It is long.", {"w1": "km"}, "no slot uses it"),
+        ("It is {w1.furlongs} long.", {"w1": "km"}, "has no value 'furlongs'"),
+        ("It is {w9.km} long.", {"w1": "km"}, "names a key that is not in refs"),
+    ],
+)
+def test_a_written_sentence_that_cannot_be_filled_is_not_shown(world, text, pick, why):
+    from render import Unfillable
+
+    draft, read, render, _ = _written(world, "s01", text, pick)
+    with pytest.raises(Unfillable, match=why):
+        render(draft, read)
+
+
+def test_a_wrong_length_in_a_written_sentence_fails_the_independent_check(world):
+    from evals.score import ungrounded
+
+    draft, read, render, _ = _written(world, "s01", "It is {w1.km} long.", {"w1": "km"})
+    answer = render(draft, read).model_dump()
+    answer["statements"][0]["text"] = "It is 99 km long."
+    assert any("99 km" in p for p in ungrounded(answer, world))
+    answer["statements"][0]["text"] = "It is 76 km long, in Kansas."
+    assert any("Kansas" in p for p in ungrounded(answer, world))
+
+
+def test_one_attached_section_is_it_and_several_keep_their_names(world):
+    _, answer, _, _ = _answer_for(world, "s01")
+    name = f"section {short_id(world['codes']['s01'])}"
+    texts = [s.text for s in answer.statements]
+    assert not [t for t in texts if name in t]
+    assert any(t.startswith("It is about 76 km") for t in texts)
+    assert any(t.startswith("Its drawn line lies in Oklahoma") for t in texts)
+
+
+def test_towns_in_a_written_sentence_are_said_to_be_todays(world):
+    draft, read, render, problems_of = _written(
+        world, "s01", "It passes {w1.towns}.", {"w1": "towns"}
+    )
+    assert any("towns are today's" in p for p in problems_of(draft, render(draft, read), read))
+    draft, read, render, problems_of = _written(
+        world, "s01", "It runs near today's towns {w1.towns}.", {"w1": "towns"}
+    )
+    assert problems_of(draft, render(draft, read), read) == []
+
+
+def test_it_is_what_was_attached_even_when_its_pipeline_was_read_too(world):
+    from grounding import reads_from
+    from render import as_it, feature_name
+    from tools import make_tools
+
+    read_feature, read_context, *_ = make_tools(FakeStore(world).client())
+    section, pipeline = world["codes"]["s02"], world["codes"]["l01"]
+    read = reads_from(
+        [
+            read_feature.func(section)[1],
+            read_feature.func(pipeline)[1],
+            read_context.func(section)[1],
+        ]
+    )
+    name = feature_name(read.features[section])
+    sentence = f"{name} is about 76 km long as drawn."
+    assert as_it(sentence, read) == sentence  # two things read: nobody said which
+    read.asked_about = [section]
+    assert as_it(sentence, read) == "It is about 76 km long as drawn."
+    assert as_it(f"Along {name}'s drawn line.", read) == "Along its drawn line."
+
+
+# In no pipeline: said only when no link, confirmed or proposed, puts it in one.
+
+
+def _no_pipeline(world, code):
+    feature = FakeStore(world).client().feature(world["codes"][code])
+    return context.no_pipeline_fact(feature, lambda: "W1")
+
+
+def test_a_section_no_link_puts_in_a_pipeline_is_said_to_be_in_none(world):
+    (fact,) = _no_pipeline(world, "s01")
+    assert fact.what == "pipeline" and fact.text.endswith("is not in a pipeline.")
+    assert fact.rests_on == [world["codes"]["s01"]]
+
+
+def test_a_section_in_a_pipeline_or_proposed_for_one_gets_no_such_line(world):
+    assert _no_pipeline(world, "s16") == []
+    assert _no_pipeline(world, "s12") == []
+
+
+def test_a_rejected_link_leaves_it_in_no_pipeline():
+    a, l1 = "a" * 8, "c" * 8
+    (fact,) = context.no_pipeline_fact(
+        _section(a, [_link("part_of", a, l1, "rejected")]), lambda: "W1"
+    )
+    assert "not in a pipeline" in fact.text
+
+
+def test_a_pipeline_is_never_said_to_be_in_no_pipeline():
+    line = {"id": "c" * 8, "kind": "line", "label": None, "claims": [], "links": []}
+    assert context.no_pipeline_fact(line, lambda: "W1") == []

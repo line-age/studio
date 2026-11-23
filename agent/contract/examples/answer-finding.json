@@ -27,7 +27,7 @@
         "hints": [
           {
             "rule": "edition_window",
-            "text": "section 06a875ca is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+            "text": "section 06a875ca is first shown on the 1932 map and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
             "source": "Example Gazette pipeline map, 1932 printing"
           }
         ]

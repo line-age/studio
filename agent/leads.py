@@ -240,8 +240,8 @@ def find_leads(
         if earlier:
             lead(
                 "edition_window",
-                f"{me} is first traced on the {year} printing and is not "
-                f"traced on the earlier {earlier[-1]} one, so sources from {earlier[-1]} to "
+                f"{me} is first shown on the {year} map and is not "
+                f"shown on the earlier {earlier[-1]} one, so sources from {earlier[-1]} to "
                 f"{year} are where to look for when it first appears. A window to search, "
                 "never a build date.",
                 None,

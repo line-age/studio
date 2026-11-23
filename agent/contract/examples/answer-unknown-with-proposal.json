@@ -4,7 +4,7 @@
   "statements": [
     {
       "kind": "unknown",
-      "text": "Store does not say who owns this section.",
+      "text": "No source says who owns this section.",
       "refs": [
         {
           "type": "feature",

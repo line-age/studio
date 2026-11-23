@@ -9,6 +9,7 @@ from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
 
 import cite_flow
+import context
 from agent import build_graph
 from evals.fake_cite import FakeCite
 from evals.fake_store import FakeStore, load_world
@@ -112,7 +113,33 @@ def test_ask_and_find_shows_the_finding_in_codes_words(world):
     assert [m.id for m in out["messages"]].count("answer-q1") == 1
 
 
-def test_no_towns_asks_for_them_and_the_next_message_steers_the_kept_request(world):
+def test_no_towns_named_searches_by_the_towns_along_its_line(world):
+    import places
+
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01))
+    out = chat.ask("Look for the owner of this section.", [s01])
+    along = places.towns_along(context.route_lines(world["features"][s01]))
+    assert along, "the invented line lies near real towns"
+    [sent] = chat.cite.inputs
+    # Code's towns, not the person's: none counts as given.
+    assert sent["places"] == along and sent["places_given"] == []
+    [line] = [s for s in out["answer"]["statements"] if s["kind"] == "citation_request"]
+    assert "by the towns along its line (" in line["text"]
+    assert "name others to change them" in line["text"]
+    # What it searches for is not said again as "No source says".
+    assert not any(
+        s["kind"] == "unknown" and s.get("attribute") == "owner"
+        for s in out["answer"]["statements"]
+    )
+
+
+def test_no_towns_near_it_asks_for_them_and_the_next_message_steers_the_kept_request(
+    world, monkeypatch
+):
+    import places
+
+    monkeypatch.setattr(places, "all_places", lambda: ())
     s01 = world["codes"]["s01"]
     chat = Chat(
         world,
@@ -362,3 +389,50 @@ def test_start_fresh_drops_the_messages_and_keeps_what_cite_found(world):
     # The kept finding can still be proposed after a fresh start.
     proposed = chat.ask("Propose F1", action={"kind": "propose", "finding": "F1"})
     assert proposed["answer"]["statements"][0]["kind"] == "proposed"
+
+
+def test_an_owner_the_pipeline_already_holds_is_not_proposed_for_it_again(world):
+    s06, l01 = world["codes"]["s06"], world["codes"]["l01"]
+    chat = Chat(world, request(s06, places=["Sampleton"]))
+    chat.ask("Find the owner, through Sampleton.", [s06])
+    out = chat.ask("Propose F1", action={"kind": "propose", "finding": "F1", "target": l01})
+    text = out["answer"]["statements"][0]["text"]
+    assert text.startswith("Store already holds Example Pipe Line Co. as the owner of Example")
+    assert chat.writer.bundles == []
+
+
+def test_an_owner_is_proposed_for_the_pipeline_its_section_is_part_of(world):
+    s06, l01 = world["codes"]["s06"], world["codes"]["l01"]
+    # A pipeline that holds no owner yet.
+    line = world["features"][l01]
+    line["claims"] = [c for c in line["claims"] if c["attribute_key"] != "owner"]
+    chat = Chat(world, request(s06, places=["Sampleton"]))
+    chat.ask("Find the owner, through Sampleton.", [s06])
+    out = chat.ask("Propose F1", action={"kind": "propose", "finding": "F1", "target": l01})
+    [statement] = Answer.model_validate(out["answer"]).statements
+    assert statement.kind == "proposed" and "of the owner of" not in statement.text
+    [bundle] = chat.writer.bundles
+    [claim] = bundle["claims"]
+    # On the pipeline, not the section: an owner is the pipeline's.
+    assert claim["feature"] == l01 and claim["attribute"] == "owner"
+    assert claim["external_key"]["key"].startswith(f"claim/{l01}/owner/")
+    assert statement.refs[0].feature_id == l01
+
+
+def test_no_pipeline_but_the_sections_own_is_a_target(world):
+    s01, l01 = world["codes"]["s01"], world["codes"]["l01"]
+    chat = Chat(world, request(s01, places=["Sampleton"]))
+    chat.ask("Find the owner, through Sampleton.", [s01])
+    # s01 is in no pipeline: l01 is not its pipeline.
+    out = chat.ask("Propose F1", action={"kind": "propose", "finding": "F1", "target": l01})
+    assert out["answer"]["statements"][0]["text"] == cite_flow.CITE_LINES["not_its_pipeline"]
+    assert chat.writer.bundles == []
+
+
+def test_a_diameter_is_never_proposed_for_a_pipeline(world):
+    s06, l01 = world["codes"]["s06"], world["codes"]["l01"]
+    chat = Chat(world, request(s06, attribute="diameter", places=["Sampleton"]))
+    chat.ask("Find the diameter, through Sampleton.", [s06])
+    out = chat.ask("Propose F1", action={"kind": "propose", "finding": "F1", "target": l01})
+    assert out["answer"]["statements"][0]["text"] == cite_flow.CITE_LINES["not_its_pipeline"]
+    assert chat.writer.bundles == []

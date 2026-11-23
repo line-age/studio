@@ -1,0 +1,598 @@
+{
+ "meta": {
+  "name": "baseline-B32",
+  "at": "2026-11-22T15:53:32+00:00",
+  "model": "anthropic:claude-opus-5-5",
+  "commit": "853e38e",
+  "prompt": "2967971348af",
+  "repeat": 1
+ },
+ "cases": {
+  "B32-001": {
+   "behaviour": "B32",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.diameter.accepted; does not say '20 in'; does not say it is about the last question's things"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a clarify statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.48
+    }
+   ]
+  },
+  "B32-002": {
+   "behaviour": "B32",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "no worked_out statement; does not say 'Oklahoma'; does not say it is about the last question's things"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a clarify statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.82
+    }
+   ]
+  },
+  "B32-003": {
+   "behaviour": "B32",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.owner.accepted; does not say 'Example Pipe Line Co.'; does not say it is about the last question's things"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a clarify statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 2.82
+    }
+   ]
+  },
+  "B32-004": {
+   "behaviour": "B32",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.owner.accepted; does not say it is about the last question's things"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a clarify statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.35
+    }
+   ]
+  },
+  "B32-005": {
+   "behaviour": "B32",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "no worked_out statement; does not say '76 km'; does not say it is about the last question's things"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a clarify statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.44
+    }
+   ]
+  },
+  "B32-006": {
+   "behaviour": "B32",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "I cannot count or search across the whole network yet. Attach the sections you mean, or use the list's filters.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.26
+    }
+   ]
+  },
+  "B32-007": {
+   "behaviour": "B32",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.23
+    }
+   ]
+  },
+  "B32-008": {
+   "behaviour": "B32",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nsection 06a875ca is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.22
+    }
+   ]
+  },
+  "B32-009": {
+   "behaviour": "B32",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "I can only help with what is in store, its sources and how Studio works.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.53
+    }
+   ]
+  },
+  "B32-010": {
+   "behaviour": "B32",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.diameter.accepted; does not say it is about the last question's things"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a clarify statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 3.14
+    }
+   ]
+  },
+  "B32-011": {
+   "behaviour": "B32",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "the first statement is ['clarify'], not unknown; does not say it is about the last question's things"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a clarify statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.55
+    }
+   ]
+  }
+ }
+}

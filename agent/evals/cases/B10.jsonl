@@ -1,0 +1,1 @@
+{"id": "B10-001", "behaviour": "B10", "world": "small", "question": {"words": "What can you do?", "about": []}, "must": {"fixed_line": "capabilities"}, "must_not": {"kinds": ["failure", "clarify", "fact", "unknown", "not_yet"]}, "split": "dev", "keeps": null, "labeled_by": "agent-draft", "note": "What it can do: the list of what works today, never only a not-yet line."}

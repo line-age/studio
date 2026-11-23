@@ -53,12 +53,12 @@ def check(world, read, *statements):
     return problems_of(draft, render(draft, read), read)
 
 
-def test_help_and_reading_cannot_be_drafted_until_their_checks_exist():
-    for kind in ("help", "reading"):
-        with pytest.raises(ValidationError):
-            Draft.model_validate(
-                {"statements": [statement(kind, "It was abandoned after the war.")]}
-            )
+def test_a_reading_cannot_be_drafted_until_its_check_exists():
+    # help can be drafted now: code writes its text from its topic (test_contract.py).
+    with pytest.raises(ValidationError):
+        Draft.model_validate(
+            {"statements": [statement("reading", "It was abandoned after the war.")]}
+        )
 
 
 def test_a_fact_with_no_value_slot_is_blocked(world):

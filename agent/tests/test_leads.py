@@ -16,7 +16,7 @@ def world():
 
 
 def context_of(world, code):
-    _, read_context = make_tools(FakeStore(world).client())
+    _, read_context, *_ = make_tools(FakeStore(world).client())
     return reads_from([read_context.func(world["codes"][code])[1]])
 
 
@@ -42,7 +42,7 @@ def test_every_lead_is_marked_not_in_store_in_its_plain_text(world):
             }
         )
         for paragraph in as_text(render(draft, read)).split("\n\n"):
-            assert paragraph.startswith("Lead, not in store: ")
+            assert paragraph.startswith("Lead, not a fact: ")
 
 
 def test_rule_1_a_neighbours_cited_page(world):
@@ -337,7 +337,7 @@ def test_a_twin_is_found_whichever_end_the_section_is(world):
     for link in store.world["features"][s14]["links"]:
         if link["relation"] == "same_as":
             link["from_feature_id"], link["to_feature_id"] = s14, d19
-    _, read_context = make_tools(store.client())
+    _, read_context, *_ = make_tools(store.client())
     read = reads_from([read_context.func(s14)[1]])
     assert "proposed_link" in rules(read)
 
@@ -346,7 +346,7 @@ def test_asking_context_of_a_pipeline_uses_no_slot(world):
     from evals.fake_store import FakeStore
     from tools import make_tools
 
-    _, read_context = make_tools(FakeStore(world).client())
+    _, read_context, *_ = make_tools(FakeStore(world).client())
     for _ in range(3):
         read_context.func(world["codes"]["l01"])
     _, artifact = read_context.func(world["codes"]["s14"])

@@ -1,0 +1,407 @@
+{
+ "meta": {
+  "name": "baseline-B36",
+  "at": "2026-11-22T15:53:47+00:00",
+  "model": "anthropic:claude-opus-5-5",
+  "commit": "853e38e",
+  "prompt": "2967971348af",
+  "repeat": 1
+ },
+ "cases": {
+  "B36-001": {
+   "behaviour": "B36",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "says 'Worked out from'; says 'not a claim'; says 'section '"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden"
+      }
+     },
+     "answer": "section 06a875ca's traced line lies in Oklahoma. Worked out from the traced line, not a claim.\nAlong section 06a875ca's traced line, by today's towns: Tribbey, St. Louis, Wewoka and Lamar. Worked out from the traced line, not a claim.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.46
+    }
+   ]
+  },
+  "B36-002": {
+   "behaviour": "B36",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "says 'Worked out from'; says 'not a claim'; says 'section '"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden"
+      }
+     },
+     "answer": "section 06a875ca is about 76 km (47 miles) long as drawn. Worked out from the traced line, not a claim.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.21
+    }
+   ]
+  },
+  "B36-003": {
+   "behaviour": "B36",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "3 statements, more than 2"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "says 'Worked out from'; says 'not a claim'"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "Mockville loop's traced line runs through Oklahoma and Texas. Worked out from the traced line, not a claim.\nAlong Mockville loop's traced line, by today's towns: Davidson, Walters and Temple. Worked out from the traced line, not a claim.\nMockville loop is about 77 km (48 miles) long as drawn. Worked out from the traced line, not a claim.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.89
+    }
+   ]
+  },
+  "B36-004": {
+   "behaviour": "B36",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.95
+    }
+   ]
+  },
+  "B36-005": {
+   "behaviour": "B36",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "3 statements, more than 2"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "says 'section '"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "section 06a875ca is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nIt is shown on a map by 1932.\nsection 06a875ca is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.61
+    }
+   ]
+  },
+  "B36-006": {
+   "behaviour": "B36",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "says 'Worked out from'"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden"
+      }
+     },
+     "answer": "section 06a875ca is about 76 km (47 miles) long as drawn. Worked out from the traced line, not a claim.\nsection 7707ea05 is about 45 km (28 miles) long as drawn. Worked out from the traced line, not a claim.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.97
+    }
+   ]
+  },
+  "B36-007": {
+   "behaviour": "B36",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "says 'Worked out from'; says 'section '"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden"
+      }
+     },
+     "answer": "section fbfca50c's traced line lies in Arkansas. Worked out from the traced line, not a claim.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.73
+    }
+   ]
+  }
+ }
+}

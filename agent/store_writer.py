@@ -73,11 +73,12 @@ STATUS_OF_SENSE = {
 }
 
 
-def bundle(record: dict[str, Any]) -> dict[str, Any]:
+def bundle(record: dict[str, Any], feature: str | None = None) -> dict[str, Any]:
     """A finding as store's bundle (plan S8): the issue as source, the page as citation
-    with the page's own words, and one candidate claim. External keys under the system
-    `cite`, so sending it again changes nothing."""
+    with the page's own words, and one candidate claim, on `feature` (its section unless
+    given). External keys under the system `cite`, so sending it again changes nothing."""
     f = record["finding"]
+    on = feature or f["section_id"]
     number = (
         f", vol. {f['volume']} no. {f['number']}" if f.get("volume") and f.get("number") else ""
     )
@@ -102,7 +103,7 @@ def bundle(record: dict[str, Any]) -> dict[str, Any]:
     }
     claim: dict[str, Any] = {
         "ref": "claim",
-        "feature": f["section_id"],
+        "feature": on,
         "citations": [{"citation": "page", "role": "states"}],
     }
     key = record["store_key"]
@@ -126,7 +127,7 @@ def bundle(record: dict[str, Any]) -> dict[str, Any]:
     value = claim.get("value_text") or claim.get("value_num")
     claim["external_key"] = {
         "system": "cite",
-        "key": f"claim/{f['section_id']}/{claim['attribute']}/{_key(value, issue, f['page'])}",
+        "key": f"claim/{on}/{claim['attribute']}/{_key(value, issue, f['page'])}",
     }
     return {"sources": [source], "citations": [citation], "claims": [claim]}
 

@@ -8,6 +8,7 @@ the search is cancelled on cite's server. One search runs at a time: cite's cach
 not locked, and the chat is one shared thread anyway.
 """
 
+import json
 import logging
 import threading
 import time
@@ -111,6 +112,9 @@ def final_result(part_event: str, data: Any) -> dict[str, Any] | None:
     if part_event == "updates" and isinstance(data, dict):
         finish = data.get("finish")
         if isinstance(finish, dict) and isinstance(finish.get("result"), dict):
+            # What the search cost, as cite counts it: kept in the log, so a run's price
+            # is known and not guessed.
+            log.info("cite cost: %s", json.dumps(finish["result"].get("cost")))
             return finish["result"]
     return None
 

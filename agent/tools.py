@@ -10,7 +10,9 @@ from langchain_core.tools import BaseTool, tool
 
 import context
 import leads
+import network
 import pack
+import together
 from render import feature_name, is_traced_as_gone
 from store_client import StoreClient, StoreError
 
@@ -144,7 +146,9 @@ def _with_merged(
     return merged, missing
 
 
-def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseTool]:
+def make_tools(
+    store: StoreClient, handles: Handles | None = None, network_key: str | None = None
+) -> list[BaseTool]:
     """Tools for one question. A feature read twice in the same question is not fetched
     again: the model is told it already has it. Claims are shown by handle (`handles`)."""
     seen: set[str] = set()
@@ -187,9 +191,8 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
         map printing first shows it, what store holds about its end, what its links say
         (its pipeline, with the pipeline's own claims, other traces of the same pipe, a
         pipe beside it), the sections drawn touching it with their own claims, and leads:
-        where to look next, found by fixed rules. Each item has a handle (W1, L1) and a
-        sentence code wrote. To use one, add a statement of kind worked_out (W) or lead
-        (L) with that handle in refs and leave its text empty."""
+        where to look next, found by fixed rules. Each item is a sentence code wrote. Say what you
+        need of them in your own answer; a lead is a suggestion, never a fact."""
         with context_lock:
             if section_id in context_seen:
                 return f"You already read the context of {section_id}. Use that result.", {}
@@ -250,11 +253,17 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
         worked = (
             context.edition_facts(feature, ends, editions, handles.worked, merged)
             + context.link_facts(feature, ends, handles.worked)
+            + context.no_pipeline_fact(feature, handles.worked)
             + context.neighbour_facts(feature, found, unmeasured, handles.worked)
+            + context.place_facts(feature, handles.worked)
+            + context.gap_facts(feature, merged, handles.worked)
         )
         view: dict[str, Any] = {
             "section": feature_name(feature),
-            "worked_out": [{"handle": w.handle, "text": w.text} for w in worked],
+            "worked_out": [
+                {"handle": w.handle, "text": w.text} | ({"values": w.values} if w.values else {})
+                for w in worked
+            ],
         }
         # Its pipeline's own claims, kept apart: they are the pipeline's, not the section's.
         lines = [
@@ -332,11 +341,319 @@ def make_tools(store: StoreClient, handles: Handles | None = None) -> list[BaseT
                 ends,
                 lines,
                 [(touching[sid], meets, gap) for sid, meets, gap in near.found if sid in touching],
-                worked,
+                # cite's brief says what is drawn and held, never what is not known.
+                [w for w in worked if w.what not in ("built", "missing")],
                 found_leads,
                 handles.of,
             ).model_dump(),
         }
         return json.dumps(view, ensure_ascii=False), artifact
 
-    return [read_feature, read_context]
+    @tool(response_format="content_and_artifact")
+    def sections_together(section_ids: list[str]) -> tuple[str, dict[str, Any]]:
+        """Two or more sections taken together, worked out by code: for name, owner,
+        operator and diameter whether they are the same, differ or are not known; which
+        map first shows each and which is shown earlier; how long each is drawn and which
+        is longer; which are in a pipeline and whether it is the same one; for two,
+        whether they are drawn touching or how far apart; the states they lie in. More
+        than two are summarised with counts and the exceptions by name. Use it to
+        compare, for "in common", "differ", "older", "longer", "same pipeline", "which of
+        these", and for what is known about many sections. Each sentence says what it is
+        `about` and is labelled `says`: same (they share it), differs (they do not, or only
+        some have it), nothing_known, or all_of_them (a total or a list). Say what answers
+        the question in your own words, with these values as given."""
+        ids = list(dict.fromkeys(section_ids))
+        if len(ids) < 2:
+            return "Give two or more sections.", {}
+        read = context.read_many(store, ids)
+        gone = [i for i in ids if i not in read]
+        if gone:
+            return f"Store has no feature with the id {gone[0]}.", {"not_found": gone[0]}
+        if any(f.get("kind") != "section" for f in read.values()):
+            return "Only sections are taken together.", {}
+        merged_of = {i: _with_merged(store, read[i])[0] for i in ids}
+        sections = [together.Section(read[i], merged_of[i]) for i in ids]
+        line_ids = [
+            p for s in sections for st in ("confirmed", "proposed") for p in s.pipelines(st)
+        ]
+        lines = context.read_many(store, line_ids)
+        facts = together.together_facts(sections, lines, handles.worked)
+        view = {
+            "sections": [s.name for s in sections],
+            "worked_out": [
+                {"handle": w.handle, "about": t, "says": together.says(w.text), "text": w.text}
+                for t, w in facts
+            ],
+        }
+        artifact = {
+            "together": ids,
+            "context_features": [
+                *read.values(),
+                *(m for ms in merged_of.values() for m in ms),
+                *lines.values(),
+            ],
+            "worked_out": [w.model_dump() for _, w in facts],
+        }
+        return json.dumps(view, ensure_ascii=False), artifact
+
+    @tool(response_format="content_and_artifact")
+    def pipeline_sections(pipeline_id: str) -> tuple[str, dict[str, Any]]:
+        """A pipeline's sections, worked out by code: how many it has and which, and,
+        taking them together, what they share and where they differ (owner, operator,
+        diameter, first map, the states they lie in), how long they are drawn in all,
+        and which of them lack a fact. Use it for any question about a pipeline as a
+        whole: which sections are in it, how long it is, where it runs, when it first
+        appears on a map, what its sections have in common, which of them have no
+        diameter, what is missing. Each sentence says what it is `about` and is labelled
+        `says` (same, differs, nothing_known, all_of_them). Say what answers the question
+        in your own words, with these values as given."""
+        try:
+            line = store.feature(pipeline_id)
+        except StoreError as error:
+            if error.kind in ("not_found", "bad_request"):
+                return (
+                    f"Store has no feature with the id {pipeline_id}.",
+                    {"not_found": pipeline_id},
+                )
+            raise
+        if line.get("kind") != "line":
+            return "Only a pipeline has sections.", {}
+
+        def ends(status: str) -> list[str]:
+            return [
+                link["from_feature_id"]
+                for link in line.get("links") or []
+                if link["relation"] == "part_of"
+                and link["status"] == status
+                and link["to_feature_id"] == line["id"]
+            ]
+
+        read = context.read_many(store, [*ends("confirmed"), *ends("proposed")])
+        member_ids = [i for i in ends("confirmed") if i in read]
+        merged_of = {i: _with_merged(store, read[i])[0] for i in member_ids}
+        members = [together.Section(read[i], merged_of[i]) for i in member_ids]
+        waiting = [read[i] for i in ends("proposed") if i in read]
+        facts = [("sections", together.members_fact(line, members, waiting, handles.worked))]
+        total = together.total_length(members)
+        if total:
+            # Two sections: their length in all, which comparing the two does not give.
+            facts.append(
+                (
+                    "length",
+                    together.WorkedOut(
+                        handle=handles.worked(),
+                        what="together",
+                        text=total[0],
+                        rests_on=member_ids,
+                    ),
+                )
+            )
+        if len(members) > 1:
+            facts += [
+                ("longer" if t == "length" and total else t, w)
+                for t, w in together.together_facts(members, {line["id"]: line}, handles.worked)
+                if t != "pipeline"  # they are all in this one: said by the count
+            ]
+        elif members:
+            facts += [(w.what, w) for w in context.place_facts(read[member_ids[0]], handles.worked)]
+        view = {
+            "pipeline": context.pipeline_words(line),
+            "worked_out": [
+                {
+                    "handle": w.handle,
+                    "about": t,
+                    # One section: nothing to share or differ in.
+                    "says": together.says(w.text) if len(members) > 1 else "all_of_them",
+                    "text": w.text,
+                }
+                | ({"values": w.values} if w.values else {})
+                for t, w in facts
+            ],
+        }
+        artifact = {
+            "sections_of": line["id"],
+            "members": member_ids,
+            "context_features": [
+                line,
+                *read.values(),
+                *(m for ms in merged_of.values() for m in ms),
+            ],
+            "worked_out": [w.model_dump() for _, w in facts],
+        }
+        return json.dumps(view, ensure_ascii=False), artifact
+
+    @tool(response_format="content_and_artifact")
+    def find_sections(
+        lacking: str | None = None,
+        first_shown: int | None = None,
+        state: str | None = None,
+        in_pipeline: bool | None = None,
+        proposal_waiting: bool | None = None,
+        diameter: str | None = None,
+        end: str | None = None,
+        longer_than_km: float | None = None,
+        shorter_than_km: float | None = None,
+    ) -> tuple[str, dict[str, Any]]:
+        """Sections across the whole network that match a rule, counted by code, with
+        the first ten named. Nothing needs to be attached. Rules, any of them together:
+        `lacking`: a fact no source gives yet, one of name, owner, operator, diameter
+        ("how many sections have no owner"); `first_shown`: the year of the map that
+        first shows them ("which sections first appear in 1931"); `state`: a US state by
+        its full name ("which sections are in Oklahoma"); `in_pipeline`: true for those
+        in a pipeline, false for those in none; `proposal_waiting`: true for those with
+        a value proposed and not decided yet ("which have a proposal waiting", "what
+        should I work on next"); `diameter`: a diameter in inches, as "31 in" ("which
+        sections are 31 inch"); `end`: "proposed" for those with an end proposed and not
+        decided, "no_longer_shown" for those a later map is confirmed to have dropped;
+        `longer_than_km` and `shorter_than_km`: by length as drawn ("sections longer than
+        100 km"; give miles as km). With no rule it says how many sections there are. The
+        result is one sentence: say it in your own words, with its counts and names as
+        given."""
+        if lacking is not None and lacking not in network.LACKABLE:
+            return f"lacking is one of {', '.join(network.LACKABLE)}.", {}
+        spelled = network.state_named(state) if state else None
+        if state and not spelled:
+            return f"There is no US state called {state}. Give its full name.", {}
+        inches = network.diameter_named(diameter) if diameter else None
+        if diameter and not inches:
+            return 'Give the diameter in inches, as "31 in".', {}
+        if end is not None and end not in network.END_STATUS:
+            return "end is proposed or no_longer_shown.", {}
+        listing = store.sections(network=network_key)
+        sections = network.sections_of(listing.rows)
+        cut = listing.cut
+        lacking_ids = None
+        if lacking:
+            missing = store.missing(lacking, network=network_key)
+            lacking_ids = {row["section_id"] for row in missing.rows}
+            cut = cut or missing.cut
+        found, words = network.find(
+            sections,
+            lacking_ids,
+            lacking,
+            first_shown,
+            spelled,
+            in_pipeline,
+            proposal_waiting,
+            inches,
+            end,
+            longer_than_km,
+            shorter_than_km,
+        )
+        fact = network.network_fact(sections, found, words, cut, handles.worked)
+        named = {s.id: s for s in found}
+        view = {"worked_out": [{"handle": fact.handle, "text": fact.text}]}
+        artifact = {
+            "network": len(sections),
+            "context_features": [named[i].stub() for i in fact.rests_on],
+            "worked_out": [fact.model_dump()],
+        }
+        return json.dumps(view, ensure_ascii=False), artifact
+
+    @tool(response_format="content_and_artifact")
+    def find_pipelines(
+        lacking: str | None = None, proposed_only: bool | None = None
+    ) -> tuple[str, dict[str, Any]]:
+        """Pipelines across the whole network that match a rule, counted by code, with
+        the first ten named. Nothing needs to be attached. Rules, either or both:
+        `lacking`: a fact no source gives for the pipeline itself, one of name, owner,
+        operator ("which pipelines have no owner"); `proposed_only`: true for pipelines
+        that are only proposed, with no section decided yet, false for those with at
+        least one section decided. With no rule it says how many pipelines there are.
+        Use it for questions about pipelines; find_sections is for sections. The result
+        is one sentence: say it in your own words, with its counts and names as given."""
+        if lacking is not None and lacking not in network.PIPELINE_LACKABLE:
+            return f"lacking is one of {', '.join(network.PIPELINE_LACKABLE)}.", {}
+        links = store.links(relation="part_of")
+        counts: dict[str, list[int]] = {}
+        for link in links.rows:
+            if link["status"] != "rejected":
+                tally = counts.setdefault(link["to_feature_id"], [0, 0])
+                tally[0 if link["status"] == "confirmed" else 1] += 1
+        read = context.read_many(store, list(counts))
+        pipelines = sorted(
+            (
+                network.Pipeline(f, *counts[i])
+                for i, f in read.items()
+                if f.get("kind") == "line"
+                and (network_key is None or f.get("network") == network_key)
+            ),
+            key=lambda p: p.name,
+        )
+        cut = links.cut or len(read) < len(counts)
+        fact = network.pipelines_fact(pipelines, lacking, proposed_only, cut, handles.worked)
+        by_id = {p.id: p.feature for p in pipelines}
+        view = {"worked_out": [{"handle": fact.handle, "text": fact.text}]}
+        artifact = {
+            "network_pipelines": len(pipelines),
+            "context_features": [by_id[i] for i in fact.rests_on],
+            "worked_out": [fact.model_dump()],
+        }
+        return json.dumps(view, ensure_ascii=False), artifact
+
+    nearby_seen: set[str] = set()
+
+    @tool(response_format="content_and_artifact")
+    def find_nearby(section_id: str) -> tuple[str, dict[str, Any]]:
+        """The sections in store nearest one section, however far away, nearest first, each with how far it is and what it shares with the section or
+        differs in (owner, operator, diameter, the first printing that shows it), and its
+        own claims. Use it when asked which other sections are near, nearby, close, in the
+        area, or similar or like this one. Say the nearest ones and how far, in your
+        own words; add what they share only when asked."""
+        if section_id in nearby_seen:
+            return f"You already looked near {section_id}. Use that result.", {}
+        try:
+            feature = store.feature(section_id)
+        except StoreError as error:
+            if error.kind in ("not_found", "bad_request"):
+                return (
+                    f"Store has no feature with the id {section_id}.",
+                    {"not_found": section_id},
+                )
+            raise
+        if feature.get("kind") != "section":
+            return "Nearby sections are found for a section only.", {}
+        nearby_seen.add(section_id)
+        near = context.find_nearby(store, feature)
+        read = context.read_many(store, [sid for sid, _ in near.found])
+        found = [
+            (read[sid], gap)
+            for sid, gap in near.found
+            if sid in read and not is_traced_as_gone(read[sid])
+        ]
+        unmeasured = near.unmeasured or (
+            "some of them could not be read just now" if len(read) < len(near.found) else None
+        )
+        worked = context.nearby_facts(feature, found, unmeasured, handles.worked)
+        view: dict[str, Any] = {
+            "section": feature_name(feature),
+            "worked_out": [{"handle": w.handle, "text": w.text} for w in worked],
+            "nearby": [
+                {
+                    "section": feature_name(other),
+                    "km_away": round(gap / 1_000, 1),
+                    "claims_of_that_section": [
+                        _claim_view(c, handles)
+                        for c in other.get("claims") or []
+                        if c["attribute_key"] != "route"
+                    ],
+                }
+                for other, gap in found
+            ],
+        }
+        artifact = {
+            "nearby_of": feature["id"],
+            "context_features": [feature, *(other for other, _ in found)],
+            "worked_out": [w.model_dump() for w in worked],
+        }
+        return json.dumps(view, ensure_ascii=False), artifact
+
+    return [
+        read_feature,
+        read_context,
+        find_nearby,
+        sections_together,
+        pipeline_sections,
+        find_sections,
+        find_pipelines,
+    ]

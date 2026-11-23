@@ -20,6 +20,8 @@ from typing import Any
 
 from cite_input import FROM_CITE, TO_CITE, WORDS, CiteAsk, years_in
 from cite_result import CiteClaim, CiteResult
+from context import route_lines
+from places import towns_along
 from render import Read, feature_name, one_full_stop, value_words
 from schemas import Box, DraftStatement, Finding, FindingFlag, Ref, Statement
 
@@ -67,6 +69,10 @@ CITE_LINES = {
     "proposed": (
         "Proposed {value} as the {what} of {subject}, cited to {reference}. It waits for a "
         "person's decision."
+    ),
+    "not_its_pipeline": (
+        "Only the owner can be proposed for a pipeline, and only for the pipeline the "
+        "section is confirmed part of. Nothing was written."
     ),
     "store_write_failed": "Store did not take the proposal, so nothing was written.",
 }
@@ -172,13 +178,25 @@ def check_request(
         kept = [tuple(r) for r in earlier[-1].get("ruled_out") or []]
         ruled = list(dict.fromkeys([*kept, *ruled]))
     without = any(d.without_places for d in drafts) or bool(_WITHOUT_TOWNS.search(words[-1]))
+    from_line = bool(
+        earlier
+        and not any(d.places for d in drafts)
+        and places == list(earlier[-1].get("places") or [])
+        and earlier[-1].get("from_line")
+    )
     if not places and not without:
-        return AskForPlaces(sections[0], attributes)
+        # No towns named: the towns along the traced line, worked out by code. Only when
+        # none is near it does the person get asked.
+        feature = read.features.get(sections[0])
+        places = towns_along(route_lines(feature)) if feature else []
+        if not places:
+            return AskForPlaces(sections[0], attributes)
+        from_line = True
     if without and "without" not in said:
         return Refused(CITE_LINES["not_given"].format(what="Searching without towns"))
     # Cut to what one search reads by cite_input.build, which knows the first printing.
     window = (years[0], years[-1]) if years else None
-    return CiteAsk(sections[0], attributes, places, window, ruled)
+    return CiteAsk(sections[0], attributes, places, window, ruled, from_line)
 
 
 def _span(years: list[int] | None) -> tuple[int, int]:
@@ -202,7 +220,12 @@ def _years(window: tuple[int, int] | list[int] | None) -> str:
 
 def looking_line(ask: CiteAsk, subject: str) -> str:
     what = " and the ".join(_what(a) for a in ask.attributes)
-    places = f", by {', '.join(ask.places)}" if ask.places else ", with no towns"
+    if ask.from_line:
+        places = (
+            f", by the towns along its line ({', '.join(ask.places)}; name others to change them)"
+        )
+    else:
+        places = f", by {', '.join(ask.places)}" if ask.places else ", with no towns"
     return (
         f"Searching the journals for the {what} of {subject}{places}, reading "
         f"{_years(ask.years)}. This takes a few minutes."

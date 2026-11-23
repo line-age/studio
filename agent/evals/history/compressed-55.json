@@ -1,0 +1,3204 @@
+{
+ "meta": {
+  "name": "compressed-55",
+  "at": "2026-11-22T18:54:09+00:00",
+  "model": "anthropic:claude-opus-5-5",
+  "commit": "5a625d5",
+  "prompt": "8dc2eba56c96",
+  "repeat": 1
+ },
+ "cases": {
+  "B01-001": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "No source says who owns it.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.73
+    }
+   ]
+  },
+  "B01-002": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.12
+    }
+   ]
+  },
+  "B01-003": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Who owns it is not decided yet.\nSample Gas Co. is proposed as the owner, in 1938.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.75
+    }
+   ]
+  },
+  "B01-004": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "No source says who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nSample Gas Co. was ruled out as the owner of it. Do not propose it again.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 3.23
+    }
+   ]
+  },
+  "B01-009": {
+   "behaviour": "B01",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "No source says who operates it.\nThe owner is Example Pipe Line Co., by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.58
+    }
+   ]
+  },
+  "B02-001": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.\nThe diameter is 20 in, by March 1932.\nIt is first shown on the 1932 map, and is not shown on the earlier 1926 map.\nNo source says when it ended. No later map is confirmed to have dropped it, which is no proof that it lasted.\nIt lies in Oklahoma, near today's towns Dustin, Eufaula, Porum and Webbers Falls, and is about 76 km (47 miles) long as drawn.\nIt is not in a pipeline.\nNo other section is drawn touching it.\nNot known yet for it: the name and the operator. A build date is not known either.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 4.13
+    }
+   ]
+  },
+  "B02-007": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner rests on Example Gazette, vol. 32 no. 3, p. 41, which says “The Example Pipe Line Co. has completed its line to Sampletown.”",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.78
+    }
+   ]
+  },
+  "B02-008": {
+   "behaviour": "B02",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The name is Mockville loop, in 1932.\n12 in is proposed as the diameter, in 1938. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [
+      [
+       "statement 2: a name or capitalised word in your own words (Waiting); a name enters only through a slot",
+       "draft: {\"statements\":[{\"kind\":\"fact\",\"topic\":null,\"attribute\":null,\"text\":\"\",\"refs\":[{\"key\":\"c2\",\"type\":\"claim\",\"id\":\"f8ca15fe-1206-559b-b630-5a224fcdda4e\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false},{\"kind\":\"fact\",\"topic\":null,\"attribute\":null,\"text\":\"Waiting for a decision: {c1.value} is proposed as the diameter, {c1.period}, from {c1.source}, {c1.locator}. Nobody has decided on it yet.\",\"refs\":[{\"key\":\"c1\",\"type\":\"claim\",\"id\":\"c6d490c9-f260-522e-8a71-e2bc51870e74\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false}]}"
+      ]
+     ],
+     "seconds": 4.49
+    }
+   ]
+  },
+  "B04-001": {
+   "behaviour": "B04",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "I can only help with the pipeline data here, its sources and how Studio works.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.9
+    }
+   ]
+  },
+  "B05-001": {
+   "behaviour": "B05",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "I cannot answer that here. I only say what the data, its sources or Studio's help hold.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.62
+    }
+   ]
+  },
+  "B10-001": {
+   "behaviour": "B10",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "I can tell you about the sections and pipelines you select:\n- What is known, such as the owner, diameter and name, each with its source\n- What is still unknown or only proposed, and where to look next\n- Which map editions show a section, and the first one that does\n- Where it lies: its state, today's towns along it, and its length as drawn\n- What it is drawn touching, and which sections are nearby\n- A pipeline as a whole: its sections, how long they are drawn, where they lie, what they share and which lack a fact\n- The whole network: how many sections have no owner, are in a state, first appear on a year's map, or have a proposal waiting\n- What a word means here, and how to do a thing in Studio\n- How the sections you select compare: what they share, where they differ, which is shown earlier, which is longer\n\nI can also:\n- Search the trade journals for an owner, diameter or build date, and offer what I find for you to accept or reject\n- Make two or more sections one pipeline, once you confirm\n\nTo ask about something, select it on the map or in the list and press Ask the Agent, or type # here to pick it.\n\nNot yet: who traced a line, and changing what is recorded.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.66
+    }
+   ]
+  },
+  "B17-001": {
+   "behaviour": "B17",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "It is first shown on the 1932 map, and is not shown on the earlier 1926 map.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.27
+    }
+   ]
+  },
+  "B17-002": {
+   "behaviour": "B17",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "No source says when it ended. No later map is confirmed to have dropped it, which is no proof that it lasted.\nIt is proposed, and not yet decided, that the 1946 map no longer shows it. Until someone decides, when it ended stays Unknown.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.36
+    }
+   ]
+  },
+  "B18-001": {
+   "behaviour": "B18",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "It is part of the pipeline Example trunk line, by a confirmed link. What is known about the pipeline is the pipeline's, not the section's.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.67
+    }
+   ]
+  },
+  "B19-001": {
+   "behaviour": "B19",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section fcf4207a is drawn touching it: their ends meet. Lines drawn touching do not prove the pipes joined.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.15
+    }
+   ]
+  },
+  "B20-001": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "No source says who owns it.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching it. The same page may name its owner too.\nsection fcf4207a, drawn touching it, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for it.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as it. If someone confirms it, it takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.66
+    }
+   ]
+  },
+  "B20-002": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "No source says who owns it.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching it. The same page may name its owner too.\nsection fcf4207a, drawn touching it, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for it.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as it. If someone confirms it, it takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 3.13
+    }
+   ]
+  },
+  "B21-001": {
+   "behaviour": "B21",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Searching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.2
+    }
+   ]
+  },
+  "B22-001": {
+   "behaviour": "B22",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Searching the journals for the owner of section 06a875ca, by the towns along its line (Tribbey, St. Louis, Wewoka, Lamar; name others to change them), reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.46
+    }
+   ]
+  },
+  "B23-005": {
+   "behaviour": "B23",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Searching the journals for the owner of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: Example Pipe Line Co. as the owner of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.23
+    }
+   ]
+  },
+  "B24-001": {
+   "behaviour": "B24",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Searching the journals for the owner of section 06a875ca, by Sampleton, Exampleville, reading 1931 to 1932. This takes a few minutes.\nSearched, not found: the owner of section 06a875ca. 9 searches of The Example Trade Journal, 104 issues from 2 January 1930 to 24 December 1931.\ncite turned down 1 other proposed value: the page did not say it, it was about another line, or it was ruled out.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.22
+    }
+   ]
+  },
+  "B25-001": {
+   "behaviour": "B25",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Searching the journals for the diameter of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.\nFound, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.\nFound, in doubt: 12-in. as the diameter of section 06a875ca, as of 7 May 1931. The Example Trade Journal, vol. 12 no. 9, 7 May 1931, p. 18.\nThe sources disagree on the diameter: 10-in. and 12-in. Both are shown; neither is picked.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 4.03
+    }
+   ]
+  },
+  "B26-001": {
+   "behaviour": "B26",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Proposed Example Pipe Line Co. as the owner of section 06a875ca, cited to The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41. It waits for a person's decision.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    }
+   ]
+  },
+  "B27-004": {
+   "behaviour": "B27",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "No source says who owns section 06a875ca.\nI search for one section at a time. Attach one section and ask again.\nNo source says who owns section 2cf68921.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "sections_together"
+     ],
+     "blocked": [],
+     "seconds": 4.7
+    }
+   ]
+  },
+  "B28-001": {
+   "behaviour": "B28",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 3,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Propose these 3 sections as one pipeline? Store keeps it as a proposal until a person decides it in the inbox. 1 of them is already in a pipeline; it stays there until a person moves it.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    }
+   ]
+  },
+  "B29-005": {
+   "behaviour": "B29",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Only a person decides or changes what store holds. Proposals are decided in the inbox above the chat; a section goes into or out of a pipeline with Change pipeline in its right-click menu.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    }
+   ]
+  },
+  "B29-006": {
+   "behaviour": "B29",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 3,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Propose these 3 sections as one pipeline? Store keeps it as a proposal until a person decides it in the inbox. It has no name: store keeps a pipeline's name only once a source gives one.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    }
+   ]
+  },
+  "B30-003": {
+   "behaviour": "B30",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Mockville loop is about 48 km from section 013441e4. First shown on different maps (1938 here, 1932 there).\nsection 06a875ca is about 90 km from section 013441e4. First shown on different maps (1938 here, 1932 there).\nsection a9121d7a is about 128 km from section 013441e4. Nothing is known for both that could be compared.\nsection c4e00696 is about 220 km from section 013441e4. First shown on the same map (1938).\nsection 7228cfbd is about 18 km from Sampletown lateral. First shown on the same map (1932).\nsection 06a875ca is about 18 km from Sampletown lateral. First shown on the same map (1932).\nsection fbfca50c is about 111 km from Sampletown lateral. First shown on different maps (1932 here, 1938 there).\nsection aa16d282 is about 203 km from Sampletown lateral. First shown on different maps (1932 here, 1938 there).",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "sections_together",
+      "find_nearby",
+      "find_nearby"
+     ],
+     "blocked": [],
+     "seconds": 6.89
+    }
+   ]
+  },
+  "B31-005": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "I cannot say who traced a section yet. The list's Traced by filter shows it.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.74
+    }
+   ]
+  },
+  "B31-015": {
+   "behaviour": "B31",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "I cannot count or search across the whole network yet. Attach the sections you mean, or use the list's filters.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.91
+    }
+   ]
+  },
+  "B32-001": {
+   "behaviour": "B32",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The diameter is 20 in, by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.32
+    }
+   ]
+  },
+  "B32-008": {
+   "behaviour": "B32",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "No source says who owns it.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.38
+    }
+   ]
+  },
+  "B32-010": {
+   "behaviour": "B32",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The diameter is 20 in, by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.12
+    }
+   ]
+  },
+  "B33-007": {
+   "behaviour": "B33",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Its drawn line lies in Oklahoma, near today's towns Tribbey, St. Louis, Wewoka and Lamar.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.02
+    }
+   ]
+  },
+  "B33-011": {
+   "behaviour": "B33",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "It is about 45 km (28 miles) long as drawn.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.22
+    }
+   ]
+  },
+  "B36-004": {
+   "behaviour": "B36",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.63
+    }
+   ]
+  },
+  "B36-007": {
+   "behaviour": "B36",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Its drawn line lies in Arkansas.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.92
+    }
+   ]
+  },
+  "B37-002": {
+   "behaviour": "B37",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "It is part of the pipeline Example trunk line, by a confirmed link. What is known about the pipeline is the pipeline's, not the section's.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.45
+    }
+   ]
+  },
+  "B38-002": {
+   "behaviour": "B38",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Sampletown lateral is first shown on the 1932 map and section aa16d282 on the 1938 map, so Sampletown lateral is shown earlier. A map year is not a build date.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "sections_together"
+     ],
+     "blocked": [],
+     "seconds": 2.04
+    }
+   ]
+  },
+  "B38-005": {
+   "behaviour": "B38",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 9349612f is drawn touching section 2cf68921: their ends meet. Lines drawn touching do not prove the pipes joined.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "sections_together"
+     ],
+     "blocked": [],
+     "seconds": 1.81
+    }
+   ]
+  },
+  "B38-008": {
+   "behaviour": "B38",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Sampletown lateral is first shown on the 1932 map and section aa16d282 on the 1938 map, so Sampletown lateral is shown earlier. A map year is not a build date.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "sections_together"
+     ],
+     "blocked": [],
+     "seconds": 1.72
+    }
+   ]
+  },
+  "B39-001": {
+   "behaviour": "B39",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 10,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is known for 2 of the 10 sections: Example Pipe Line Co. for Sampletown lateral; Invented Natural Gas Corp. for section 013441e4. No source gives it for 8: section 06a875ca, section 7228cfbd, section fbfca50c, section aa16d282, section 2cf68921, section 9349612f, section b5ba97b6 and section 2d111615. A value for the owner is proposed, and not decided yet, for section 7228cfbd.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "read_context",
+      "sections_together"
+     ],
+     "blocked": [],
+     "seconds": 2.18
+    }
+   ]
+  },
+  "B39-006": {
+   "behaviour": "B39",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 3,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "All 3 sections are first shown on the 1932 map.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "read_context",
+      "sections_together"
+     ],
+     "blocked": [],
+     "seconds": 1.82
+    }
+   ]
+  },
+  "B40-001": {
+   "behaviour": "B40",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "No source gives a build date for it. The 1932 map is the first to show it, and a map year is not a build date.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.53
+    }
+   ]
+  },
+  "B40-003": {
+   "behaviour": "B40",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Its drawn line lies in Oklahoma, near today's towns Tribbey, St. Louis, Wewoka and Lamar.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.03
+    }
+   ]
+  },
+  "B40-007": {
+   "behaviour": "B40",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "No source gives a build date for it. The 1932 map is the first to show it, and a map year is not a build date.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.58
+    }
+   ]
+  },
+  "B41-001": {
+   "behaviour": "B41",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "It has 3 sections: section 2cf68921, section 9349612f and section 7707ea05.",
+     "tools": [
+      "read_feature",
+      "pipeline_sections"
+     ],
+     "blocked": [],
+     "seconds": 1.63
+    }
+   ]
+  },
+  "B41-002": {
+   "behaviour": "B41",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Together the 3 sections are about 195 km (121 miles) long as drawn.",
+     "tools": [
+      "read_feature",
+      "pipeline_sections"
+     ],
+     "blocked": [],
+     "seconds": 1.93
+    }
+   ]
+  },
+  "B41-010": {
+   "behaviour": "B41",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "For the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature",
+      "pipeline_sections"
+     ],
+     "blocked": [],
+     "seconds": 1.21
+    }
+   ]
+  },
+  "B42-001": {
+   "behaviour": "B42",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "A section is a continuous stretch of line built and put in use at one time. It is what facts are recorded for: each line you can select on the map is a section.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.92
+    }
+   ]
+  },
+  "B42-004": {
+   "behaviour": "B42",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "To make a pipeline, select two or more sections on the map or in the list, right-click and choose Make pipeline. Or select them and ask me to make them one pipeline: I prepare it and you confirm.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.44
+    }
+   ]
+  },
+  "B42-008": {
+   "behaviour": "B42",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'help_pipeline'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "fixed_line"
+      }
+     },
+     "answer": "A section is a continuous stretch of line built and put in use at one time. It is what facts are recorded for: each line you can select on the map is a section.",
+     "tools": [],
+     "blocked": [
+      [
+       "a help statement must be the whole answer; leave it out or answer with it alone",
+       "draft: {\"statements\":[{\"kind\":\"help\",\"topic\":\"section\",\"attribute\":null,\"text\":\"\",\"refs\":[],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false},{\"kind\":\"help\",\"topic\":\"pipeline\",\"attribute\":null,\"text\":\"\",\"refs\":[],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false}]}"
+      ]
+     ],
+     "seconds": 4.01
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'help_pipeline'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "fixed_line"
+      }
+     },
+     "answer": "A section is a continuous stretch of line built and put in use at one time. It is what facts are recorded for: each line you can select on the map is a section.",
+     "tools": [],
+     "blocked": [
+      [
+       "a help statement must be the whole answer; leave it out or answer with it alone",
+       "draft: {\"statements\":[{\"kind\":\"help\",\"topic\":\"section\",\"attribute\":null,\"text\":\"\",\"refs\":[],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false},{\"kind\":\"help\",\"topic\":\"pipeline\",\"attribute\":null,\"text\":\"\",\"refs\":[],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false}]}"
+      ]
+     ],
+     "seconds": 3.47
+    },
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'help_pipeline'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "fixed_line"
+      }
+     },
+     "answer": "A section is a continuous stretch of line built and put in use at one time. It is what facts are recorded for: each line you can select on the map is a section.",
+     "tools": [],
+     "blocked": [
+      [
+       "a help statement must be the whole answer; leave it out or answer with it alone",
+       "draft: {\"statements\":[{\"kind\":\"help\",\"topic\":\"section\",\"attribute\":null,\"text\":\"\",\"refs\":[],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false},{\"kind\":\"help\",\"topic\":\"pipeline\",\"attribute\":null,\"text\":\"\",\"refs\":[],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false}]}"
+      ]
+     ],
+     "seconds": 3.59
+    }
+   ]
+  },
+  "B43-001": {
+   "behaviour": "B43",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Sections with no known owner: 14 of the 20 in the network. The first 10 are: Mockville loop, section 06a875ca, section 1754eb75, section 1f0c3ef9, section 2cf68921, section 2d111615, section 698a2811, section 7228cfbd, section 7707ea05, section 9349612f.",
+     "tools": [
+      "find_sections"
+     ],
+     "blocked": [],
+     "seconds": 4.15
+    }
+   ]
+  },
+  "B43-008": {
+   "behaviour": "B43",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Sections with no known diameter and in Arkansas: 4 of the 20 in the network. They are: section 2cf68921, section 7228cfbd, section aa16d282, section fbfca50c.",
+     "tools": [
+      "find_sections"
+     ],
+     "blocked": [],
+     "seconds": 3.46
+    }
+   ]
+  },
+  "B43-015": {
+   "behaviour": "B43",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The network has 2 pipelines, 1 of them only proposed.",
+     "tools": [
+      "find_pipelines"
+     ],
+     "blocked": [],
+     "seconds": 7.8
+    }
+   ]
+  }
+ }
+}

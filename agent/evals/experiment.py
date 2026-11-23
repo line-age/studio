@@ -22,6 +22,7 @@ from typing import Any
 
 from langchain_core.messages import HumanMessage
 
+from evals import replay
 from evals import report as reports
 from evals.cases import Case, load, question_for
 from evals.checks import check
@@ -37,8 +38,16 @@ def _message(question: dict[str, Any], n: int) -> HumanMessage:
     )
 
 
-def run_case(case: Case) -> dict[str, Any]:
+def _key(case: Case) -> str:
+    return replay.key_of(json.dumps([case.id, case.world, case.question, case.turns, case.cite]))
+
+
+def run_case(case: Case, budget: "replay.Budget | None" = None) -> dict[str, Any]:
     """Ask one case's question of the Agent on its world. Returns what the checks read.
+
+    With a `budget` the model is called and what it said is recorded; without one the
+    case is answered from its recording, and a case with none, or a stale one, is said
+    to be stale and not run.
 
     A case that searches runs its turns on one thread, with the fake cite and a proposal
     client into the fake store; it is timed from its last question."""
@@ -50,18 +59,30 @@ def run_case(case: Case) -> dict[str, Any]:
     world = load_world(case.world)
     store = FakeStore(world)
     cite = FakeCite(*case.cite, polls=1) if case.searches else None
+    key = _key(case)
+    recorder = replay.Recorder(budget) if budget is not None else None
+    model = None if budget is not None else replay.load(case.id, key)
+    if budget is None and model is None:
+        return {
+            "answer": None,
+            "tools": [],
+            "stale": True,
+            "error": "no recording for it as it is now",
+        }
     try:
         if case.searches:
             graph = build_graph(
-                store=store.client(), cite=cite, writer=store.writer(), cite_poll=0.05
+                store=store.client(), model=model, cite=cite, writer=store.writer(), cite_poll=0.05
             )
             graph.checkpointer = InMemorySaver()
         elif case.acts:
-            graph = build_graph(store=store.client(), cite=None, writer=store.writer())
+            graph = build_graph(store=store.client(), model=model, cite=None, writer=store.writer())
             graph.checkpointer = InMemorySaver()
         else:
-            graph = build_graph(store=store.client(), cite=None, writer=None)
+            graph = build_graph(store=store.client(), model=model, cite=None, writer=None)
         config = {"configurable": {"thread_id": "case"}}
+        if recorder is not None:
+            config["callbacks"] = [recorder]
         for n, turn in enumerate(case.turns, 1):
             graph.invoke({"messages": [_message(question_for(case, world, turn), n)]}, config)
         start = time.perf_counter()
@@ -69,7 +90,12 @@ def run_case(case: Case) -> dict[str, Any]:
         state = graph.invoke({"messages": [last]}, config)
     except Exception as exc:  # noqa: BLE001 - a crash is a failed case, not a failed run
         return {"answer": None, "tools": [], "error": f"{type(exc).__name__}: {exc}"[:500]}
+    if recorder is not None:
+        replay.save(case.id, key, recorder.calls)
     return {
+        "calls": len(recorder.calls) if recorder else 0,
+        "tokens_in": sum(c["tokens_in"] for c in recorder.calls) if recorder else 0,
+        "tokens_out": sum(c["tokens_out"] for c in recorder.calls) if recorder else 0,
         # What the fake cite was asked and gave, and what store took: for the checks.
         "cite_inputs": cite.inputs if cite else [],
         "cite_results": [r.result() for r in cite.runs.values() if r.result()] if cite else [],
@@ -121,12 +147,22 @@ def _text(outputs: dict[str, Any]) -> str:
     return "\n".join(s["text"] for s in answer["statements"]) or outputs.get("error", "")
 
 
-def run_local(cases: list[Case], repeat: int, name: str) -> dict[str, Any]:
+def run_local(
+    cases: list[Case],
+    repeat: int,
+    name: str,
+    retry: int = 0,
+    budget: "replay.Budget | None" = None,
+) -> dict[str, Any]:
     from langsmith import tracing_context
 
     def one(case: Case) -> dict[str, Any]:
-        outputs = run_case(case)
+        outputs = run_case(case, budget)
         return {
+            "stale": bool(outputs.get("stale")),
+            "calls": outputs.get("calls", 0),
+            "tokens_in": outputs.get("tokens_in", 0),
+            "tokens_out": outputs.get("tokens_out", 0),
             "feedback": check(case, load_world(case.world), outputs),
             "answer": _text(outputs),
             "tools": outputs["tools"],
@@ -137,6 +173,16 @@ def run_local(cases: list[Case], repeat: int, name: str) -> dict[str, Any]:
     out = {"meta": _meta(name, repeat), "cases": {c.id: _entry(c) for c in cases}}
     with tracing_context(enabled=False), ThreadPoolExecutor(max_workers=4) as pool:
         jobs = [(case, pool.submit(one, case)) for case in cases for _ in range(repeat)]
+        for case, job in jobs:
+            out["cases"][case.id]["repeats"].append(job.result())
+        # A case that failed is run again: it passes on a majority, so one bad draw does
+        # not fail it, and a case that passes first time costs one answer, not three.
+        again = [
+            c
+            for c in cases
+            if not all(r["feedback"]["case_passed"]["score"] for r in out["cases"][c.id]["repeats"])
+        ]
+        jobs = [(case, pool.submit(one, case)) for case in again for _ in range(retry)]
         for case, job in jobs:
             out["cases"][case.id]["repeats"].append(job.result())
     return out
@@ -207,6 +253,17 @@ def main() -> None:
     parser.add_argument("--full", action="store_true", help="every behaviour")
     parser.add_argument("--held-out", action="store_true", help="include the held-out cases")
     parser.add_argument("--repeat", type=int, default=1)
+    parser.add_argument(
+        "--retry", type=int, default=0, help="more runs of a case that failed (live runs)"
+    )
+    parser.add_argument(
+        "--live", action="store_true", help="call the model and record what it says"
+    )
+    parser.add_argument("--yes", action="store_true", help="with --live: go ahead and spend")
+    parser.add_argument("--stale", action="store_true", help="with --live: only stale cases")
+    parser.add_argument(
+        "--with-keeps", action="store_true", help="also the behaviours these must keep"
+    )
     parser.add_argument("--local", action="store_true", help="upload nothing")
     parser.add_argument("--save", help="keep the report as history/NAME.json")
     parser.add_argument("--against", help="compare with history/NAME.json")
@@ -223,8 +280,46 @@ def main() -> None:
     cases = load(None if args.full else args.behaviour)
     if not args.held_out:
         cases = [c for c in cases if c.split == "dev"]
+    if not args.full and not args.with_keeps:
+        cases = [c for c in cases if c.behaviour in args.behaviour]
     name = args.save or ("full" if args.full else "-".join(args.behaviour))
-    result = (run_local if args.local else run_langsmith)(cases, args.repeat, name)
+    if not args.live:
+        # The default costs nothing: every case is answered from its recording.
+        result = run_local(cases, 1, name)
+    else:
+        if args.stale:
+            cases = [c for c in cases if replay.load(c.id, _key(c)) is None]
+        asked = sum(1 + len(c.turns) for c in cases) * args.repeat
+        known = [replay.calls_recorded(c.id) for c in cases]
+        guess = sum(
+            k if k is not None else 1 + len(c.turns) for k, c in zip(known, cases, strict=True)
+        )
+        print(
+            f"Live: {len(cases)} cases, {asked} questions, about {guess * args.repeat} model "
+            f"calls (stops at {replay.CAP}), retries {args.retry}."
+        )
+        if asked > replay.QUESTIONS:
+            parser.error(f"more than {replay.QUESTIONS} questions in one live run: narrow it")
+        if not args.yes:
+            print("Nothing was run. Add --yes to spend this.")
+            return
+        budget = replay.Budget()
+        result = run_local(cases, args.repeat, name, args.retry, budget)
+        repeats = [r for c in result["cases"].values() for r in c["repeats"]]
+        print(
+            f"Spent: {budget.used} model calls, {sum(r['tokens_in'] for r in repeats):,} tokens "
+            f"in, {sum(r['tokens_out'] for r in repeats):,} out."
+        )
+    stale = sorted(
+        cid for cid, c in result["cases"].items() if any(r.get("stale") for r in c["repeats"])
+    )
+    if stale:
+        print(f"Stale, not run ({len(stale)}): {' '.join(stale)}")
+        print("Their prompt, tools or case changed. Record them: --live --stale --yes")
+        # A stale case is neither a pass nor a failure: it is left out of the report.
+        result["cases"] = {k: v for k, v in result["cases"].items() if k not in stale}
+        if not result["cases"]:
+            return
 
     before = reports.load(HERE / "history" / f"{args.against}.json") if args.against else None
     print(reports.text(result, before))

@@ -2,7 +2,7 @@
   "$defs": {
     "Action": {
       "additionalProperties": false,
-      "description": "A button the person pressed, not words: code acts on it, no model reads it.\n\npropose: write a finding to store as a candidate claim.\npropose_pipeline: write a new pipeline (a line) with a proposed part_of link for each\nof `section_ids`; a person decides it.\nfresh_start: drop the conversation's messages, keep what cite found.",
+      "description": "A button the person pressed, not words: code acts on it, no model reads it.\n\npropose: write a finding to store as a candidate claim, on its section or, by\n`target`, on the pipeline that section is confirmed part of.\npropose_pipeline: write a new pipeline (a line) with a proposed part_of link for each\nof `section_ids`; a person decides it.\nfresh_start: drop the conversation's messages, keep what cite found.",
       "properties": {
         "kind": {
           "enum": [
@@ -24,6 +24,18 @@
           ],
           "default": null,
           "title": "Finding"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
         },
         "section_ids": {
           "anyOf": [

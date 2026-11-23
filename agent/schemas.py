@@ -10,6 +10,9 @@ from pydantic import BaseModel, ConfigDict, Field
 CONTRACT_VERSION = 2
 
 StatementKind = Literal[
+    # The answer in the model's own words; every value in it was read this turn
+    # (prose.py checks). What most answers are made of.
+    "answer",
     "fact",
     "unknown",
     "set",
@@ -41,9 +44,14 @@ StatementKind = Literal[
     # The person asked to make the attached sections one pipeline: code's offer, shown
     # as a Confirmation. Nothing is written until the person presses it (propose_pipeline).
     "pipeline_offer",
+    # The Edit form filled in from the person's own words, for them to check and save.
+    # Nothing is written: Studio opens the form and the person saves it.
+    "edit_offer",
+    # Something the Agent cannot do yet, said as one fixed line for its topic (B31).
+    "not_yet",
 ]
 # Kinds whose text is written by code, never by the model, and which carry no reference.
-FIXED_KINDS: frozenset[str] = frozenset({"refusal", "greeting", "failure"})
+FIXED_KINDS: frozenset[str] = frozenset({"refusal", "greeting", "failure", "not_yet", "help"})
 # Kinds that must rest on something read from store in this run.
 GROUNDED_KINDS: frozenset[str] = frozenset({"fact", "unknown", "set", "reading"})
 
@@ -72,7 +80,8 @@ class QuestionItem(_Strict):
 class Action(_Strict):
     """A button the person pressed, not words: code acts on it, no model reads it.
 
-    propose: write a finding to store as a candidate claim.
+    propose: write a finding to store as a candidate claim, on its section or, by
+    `target`, on the pipeline that section is confirmed part of.
     propose_pipeline: write a new pipeline (a line) with a proposed part_of link for each
     of `section_ids`; a person decides it.
     fresh_start: drop the conversation's messages, keep what cite found."""
@@ -80,6 +89,9 @@ class Action(_Strict):
     kind: Literal["propose", "propose_pipeline", "fresh_start"]
     # For propose: the finding's handle in this thread (F1).
     finding: str | None = None
+    # For propose: the feature to write it to, the finding's section (the default) or
+    # the pipeline that section is confirmed part of. An owner belongs to the pipeline.
+    target: str | None = None
     # For propose_pipeline: the sections, as the offer listed them.
     section_ids: list[str] | None = None
 
@@ -140,7 +152,49 @@ class DraftStatement(_Strict):
         "worked_out",
         "lead",
         "finding",
+        "not_yet",
+        "help",
+        "edit_offer",
+        "answer",
     ]
+    topic: (
+        Literal[
+            "network",
+            "recall",
+            "tracer",
+            "help",
+            "unrelated",
+            "background",
+            "capabilities",
+            "towns",
+            "map_year",
+            "touching",
+            "drawn_length",
+            "unknown",
+            "section",
+            "pipeline",
+            "edition",
+            "claim",
+            "citation",
+            "proposal",
+            "lead",
+            "make_pipeline",
+            "edit",
+            "ask",
+            "sources",
+            "pipeline_facts",
+        ]
+        | None
+    ) = Field(
+        None,
+        description=(
+            "For not_yet: what cannot be done yet (network, recall, tracer, help). "
+            " For refusal: unrelated (the default) or background. For help: "
+            "capabilities, or why an answer says what it says (towns, map_year, touching, "
+            "drawn_length, unknown), what a word means (section, pipeline, edition, claim, "
+            "citation, proposal, lead) or how a thing is done (make_pipeline, edit, ask, sources, pipeline_facts)."
+        ),
+    )
     attribute: AttributeKey | None = Field(
         None,
         description=(
@@ -169,6 +223,13 @@ class DraftStatement(_Strict):
     )
     without_places: bool = Field(
         False, description="True only when the person said to search without towns."
+    )
+    value: str | None = Field(
+        None,
+        description=(
+            "For edit_offer: the value the person asked to set, copied from their words "
+            "exactly as written. Never a value from your memory, a source or a finding."
+        ),
     )
 
 
@@ -296,6 +357,17 @@ class PipelineOffer(_Strict):
     in_pipeline: list[str] = Field(default_factory=list)
 
 
+class EditOffer(_Strict):
+    """What an edit_offer fills Studio's Edit form with. The person checks it, adds the
+    source and saves; the Agent writes nothing."""
+
+    # "sections" opens Edit on these sections; "pipeline" opens Edit pipeline on the one.
+    target: Literal["sections", "pipeline"]
+    feature_ids: list[str]
+    attribute: str
+    value: str
+
+
 class Statement(_Strict):
     kind: StatementKind
     text: str
@@ -310,6 +382,8 @@ class Statement(_Strict):
     finding: Finding | None = None
     # For kind pipeline_offer: the sections the Confirmation would propose.
     pipeline: PipelineOffer | None = None
+    # For kind edit_offer: what Studio's Edit form is opened with.
+    edit: "EditOffer | None" = None
 
 
 class Answer(_Strict):
@@ -319,6 +393,9 @@ class Answer(_Strict):
     version: int = CONTRACT_VERSION
     checked: bool = False
     statements: list[Statement]
+    # A follow-up: nothing was attached, so the answer is about these, the things of
+    # the person's last question, read again for this one. Studio says so above it.
+    carried: list[Ref] = Field(default_factory=list)
 
 
 # The section pack: what code works out about one section, for the chat and for cite ---
@@ -373,9 +450,23 @@ class WorkedOut(_Strict):
         "parallel",
         "link",
         "drawn_touching",
+        "nearby",
+        # Where the traced line lies (today's towns, states) and how long it is drawn.
+        "place",
+        "length",
+        # What is not known yet: when it was built; which facts no source gives.
+        "built",
+        "missing",
+        # Several sections taken together: compared, or summarised (together.py).
+        "together",
+        # Sections across the whole network that match a rule, counted (network.py).
+        "network",
     ]
     text: str
     rests_on: list[str] = Field(default_factory=list)
+    # The values in it, by name (km, towns, year): what a sentence the model writes may
+    # put in through a slot ({w1.km}). Words code made; never typed by the model.
+    values: dict[str, str] = Field(default_factory=dict)
 
 
 class Lead(_Strict):
@@ -396,8 +487,8 @@ class Lead(_Strict):
 class SectionPack(_Strict):
     """Everything code can say about one section from store: the chat answers from it
     and cite takes it as its brief. Fields follow cite's input (ids, line type, name,
-    states, place names, observations). States and places are empty until place data
-    comes in (owner, 2026-11-14)."""
+    states, place names, observations). States and places are worked out from the traced
+    line: today's towns, never a claim."""
 
     version: int = 1
     section_id: str

@@ -60,7 +60,7 @@ def _unknown_owner(feature_id):
         "statements": [
             {
                 "kind": "unknown",
-                "text": "Store does not say who owns this section.",
+                "text": "No source says who owns this section.",
                 "refs": [{"key": "f1", "type": "feature", "id": feature_id}],
                 "attribute": "owner",
             }

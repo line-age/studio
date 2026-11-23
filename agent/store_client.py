@@ -194,9 +194,14 @@ class StoreClient:
         *,
         transport: httpx.BaseTransport | None = None,
         timeout: float = 30.0,
+        token: str = "",
     ):
+        """`token`: the Agent's own read token, sent as a Bearer header to store and to
+        nothing else (no redirect is followed, no proxy is used). Empty: no header, for
+        a store that takes a request without one (development)."""
         self._http = httpx.Client(
             base_url=check_store_url(base_url),
+            headers={"Authorization": f"Bearer {token}"} if token else None,
             transport=transport,
             timeout=timeout,
             follow_redirects=False,
