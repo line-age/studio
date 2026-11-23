@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "checked": true,
+  "statements": [
+    {
+      "kind": "search_offer",
+      "text": "Search the journals for the owner",
+      "refs": [
+        {
+          "type": "feature",
+          "id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+          "label": "section 06a875ca"
+        }
+      ],
+      "search": {
+        "id": "6d1a2b3c-4e5f-4a6b-8c7d-9e0f1a2b3c4d",
+        "section_id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+        "attributes": [
+          "owner"
+        ],
+        "years": [
+          1931,
+          1932
+        ],
+        "places": [
+          "Sampleton"
+        ],
+        "from_line": false,
+        "ready": true
+      }
+    }
+  ],
+  "carried": []
+}

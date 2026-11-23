@@ -50,6 +50,7 @@ CITE_LINES = {
         "finding shows. {what} is none of these."
     ),
     "busy": "A search is already running. Ask again when it has finished.",
+    "already_searched": "That search has run already. Ask again to search again.",
     "nothing_to_search_by": (
         "Store holds no name for this section, so without towns there is nothing to search "
         "by. Which towns does it run between or through?"
@@ -216,6 +217,11 @@ def _years(window: tuple[int, int] | list[int] | None) -> str:
         return "the years nearest the first map that shows it"
     start, end = window
     return str(start) if start == end else f"{start} to {end}"
+
+
+def offer_line(attributes: list[str]) -> str:
+    """The search card's title: "Search the journals for the owner"."""
+    return f"Search the journals for the {' and the '.join(_what(a) for a in attributes)}"
 
 
 def looking_line(ask: CiteAsk, subject: str) -> str:

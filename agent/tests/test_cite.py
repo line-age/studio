@@ -11,6 +11,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 import cite_flow
 import context
 from agent import build_graph
+from cite_flow import CITE_LINES
 from evals.fake_cite import FakeCite
 from evals.fake_store import FakeStore, load_world
 from schemas import Answer
@@ -55,14 +56,38 @@ class Chat:
         self.graph.checkpointer = InMemorySaver()
         self.n = 0
 
-    def ask(self, words, about=(), action=None) -> dict:
+    def ask(self, words, about=(), action=None, press=True) -> dict:
         self.n += 1
         question = {"words": words, "about": [{"kind": "section", "id": i} for i in about]}
         if action:
             question["action"] = action
         message = HumanMessage(words, id=f"q{self.n}", additional_kwargs={"question": question})
         config = {"configurable": {"thread_id": "t"}, "recursion_limit": 200}
-        return self.graph.invoke({"messages": [message]}, config)
+        out = self.graph.invoke({"messages": [message]}, config)
+        return press_search(self, out) if press else out
+
+
+def offered(out) -> dict | None:
+    """The ready search an answer offers, if any."""
+    for st in (out.get("answer") or {}).get("statements") or []:
+        if st["kind"] == "search_offer" and st["search"]["ready"]:
+            return st
+    return None
+
+
+def press_search(chat, out) -> dict:
+    """Press Search on the offer in `out`, as Studio does, and return the answer as the
+    person reads the two turns: the offer's place taken by what the search said."""
+    offer = offered(out)
+    if offer is None:
+        return out
+    after = chat.ask(
+        "Search", action={"kind": "search", "offer": offer["search"]["id"]}, press=False
+    )
+    before = out["answer"]["statements"]
+    i = before.index(offer)
+    merged = [*before[:i], *after["answer"]["statements"], *before[i + 1 :]]
+    return {**after, "answer": {**after["answer"], "statements": merged}, "offer": offer}
 
 
 def request(section_id, attribute="owner", **steer):
@@ -147,7 +172,10 @@ def test_no_towns_near_it_asks_for_them_and_the_next_message_steers_the_kept_req
         request(s01, places=["Sampleton"]),
     )
     first = chat.ask("Look for the owner of this section.", [s01])
-    assert kinds(first) == ["ask_places"]
+    # No towns near it and none given: a search card with Search off (Figma 29, A2).
+    assert kinds(first) == ["search_offer"]
+    [offer] = first["answer"]["statements"]
+    assert offer["search"]["ready"] is False and offer["search"]["places"] == []
     assert first["cite"]["pending"] == {"section_id": s01, "attributes": ["owner"]}
     assert chat.cite.inputs == []
 
@@ -436,3 +464,57 @@ def test_a_diameter_is_never_proposed_for_a_pipeline(world):
     out = chat.ask("Propose F1", action={"kind": "propose", "finding": "F1", "target": l01})
     assert out["answer"]["statements"][0]["text"] == cite_flow.CITE_LINES["not_its_pipeline"]
     assert chat.writer.bundles == []
+
+
+# A search waits for Search (plan 2b, Figma section 29 board A) ---------------------------
+
+
+def test_a_search_is_offered_and_nothing_runs_until_search_is_pressed(world):
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01, places=["Sampleton"]), cite=FakeCite("owner_found"))
+    out = chat.ask("Find who owned it; it runs through Sampleton.", [s01], press=False)
+    offer = offered(out)
+    assert offer["text"] == "Search the journals for the owner"
+    assert offer["search"]["section_id"] == s01
+    assert offer["search"]["places"] == ["Sampleton"]
+    assert offer["search"]["years"]  # the years cite will read, known before it runs
+    assert chat.cite.inputs == []  # nothing started, nothing spent
+    after = chat.ask("Search", action={"kind": "search", "offer": offer["search"]["id"]})
+    assert "finding" in kinds(after)
+    assert len(chat.cite.inputs) == 1
+
+
+def test_a_search_runs_once_and_an_unknown_offer_is_refused(world):
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01, places=["Sampleton"]), cite=FakeCite("owner_found"))
+    out = chat.ask("Find who owned it; it runs through Sampleton.", [s01])
+    again = chat.ask("Search", action={"kind": "search", "offer": out["offer"]["search"]["id"]})
+    assert again["answer"]["statements"][0]["text"] == CITE_LINES["already_searched"]
+    gone = chat.ask("Search", action={"kind": "search", "offer": "no-such-offer"})
+    assert gone["answer"]["statements"][0]["text"].startswith("That card is no longer")
+    assert len(chat.cite.inputs) == 1
+
+
+def test_what_the_offer_says_is_what_is_searched_whatever_studio_sends(world):
+    """Studio sends only the offer's id: the towns and years are the thread's own."""
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01, places=["Sampleton"]), cite=FakeCite("owner_found"))
+    out = chat.ask("Find who owned it; it runs through Sampleton.", [s01], press=False)
+    offer = offered(out)
+    chat.ask("Search", action={"kind": "search", "offer": offer["search"]["id"]})
+    assert chat.cite.inputs[0]["places"] == ["Sampleton"]
+
+
+def test_a_search_started_from_words_fails_its_case(world):
+    """The mutation of plan 2b: an answer that starts cite with no Search pressed."""
+    from evals.cases import load
+    from evals.checks import check
+
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01, places=["Sampleton"]), cite=FakeCite("owner_found"))
+    out = chat.ask("Find who owned this section in the journals. It runs through Sampleton.", [s01])
+    case = next(c for c in load() if c.id == "B45-002")
+    pressed = {"answer": out["answer"], "tools": [], "pressed": True}
+    assert "started without" not in check(case, world, pressed)["forbidden"]["comment"]
+    unpressed = {"answer": out["answer"], "tools": [], "pressed": False}
+    assert "started without" in check(case, world, unpressed)["forbidden"]["comment"]

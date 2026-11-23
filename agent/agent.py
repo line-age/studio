@@ -4,6 +4,7 @@ fill the draft's slots, check it against what was read, and only then attach it.
     ingress -> read -> answer -> END
                         answer -> cite_start -> cite_wait (loops) -> cite_report -> END
     ingress -> propose -> END                          (a Propose button, no model)
+    ingress -> search -> cite_start -> ...             (a Search button, no model)
     ingress -> outcome -> END                          (what came of a card, no model)
 
 `answer` runs the model loop (`create_agent`, tools read store), renders the draft and
@@ -49,7 +50,16 @@ from render import (
     say_once,
     short_id,
 )
-from schemas import Answer, CitationRequest, Draft, DraftRef, Question, Ref, Statement
+from schemas import (
+    Answer,
+    CitationRequest,
+    Draft,
+    DraftRef,
+    Question,
+    Ref,
+    SearchOffer,
+    Statement,
+)
 from settings import MAX_QUESTION_CHARS, load
 from store_client import StoreClient, StoreError
 from tools import CONTEXT_FOR, Handles, _with_merged, make_tools
@@ -861,33 +871,58 @@ def build_graph(
         if isinstance(verdict, cite_flow.Refused):
             line = Statement(kind="citation_request", text=verdict.line, refs=refs)
         elif isinstance(verdict, cite_flow.AskForPlaces):
-            line = Statement(kind="ask_places", text=cite_flow.CITE_LINES["ask_places"], refs=refs)
+            line = Statement(
+                kind="search_offer",
+                text=cite_flow.offer_line(verdict.attributes),
+                refs=refs,
+                search=SearchOffer(
+                    id=str(uuid.uuid4()),
+                    section_id=verdict.section_id,
+                    attributes=verdict.attributes,
+                    ready=False,
+                ),
+            )
             cite_state["pending"] = {
                 "section_id": verdict.section_id,
                 "attributes": verdict.attributes,
             }
         else:
+            # Guard passed: offered as a card, never started from words (plan 2b). Only
+            # the person's Search starts it: a search costs money and minutes.
             hints = [h for _, r in pairs if r.request for h in r.request.hints]
-            line = Statement(
-                kind="citation_request",
-                text=cite_flow.looking_line(verdict, subject),
-                refs=refs,
-                request=CitationRequest(
-                    feature_id=verdict.section_id,
-                    attribute_keys=verdict.attributes,
-                    hints=hints,
-                ),
-            )
-            cite_state["pending"] = None
-            job = {
-                "section_id": verdict.section_id,
-                "attributes": verdict.attributes,
-                "places": verdict.places,
-                "years": list(verdict.years) if verdict.years else None,
-                "ruled_out": [list(r) for r in verdict.ruled_out],
-                "subject": subject,
-                "from_line": verdict.from_line,
-            }
+            section = _cite_input(verdict)
+            if isinstance(section, str):
+                line = Statement(kind="citation_request", text=section, refs=refs)
+            else:
+                offer_id = str(uuid.uuid4())
+                window = section.get("search_window")
+                line = Statement(
+                    kind="search_offer",
+                    text=cite_flow.offer_line(verdict.attributes),
+                    refs=refs,
+                    search=SearchOffer(
+                        id=offer_id,
+                        section_id=verdict.section_id,
+                        attributes=verdict.attributes,
+                        years=[window["from"], window["to"]] if window else [],
+                        places=section["places"],
+                        from_line=verdict.from_line,
+                    ),
+                )
+                cite_state["pending"] = None
+                cite_state["offers"] = {
+                    **(cite_state.get("offers") or {}),
+                    offer_id: {
+                        "section_id": verdict.section_id,
+                        "attributes": verdict.attributes,
+                        "places": verdict.places,
+                        "years": list(verdict.years) if verdict.years else None,
+                        "ruled_out": [list(r) for r in verdict.ruled_out],
+                        "subject": subject,
+                        "from_line": verdict.from_line,
+                        "hints": [h.model_dump() for h in hints],
+                    },
+                }
         first = rendered.statements.index(pairs[0][1])
         searched = set(job["attributes"]) if job else set()
         # The search goes ahead: "Store does not say" about what it searches for is
@@ -900,8 +935,6 @@ def build_graph(
         ]
         answer_ = Answer(statements=[*kept[:first], line, *kept[first:]])
         out = _finish(answer_, message, tools, seen, blocked, steps=steps)
-        if job:
-            out["steps"] = [*out["steps"], {"text": "Starting the search", "done": False}]
         return {**out, "cite": cite_state, "cite_job": job}
 
     def _reply(state: AgentState, statements: list[Statement], **more) -> dict:
@@ -1212,6 +1245,51 @@ def build_graph(
             line = Statement(kind="changed", text=change_flow.OUTCOME_LINES[action.state])
         return _finish(Answer(statements=[line]), message, [], seen)
 
+    def search(state: AgentState) -> dict:
+        """The person pressed Search on a search offer: start the search it offered, as
+        the thread keeps it (Studio sends only its id). No model."""
+        message = next(
+            (m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None
+        )
+        seen = len(state["messages"])
+        offer_id = _question(message).action.offer or ""
+        cite_state = dict(state.get("cite") or {})
+        offers = dict(cite_state.get("offers") or {})
+        job = offers.get(offer_id)
+
+        def say(text: str) -> dict:
+            return _finish(
+                Answer(statements=[Statement(kind="refusal", text=text)]), message, [], seen
+            )
+
+        if job is None:
+            return say(CARD_GONE)
+        if job.get("ran"):
+            return say(cite_flow.CITE_LINES["already_searched"])
+        if cite is None:
+            return say(cite_flow.CITE_LINES["failed"])
+        offers[offer_id] = {**job, "ran": True}
+        cite_state["offers"] = offers
+        ask = _ask_of(job)
+        ref = Ref(type="feature", id=job["section_id"], label=job["subject"])
+        line = Statement(
+            kind="citation_request",
+            text=cite_flow.looking_line(ask, job["subject"]),
+            refs=[ref],
+            request=CitationRequest(
+                feature_id=job["section_id"],
+                attribute_keys=job["attributes"],
+                hints=job.get("hints") or [],
+            ),
+        )
+        out = _finish(Answer(statements=[line]), message, [], seen)
+        out["steps"] = [{"text": "Starting the search", "done": False}]
+        return {
+            **out,
+            "cite": cite_state,
+            "cite_job": {k: v for k, v in job.items() if k != "hints"},
+        }
+
     def fresh_start(state: AgentState) -> dict:
         """The person pressed Start fresh: every message goes, what cite found stays (its
         findings by handle, earlier searches, a request waiting for towns), so Propose and
@@ -1308,7 +1386,7 @@ def build_graph(
     builder.add_node("cite_report", cite_report)
     builder.add_edge(START, "ingress")
     builder.add_conditional_edges(
-        "ingress", _route_in, ["read", "propose", "outcome", "fresh_start"]
+        "ingress", _route_in, ["read", "propose", "search", "outcome", "fresh_start"]
     )
     builder.add_edge("read", "answer")
     builder.add_conditional_edges(
@@ -1320,6 +1398,10 @@ def build_graph(
     builder.add_conditional_edges("cite_wait", _searching, ["cite_wait", "cite_report"])
     builder.add_edge("cite_report", END)
     builder.add_edge("propose", END)
+    builder.add_node("search", search)
+    builder.add_conditional_edges(
+        "search", lambda s: "cite_start" if s.get("cite_job") else END, ["cite_start", END]
+    )
     builder.add_node("outcome", outcome)
     builder.add_edge("outcome", END)
     builder.add_node("fresh_start", fresh_start)

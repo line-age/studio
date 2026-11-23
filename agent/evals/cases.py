@@ -85,6 +85,9 @@ class Case:
     # The fake cite's scripts for this case's searches, in order (evals/fake_cite.py).
     # Any case with turns or a script runs with the fake cite and a proposal client.
     cite: list[str] = field(default_factory=list)
+    # A search offered in an answer is started as Studio does when its Search is pressed
+    # (the action search), and the case is judged on both turns. False: judge the offer.
+    press_search: bool = True
 
     @property
     def searches(self) -> bool:

@@ -903,6 +903,13 @@ def ungrounded(
     for n, statement in enumerate(answer.get("statements", [])):
         kind, text, refs = statement["kind"], statement["text"], statement.get("refs", [])
         where = f"statement {n + 1} ({kind})"
+        if kind == "search_offer":
+            offer = statement.get("search") or {}
+            if world["features"].get(offer.get("section_id"), {}).get("kind") != "section":
+                problems.append(f"{where}: section {offer.get('section_id')} is not in store")
+            if not re.match(r"^Search the journals for the .+$", text):
+                problems.append(f"{where}: not code's line")
+            continue
         if kind == "change_offer":
             problems += _change_problems(where, statement, world)
             continue
