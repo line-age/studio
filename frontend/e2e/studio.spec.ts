@@ -122,3 +122,43 @@ test("a pipeline is renamed in Edit pipeline", async ({ page }) => {
     page.getByRole("option").filter({ hasText: "Tolland trunk" })
   ).toBeVisible()
 })
+
+test("pointing at a section's row shows its card beside the row, and changes nothing", async ({
+  page,
+}) => {
+  await page.goto("/")
+  await page.getByRole("option", { name: /Calder Valley/ }).click()
+  const row = page.getByRole("treeitem", { name: /Harlow to Brecken S-0142/ })
+  await expect(row).toBeVisible()
+  const address = page.url()
+  const card = page.getByRole("tooltip")
+  await expect(card).toBeHidden()
+
+  await row.hover()
+
+  await expect(card).toBeVisible()
+  await expect(card).toContainText("Harlow to Brecken")
+  await expect(card).toContainText("Calder Valley · P-012")
+  await expect(card).toContainText("1 proposal waiting")
+  // Once it has come in: beside the row, on the map's side, level with it
+  // and whole inside the window.
+  await expect(card).toHaveCSS("opacity", "1")
+  const [cardBox, rowBox] = [await card.boundingBox(), await row.boundingBox()]
+  const view = page.viewportSize()
+  if (!cardBox || !rowBox || !view) throw new Error("Nothing to measure.")
+  expect(cardBox.x + cardBox.width).toBeLessThanOrEqual(rowBox.x)
+  expect(rowBox.x - (cardBox.x + cardBox.width)).toBeLessThan(16)
+  expect(Math.abs(cardBox.y - rowBox.y)).toBeLessThan(2)
+  expect(cardBox.y + cardBox.height).toBeLessThanOrEqual(view.height)
+  // Looking is free: the selection, the section being read and the link stay.
+  expect(page.url()).toBe(address)
+  await expect(page.getByText("7 of 7 selected")).toBeVisible()
+  await expect(row).toHaveAttribute("aria-selected", "false")
+  await expect(row).toHaveAttribute("aria-expanded", "false")
+
+  // The pointer leaves the rows: the card goes.
+  await page
+    .getByRole("heading", { name: "Calder Valley", exact: true })
+    .hover()
+  await expect(card).toBeHidden()
+})

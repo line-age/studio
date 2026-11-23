@@ -35,6 +35,8 @@ import { FollowMapToggle } from "./follow-map-toggle"
 import { DOTTED_EXTRA, LINE_WEIGHT, statusesDrawn } from "./line-style"
 import { MapPickLabel } from "./map-pick-label"
 import { PickingBar } from "./pick-bar"
+import { SectionPeek } from "../peek/section-peek"
+import { usePeek, type PeekAnchor } from "../peek/use-peek"
 import {
   everyFeature,
   sectionFeatures,
@@ -79,6 +81,13 @@ export function StudioMap({ token }: { token: string }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   /** Where the pointer is, for the label beside it while picking. */
   const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null)
+  /** The same, in the window's pixels, for the hover card. */
+  const peekAnchor = useRef<PeekAnchor | null>(null)
+  /** The map is being dragged or zoomed, or its right-click menu is open. */
+  const [moving, setMoving] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  /** The section whose row the pointer is on, in the right panel. */
+  const pointedId = useStudio((s) => s.pointedSectionId)
   const [failed, setFailed] = useState(false)
 
   const layers = useStudio((s) => s.layers)
@@ -402,7 +411,26 @@ export function StudioMap({ token }: { token: string }) {
     const id = event.features?.[0]?.properties?.id
     setHoveredId(id ? String(id) : null)
     setPointer(id ? { x: event.point.x, y: event.point.y } : null)
+    const box = boxRef.current?.getBoundingClientRect()
+    peekAnchor.current = box
+      ? {
+          kind: "pointer",
+          x: event.originalEvent.clientX,
+          y: event.originalEvent.clientY,
+          within: box,
+        }
+      : null
   }
+
+  // Pointing at a section shows its card (Figma 524:23541). Not while a
+  // loop is drawn or sections are picked, the map moves, or a menu or a
+  // modal is open: then the pointer is doing something else.
+  const peek = usePeek(
+    tool === "select" && !picking && !moving && !menuOpen && editing === null
+      ? hoveredId
+      : null,
+    peekAnchor
+  )
 
   // While picking, blue is what the clicks added and faint what they will
   // remove (never dashed: dashed means proposed).
@@ -484,6 +512,7 @@ export function StudioMap({ token }: { token: string }) {
       <AddToAgentMenu
         items={selection}
         changes={sectionChanges([...selected])}
+        onOpenChange={setMenuOpen}
         edit={
           selected.size > 0
             ? {
@@ -535,7 +564,11 @@ export function StudioMap({ token }: { token: string }) {
               touchPitch={false}
               trackResize={false}
               onLoad={report}
-              onMoveEnd={report}
+              onMoveStart={() => setMoving(true)}
+              onMoveEnd={(event) => {
+                setMoving(false)
+                report(event)
+              }}
               onMove={(event) => {
                 setCamera(event.viewState.zoom, [
                   event.viewState.longitude,
@@ -579,6 +612,22 @@ export function StudioMap({ token }: { token: string }) {
                     "line-color": colors.selected,
                     "line-width": 9,
                     "line-opacity": 0.25,
+                  }}
+                />
+                {/* The section whose row the pointer is on: a halo wider than
+                    the selection's, since its line is often selected too. */}
+                <Layer
+                  id="sections-pointed"
+                  type="line"
+                  filter={["==", ["get", "id"], pointedId ?? ""]}
+                  layout={{
+                    "line-cap": "round",
+                    "line-join": "round",
+                  }}
+                  paint={{
+                    "line-color": colors.selected,
+                    "line-width": 16,
+                    "line-opacity": 0.3,
                   }}
                 />
                 <Layer
@@ -705,6 +754,7 @@ export function StudioMap({ token }: { token: string }) {
 
       {picking ? <PickingBar /> : <AgentBar />}
       {hoverLabel && <MapPickLabel {...hoverLabel} />}
+      <SectionPeek peek={peek} />
 
       {/* How to select several: said while exactly one section is selected
           and the Select tool is in hand. At the top centre, under the

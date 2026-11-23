@@ -142,6 +142,11 @@ export interface StudioState {
    */
   agentBar: ReadonlySet<string> | null
   /**
+   * The section whose row the pointer is on, so the map can mark its line.
+   * Looking only: never the selection, never in the link.
+   */
+  pointedSectionId: string | null
+  /**
    * The one section in focus: the only selected one, or the one opened in
    * the properties panel while several are selected.
    */
@@ -238,6 +243,7 @@ export interface StudioState {
   /** Show the "Ask the Agent" bar for the selection as it is now. */
   offerAgent: () => void
   dismissAgentBar: () => void
+  pointAt: (sectionId: string | null) => void
   /**
    * Attach, and ask the chat to take the cursor. With `words` a starter
    * question goes in the message box; the person can change it.
@@ -402,6 +408,7 @@ export const useStudio = create<StudioState>((set) => ({
   selectedPipelineId: null,
   selection: new Set(),
   agentBar: null,
+  pointedSectionId: null,
   selectedSectionId: null,
   tool: "select",
   selectedAttribute: null,
@@ -557,6 +564,7 @@ export const useStudio = create<StudioState>((set) => ({
   offerAgent: () =>
     set((s) => ({ agentBar: s.selection.size > 0 ? s.selection : null })),
   dismissAgentBar: () => set({ agentBar: null }),
+  pointAt: (pointedSectionId) => set({ pointedSectionId }),
   attachToAgent: (items) =>
     set((s) => ({
       agentAttachments: mergeAttachments(s.agentAttachments, items),
