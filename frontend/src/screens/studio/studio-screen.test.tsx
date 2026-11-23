@@ -129,8 +129,8 @@ describe("a shared link", () => {
     expect(screen.getByRole("listbox", { name: "Network" })).toBeVisible()
     expect(screen.queryByRole("group", { name: "Filters in force" })).toBeNull()
     // The next change writes the address without them.
-    act(() => useStudio.getState().setOnlyInView(false))
-    expect(window.location.search).toBe("?v=0")
+    act(() => useStudio.getState().setOnlyInView(true))
+    expect(window.location.search).toBe("?v=1")
   })
 
   it("shows a linked section the link's own switch would hide", async () => {

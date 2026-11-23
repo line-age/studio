@@ -405,7 +405,7 @@ export const listFollowsMap = (s: StudioState) => s.onlyInView && !s.tableOpen
 export const useStudio = create<StudioState>((set) => ({
   status: "all",
   needsDecisionOnly: false,
-  onlyInView: true,
+  onlyInView: false,
   tableOpen: false,
   unknownIn: [],
   companies: [],

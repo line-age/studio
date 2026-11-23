@@ -84,21 +84,22 @@ describe("map controls", () => {
     expect(screen.getByText("Sections in a pipeline")).toBeVisible()
   })
 
-  it("turns the list following the map off and on again", async () => {
+  it("lists the whole network until the list is asked to follow the map, and back", async () => {
     const user = userEvent.setup()
     await renderControls()
     // The map shows only the north: one pipeline is in view.
     act(() => useStudio.getState().setView([-1, 9, 3, 12]))
     const toggle = screen.getByRole("button", { name: "List follows the map" })
+    // Off when Studio opens (the owner, 2026-11-23): the two pipelines, the
+    // proposed one and the edition of what is in none.
+    expect(toggle).toHaveAttribute("aria-pressed", "false")
+    expect(screen.getByRole("status")).toHaveTextContent("4")
+
+    await user.click(toggle)
     expect(toggle).toHaveAttribute("aria-pressed", "true")
     expect(screen.getByRole("status")).toHaveTextContent("1")
 
     await user.click(toggle)
-    expect(toggle).toHaveAttribute("aria-pressed", "false")
-    // The two pipelines, the proposed one and the edition of what is in none.
     expect(screen.getByRole("status")).toHaveTextContent("4")
-
-    await user.click(toggle)
-    expect(screen.getByRole("status")).toHaveTextContent("1")
   })
 })

@@ -511,8 +511,11 @@ describe("Studio panels", () => {
     const user = userEvent.setup()
     await renderPanels()
     const list = () => screen.getByRole("listbox")
-    // Nothing in the map view while the list follows it.
-    act(() => useStudio.getState().setView([50, 50, 51, 51]))
+    // Nothing in the map view while the list follows it (turned on: off by default).
+    act(() => {
+      useStudio.getState().setOnlyInView(true)
+      useStudio.getState().setView([50, 50, 51, 51])
+    })
     expect(list()).toHaveTextContent("Nothing in the map view.")
     // Not following: the filters left nothing.
     act(() => {

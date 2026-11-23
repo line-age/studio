@@ -637,7 +637,9 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   nothing to offer.
 - The counts in Filters are what the switch shows after the other filters; they never
   follow the map.
-  Only the list follows it (`listFollowsMap`), and its header says "n of m in view".
+  Only the list follows it (`listFollowsMap`), and only once the person turns it on: Studio
+  opens with the whole network listed (the owner, 2026-11-23; `v=1` in the URL, an older
+  link's `v=0` reads as the default). While on, its header says "n of m in view".
   While the list is a table (`tableOpen`) it holds everything and the follow button
   shows as paused.
 - Reading is not selecting. A click on a section in the right panel opens it (or

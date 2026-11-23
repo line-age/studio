@@ -95,6 +95,9 @@ const rows = () =>
 beforeEach(() => {
   localStorage.clear()
   useStudio.setState(useStudio.getInitialState(), true)
+  // These are about the list following the map, which the person turns on (it is
+  // off when Studio opens, the owner, 2026-11-23).
+  useStudio.setState({ onlyInView: true })
 })
 
 describe("Counts and the map view", () => {
