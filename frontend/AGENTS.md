@@ -591,11 +591,14 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   whose it is: blue the person's, purple the Agent's or a tool's, grey closed; the title;
   who and what the press does; a grey block of what will be written; an outcome line with
   its word; the buttons), at most 560 wide. A change asked in words (`change_offer`) is
-  `panels/agent-change-card.tsx`: Approve reads the network again, checks the card's basis
-  (`data/agent/change-offer.ts`, `staleness`: a section that moved since makes it out of
-  date and nothing is sent), then makes it through the menu's own writes (`writeFor`:
-  `change()` or the Edit window's save) with the offer's id as the action's key, so a
-  second press or a second tab writes once. A search (`search_offer`) is
+  `panels/agent-change-card.tsx`: Approve reads the data again (`readAgain` on the
+  data provider, which hands back what it read; a failed read writes nothing), checks the
+  card's basis against that read (`data/agent/change-offer.ts`, `staleness`: a section
+  that moved since makes it out of date and nothing is sent), then makes it through the
+  menu's own writes built from that read (`writeFor`: `change()` or the Edit window's
+  save) with the offer's id as the action's key, so a second press or a second tab writes
+  once. Outcomes go through `panels/use-outcome-queue.ts`: held while the Agent works,
+  sent one at a time, kept when refused. A search (`search_offer`) is
   `panels/agent-search-card.tsx`: only Search spends; Not now and Change towns (words in
   the box) do not. What came of a card is sent back as the action `outcome` and read from
   the thread (`panels/agent-cards.ts`): the same for everyone and after a reload. A press
