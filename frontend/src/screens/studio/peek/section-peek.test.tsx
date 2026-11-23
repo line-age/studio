@@ -7,7 +7,6 @@ import { testNetwork } from "@/test/network"
 
 import { LeftPanelContext } from "../left-panel-context"
 import { PropertiesPanel } from "../panels/properties-panel"
-import { useSettings } from "../settings"
 import { StudioDataProvider } from "../studio-data"
 import { useStudio } from "../studio-store"
 
@@ -41,7 +40,6 @@ const row = (name: RegExp) => screen.getByRole("treeitem", { name })
 
 beforeEach(() => {
   localStorage.clear()
-  useSettings.getState().reset()
   useStudio.setState(useStudio.getInitialState(), true)
 })
 

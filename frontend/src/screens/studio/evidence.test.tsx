@@ -6,7 +6,6 @@ import { evidenceNetwork } from "@/test/network"
 
 import { statusCount } from "@/test/status-filter"
 
-import { useSettings } from "./settings"
 import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
 
@@ -45,7 +44,6 @@ async function openClaim(attribute: string) {
 
 beforeEach(() => {
   localStorage.clear()
-  useSettings.getState().reset()
   window.history.replaceState(null, "", "/")
   useStudio.setState(useStudio.getInitialState(), true)
   useCamera.setState(useCamera.getInitialState(), true)
@@ -56,9 +54,9 @@ describe("evidence in the right panel", () => {
     const { detail } = await openClaim("Geometry")
     expect(detail).toHaveTextContent("Holds by June 1931.")
     const sources = within(detail).getByRole("list", { name: "Sources" })
-    const source = within(sources).getByRole("button", {
-      name: /Invented trunk map, 1931/,
-    })
+    const source = within(sources)
+      .getAllByRole("listitem")
+      .find((item) => item.textContent?.includes("Invented trunk map, 1931"))
     expect(source).toHaveTextContent("Shown on")
   })
 
@@ -76,18 +74,17 @@ describe("evidence in the right panel", () => {
     )
     expect(detail).toHaveTextContent("Score 0.99.")
     expect(detail).toHaveTextContent("Confirming cites both editions.")
-    // Nothing decides: one button closes, the other only asks the Agent.
+    // Nothing decides: the one button here only asks the Agent.
     expect(
       within(detail)
         .getAllByRole("button")
-        .map(
-          (button) => button.getAttribute("aria-label") ?? button.textContent
-        )
-    ).toEqual(["Close the claim", "ProposedAsk the Agent about this"])
+        .map((button) => button.textContent)
+    ).toEqual(["ProposedAsk the Agent about this"])
   })
 
   it("marks a section with a proposed end as waiting for a decision", async () => {
-    await openClaim("Last seen")
+    const { user } = await openClaim("Last seen")
+    await user.keyboard("{Escape}")
     expect(await statusCount("Needs your decision")).toBe(3)
   })
 })

@@ -48,12 +48,12 @@ export function AgentSteps({
   const label = working
     ? searched
       ? "Searching the journals"
-      : "Reading store"
+      : "Reading the data"
     : searched
       ? "Searched the journals"
       : reads === 0
         ? "Wrote and checked the answer"
-        : `Read ${reads} ${reads === 1 ? "thing" : "things"} in store`
+        : `Read ${reads} ${reads === 1 ? "thing" : "things"}`
   const open = working || opened
   return (
     <TraceCollapsible

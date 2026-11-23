@@ -100,6 +100,11 @@ export interface QuestionAction {
   kind: "propose" | "propose_pipeline" | "fresh_start"
   /** For propose: the finding's handle in the conversation (F1). */
   finding?: string
+  /**
+   * For propose: where it goes, by store id. The finding's section when
+   * left out; or the pipeline that section is confirmed part of, for an owner.
+   */
+  target?: string
   /** For propose_pipeline: the sections, by store id. */
   section_ids?: string[]
 }

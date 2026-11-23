@@ -20,8 +20,8 @@ import { AccountMenu } from "./account/account-menu"
 import { HELP_BUTTON_ID } from "./help/help-store"
 
 /*
- * The dark bar across the top: the app name, where the person is, Settings
- * and Help. The menu, Undo, Redo, Export and "Review changes" are in the
+ * The dark bar across the top: the app name, where the person is, and
+ * Help. Settings is gone: nothing a person sets may change what others see. The menu, Undo, Redo, Export and "Review changes" are in the
  * design but hidden until there is something behind them (the owner,
  * 2026-11-13; this replaces showing them as designed). Each comes back with
  * its feature. Help is a menu (the owner, 2026-11-13): take the tour, ask
@@ -48,7 +48,6 @@ export function TopBar({
   networkName,
   trail = [],
   onRoot,
-  onSettings,
   help,
 }: {
   networkName?: string
@@ -56,8 +55,6 @@ export function TopBar({
   trail?: Crumb[]
   /** Clears the selection: what the app name does when there is a trail. */
   onRoot?: () => void
-  /** Opens Settings. Without it the button is shown and does nothing. */
-  onSettings?: () => void
   /** What Help offers. Without it the button is shown and does nothing. */
   help?: HelpActions
 }) {
@@ -125,7 +122,6 @@ export function TopBar({
       <div className="flex shrink-0 items-center gap-0.5">
         {/* One area of the Help tour. */}
         <div data-tour="settings" className="flex items-center gap-0.5">
-          <TopbarButton onClick={onSettings}>Settings</TopbarButton>
           {help ? (
             <DropdownMenu>
               <DropdownMenuTrigger

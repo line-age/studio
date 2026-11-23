@@ -12,7 +12,6 @@ import type {
 import {
   DEFAULT_REQUIRED,
   groupStatus,
-  missingRequired,
   needsDecision,
   ON_PIPELINE,
   sectionStatus,
@@ -197,17 +196,6 @@ export function pipelineClaims(pipeline: Pipeline): Claim[] {
   })
 }
 
-/**
- * How many of a pipeline's rows are cited, said as a section's are: "2/3
- * cited". Counted over the rows the panel shows, so an Unknown row is in the
- * total and the number always matches what is listed.
- */
-export function pipelineClaimsProgress(pipeline: Pipeline): string {
-  const rows = pipelineClaims(pipeline)
-  const cited = rows.filter((c) => c.value !== null).length
-  return `${formatCount(cited)}/${formatCount(rows.length)} cited`
-}
-
 /** A claim's value with the period it holds for: "Alder Gas Co., by 1931". */
 export function datedValue(claim: Claim): string | null {
   if (claim.value === null) return null
@@ -323,32 +311,11 @@ export function selectionSize(groups: SelectionGroup[]): string {
 /*
  * Progress, said one way everywhere, always with what it counts. A pipeline
  * counts its sections done; a section counts its required claims cited, the
- * same claims its status is worked out from (the rule in Settings). Sections
+ * same claims its status is worked out from (the fixed rule). Sections
  * in no pipeline cannot be done, so a group of them says how many it has: a
  * bare number in a row, under the "Not in a pipeline" heading that says what
  * it counts (edition names leave no room for a noun), "312 sections" in full.
  */
-
-/** "4/6 done" (short, for a row) or "4 of 6 sections done" (long). */
-export function doneLabel(
-  done: number,
-  total: number,
-  form: "short" | "long" = "short"
-): string {
-  return form === "short"
-    ? `${formatCount(done)}/${formatCount(total)} done`
-    : `${formatCount(done)} of ${plural(total, "section")} done`
-}
-
-/**
- * "2/3 cited": the required claims of a section that are cited. Empty when
- * the rule requires nothing, where there is nothing to count.
- */
-export function citedLabel(section: Section, rule: StatusRule): string {
-  if (rule.length === 0) return ""
-  const cited = rule.length - missingRequired(section, rule).length
-  return `${formatCount(cited)}/${formatCount(rule.length)} cited`
-}
 
 /** The progress of a row of the list: a pipeline, or a group in none. */
 export function summaryProgress(
@@ -365,9 +332,7 @@ export function summaryProgress(
       ? `Score ${high.toFixed(2)}`
       : `Scores ${low.toFixed(2)} to ${high.toFixed(2)}`
   }
-  if (!summary.unassigned) {
-    return doneLabel(summary.done, summary.sections.length, form)
-  }
+  // Every other row, a pipeline or a group in none, says its size only.
   return form === "short"
     ? formatCount(summary.sections.length)
     : plural(summary.sections.length, "section")
@@ -953,9 +918,8 @@ export function sectionMatches(
   }
   if (criteria.changedOnly && !section.changedSinceReview) return false
   if (criteria.diameters.length > 0) {
-    // An Unknown diameter is none of these.
-    const diameter = valueOf(section, DIAMETER_ATTRIBUTE)
-    if (diameter === null || !criteria.diameters.includes(diameter))
+    // An Unknown diameter is none of these; one of several cited is enough.
+    if (!diameterOf(section).some((d) => criteria.diameters.includes(d)))
       return false
   }
   if (criteria.states.length > 0) {
@@ -1050,7 +1014,14 @@ export function rangeNarrows(
 /** The cited diameter of a section, as its only value; none when Unknown. */
 export function diameterOf(section: Section): readonly string[] {
   const value = valueOf(section, DIAMETER_ATTRIBUTE)
-  return value === null ? [] : [value]
+  // A section with several cited diameters ("31 in; 12 in") has each of them:
+  // a filter offers one diameter at a time, never the combinations.
+  return value === null
+    ? []
+    : value
+        .split(";")
+        .map((part) => part.trim())
+        .filter(Boolean)
 }
 
 /** A pipeline passes when one of its sections satisfies all the criteria. */

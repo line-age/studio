@@ -39,8 +39,7 @@ import { ShowPanels } from "./panel-toggle"
 import { AgentPanel } from "./panels/agent-panel"
 import { PipelinesPanel, SEARCH_INPUT_ID } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
-import { useSettings, useSettingsOpen } from "./settings"
-import { SettingsDialog } from "./settings-dialog"
+import { DEFAULT_REQUIRED } from "@/data/status"
 import { SidePanel } from "./side-panel"
 import {
   StudioDataProvider,
@@ -51,6 +50,7 @@ import { useStudio, type LeftPanel } from "./studio-store"
 import { EditingModals } from "./panels/editing-modals"
 import { TopBar, type Crumb } from "./top-bar"
 import { applyUrl, followView, type UrlView } from "./url-state"
+import { TABLE_SHOWN } from "./panels/table-shown"
 
 /**
  * The first read of the network, started once however often React runs the
@@ -224,8 +224,6 @@ function Frame({
 }) {
   const { panel, open, togglePanel, openPanel } = useLeftPanel()
   const hasSelection = useStudio((s) => s.selection.size > 0)
-  const settingsOpen = useSettingsOpen((s) => s.open)
-  const setSettingsOpen = useSettingsOpen((s) => s.setOpen)
   const setHelpOpen = useHelp((s) => s.setDialogOpen)
   const startTour = useHelp((s) => s.start)
   const askAgent = useStudio((s) => s.askAgent)
@@ -237,7 +235,6 @@ function Frame({
         networkName={networkName}
         trail={trail}
         onRoot={onHome}
-        onSettings={attributes ? () => setSettingsOpen(true) : undefined}
         help={
           attributes
             ? {
@@ -255,11 +252,6 @@ function Frame({
       />
       {attributes && (
         <>
-          <SettingsDialog
-            open={settingsOpen}
-            onOpenChange={setSettingsOpen}
-            attributes={attributes}
-          />
           <HelpDialog />
           <Tour />
           <CitationDialog />
@@ -302,7 +294,7 @@ function Frame({
           {...(panel === "pipelines" && {
             // The list widens into a table; the map keeps room to work in.
             maxWidth: listMaxWidth(rightOpen),
-            wideWidth: 760,
+            wideWidth: TABLE_SHOWN ? 760 : undefined,
           })}
           className="border-sidebar-border bg-sidebar"
         >
@@ -441,11 +433,9 @@ function useLinkedView(linked: UrlView) {
       const section = linked.section ? sectionById.get(linked.section) : null
       // A link that names a pipeline opens on it, with the pipelines listed.
       const pipeline = linked.pipeline
-        ? summarise(
-            network,
-            useSettings.getState().requiredAttributes,
-            "pipelines"
-          ).find((row) => row.pipeline && row.id === linked.pipeline)
+        ? summarise(network, DEFAULT_REQUIRED, "pipelines").find(
+            (row) => row.pipeline && row.id === linked.pipeline
+          )
         : undefined
       if (pipeline) {
         s.showPipelines()

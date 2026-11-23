@@ -31,11 +31,20 @@ export type LayerId = "proposed" | "faint"
  * what. One at a time; null while none is open. Not in the URL.
  */
 export type Editing =
-  | { kind: "edit-sections"; sectionIds: readonly string[] }
+  /** `prefill`: values the form opens with, by attribute (the Agent's edit offer). */
+  | {
+      kind: "edit-sections"
+      sectionIds: readonly string[]
+      prefill?: Readonly<Record<string, string>>
+    }
   /** Move or add to a pipeline; `removing` opens it on Not in a pipeline. */
   | { kind: "move"; sectionIds: readonly string[]; removing?: boolean }
   | { kind: "make"; sectionIds: readonly string[] }
-  | { kind: "edit-pipeline"; pipelineId: string }
+  | {
+      kind: "edit-pipeline"
+      pipelineId: string
+      prefill?: Readonly<Record<string, string>>
+    }
   | SectionsDraft
 
 /**
@@ -154,6 +163,8 @@ export interface StudioState {
   tool: MapTool
   selectedAttribute: string | null
   expandedSectionIds: ReadonlySet<string>
+  /** Pipelines open in the list to their own claims. */
+  openPipelineIds: ReadonlySet<string>
   /**
    * Goes up each time a section is picked to be read (map, list, search,
    * chat), so the properties panel brings it into view even when it is
@@ -227,6 +238,10 @@ export interface StudioState {
   /** Put the claim detail away; the section stays open. */
   closeAttribute: () => void
   toggleExpanded: (sectionId: string) => void
+  /** Open or close a pipeline in the list to its own claims. */
+  togglePipelineOpen: (pipelineId: string) => void
+  /** Open a pipeline in the list to its own claims. */
+  openPipelineClaims: (pipelineId: string) => void
   /**
    * Step the selection back: from some sections to their whole pipelines
    * (`wholeIds`: every section of the pipelines touched), then to nothing.
@@ -237,6 +252,11 @@ export interface StudioState {
   /** `follow` also moves the "in view" list to the new place. */
   requestFit: (bounds: Bounds | null, follow?: boolean) => void
   attachToAgent: (items: AgentAttachment[]) => void
+  /**
+   * Make the question's attachments what is selected: while the Agent is
+   * open, the selection is what a question is about.
+   */
+  attachSelection: (items: AgentAttachment[]) => void
   /** The last hand-over the message box took the cursor for. */
   agentAskFocused: number
   agentAskTaken: () => void
@@ -413,6 +433,7 @@ export const useStudio = create<StudioState>((set) => ({
   tool: "select",
   selectedAttribute: null,
   expandedSectionIds: new Set(),
+  openPipelineIds: new Set(),
   sectionPicked: 0,
   view: null,
   fit: null,
@@ -549,6 +570,16 @@ export const useStudio = create<StudioState>((set) => ({
       if (!next.delete(sectionId)) next.add(sectionId)
       return { expandedSectionIds: next }
     }),
+  togglePipelineOpen: (pipelineId) =>
+    set((s) => {
+      const next = new Set(s.openPipelineIds)
+      if (!next.delete(pipelineId)) next.add(pipelineId)
+      return { openPipelineIds: next }
+    }),
+  openPipelineClaims: (pipelineId) =>
+    set((s) => ({
+      openPipelineIds: new Set(s.openPipelineIds).add(pipelineId),
+    })),
   stepBack: (wholeIds) =>
     set((s) => ({
       ...selected(s.selection.size < wholeIds.length ? wholeIds : []),
@@ -569,6 +600,7 @@ export const useStudio = create<StudioState>((set) => ({
     set((s) => ({
       agentAttachments: mergeAttachments(s.agentAttachments, items),
     })),
+  attachSelection: (items) => set({ agentAttachments: items }),
   askAgent: (items, more = {}) =>
     set((s) => ({
       agentAttachments: mergeAttachments(s.agentAttachments, items),

@@ -34,4 +34,19 @@ describe("the message box", () => {
     )
     expect(onSend).not.toHaveBeenCalled()
   })
+
+  it("turns send into Stop while the Agent works", async () => {
+    const onSend = vi.fn()
+    const onStop = vi.fn()
+    const { rerender } = render(
+      <Composer placeholder="Ask" onSend={onSend} onStop={onStop} />
+    )
+    expect(screen.queryByRole("button", { name: "Send" })).toBeNull()
+    await userEvent.click(screen.getByRole("button", { name: "Stop" }))
+    expect(onStop).toHaveBeenCalledOnce()
+    expect(onSend).not.toHaveBeenCalled()
+    rerender(<Composer placeholder="Ask" onSend={onSend} />)
+    expect(screen.queryByRole("button", { name: "Stop" })).toBeNull()
+    expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument()
+  })
 })

@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { parseNetwork } from "@/data/schema"
 import { evidenceNetwork } from "@/test/network"
 
-import { useSettings } from "./settings"
 import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
 
@@ -61,7 +60,6 @@ describe("a message the Agent cannot take", () => {
     // jsdom does not scroll; the conversation keeps its newest turn in view.
     Element.prototype.scrollTo = () => undefined
     localStorage.clear()
-    useSettings.getState().reset()
     window.history.replaceState(null, "", "/")
     useStudio.setState(useStudio.getInitialState(), true)
     useCamera.setState(useCamera.getInitialState(), true)

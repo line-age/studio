@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { agentAnswer } from "./answer"
-import { savedMessage, turnsFrom } from "./use-agent"
+import { savedMessage, threadIdFor, turnsFrom } from "./use-agent"
 
 // The service's own examples (studio/agent/contract/), so the two sides cannot drift.
 const EXAMPLES = import.meta.glob(
@@ -27,6 +27,8 @@ describe("the answer contract", () => {
     "answer-fact",
     "answer-unknown-with-proposal",
     "answer-refusal",
+    "answer-not-yet",
+    "answer-help",
     "answer-failure",
     "answer-context",
     "answer-citation-request",
@@ -110,5 +112,25 @@ describe("turns of the conversation", () => {
       },
     }
     expect(savedMessage(saved)).toMatchObject({ id: "answer-q1", type: "ai" })
+  })
+})
+
+describe("a person's own chat", () => {
+  it("is always the same thread for the same login, whatever its case", () => {
+    expect(threadIdFor("example-reviewer")).toBe(
+      threadIdFor("Example-Reviewer")
+    )
+  })
+
+  it("is a different thread for a different login", () => {
+    expect(threadIdFor("example-reviewer")).not.toBe(
+      threadIdFor("example-reviewes")
+    )
+  })
+
+  it("has the form of a UUID, which the service asks of a thread id", () => {
+    expect(threadIdFor("example-reviewer")).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-a[0-9a-f]{3}-[0-9a-f]{12}$/
+    )
   })
 })

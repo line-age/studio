@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { withClaims, type Network } from "@/data/schema"
 import { evidenceNetwork } from "@/test/network"
 
-import { useSettings } from "./settings"
 import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
 
@@ -57,7 +56,6 @@ vi.mock("./map/map-area", () => ({ MapArea: () => null }))
 
 beforeEach(() => {
   localStorage.clear()
-  useSettings.getState().reset()
   window.history.replaceState(null, "", "/")
   useStudio.setState(useStudio.getInitialState(), true)
   useCamera.setState(useCamera.getInitialState(), true)
@@ -83,8 +81,8 @@ describe("a claim from a section's history", () => {
       "which a person linked to this section: its history. Each stays its own record."
     )
     const sources = within(detail).getByRole("list", { name: "Sources" })
-    const [own, inherited] = within(sources).getAllByRole("button")
+    const [own, inherited] = within(sources).getAllByRole("listitem")
     expect(own).not.toHaveTextContent("from")
-    expect(inherited).toHaveTextContent(/Not on, from \S+/)
+    expect(inherited).toHaveTextContent(/Not on · from \S+/)
   })
 })

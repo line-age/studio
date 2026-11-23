@@ -11,7 +11,6 @@ import { testNetwork } from "@/test/network"
 import { LeftPanelContext } from "./left-panel-context"
 import { PipelinesPanel } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
-import { useSettings } from "./settings"
 import { StudioDataProvider } from "./studio-data"
 import { useStudio } from "./studio-store"
 import { currentView, fromSearchParams, toSearchParams } from "./url-state"
@@ -343,7 +342,6 @@ const turnOn = (filter: (typeof FILTERS)[number]) =>
 beforeEach(() => {
   localStorage.clear()
   window.history.replaceState(null, "", "/")
-  useSettings.getState().reset()
   useStudio.setState(useStudio.getInitialState(), true)
 })
 

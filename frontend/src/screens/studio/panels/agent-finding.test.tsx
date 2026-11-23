@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import { agentAnswer } from "@/data/agent/answer"
 
-import { ProposeOutcomes } from "./agent-finding"
+import { PipelineOfSection, ProposeOutcomes } from "./agent-finding"
 import { AgentStatementView, ProposeFinding } from "./agent-statement"
 
 /*
@@ -32,6 +32,33 @@ describe("a finding", () => {
       within(card).getByRole("link", { name: "Open page on Internet Archive" })
     ).toHaveAttribute("href", findings[0].finding!.url)
     expect(within(card).getByRole("img")).toBeInTheDocument()
+  })
+
+  it("offers an owner for the section's pipeline, or the section alone", async () => {
+    // The example finds diameters; the same finding, as an owner.
+    const owner = {
+      ...findings[0],
+      finding: { ...findings[0].finding!, attribute: "owner" as const },
+    }
+    const propose = vi.fn()
+    render(
+      <ProposeFinding value={propose}>
+        <PipelineOfSection value={() => ({ id: "line-1", name: "North line" })}>
+          <AgentStatementView statement={owner} name={name} open={vi.fn()} />
+        </PipelineOfSection>
+      </ProposeFinding>
+    )
+    expect(
+      screen.getByText("Propose this as the owner of North line?")
+    ).toBeVisible()
+    await userEvent.click(
+      screen.getByRole("button", { name: "Propose for pipeline" })
+    )
+    expect(propose).toHaveBeenLastCalledWith(owner.finding!.handle, "line-1")
+    await userEvent.click(
+      screen.getByRole("button", { name: "This section only" })
+    )
+    expect(propose).toHaveBeenLastCalledWith(owner.finding!.handle)
   })
 
   it("says why it is in doubt", () => {

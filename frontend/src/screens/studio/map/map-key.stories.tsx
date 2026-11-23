@@ -1,10 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import type { ComponentProps } from "react"
-import { expect, fn, screen, waitFor } from "storybook/test"
+import { expect, fn, screen } from "storybook/test"
 
 import { controlled } from "@/test/controlled"
 
-import { DEFAULT_LINE_STYLE } from "../settings"
 import type { LayerId } from "../studio-store"
 import { MapKeyPopover } from "./map-key"
 
@@ -14,11 +13,8 @@ const meta = {
   title: "Studio/Map/MapKey",
   component: MapKeyPopover,
   args: {
-    lineStyle: DEFAULT_LINE_STYLE,
-    waiting: 3,
     layers: { proposed: true, faint: false },
     onToggleLayer: fn(),
-    onOpenSettings: fn(),
   },
   decorators: [
     // Controlled: an eye pressed stays pressed.
@@ -52,11 +48,16 @@ export const Open: Story = {
   play: async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("button", { name: "Map key" }))
     const key = await screen.findByRole("dialog", { name: "Map key" })
-    for (const row of ["Heavy", "Thin", "Dashed", "Faint", "Blue"]) {
+    for (const row of [
+      "Sections in a pipeline",
+      "Sections in no pipeline",
+      "Proposed path or end",
+      "Left out by the filters",
+      "Selected",
+    ]) {
       await expect(key).toHaveTextContent(row)
     }
-    await expect(key).toHaveTextContent("In a pipeline")
-    await expect(key).toHaveTextContent("3 waiting")
+    await expect(key).not.toHaveTextContent("Settings")
   },
 }
 
@@ -66,27 +67,11 @@ export const FaintShown: Story = {
   play: async ({ canvas, userEvent, args }) => {
     await userEvent.click(canvas.getByRole("button", { name: "Map key" }))
     const eye = await screen.findByRole("button", {
-      name: "Show sections hidden by the filters on the map",
+      name: "Show sections left out by the filters on the map",
     })
     await expect(eye).toHaveAttribute("aria-pressed", "false")
     await userEvent.click(eye)
     await expect(args.onToggleLayer).toHaveBeenCalledWith("faint")
     await expect(eye).toHaveAttribute("aria-pressed", "true")
-  },
-}
-
-/** "Change how lines are drawn" closes the key and asks for Settings. */
-export const ToSettings: Story = {
-  name: "To Settings",
-  play: async ({ canvas, userEvent, args }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "Map key" }))
-    await userEvent.click(
-      await screen.findByRole("button", { name: "Change how lines are drawn" })
-    )
-    await expect(args.onOpenSettings).toHaveBeenCalledOnce()
-    // It closes after its fade.
-    await waitFor(() =>
-      expect(screen.queryByRole("dialog", { name: "Map key" })).toBeNull()
-    )
   },
 }

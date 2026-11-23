@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest"
 import { testNetwork } from "@/test/network"
 
 import {
+  BY_HAND_SOURCE,
+  citedCount,
   citationLine,
   confidenceWords,
   editionWords,
@@ -311,5 +313,15 @@ describe("findEmbeddedDate", () => {
     expect(
       findEmbeddedDate(words({ year: 1929, month: 3, day: 15 }))?.date
     ).toEqual({ year: 1929, month: 3, day: 15 })
+  })
+})
+
+describe("citedCount", () => {
+  it("counts no source for a value typed by hand", () => {
+    expect(citedCount([{ source: BY_HAND_SOURCE }])).toBe(0)
+    expect(citedCount([{ source: BY_HAND_SOURCE }, { source: "A map" }])).toBe(
+      1
+    )
+    expect(citedCount(undefined)).toBe(0)
   })
 })

@@ -11,7 +11,6 @@ import { PipelinesPanel } from "./panels/pipelines-panel"
 import { PropertiesPanel } from "./panels/properties-panel"
 import { pickStatus, statusCount } from "@/test/status-filter"
 
-import { useSettings } from "./settings"
 import { StudioDataProvider } from "./studio-data"
 import { useStudio } from "./studio-store"
 
@@ -45,12 +44,11 @@ async function renderPanels(data: Network = testNetwork()) {
 
 beforeEach(() => {
   localStorage.clear()
-  useSettings.getState().reset()
   useStudio.setState(useStudio.getInitialState(), true)
 })
 
 describe("Studio panels", () => {
-  it("lists the pipelines with their status in words", async () => {
+  it("lists the pipelines, each with its number of sections and no status", async () => {
     await renderPanels()
     // The screen opens on All: the pipelines, the proposed one, then what
     // is in no pipeline, by edition.
@@ -62,10 +60,13 @@ describe("Studio panels", () => {
       expect.stringContaining("P-003"),
       expect.stringContaining("1937 edition1"),
     ])
-    expect(rows[0]).toHaveTextContent("In progress")
-    // Progress says what it counts: sections done of the pipeline's sections.
-    expect(rows[0]).toHaveTextContent("1/2")
-    expect(within(rows[0]).getByTitle("1 of 2 sections done")).toBeVisible()
+    // A row says its size only, the same for everyone: no status, no done.
+    expect(rows[0]).not.toHaveTextContent(
+      /In progress|Done|Sufficient|Not started/
+    )
+    expect(rows[0]).not.toHaveTextContent("/")
+    expect(within(rows[0]).getByTitle("2 sections")).toHaveTextContent(/^2$/)
+    expect(screen.getByText("Sections")).toBeVisible()
     // A pipeline only proposed comes last, under its own heading, with its
     // score; no source names it, so its name is Unknown.
     expect(list).toHaveTextContent("Proposed pipelines")
@@ -902,7 +903,6 @@ describe("Studio panels", () => {
 
   it("counts the sections by status, and one click narrows the list", async () => {
     const user = userEvent.setup()
-    act(() => useSettings.getState().toggleRequired("Build date"))
     await renderPanels()
     expect(await statusCount("All")).toBe(5)
     expect(await statusCount("Done")).toBe(2)
@@ -1064,26 +1064,43 @@ describe("Reading is not selecting", () => {
 })
 
 describe("Progress says what it counts", () => {
-  it("counts a section's required claims cited, by the rule in Settings", async () => {
+  it("opens a pipeline in the list to its own claims, and not the right panel", async () => {
     await renderPanels()
     act(() => useStudio.getState().select(["s-1", "s-2"]))
-    const row = () => screen.getByRole("treeitem", { name: /Birch to Cedar/ })
-    const required = useSettings.getState().requiredAttributes.length
-    expect(row()).toHaveTextContent(new RegExp(`\\d/${required} cited`))
-    // No second count of Unknown on the row: Unknown is a word on a claim.
-    expect(row()).not.toHaveTextContent(/\d Unknown/)
+    const panel = screen.getByRole("tree", {
+      name: "Sections of North line",
+    }).parentElement!
+    expect(panel).not.toHaveTextContent("Claims about the pipeline")
+    expect(
+      screen.queryByRole("group", { name: "Claims about North line" })
+    ).toBeNull()
 
-    act(() => useSettings.setState({ requiredAttributes: ["Diameter"] }))
-    expect(row()).toHaveTextContent("0/1 cited")
+    act(() => useStudio.getState().togglePipelineOpen("p-1"))
+    const list = screen.getByRole("listbox", { name: "Network" })
+    const own = within(list).getByRole("group", {
+      name: "Claims about North line",
+    })
+    expect(own).toHaveTextContent("Owner")
+    expect(own).not.toHaveTextContent("cited")
+    // An edition has no claims of its own: nothing opens under it.
+    expect(within(list).getAllByRole("group")).toHaveLength(1)
+  })
+
+  it("puts no count of cited claims on a section's row", async () => {
+    await renderPanels()
+    act(() => useStudio.getState().select(["s-1", "s-2"]))
+    const row = screen.getByRole("treeitem", { name: /Birch to Cedar/ })
+    expect(row).not.toHaveTextContent(/cited|\d Unknown/)
   })
 
   it("speaks in the header for what is selected, not the pipeline around it", async () => {
     await renderPanels()
     act(() => useStudio.getState().select(["s-1", "s-2"]))
-    expect(screen.getByText("1 of 2 sections done")).toBeInTheDocument()
+    expect(screen.getByText("2 sections")).toBeInTheDocument()
+    expect(screen.queryByText(/done/)).toBeNull()
 
     act(() => useStudio.getState().select(["s-2"]))
-    expect(screen.getByText("0 of 1 section done")).toBeInTheDocument()
+    expect(screen.getByText("1 section selected")).toBeInTheDocument()
   })
 
   it("says selected of all in each group of a selection across pipelines", async () => {

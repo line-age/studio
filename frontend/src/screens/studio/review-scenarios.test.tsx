@@ -6,7 +6,6 @@ import { testNetwork } from "@/test/network"
 
 import { pickStatus, statusCount } from "@/test/status-filter"
 
-import { useSettings } from "./settings"
 import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
 
@@ -49,7 +48,6 @@ const claimsOf = (section: string) =>
 
 beforeEach(() => {
   localStorage.clear()
-  useSettings.getState().reset()
   window.history.replaceState(null, "", "/")
   useStudio.setState(useStudio.getInitialState(), true)
   useCamera.setState(useCamera.getInitialState(), true)
@@ -103,25 +101,17 @@ describe("reviewing", () => {
       "alder to{Enter}"
     )
     await user.click(rowOf("Alder to Birch", "Diameter"))
+    // A click on the value opens where it comes from, and Done puts it away.
+    expect(
+      screen.getByRole("dialog", { name: "Diameter: 12 in" })
+    ).toBeInTheDocument()
     const detail = screen.getByRole("region", {
       name: "Diameter of Alder to Birch",
     })
-    expect(detail).toHaveTextContent("12 in")
-    expect(detail).toHaveTextContent("Cited")
-    // One source: a click opens its citation pop-up, and Done puts it away.
     const sources = within(detail).getByRole("list", { name: "Sources" })
-    const source = within(sources).getByRole("button", { name: "1937 edition" })
-    await user.click(source)
-    expect(
-      screen.getByRole("dialog", { name: "Diameter of Alder to Birch" })
-    ).toBeInTheDocument()
+    expect(sources).toHaveTextContent("1937 edition")
     await user.click(screen.getByRole("button", { name: "Done" }))
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
-
-    await user.click(
-      within(detail).getByRole("button", { name: "Close the claim" })
-    )
-    expect(screen.queryByRole("region", { name: /^Diameter of/ })).toBeNull()
     // The section stays open above.
     expect(claimsOf("Alder to Birch")).toBeVisible()
   })
@@ -156,8 +146,9 @@ describe("reviewing", () => {
 
   it("reads who owned a pipeline, and when, from one of its sections", async () => {
     const user = await open()
-    await user.click(screen.getByRole("option", { name: /North line/ }))
-    // The pipeline's own claims sit above its sections, each with its period.
+    // A pipeline opens in the list to its own claims, each with its period.
+    screen.getByRole("option", { name: /North line/ }).focus()
+    await user.keyboard("{ArrowRight}")
     const own = screen.getByRole("group", { name: "Claims about North line" })
     expect(own).toHaveTextContent("Alder Gas Co., by 1931")
     expect(own).toHaveTextContent("Yew Fuel Co., from 1936")
@@ -165,8 +156,12 @@ describe("reviewing", () => {
     expect(own).toHaveTextContent("NameUnknown")
     expect(own).toHaveTextContent("OperatorUnknown")
 
-    // From a section, Owner leads back to the pipeline as a whole. A lone
-    // selected section opens by itself.
+    // Closed again, then from a section, Owner leads back to the pipeline as
+    // a whole, open in the list. A lone selected section opens by itself.
+    await user.keyboard("{ArrowLeft}")
+    expect(
+      screen.queryByRole("group", { name: "Claims about North line" })
+    ).toBeNull()
     act(() => useStudio.getState().select(["s-1"]))
     await user.click(rowOf("Alder to Birch", "Owner"))
     expect(useStudio.getState().selection).toEqual(new Set(["s-1", "s-2"]))
@@ -239,7 +234,7 @@ describe("reviewing", () => {
       within(sections).getByRole("option", { name: /1937 edition/ })
     )
     const section = screen.getByRole("treeitem", { name: /Unnamed section/ })
-    expect(section).toHaveTextContent("0/2")
+    expect(section).not.toHaveTextContent("cited")
     // The group's only section: it is open to its claims already.
     // In no pipeline, one proposed: the Pipeline row says so; no Owner row.
     const pipeline = rowOf("Unnamed section", "Pipeline")
@@ -253,14 +248,12 @@ describe("reviewing", () => {
     expect(detail).toHaveTextContent(
       "The stitch tool proposes that this section is part of P-003, whose name is Unknown. Score 0.70."
     )
-    // Nothing decides: one button closes, the other only asks the Agent.
+    // Nothing decides: the one button here only asks the Agent.
     expect(
       within(detail)
         .getAllByRole("button")
-        .map(
-          (button) => button.getAttribute("aria-label") ?? button.textContent
-        )
-    ).toEqual(["Close the claim", "ProposedAsk the Agent about this"])
+        .map((button) => button.textContent)
+    ).toEqual(["ProposedAsk the Agent about this"])
     expect(window.location.search).toContain("sc=unplaced")
   })
 
@@ -324,21 +317,6 @@ describe("reviewing", () => {
     expect(within(agent).getByText("Unnamed section")).toBeVisible()
   })
 
-  it("loosens the rule and sees the work counted again", async () => {
-    const user = await open()
-    expect(await statusCount("Done")).toBe(2)
-    await user.click(screen.getByRole("button", { name: "Settings" }))
-    const dialog = screen.getByRole("dialog", { name: "Settings" })
-    // Owner is the pipeline's: the rule cannot ask a section for it.
-    expect(within(dialog).queryByRole("checkbox", { name: "Owner" })).toBeNull()
-    for (const name of ["Diameter", "Build date"]) {
-      await user.click(within(dialog).getByRole("checkbox", { name }))
-    }
-    // Nothing required: every section in a pipeline is done.
-    await user.keyboard("{Escape}")
-    expect(await statusCount("Done")).toBe(4)
-  })
-
   it("finds nothing in the top bar that does nothing when pressed", async () => {
     await open()
     const bar = screen
@@ -348,7 +326,7 @@ describe("reviewing", () => {
       within(bar)
         .getAllByRole("button")
         .map((b) => b.textContent)
-    ).toEqual(["Settings", "Help"])
+    ).toEqual(["Help"])
     for (const name of ["Menu", "Undo", "Redo", "Export", "Review changes"]) {
       expect(
         within(bar).queryByRole("button", { name })

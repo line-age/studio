@@ -14,11 +14,6 @@ import { PanelFooter } from "@/components/panel-footer"
 import { PanelHeader } from "@/components/panel-header"
 import { TreeItem } from "@/components/tree-item"
 import {
-  citedLabel,
-  datedValue,
-  doneLabel,
-  pipelineClaims,
-  pipelineClaimsProgress,
   pipelineLabel,
   formatCount,
   geometryBounds,
@@ -31,8 +26,13 @@ import {
   unionBounds,
   type SelectionGroup,
 } from "@/data/derive"
-import { OWNER_ROW, PIPELINE_ROW, proposedEndsFor } from "@/data/evidence"
-import { ON_PIPELINE, sectionStatus } from "@/data/status"
+import {
+  citedCount,
+  OWNER_ROW,
+  PIPELINE_ROW,
+  proposedEndsFor,
+} from "@/data/evidence"
+import { ON_PIPELINE } from "@/data/status"
 import { useSectionDetail } from "@/data/detail-store"
 import type { Geometry, Section } from "@/data/schema"
 import { Button } from "@/components/ui/button"
@@ -41,9 +41,7 @@ import { cn } from "@/lib/utils"
 
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { useSectionChanges } from "../pipeline-actions"
-import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
-import { ClaimDetail } from "./claim-detail"
 import { SectionPeek } from "../peek/section-peek"
 import { usePeek, type PeekAnchor } from "../peek/use-peek"
 import { useStudio } from "../studio-store"
@@ -81,12 +79,12 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const toggleSelected = useStudio((s) => s.toggleSelected)
   const offerAgent = useStudio((s) => s.offerAgent)
   const selectAttribute = useStudio((s) => s.selectAttribute)
+  const openCitation = useStudio((s) => s.openCitation)
   const toggleExpanded = useStudio((s) => s.toggleExpanded)
   const requestFit = useStudio((s) => s.requestFit)
   const treeRef = useRef<HTMLDivElement>(null)
   const attachments = useSelectionAttachments()
   const criteria = useCriteria()
-  const rule = useSettings((s) => s.requiredAttributes)
   const { network, sectionById } = useStudioData()
   const [menuTargetIds, setMenuTargetIds] = useState<ReadonlySet<string>>(
     new Set()
@@ -102,11 +100,14 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const edit = useStudio((s) => s.edit)
   const showPipelines = useStudio((s) => s.showPipelines)
   const selectPipeline = useStudio((s) => s.selectPipeline)
+  const openPipelineClaims = useStudio((s) => s.openPipelineClaims)
   const pipelineById = new Map(network.pipelines.map((p) => [p.id, p]))
-  // "On the pipeline" leads there: the pipelines in the list, that one whole.
+  // "On the pipeline" leads there: the pipelines in the list, that one whole,
+  // open to its own claims.
   const openPipeline = (pipelineId: string) => {
     const members = network.sections.filter((s) => s.pipelineId === pipelineId)
     showPipelines()
+    openPipelineClaims(pipelineId)
     selectPipeline(
       pipelineId,
       members.map((s) => s.id)
@@ -149,14 +150,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
     ? undefined
     : groups[0].whole
       ? summaryProgress(single, "long")
-      : single.unassigned
-        ? `${plural(groups[0].sections.length, "section")} selected`
-        : doneLabel(
-            groups[0].sections.filter((x) => sectionStatus(x, rule) === "done")
-              .length,
-            groups[0].sections.length,
-            "long"
-          )
+      : `${plural(groups[0].sections.length, "section")} selected`
   // A box changes the selection, so it offers the Agent, as on the map.
   const check = (section: Section) => {
     pickedInTree.current = true
@@ -220,62 +214,6 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
           </span>
         )}
       </PanelHeader>
-      {/* One pipeline: what is claimed about it as a whole, apart from its
-          sections. Name, owner and operator are never a section's own. */}
-      {!multi && single.pipeline && (
-        <div
-          role="group"
-          aria-label={`Claims about ${single.name}`}
-          className="flex shrink-0 flex-col border-b"
-        >
-          <ListHeader
-            label="Claims about the pipeline"
-            selection={null}
-            trailing={
-              single.kind === "proposed"
-                ? "Proposed, not confirmed"
-                : pipelineClaimsProgress(single.pipeline)
-            }
-          />
-          {pipelineClaims(single.pipeline).map((claim, index, all) => {
-            const owner = single.pipeline!
-            // Which claim of its attribute: an owner that changed is two.
-            const nth = all
-              .slice(0, index)
-              .filter((c) => c.attribute === claim.attribute).length
-            return (
-              <AddToAgentMenu
-                key={`${claim.attribute}:${index}`}
-                refs={[
-                  {
-                    kind: "claim",
-                    owner: "pipeline",
-                    ownerId: owner.id,
-                    attribute: claim.attribute,
-                    index: nth,
-                  },
-                ]}
-                edit={{
-                  name: pipelineLabel(owner),
-                  count: 1,
-                  onEditOne: () =>
-                    edit({ kind: "edit-pipeline", pipelineId: owner.id }),
-                  onEditAll: () =>
-                    edit({ kind: "edit-pipeline", pipelineId: owner.id }),
-                }}
-              >
-                <AttributeRow
-                  className="pl-3"
-                  label={claim.attribute}
-                  value={datedValue(claim)}
-                  sources={claim.citations.length}
-                  proposals={claim.proposals.length}
-                />
-              </AddToAgentMenu>
-            )
-          })}
-        </div>
-      )}
       <ListHeader
         label="Sections"
         trailing={`${formatCount(checkedCount)} of ${formatCount(allIds.length)} selected`}
@@ -394,8 +332,8 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                       checked={isChecked(section.id)}
                       menuTarget={menuTargetIds.has(section.id)}
                       onCheck={() => check(section)}
+                      trailing={null}
                       checkLabel={`Select ${sectionLabel(section)}`}
-                      trailing={citedLabel(section, rule)}
                       onToggle={() => toggleExpanded(section.id)}
                       onClick={() => pick(section)}
                       onKeyDown={(event) => onSectionKeyDown(event, section)}
@@ -416,8 +354,12 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
                           : undefined
                         const chosen =
                           selected && selectedAttribute === PIPELINE_ROW
-                        const choose = () =>
+                        const choose = () => {
                           selectAttribute(section.id, PIPELINE_ROW, true)
+                          // Unknown with nothing proposed: nothing to show.
+                          if (pipeline || proposed.length > 0)
+                            openCitation(section.id, PIPELINE_ROW)
+                        }
                         return (
                           <>
                             <AddToAgentMenu
@@ -505,7 +447,6 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
           </Fragment>
         ))}
       </div>
-      <ClaimDetail />
       <PanelFooter>
         <span className="truncate">{selectionSize(groups)}</span>
       </PanelFooter>
@@ -537,6 +478,7 @@ function SectionClaimRows({
 }) {
   const { status, detail, retry } = useSectionDetail(section)
   const edit = useStudio((s) => s.edit)
+  const openCitation = useStudio((s) => s.openCitation)
   return (
     <>
       {section.values
@@ -547,14 +489,20 @@ function SectionClaimRows({
             (c) => c.attribute === value.attribute
           )
           const chosen = selected && value.attribute === selectedAttribute
-          const choose = () =>
+          const ends = proposedEndsFor(
+            detail ? { ...section, ...detail } : section,
+            value.attribute
+          )
+          const choose = () => {
             onChoose(
               value.attribute,
-              proposedEndsFor(
-                detail ? { ...section, ...detail } : section,
-                value.attribute
-              ).flatMap((end) => end.geometry ?? [])
+              ends.flatMap((end) => end.geometry ?? [])
             )
+            // A claim opens where it comes from; Unknown with nothing
+            // proposed has nothing to show (the owner, 2026-11-22).
+            if (value.value !== null || value.proposals + ends.length > 0)
+              openCitation(section.id, value.attribute)
+          }
           return (
             <AddToAgentMenu
               key={value.attribute}
@@ -583,7 +531,7 @@ function SectionClaimRows({
                 tabIndex={-1}
                 label={value.attribute}
                 value={value.value}
-                sources={claim?.citations.length ?? 0}
+                sources={citedCount(claim?.citations)}
                 sourcesLoading={status === "loading"}
                 proposals={
                   value.proposals +

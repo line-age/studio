@@ -19,7 +19,8 @@ export function LayerRow({
   className,
 }: {
   name: string
-  meta: ReactNode
+  /** A second line under the name, such as how many wait; often none. */
+  meta?: ReactNode
   /** What the eye shows, when the name alone does not say: "proposed paths". */
   label?: string
   /** A LineKey, or nothing when the layer has no key symbol yet. */
@@ -48,9 +49,11 @@ export function LayerRow({
         >
           {name}
         </span>
-        <span className="truncate type-ui-xs text-muted-foreground">
-          {meta}
-        </span>
+        {meta != null && (
+          <span className="truncate type-ui-xs text-muted-foreground">
+            {meta}
+          </span>
+        )}
       </span>
       {visible !== undefined && (
         <Button

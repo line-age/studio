@@ -4,6 +4,7 @@ import { useStream } from "@langchain/react"
 
 import type { Question } from "../question"
 import { studioFetch } from "../session"
+import { useSession } from "../session-context"
 import {
   agentAnswer,
   agentStep,
@@ -15,14 +16,44 @@ import {
  * The conversation with the Agent service, through this app's own /agent path.
  *
  * Every request goes through studioFetch, as store's do: it says it comes
- * from Studio and a 401 raises "Sign in again". Until each person has a chat
- * of their own (plan 2026-11-21-003, step 4), every browser opens one shared
- * thread with a fixed id (studio/agent/settings.py). The thread is kept by the service: a
- * reload shows it again, and "Clear chat" deletes it for everyone.
+ * from Studio and a 401 raises "Sign in again". Each signed-in person has a
+ * chat of their own: the thread's id is made from their login (threadIdFor).
+ * With nobody signed in (a test of one panel, the sample) the one shared
+ * thread is used. The thread is kept by the service: a reload shows it again,
+ * and "Clear chat" deletes it. The id keeps chats apart; it is not a lock:
+ * who may read which thread is the gate's to enforce.
  */
 
 export const SHARED_THREAD_ID = "5d1f0c1e-7a57-4c0d-9e61-a6e17d10a9e7"
 const ASSISTANT = "agent"
+
+/** FNV-1a, 32 bits, from a seed: four of them make a thread id. */
+function hash32(text: string, seed: number): number {
+  let h = (0x811c9dc5 ^ seed) >>> 0
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i)
+    h = Math.imul(h, 0x01000193) >>> 0
+  }
+  return h
+}
+
+/** A person's own thread: always the same id for the same login, in UUID form. */
+export function threadIdFor(login: string): string {
+  const key = `studio-agent-chat:${login.toLowerCase()}`
+  const hex = [1, 2, 3, 4]
+    .map((seed) => hash32(key, seed).toString(16).padStart(8, "0"))
+    .join("")
+  // Version 4 and variant bits, so it reads as a UUID wherever one is checked.
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`
+}
+
+/** The thread of whoever is signed in; the shared one when nobody is. */
+export function useThreadId(): string {
+  const session = useSession()
+  return session?.kind === "signed-in"
+    ? threadIdFor(session.login)
+    : SHARED_THREAD_ID
+}
 
 export interface AgentTurn {
   id: string
@@ -93,27 +124,29 @@ export function turnsFrom(messages: readonly RawMessage[]): AgentTurn[] {
   return turns
 }
 
-/** Makes sure the shared thread exists; it must before the stream opens it. */
+/** Makes sure the person's thread exists; it must before the stream opens it. */
 export function useSharedThread(epoch: number): "ready" | "down" | "starting" {
+  const threadId = useThreadId()
   const [state, setState] = useState<"ready" | "down" | "starting">("starting")
   useEffect(() => {
     let live = true
     client.threads
-      .create({ threadId: SHARED_THREAD_ID, ifExists: "do_nothing" })
+      .create({ threadId, ifExists: "do_nothing" })
       .then(() => live && setState("ready"))
       .catch(() => live && setState("down"))
     return () => {
       live = false
     }
-  }, [epoch])
+  }, [epoch, threadId])
   return state
 }
 
 export function useAgent() {
+  const threadId = useThreadId()
   const stream = useStream({
     client: client,
     assistantId: ASSISTANT,
-    threadId: SHARED_THREAD_ID,
+    threadId,
   })
   // Messages come two ways: `messages`, assembled live from the stream, which
   // has no additional_kwargs for a reply still arriving; and `values.messages`,
@@ -129,7 +162,7 @@ export function useAgent() {
     if (working) return
     let current = true
     client.threads
-      .getState(SHARED_THREAD_ID)
+      .getState(threadId)
       .then((state) => {
         const values = state.values as { messages?: unknown[] } | null
         if (current) setSaved(values?.messages ?? [])
@@ -138,7 +171,7 @@ export function useAgent() {
     return () => {
       current = false
     }
-  }, [working])
+  }, [working, threadId])
   const turns = useMemo(() => {
     const extras = new Map<string, Record<string, unknown>>()
     const fromSaved = saved.map(savedMessage)
@@ -195,7 +228,7 @@ export function useAgent() {
   const stop = async () => {
     await stream.stop({ cancel: true })
     await client.threads
-      .updateState(SHARED_THREAD_ID, {
+      .updateState(threadId, {
         values: { cite_job: null },
         asNode: "answer",
       })
@@ -204,9 +237,9 @@ export function useAgent() {
 
   const clear = async () => {
     if (stream.isLoading) await stop().catch(() => undefined)
-    await client.threads.delete(SHARED_THREAD_ID).catch(() => undefined)
+    await client.threads.delete(threadId).catch(() => undefined)
     await client.threads.create({
-      threadId: SHARED_THREAD_ID,
+      threadId,
       ifExists: "do_nothing",
     })
   }

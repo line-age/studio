@@ -39,13 +39,16 @@ function opening(pipeline: Pipeline, attribute: string): string {
 
 export function EditPipelineModal({
   pipeline,
+  prefill,
   onClose,
 }: {
   pipeline: Pipeline
+  /** Values the form opens with, by field: still the person's to check and save. */
+  prefill?: Readonly<Record<string, string>>
   onClose: () => void
 }) {
   const { network } = useStudioData()
-  const [fields, setFields] = useState<Record<string, string>>({})
+  const [fields, setFields] = useState<Record<string, string>>({ ...prefill })
   const [note, setNote] = useState("")
   const key = useRef(actionKey())
   const { save, saving, failure, clearFailure } = useSave(onClose)

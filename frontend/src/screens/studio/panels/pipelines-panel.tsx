@@ -16,6 +16,7 @@ import {
 
 import { HidePanels } from "../panel-toggle"
 import { usePanelWidth } from "../panel-width-context"
+import { TABLE_SHOWN } from "./table-shown"
 import {
   useCriteria,
   useSearchHits,
@@ -45,7 +46,9 @@ export function PipelinesPanel() {
   const criteria = useCriteria()
   const openHit = useOpenHit()
   const [active, setActive] = useState(0)
-  const panelWidth = usePanelWidth()
+  const width = usePanelWidth()
+  // Without the table the panel only resizes: nothing here widens or folds it.
+  const panelWidth = TABLE_SHOWN ? width : null
   /** The filters open in place of the list, in this same panel. */
   const [mode, setMode] = useState<"list" | "filters">("list")
   /** The table was folded to open the filters: unfold it on the way back. */

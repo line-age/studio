@@ -39,7 +39,7 @@ import type { Network, Section } from "@/data/schema"
 import { actionKey } from "@/data/store/write"
 import { statesBySection, type StatesLookup } from "@/data/us-states"
 
-import { useSettings } from "./settings"
+import { DEFAULT_REQUIRED } from "@/data/status"
 import { filterCriteria, filterState } from "./filters"
 import { listFollowsMap, useStudio } from "./studio-store"
 
@@ -181,7 +181,7 @@ export function StudioDataProvider({
     },
     [fetched, loaded]
   )
-  const rule = useSettings((s) => s.requiredAttributes)
+  const rule = DEFAULT_REQUIRED
   const scope = useStudio((s) => s.scope)
 
   // These depend on the network only, not on the edition or the rule.
@@ -362,7 +362,7 @@ export function useRevealSection(): (sectionId: string) => void {
 export function useCriteria(): SectionCriteria {
   // From the table in ./filters: a filter paused on Pipelines asks nothing.
   const parts = useStudio(useShallow(filterState))
-  const rule = useSettings((s) => s.requiredAttributes)
+  const rule = DEFAULT_REQUIRED
   const { owners, editionYears, statesOf } = useStudioData()
   return useMemo(
     () => ({

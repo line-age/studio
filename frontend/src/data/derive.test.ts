@@ -34,7 +34,6 @@ import {
   unknownCounts,
   unknownAttributesOf,
   optionCounts,
-  pipelineClaimsProgress,
   intersects,
   search,
   sectionStats,
@@ -160,12 +159,6 @@ describe("summarise", () => {
       null,
       null,
     ])
-  })
-
-  it("says how many of a pipeline's claim rows are cited", () => {
-    const [north, south] = network.pipelines
-    expect(pipelineClaimsProgress(north)).toBe("2/4 cited")
-    expect(pipelineClaimsProgress(south)).toBe("0/3 cited")
   })
 
   it("holds every section of a pipeline, whichever editions show it", () => {

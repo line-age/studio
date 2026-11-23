@@ -102,6 +102,8 @@ export type AgentFinding = z.infer<typeof agentFinding>
 
 export const agentStatement = z.object({
   kind: z.enum([
+    // The answer in the Agent's own words; every value in it was read.
+    "answer",
     "fact",
     "unknown",
     "set",
@@ -127,6 +129,10 @@ export const agentStatement = z.object({
     "proposed",
     // The attached sections could be proposed as one pipeline, on a button.
     "pipeline_offer",
+    // The Edit form filled in from the person's words; a button opens it.
+    "edit_offer",
+    // Something the Agent cannot do yet: one fixed line for its topic.
+    "not_yet",
   ]),
   text: z.string(),
   refs: z.array(agentAnswerRef).default([]),
@@ -159,6 +165,19 @@ export const agentStatement = z.object({
     })
     .nullable()
     .optional(),
+  /**
+   * For an edit offer: what the Edit form opens with. Nothing is written until
+   * the person saves the form.
+   */
+  edit: z
+    .object({
+      target: z.enum(["sections", "pipeline"]),
+      feature_ids: z.array(z.string()),
+      attribute: z.string(),
+      value: z.string(),
+    })
+    .nullable()
+    .optional(),
 })
 
 export const agentAnswer = z.object({
@@ -166,6 +185,11 @@ export const agentAnswer = z.object({
   version: z.union([z.literal(1), z.literal(2)]),
   checked: z.boolean(),
   statements: z.array(agentStatement),
+  /**
+   * A follow-up: nothing was attached, so the answer is about these, the
+   * things of the person's last question, read again for this one.
+   */
+  carried: z.array(agentAnswerRef).default([]),
 })
 
 export type AgentAnswer = z.infer<typeof agentAnswer>

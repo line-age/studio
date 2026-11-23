@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { parseNetwork } from "@/data/schema"
 import { evidenceNetwork } from "@/test/network"
 
-import { useSettings } from "./settings"
 import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
 
@@ -33,7 +32,7 @@ const turn = vi.hoisted(() => ({
     statements: [
       {
         kind: "worked_out",
-        text: "Alder to Birch is first traced on the 1932 printing.",
+        text: "Alder to Birch is first shown on the 1932 map.",
         refs: [{ type: "feature", id: "s-1", label: "Alder to Birch" }],
       },
       {
@@ -73,10 +72,15 @@ vi.mock("@/data/agent/use-agent", () => ({
   }),
 }))
 
+const grouped = structuredClone(turn.answer.statements)
+const about = structuredClone(turn.question.about)
+
 beforeEach(() => {
+  turn.answer.statements = structuredClone(grouped)
+  turn.question.about = structuredClone(about)
+  delete (turn.answer as { carried?: unknown }).carried
   Element.prototype.scrollTo = () => undefined
   localStorage.clear()
-  useSettings.getState().reset()
   window.history.replaceState(null, "", "/")
   useStudio.setState(useStudio.getInitialState(), true)
   useCamera.setState(useCamera.getInitialState(), true)
@@ -90,11 +94,11 @@ describe("an answer about several sections", () => {
     await userEvent.click(screen.getByRole("button", { name: /^Agent/ }))
     const answer = screen.getByRole("article", { name: "The Agent's answer" })
     expect(
-      within(answer).getByRole("button", { name: /Read 3 things in store/ })
+      within(answer).getByRole("button", { name: /Read 3 things/ })
     ).toBeInTheDocument()
     expect(
       within(answer).getByRole("region", { name: "Alder to Birch" })
-    ).toHaveTextContent("Inferred · Alder to Birch is first traced")
+    ).toHaveTextContent("Inferred · Alder to Birch is first shown")
     expect(
       within(answer).getByRole("region", { name: "Birch to Cedar" })
     ).toHaveTextContent("Example Gazette, p. 41")
@@ -104,5 +108,96 @@ describe("an answer about several sections", () => {
       within(answer).getByRole("button", { name: "Dale to Elm" })
     )
     expect(useStudio.getState().selection).toContain("s-3")
+  })
+})
+
+describe("a line saying what the Agent cannot do yet", () => {
+  it("stands alone, never grouped under the sections attached", async () => {
+    turn.answer.statements = [
+      {
+        kind: "not_yet",
+        text: "I cannot say who traced a section yet. The list's Traced by filter shows it.",
+        refs: [],
+      },
+    ]
+    await act(async () => {
+      render(<StudioScreen />)
+    })
+    await userEvent.click(screen.getByRole("button", { name: /^Agent/ }))
+    const answer = screen.getByRole("article", { name: "The Agent's answer" })
+    expect(answer).toHaveTextContent(
+      "I cannot say who traced a section yet. The list's Traced by filter shows it."
+    )
+    expect(within(answer).queryByRole("region")).not.toBeInTheDocument()
+    expect(answer).not.toHaveTextContent("not in this answer")
+  })
+})
+
+describe("a source under a statement", () => {
+  it("opens its citation in the citation pop-up at once", async () => {
+    turn.answer.statements = [
+      {
+        kind: "fact",
+        text: "Its traced line comes from the 1931 edition.",
+        refs: [
+          {
+            type: "claim",
+            id: "c-2",
+            feature_id: "s-6",
+            attribute: "route",
+            status: "accepted",
+            source: "Example Gazette, p. 41",
+          },
+        ],
+      },
+    ]
+    await act(async () => {
+      render(<StudioScreen />)
+    })
+    await userEvent.click(screen.getByRole("button", { name: /^Agent/ }))
+    await userEvent.click(
+      screen.getByRole("button", {
+        name: "Open the citation, from Example Gazette, p. 41",
+      })
+    )
+    expect(useStudio.getState().openedCitation).toMatchObject({
+      sectionId: "s-6",
+      attribute: "Geometry",
+    })
+    expect(await screen.findByRole("dialog")).toBeInTheDocument()
+    // The screen behind is left as it was: nothing selected, no claim opened.
+    expect(useStudio.getState().selection.size).toBe(0)
+  })
+})
+
+describe("an answer to a follow-up", () => {
+  it("says which section of the last question it is about, and opens it", async () => {
+    turn.question.about = []
+    Object.assign(turn.answer, {
+      carried: [{ type: "feature", id: "s-1", label: "Alder to Birch" }],
+      statements: [
+        {
+          kind: "worked_out",
+          text: "It is about 76 km long as drawn.",
+          refs: [{ type: "feature", id: "s-1", label: "Alder to Birch" }],
+        },
+      ],
+    })
+    await act(async () => {
+      render(<StudioScreen />)
+    })
+    await userEvent.click(screen.getByRole("button", { name: /^Agent/ }))
+    const answer = screen.getByRole("article", { name: "The Agent's answer" })
+    expect(answer).toHaveTextContent(
+      "About Alder to Birch, from your last question."
+    )
+    // The one thing it is about is "it": named once, in that line.
+    expect(
+      within(answer).getAllByRole("button", { name: "Alder to Birch" })
+    ).toHaveLength(1)
+    await userEvent.click(
+      within(answer).getByRole("button", { name: "Alder to Birch" })
+    )
+    expect(useStudio.getState().selection).toContain("s-1")
   })
 })

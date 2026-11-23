@@ -81,8 +81,8 @@ export const HELP_STEPS: readonly HelpStep[] = [
   },
   {
     id: "settings",
-    title: "Settings and Help",
-    body: "Settings decides which attributes a section needs cited to have sufficient data, and how each status is drawn on the map. Help runs this tour again, opens the Agent to ask a question, and has a page on each area.",
+    title: "Help",
+    body: "Help runs this tour again, opens the Agent to ask a question, and has a page on each area.",
     targets: ["settings"],
   },
 ]
@@ -131,15 +131,15 @@ export const HELP_WORDS: readonly HelpWord[] = [
   },
   {
     term: "Not started",
-    meaning: "None of the attributes required in Settings is cited.",
+    meaning: "Neither Diameter nor Build date is cited.",
   },
   {
     term: "In progress",
-    meaning: "Some of the required attributes are cited.",
+    meaning: "One of Diameter and Build date is cited.",
   },
   {
     term: "Sufficient",
-    meaning: "Every required attribute is cited.",
+    meaning: "Diameter and Build date are both cited.",
   },
   { term: "Done", meaning: "Sufficient, and the section is in a pipeline." },
 ]

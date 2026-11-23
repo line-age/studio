@@ -29,7 +29,13 @@ const json = (body: unknown, status = 200) =>
 
 /* Invented sections only, from the shared test fixture; never real store data. */
 
-function Harness({ initial }: { initial: Section[] }) {
+function Harness({
+  initial,
+  prefill,
+}: {
+  initial: Section[]
+  prefill?: Record<string, string>
+}) {
   const [target, setTarget] = useState(initial)
   return (
     <EditSectionsDialog
@@ -38,11 +44,16 @@ function Harness({ initial }: { initial: Section[] }) {
         if (!open) setTarget([])
       }}
       sections={target}
+      prefill={prefill}
     />
   )
 }
 
-async function renderDialog(network: Network, sectionIds: string[]) {
+async function renderDialog(
+  network: Network,
+  sectionIds: string[],
+  prefill?: Record<string, string>
+) {
   const sections = sectionIds.map((id) =>
     network.sections.find((s) => s.id === id)!
   )
@@ -50,7 +61,7 @@ async function renderDialog(network: Network, sectionIds: string[]) {
     render(
       <Suspense fallback={null}>
         <StudioDataProvider network={Promise.resolve(network)} source="fixture">
-          <Harness initial={sections} />
+          <Harness initial={sections} prefill={prefill} />
         </StudioDataProvider>
       </Suspense>
     )
@@ -67,6 +78,12 @@ describe("EditSectionsDialog", () => {
     expect(screen.getByLabelText("Diameter")).toHaveValue("12 in")
     expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument()
     expect(screen.getByText("No changes yet")).toBeInTheDocument()
+  })
+
+  it("opens with a value filled in for it, marked as a change to save", async () => {
+    await renderDialog(testNetwork(), ["s-1"], { Diameter: "20 in" })
+    expect(screen.getByLabelText("Diameter")).toHaveValue("20 in")
+    expect(screen.queryByText("No changes yet")).not.toBeInTheDocument()
   })
 
   it("shows Mixed where several sections disagree, and offers Update N sections", async () => {
