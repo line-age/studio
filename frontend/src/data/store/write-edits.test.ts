@@ -131,3 +131,26 @@ describe("saveEditsToStore", () => {
     })
   })
 })
+
+describe("an edit sent with its action's key", () => {
+  it("keys every new citation and claim, so the same press sent twice makes nothing twice", async () => {
+    const { editsBundle } = await import("./write-edits")
+    const edit = {
+      feature: "s-1",
+      key: "diameter",
+      label: "Diameter",
+      value: "12 in",
+    }
+    const keyed = editsBundle([edit], "", "press-1")
+    expect(keyed.claims[0].external_key).toEqual({
+      system: "studio",
+      key: "press-1:claim:s-1:diameter",
+    })
+    expect(keyed.citations[0].external_key).toEqual({
+      system: "studio",
+      key: "press-1:citation:s-1:diameter",
+    })
+    expect(editsBundle([edit], "", "press-1")).toEqual(keyed)
+    expect(editsBundle([edit], "").claims[0].external_key).toBeUndefined()
+  })
+})

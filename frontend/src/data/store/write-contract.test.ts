@@ -126,6 +126,14 @@ const bundles: [string, Bundle][] = [
       "why"
     ),
   ],
+  [
+    "a section's typed value, sent with its action's key",
+    editsBundle(
+      [{ feature: "s-1", key: "diameter", label: "Diameter", value: "12 in" }],
+      "",
+      "press-1"
+    ),
+  ],
 ]
 
 describe("write.ts against store's bundle schema", () => {

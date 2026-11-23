@@ -1,6 +1,12 @@
 import { appliesTo, isTyped, readTyped, ruleFor } from "../edit-rules"
 import { attributeStoreKey } from "./to-network"
-import { claimIdsOf, postBundle, type Bundle, type BundleClaim } from "./write"
+import {
+  claimIdsOf,
+  postBundle,
+  SYSTEM,
+  type Bundle,
+  type BundleClaim,
+} from "./write"
 
 /*
  * Saving a person's Edit to store, as a bundle, through write.ts like every
@@ -82,24 +88,38 @@ export interface FeatureEdit {
  * The part of a bundle that writes a person's typed values: a shared "Studio
  * edit" source (idempotent: the same external key every time), one citation
  * per claim carrying the edit's note, and one claim per edit. A value the
- * rules refuse is an error, never skipped.
+ * rules refuse is an error, never skipped. With the action's `key` every new
+ * citation and claim gets an external key from it, so the same press sent
+ * twice (a retry, a second tab) makes nothing twice.
  */
 export function editsBundle(
   edits: readonly FeatureEdit[],
-  note: string
+  note: string,
+  key?: string
 ): Required<Pick<Bundle, "sources" | "citations" | "claims">> {
   const citations: NonNullable<Bundle["citations"]> = []
   const claims: BundleClaim[] = []
 
   edits.forEach((edit, index) => {
     const citationRef = `citation-${index}`
+    const keyed = (what: string) =>
+      key
+        ? {
+            external_key: {
+              system: SYSTEM,
+              key: `${key}:${what}:${edit.feature}:${edit.key}`,
+            },
+          }
+        : {}
     citations.push({
       ref: citationRef,
       source: STUDIO_SOURCE_REF,
       ...(note.trim() ? { quote: note.trim() } : {}),
+      ...keyed("citation"),
     })
     const base = {
       ref: `claim-${index}`,
+      ...keyed("claim"),
       feature: edit.feature,
       attribute: edit.key,
       citations: [{ citation: citationRef, role: "confirms" }],
@@ -135,7 +155,8 @@ export function editsBundle(
  */
 export async function saveEditsToStore(
   edits: readonly SectionEdit[],
-  note: string
+  note: string,
+  key?: string
 ): Promise<string[]> {
   const writable = persistableEdits(edits)
   if (writable.length === 0) return []
@@ -147,7 +168,8 @@ export async function saveEditsToStore(
         label: edit.attribute,
         value: edit.value,
       })),
-      note
+      note,
+      key
     )
   )
   return claimIdsOf(answer)
