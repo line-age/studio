@@ -533,3 +533,73 @@ def test_a_search_cite_was_too_busy_to_start_can_be_pressed_again(world):
     cite.busy = False
     again = chat.ask("Search", action={"kind": "search", "offer": offer})
     assert "finding" in kinds(again)
+
+
+# Words that name no attribute search for what the section is missing (2026-11-23) -------
+
+
+def test_what_a_section_is_missing_is_worked_out_from_what_store_holds(world):
+    from context import search_gaps
+    from store_client import StoreClient  # noqa: F401 - the fake store is its client
+
+    store = FakeStore(world).client()
+
+    def gaps(code):
+        feature = store.feature(world["codes"][code])
+        pipeline_id = next(
+            (
+                link["to_feature_id"]
+                for link in feature.get("links") or []
+                if link["relation"] == "part_of" and link["status"] == "confirmed"
+            ),
+            None,
+        )
+        pipeline = store.feature(pipeline_id) if pipeline_id else None
+        return search_gaps(feature, [], pipeline)
+
+    assert gaps("s01") == ["owner", "diameter", "status"]
+    # s02 has an accepted owner and diameter: only when it was built is missing.
+    assert gaps("s02") == ["status"]
+    # s16's pipeline (Example trunk line) holds the owner: the section is not missing it.
+    assert "owner" not in gaps("s16")
+
+
+def test_naming_no_attribute_searches_for_every_one_missing(world):
+    s01 = world["codes"]["s01"]
+    # The model's old habit: it drafts the owner though none was named.
+    chat = Chat(world, request(s01, places=["Sampleton"]), cite=FakeCite("owner_found"))
+    out = chat.ask("Find a citation for it; it runs through Sampleton.", [s01], press=False)
+    offer = offered(out)
+    assert offer["search"]["attributes"] == ["owner", "diameter", "status"]
+    assert offer["text"] == (
+        "Search the journals for the owner, the diameter and when it was built"
+    )
+
+
+def test_naming_an_attribute_searches_for_that_one_only(world):
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01, attribute="diameter", places=["Sampleton"]))
+    out = chat.ask("Find the diameter; it runs through Sampleton.", [s01], press=False)
+    assert offered(out)["search"]["attributes"] == ["diameter"]
+
+
+def test_nothing_missing_is_said_and_nothing_is_searched(world):
+    from render import Read
+
+    s01 = world["codes"]["s01"]
+    read = Read()
+    read.feature(FakeStore(world).client().feature(s01))
+    drafts = request(s01, places=["Sampleton"])["statements"]
+    from schemas import DraftStatement, Ref, Statement
+
+    verdict = cite_flow.check_request(
+        [DraftStatement.model_validate(d) for d in drafts],
+        [Statement(kind="citation_request", text="", refs=[Ref(type="feature", id=s01)])],
+        read,
+        ["Find a citation for it, through Sampleton."],
+        {},
+        [],
+        gaps=lambda _: [],
+    )
+    assert isinstance(verdict, cite_flow.Refused)
+    assert verdict.line == CITE_LINES["nothing_missing"]

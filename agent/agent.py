@@ -864,6 +864,19 @@ def build_graph(
             for d, r in zip(draft.statements, rendered.statements, strict=True)
             if r.kind == "citation_request"
         ]
+
+        def gaps(section_id: str) -> list[str]:
+            # What the section is missing, read from store; on a failed read, the
+            # model's own attribute stands (an empty answer would say nothing is).
+            try:
+                feature = store.feature(section_id)
+                merged, _ = _with_merged(store, feature)
+                pipeline_id = change_flow.confirmed_pipeline(feature)
+                pipeline = store.feature(pipeline_id) if pipeline_id else None
+            except StoreError:
+                return [d.attribute for d, _ in pairs if d.attribute] or list(cite_input.TO_CITE)
+            return context.search_gaps(feature, merged, pipeline)
+
         verdict = cite_flow.check_request(
             [d for d, _ in pairs],
             [r for _, r in pairs],
@@ -871,6 +884,8 @@ def build_graph(
             _people_words(state["messages"]),
             cite_state.get("findings") or {},
             cite_state.get("runs") or [],
+            gaps=gaps,
+            pending=cite_state.get("pending"),
         )
         refs = [ref for _, r in pairs for ref in r.refs if ref.type == "feature"][:1]
         subject = refs[0].label if refs and refs[0].label else "the section"

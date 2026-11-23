@@ -15,6 +15,7 @@
 import calendar
 import datetime as dt
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -50,6 +51,10 @@ CITE_LINES = {
         "finding shows. {what} is none of these."
     ),
     "busy": "A search is already running. Ask again when it has finished.",
+    "nothing_missing": (
+        "Its owner, diameter and when it was built are all known already. Name one to "
+        "search for it again."
+    ),
     "already_searched": "That search has run already. Ask again to search again.",
     "nothing_to_search_by": (
         "Store holds no name for this section, so without towns there is nothing to search "
@@ -121,6 +126,8 @@ def check_request(
     words: list[str],
     findings: dict[str, dict[str, Any]],
     runs: list[dict[str, Any]] | None = None,
+    gaps: Callable[[str], list[str]] | None = None,
+    pending: dict[str, Any] | None = None,
 ) -> CiteAsk | Refused | AskForPlaces:
     """The model's citation_request statements, checked by code. `words` are the
     person's own messages in this thread, `findings` what cite found earlier, `runs` the
@@ -138,6 +145,17 @@ def check_request(
         attributes = list(
             dict.fromkeys(["operator" if "operat" in a.lower() else "name" for a in asked])
         )
+    # No attribute named in the person's words, and no earlier search or question for
+    # towns being steered: search for what the section is missing, never a guess
+    # (2026-11-23). Code reads the words; the model's attribute is not trusted here.
+    named = bool(words) and any(rx.search(words[-1]) for rx in _WORDS_FOR.values())
+    steering = any(r["section_id"] == sections[0] for r in runs or []) or (
+        bool(pending) and pending.get("section_id") == sections[0]
+    )
+    if gaps is not None and not named and not asked and not steering:
+        attributes = gaps(sections[0])
+        if not attributes:
+            return Refused(CITE_LINES["nothing_missing"])
     cannot = [a for a in attributes if a not in TO_CITE]
     if cannot or not attributes:
         what = " or the ".join(a.replace("_", " ") for a in cannot) or "that"
@@ -219,9 +237,15 @@ def _years(window: tuple[int, int] | list[int] | None) -> str:
     return str(start) if start == end else f"{start} to {end}"
 
 
+_OFFER_WORDS = {"owner": "the owner", "diameter": "the diameter", "status": "when it was built"}
+
+
 def offer_line(attributes: list[str]) -> str:
-    """The search card's title: "Search the journals for the owner"."""
-    return f"Search the journals for the {' and the '.join(_what(a) for a in attributes)}"
+    """The search card's title: "Search the journals for the owner, the diameter and
+    when it was built"."""
+    words = [_OFFER_WORDS.get(a, f"the {_what(a)}") for a in attributes]
+    joined = words[0] if len(words) == 1 else f"{', '.join(words[:-1])} and {words[-1]}"
+    return f"Search the journals for {joined}"
 
 
 def looking_line(ask: CiteAsk, subject: str) -> str:
