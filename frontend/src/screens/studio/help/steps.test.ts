@@ -18,8 +18,8 @@ describe("the words of Help", () => {
 
   it("says plainly where the Agent answers and where it cannot yet", () => {
     const agent = HELP_STEPS.find((step) => step.id === "agent")
-    expect(agent?.body).toMatch(/On store's data the Agent answers/)
-    expect(agent?.body).toMatch(/on the sample it cannot yet/)
+    expect(agent?.body).toMatch(/The Agent answers on saved data/)
+    expect(agent?.body).toMatch(/on this sample it cannot yet/)
   })
 
   it("has one id per step", () => {

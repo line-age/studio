@@ -22,67 +22,81 @@ export interface HelpStep {
 export const HELP_STEPS: readonly HelpStep[] = [
   {
     id: "intro",
-    title: "What Studio is",
-    body: "Studio is where you check traced pipeline sections. Everything said about a section is a claim. A claim is cited, with the source that says so, or it is Unknown. Nothing is filled in by guessing.",
+    title: "Welcome to Studio",
+    body: "Here you check traced pipeline sections and record what is known about each, always with its source. Let us show you around.",
     targets: [],
   },
   {
     id: "sections",
     title: "The network",
-    body: "One list of the network. The pipelines come first, then the ones only proposed, then the sections in no pipeline yet, one row for each map edition with the sections it is the first to show. Select a row and its sections are listed on the right.",
+    body: "The whole network: pipelines first, then sections in no pipeline yet. Select a row to see its sections on the right.",
     targets: ["sections"],
     needs: "list",
   },
   {
     id: "search",
-    title: "The switch, search and filters",
-    body: "The switch shows everything, only the pipelines, or only the sections not placed in one yet; the map follows it, and what is selected stays selected. Type a name or a code to narrow the list. The button beside the search opens the filters: status, the edition that first shows a section, state, length, a proposed end and more. A filter shows only while it has something to tell apart. The ones that are on show as chips under the search. Press / to jump to the search from anywhere.",
+    title: "Switch, search and filters",
+    body: "Switch between everything, pipelines only, or sections in no pipeline. Search by name or code. The button beside the search opens the filters.",
     targets: ["list-tools"],
     needs: "list",
   },
   {
     id: "map",
     title: "The map",
-    body: "Each line is a section. A line is solid or dotted by its status, and heavy when the section is in a pipeline, thin when it is in none. Drag to move the map and scroll to zoom.",
+    body: "Each line is a section: heavy in a pipeline, thin in none. Point at one for a quick summary.",
     targets: ["map"],
   },
   {
     id: "layers",
     title: "The map key",
-    body: 'The map key says how each line is drawn. Its two eyes show or hide the paths a tool proposed and, faint, the sections the filters leave out. "List follows the map", below it, keeps the list to the sections in view once you turn it on; while the list is a table it waits.',
+    body: 'The map key says what each line means. "List follows the map", below it, keeps the list to what is in view.',
     targets: ["layers", "map"],
   },
   {
     id: "select",
     title: "Selecting",
-    body: `Click a line to select it alone. Hold ${addKeyName()} and click to add another, or to take a selected one off. Tick rows in the list, or draw a loop with the Lasso, to select several at once. A selection can span pipelines.`,
+    body: `Click a line to select it. Hold ${addKeyName()} and click to add more, or draw a loop with the Lasso.`,
     targets: ["tools", "map"],
   },
   {
     id: "claims",
     title: "Claims",
-    body: "What is selected shows here, claim by claim. Click a section to read it; that does not change what is selected. A cited value comes with its source; click a source to open it in its own window, with the claim's other sources alongside it. Unknown, the orange word with a dotted underline, means no source has been found yet. A proposal is a value the AI suggests and nobody has decided on.",
+    body: "What is known about your selection. Click a claim to see its sources. Unknown, in orange, means no source yet.",
+    targets: ["claims"],
+    needs: "selection",
+  },
+  {
+    id: "changes",
+    title: "Making changes",
+    body: "Right click a section or a pipeline to change it. Nothing changes until you save.",
     targets: ["claims"],
     needs: "selection",
   },
   {
     id: "agent",
     title: "Ask the Agent",
-    body: '"Ask the Agent" hands what you selected to the Agent as references. It shows on the map after a selection made there, and the Agent is always in the rail. Right click a section, a claim, a source or a proposal to ask about it: "What does store say about this?", "Why is this Unknown?", "What is proposed here, and why?", and on a section "What surrounds this section?" and "What could we look for here?". On store\'s data the Agent answers; on the sample it cannot yet.',
+    body: 'Select something and press "Ask the Agent", or right click and choose Ask. The Agent answers on saved data; on this sample it cannot yet.',
     targets: ["ask-agent", "agent"],
     needs: "selection",
   },
   {
     id: "agent-panel",
     title: "Asking the Agent",
-    body: 'What you handed over sits with your message as attachments; a starter question puts its words in the box, and you can change them. An answer shows what the Agent read above it, each statement\'s source beside it and sections as links; click any to open it. "Inferred" marks what the Agent concluded from what store holds, which no source states, and "Lead, not in store" marks where to look next: neither is a claim. On the sample, a question stays here with a line that says the Agent cannot answer yet.',
+    body: "Ask in your own words. Every answer comes with its sources. Not sure what to ask? Press Tab to take the example in the box.",
+    targets: ["agent-panel"],
+    needs: "agent",
+  },
+  {
+    id: "agent-cards",
+    title: "The Agent's cards",
+    body: "The Agent changes nothing by itself. A change or a search comes back as a card, and it waits for your press.",
     targets: ["agent-panel"],
     needs: "agent",
   },
   {
     id: "settings",
     title: "Help",
-    body: "Help runs this tour again, opens the Agent to ask a question, and has a page on each area.",
+    body: "That is all. Help runs this tour again any time.",
     targets: ["settings"],
   },
 ]
@@ -122,7 +136,12 @@ export const HELP_WORDS: readonly HelpWord[] = [
   {
     term: "Proposal",
     meaning:
-      "A value the AI suggests for a claim. It counts for nothing until a person decides.",
+      "A value a tool or the Agent suggests for a claim. It counts for nothing until a person decides.",
+  },
+  {
+    term: "Finding",
+    meaning:
+      "What a search of the journals found for a claim: the page's own words. It is saved only when you press Propose, and then as a proposal.",
   },
   {
     term: "Unknown",
