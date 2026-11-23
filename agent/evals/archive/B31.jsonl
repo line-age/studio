@@ -1,0 +1,1 @@
+{"id": "B31-013", "behaviour": "B31", "world": "small", "question": {"words": "What did I ask you before?", "about": []}, "must": {"fixed_line": "not_yet_recall"}, "must_not": {"kinds": ["failure", "clarify", "fact", "unknown"]}, "split": "dev", "keeps": null, "labeled_by": "agent-draft", "note": "Earlier turns are not kept in mind: says so."}

@@ -1,0 +1,3697 @@
+{
+ "meta": {
+  "name": "baseline-B31",
+  "at": "2026-11-22T14:44:53+00:00",
+  "model": "anthropic:claude-opus-5-5",
+  "commit": "3f8a4ec",
+  "prompt": "5d75175b2ad2",
+  "repeat": 1,
+  "experiment": "baseline-B31-394cfbae"
+ },
+ "cases": {
+  "B01-001": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nsection 06a875ca is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.07
+    }
+   ]
+  },
+  "B01-002": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.66
+    }
+   ]
+  },
+  "B01-003": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.94
+    }
+   ]
+  },
+  "B01-004": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nsection fbfca50c is first traced on the 1938 printing and is not traced on the earlier 1932 one, so sources from 1932 to 1938 are where to look for when it first appears. A window to search, never a build date.\nSample Gas Co. was ruled out as the owner of section fbfca50c. Do not propose it again.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.5
+    }
+   ]
+  },
+  "B01-005": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store no longer has that. Attach it again from the list or the map.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 0.01
+    }
+   ]
+  },
+  "B01-006": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 2cf68921.\nsection 2cf68921 is part of the pipeline Example trunk line, by a confirmed link. What store holds about the pipeline is the pipeline's, not the section's.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.\nThe pipeline section 2cf68921 is part of, Example trunk line, has the owner Example Pipe Line Co., in 1932. Worth checking whether that holds for section 2cf68921 itself.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.59
+    }
+   ]
+  },
+  "B01-007": {
+   "behaviour": "B01",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Placeholder Fuel and Light Co., in 1938.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.66
+    }
+   ]
+  },
+  "B02-001": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner is Example Pipe Line Co., by March 1932.\nThe diameter is 20 in, by March 1932.\nIt is shown on a map by 1932.\nSampletown lateral is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nStore does not say when Sampletown lateral ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nNo section in store is drawn touching Sampletown lateral.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.96
+    }
+   ]
+  },
+  "B02-002": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store holds two accepted operators whose periods overlap: Example Pipe Line Co., from 1932 to 1940, according to Example Gazette, vol. 32 no. 3, p. 44, and Sample Gas Co., from 1938, according to Example Gazette, vol. 38 no. 11, p. 120. They disagree, and both are kept.\nsection aa16d282 has two accepted operator values for the same years, Example Pipe Line Co. and Sample Gas Co. To resolve, not to pick.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.73
+    }
+   ]
+  },
+  "B02-003": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nA tool proposed Sample Gas Co. as the owner, in 1938. Nobody has decided on it yet.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.12
+    }
+   ]
+  },
+  "B02-004": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nYes. A tool proposed Sample Gas Co. as the owner, in 1938, citing Example Gazette, vol. 38 no. 11, p. 113, and a reviewer rejected it.\nSample Gas Co. was ruled out as the owner of section fbfca50c. Do not propose it again.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.25
+    }
+   ]
+  },
+  "B02-005": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The diameter is 16 in, by 1938.\nThis diameter rests on a map, Example Gazette pipeline map, 1938 printing, so it only shows the diameter held by 1938, not when it started.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.66
+    }
+   ]
+  },
+  "B02-006": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "For the pipeline Example trunk line, the name is Example trunk line, in 1932.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 1.96
+    }
+   ]
+  },
+  "B02-007": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "The owner, Example Pipe Line Co., rests on Example Gazette, vol. 32 no. 3, p. 41, which says “The Example Pipe Line Co. has completed its line to Sampletown.”.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.54
+    }
+   ]
+  },
+  "B02-009": {
+   "behaviour": "B02",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 10,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 06a875ca is shown on a map by 1932.\nFor Sampletown lateral, the diameter is 20 in, by March 1932.\nFor Sampletown lateral, the owner is Example Pipe Line Co., by March 1932.\nSampletown lateral is shown on a map by 1932.\nA tool proposed Sample Gas Co. as the owner of section 7228cfbd, in 1938. Nobody has decided on it yet.\nsection 7228cfbd is shown on a map by 1932.\nOne value for section fbfca50c, Sample Gas Co., was rejected as the owner. It was given in 1938.\nsection fbfca50c is shown on a map by 1938.\nTwo accepted claims disagree on who operated section aa16d282: Example Pipe Line Co., from 1932 to 1940, and Sample Gas Co., from 1938.\nsection aa16d282 is shown on a map by 1938.\nsection 2cf68921 is shown on a map by 1932.\nFor section 9349612f, the diameter is 16 in, by 1938.\nsection 9349612f is shown on a map by 1932.\nFor the pipeline Example trunk line, the name is Example trunk line, in 1932.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.\nFor section 013441e4, the owner is Invented Natural Gas Corp., in 1938.\nsection 013441e4 is shown on a map by 1938.\nA tool proposed 12 in as the diameter of Mockville loop, in 1938. Nobody has decided on it yet.\nFor Mockville loop, the name is Mockville loop, in 1932.\nMockville loop is shown on a map by 1932.\nFor Mockville loop, the status is operational, from 1933.\nsection c4e00696 is shown on a map by 1938.\nFor section c4e00696, the owner is Placeholder Fuel and Light Co., in 1938.\nsection c4e00696 is shown on a map by 1938.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 9.84
+    }
+   ]
+  },
+  "B17-001": {
+   "behaviour": "B17",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 698a2811 is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.21
+    }
+   ]
+  },
+  "B17-002": {
+   "behaviour": "B17",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say when section b5ba97b6 ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nIt is proposed, and not yet decided, that a line traced as gone on the 1946 printing is the same pipe as section b5ba97b6. Until someone decides, when it ended stays Unknown.\nsection b5ba97b6 is first traced on the 1926 printing.\nIt is shown on a map by 1926.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.85
+    }
+   ]
+  },
+  "B17-003": {
+   "behaviour": "B17",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "A line traced as gone on the 1951 printing is the same pipe as section 2d111615, by a confirmed link, so that printing is the first in store not to show it.\nThe status is decommissioned, by 1951.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.5
+    }
+   ]
+  },
+  "B17-004": {
+   "behaviour": "B17",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say when section 06a875ca ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nIt is shown on a map by 1932.\nsection 06a875ca is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.05
+    }
+   ]
+  },
+  "B17-005": {
+   "behaviour": "B17",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 698a2811 is shown on a map by 1932.\nsection 698a2811 is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nStore does not say when section 698a2811 ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nIt is proposed, and not yet decided, that section 66522f8a is another trace of the same pipe as section 698a2811.\nsection fcf4207a is drawn touching section 698a2811: their ends meet. Lines drawn touching do not prove the pipes joined.\nFor section fcf4207a, the owner is Invented Natural Gas Corp., in 1932.\nsection fcf4207a is shown on a map by 1932.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 3.95
+    }
+   ]
+  },
+  "B18-001": {
+   "behaviour": "B18",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 7707ea05 is part of the pipeline Example trunk line, by a confirmed link. What store holds about the pipeline is the pipeline's, not the section's.\nFor the pipeline Example trunk line, the name is Example trunk line, in 1932.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.66
+    }
+   ]
+  },
+  "B18-002": {
+   "behaviour": "B18",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "It is proposed, and not yet decided, that section 66522f8a is another trace of the same pipe as section 698a2811.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 3.02
+    }
+   ]
+  },
+  "B18-003": {
+   "behaviour": "B18",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 56edd8e7 is another trace of the same pipe as section c4e00696, by a confirmed link. Store counts its claims as section c4e00696's.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.65
+    }
+   ]
+  },
+  "B18-004": {
+   "behaviour": "B18",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "It is proposed, and not yet decided, that section a9121d7a is part of pipeline afaac6a3. Until someone decides, it is in no pipeline.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.56
+    }
+   ]
+  },
+  "B18-005": {
+   "behaviour": "B18",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 7707ea05 is part of the pipeline Example trunk line, by a confirmed link. What store holds about the pipeline is the pipeline's, not the section's.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.77
+    }
+   ]
+  },
+  "B19-001": {
+   "behaviour": "B19",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section fcf4207a is drawn touching section 698a2811: their ends meet. Lines drawn touching do not prove the pipes joined.\nFor section fcf4207a, the owner is Invented Natural Gas Corp., in 1932.\nsection fcf4207a is shown on a map by 1932.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.44
+    }
+   ]
+  },
+  "B19-002": {
+   "behaviour": "B19",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section fcf4207a is drawn touching section 698a2811: their ends meet. Lines drawn touching do not prove the pipes joined.\nFor section fcf4207a, the owner is Invented Natural Gas Corp., in 1932.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.2
+    }
+   ]
+  },
+  "B19-003": {
+   "behaviour": "B19",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 7707ea05 is drawn touching section fcf4207a: its end meets the middle of section fcf4207a. Lines drawn touching do not prove the pipes joined.\nFor section fcf4207a, the owner is Invented Natural Gas Corp., in 1932.\nsection fcf4207a is shown on a map by 1932.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.42
+    }
+   ]
+  },
+  "B19-004": {
+   "behaviour": "B19",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "No section in store is drawn touching section 1f0c3ef9.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.55
+    }
+   ]
+  },
+  "B19-005": {
+   "behaviour": "B19",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "No section in store is drawn touching section 1754eb75.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.96
+    }
+   ]
+  },
+  "B20-001": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.\nsection fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.\nsection 698a2811 is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 3.05
+    }
+   ]
+  },
+  "B20-002": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.\nsection fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.74
+    }
+   ]
+  },
+  "B20-003": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 698a2811 is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nsection 698a2811 is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.\nIt is shown on a map by 1932.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.38
+    }
+   ]
+  },
+  "B20-004": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns section 7707ea05.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 7707ea05. The same page may name section 7707ea05's owner too.\nsection fcf4207a, drawn touching section 7707ea05, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 7707ea05.\nThe pipeline section 7707ea05 is part of, Example trunk line, has the owner Example Pipe Line Co., in 1932. Worth checking whether that holds for section 7707ea05 itself.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.76
+    }
+   ]
+  },
+  "B20-005": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nOne value, Sample Gas Co., was rejected as the owner. It was given in 1938.\nSample Gas Co. was ruled out as the owner of section fbfca50c. Do not propose it again.\nsection fbfca50c is first traced on the 1938 printing and is not traced on the earlier 1932 one, so sources from 1932 to 1938 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.63
+    }
+   ]
+  },
+  "B20-006": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store holds two accepted owners that disagree for the same period: Sample Gas Co., in 1938, according to Example Gazette, vol. 38 no. 11, p. 118, and Invented Natural Gas Corp., in 1938, according to Example Gazette, vol. 38 no. 11, p. 119.\nsection a7302236 has two accepted owner values for the same years, Sample Gas Co. and Invented Natural Gas Corp. To resolve, not to pick.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 3.08
+    }
+   ]
+  },
+  "B20-007": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nExample Gazette, vol. 32 no. 3, p. 52 names the owner of section fcf4207a, drawn touching section 698a2811. The same page may name section 698a2811's owner too.\nsection fcf4207a, drawn touching section 698a2811, has the owner Invented Natural Gas Corp., in 1932. Worth checking whether that holds for section 698a2811.\nIt is proposed, not decided, that section 66522f8a is another trace of the same pipe as section 698a2811. If someone confirms it, section 698a2811 takes its owner, Example Pipe Line Co.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.25
+    }
+   ]
+  },
+  "B20-008": {
+   "behaviour": "B20",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Store does not say who owns it.\nsection 1f0c3ef9 is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.62
+    }
+   ]
+  },
+  "B28-001": {
+   "behaviour": "B28",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 3,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Propose these 3 sections as one pipeline? Store keeps it as a proposal until a person decides it in the inbox. 1 of them is already in a pipeline; it stays there until a person moves it.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.01
+    }
+   ]
+  },
+  "B28-002": {
+   "behaviour": "B28",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Proposed a pipeline of 2 sections. Decide it in the inbox.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.01
+    }
+   ]
+  },
+  "B28-003": {
+   "behaviour": "B28",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "To propose a pipeline, attach two or more sections and ask again.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.04
+    }
+   ]
+  },
+  "B28-004": {
+   "behaviour": "B28",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Only sections go into a pipeline. Attach the sections and ask again.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    }
+   ]
+  },
+  "B28-005": {
+   "behaviour": "B28",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 7707ea05 is part of the pipeline Example trunk line, by a confirmed link. What store holds about the pipeline is the pipeline's, not the section's.\nFor the pipeline Example trunk line, the name is Example trunk line, in 1932.\nFor the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.14
+    }
+   ]
+  },
+  "B29-001": {
+   "behaviour": "B29",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 3,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Propose these 3 sections as one pipeline? Store keeps it as a proposal until a person decides it in the inbox.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.01
+    }
+   ]
+  },
+  "B29-002": {
+   "behaviour": "B29",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Propose these 2 sections as one pipeline? Store keeps it as a proposal until a person decides it in the inbox.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.01
+    }
+   ]
+  },
+  "B29-003": {
+   "behaviour": "B29",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Propose these 2 sections as one pipeline? Store keeps it as a proposal until a person decides it in the inbox.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.01
+    }
+   ]
+  },
+  "B29-004": {
+   "behaviour": "B29",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "A pipeline of these 2 sections is already proposed. Decide it in the inbox.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    }
+   ]
+  },
+  "B29-005": {
+   "behaviour": "B29",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Only a person decides or changes what store holds. Proposals are decided in the inbox above the chat; a section goes into or out of a pipeline with Change pipeline in its right-click menu.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.0
+    }
+   ]
+  },
+  "B29-006": {
+   "behaviour": "B29",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 3,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Propose these 3 sections as one pipeline? Store keeps it as a proposal until a person decides it in the inbox. It has no name: store keeps a pipeline's name only once a source gives one.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.01
+    }
+   ]
+  },
+  "B29-007": {
+   "behaviour": "B29",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 3,
+   "cite": true,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "section 7707ea05 is part of the pipeline Example trunk line, by a confirmed link. What store holds about the pipeline is the pipeline's, not the section's.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context",
+      "read_context"
+     ],
+     "blocked": [
+      [
+       "statement 2: a fact states a value through {c1.value}, or its source through {c1.source}",
+       "statement 3: a fact states a value through {c1.value}, or its source through {c1.source}",
+       "statement 2: a fact must name the claim it rests on",
+       "statement 3: a fact must name the claim it rests on",
+       "draft: {\"statements\":[{\"kind\":\"worked_out\",\"attribute\":null,\"text\":\"\",\"refs\":[{\"key\":\"w1\",\"type\":\"worked_out\",\"id\":\"W9\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false},{\"kind\":\"fact\",\"attribute\":null,\"text\":\"Store holds no part_of link for {f1.name}, so it is not in a pipeline yet.\",\"refs\":[{\"key\":\"f1\",\"type\":\"feature\",\"id\":\"0fc87cac-291d-5c57-9d84-7b1c734d02ec\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false},{\"kind\":\"fact\",\"attribute\":null,\"text\":\"Store holds no part_of link for {f1.name}, so it is not in a pipeline yet.\",\"refs\":[{\"key\":\"f1\",\"type\":\"feature\",\"id\":\"ca5d65a4-bfa9-5734-8d8a-f08fe72a8bb2\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false}]}"
+      ]
+     ],
+     "seconds": 5.67
+    }
+   ]
+  },
+  "B29-008": {
+   "behaviour": "B29",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Only a person decides or changes what store holds. Proposals are decided in the inbox above the chat; a section goes into or out of a pipeline with Change pipeline in its right-click menu.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.01
+    }
+   ]
+  },
+  "B29-009": {
+   "behaviour": "B29",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 5,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "Propose these 5 sections as one pipeline? Store keeps it as a proposal until a person decides it in the inbox. 1 of them is already in a pipeline; it stays there until a person moves it.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 0.01
+    }
+   ]
+  },
+  "B29-010": {
+   "behaviour": "B29",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "For the pipeline Example trunk line, the owner is Example Pipe Line Co., in 1932.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 1.89
+    }
+   ]
+  },
+  "B31-001": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a clarify statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_length'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [
+      [
+       "statement 1: an unknown names the feature it read and the attribute",
+       "draft: {\"statements\":[{\"kind\":\"unknown\",\"attribute\":null,\"text\":\"Store does not hold a length for {f1.name}. Its only line is a traced route, which is never given as a value.\",\"refs\":[{\"key\":\"f1\",\"type\":\"feature\",\"id\":\"0fc87cac-291d-5c57-9d84-7b1c734d02ec\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false}]}"
+      ]
+     ],
+     "seconds": 6.53
+    }
+   ]
+  },
+  "B31-002": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_length'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "fixed_line"
+      }
+     },
+     "answer": "I can only help with what is in store, its sources and how Studio works.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 3.65
+    }
+   ]
+  },
+  "B31-003": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a unknown statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_place'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "Store does not say what its location is.\nsection 06a875ca is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nNo section in store is drawn touching section 06a875ca.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.0
+    }
+   ]
+  },
+  "B31-004": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a unknown statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_place'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "Store does not say what its serves is.\nMockville loop is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nNo section in store is drawn touching Mockville loop.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 3.11
+    }
+   ]
+  },
+  "B31-005": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a fact statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_tracer'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "An import tool traced this line, not a person, from Example Gazette pipeline map, 1932 printing. Store accepts the traced line.\nsection 06a875ca is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 3.17
+    }
+   ]
+  },
+  "B31-006": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a fact statement; has a unknown statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_compare'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "section 06a875ca is shown on a map by 1932.\nSampletown lateral is shown on a map by 1932.\nsection 06a875ca is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nSampletown lateral is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nFor Sampletown lateral, the owner is Example Pipe Line Co., by March 1932.\nFor Sampletown lateral, the diameter is 20 in, by March 1932.\nStore does not say who owns section 06a875ca.\nStore does not say what the diameter of section 06a875ca is.\nStore does not say when section 06a875ca ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nStore does not say when Sampletown lateral ended. No line traced as gone is confirmed for it, which is no proof that it lasted.\nNo section in store is drawn touching section 06a875ca.\nNo section in store is drawn touching Sampletown lateral.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 5.4
+    }
+   ]
+  },
+  "B31-007": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 2,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a fact statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_compare'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "Sampletown lateral is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nMockville loop is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.\nSampletown lateral is shown on a map by 1932.\nFor Mockville loop, two accepted status claims disagree on timing: operational by 1932, from Example Gazette pipeline map, 1932 printing, and operational from 1933, from Example Gazette, vol. 32 no. 3, p. 47.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 3.85
+    }
+   ]
+  },
+  "B31-008": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a clarify statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_network'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.74
+    }
+   ]
+  },
+  "B31-009": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a unknown statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_network'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "Store does not say who owns it.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.33
+    }
+   ]
+  },
+  "B31-010": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a clarify statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_network'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.76
+    }
+   ]
+  },
+  "B31-011": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_help'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "fixed_line"
+      }
+     },
+     "answer": "Hello. Ask me about what store holds, its sources or how Studio works.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 2.1
+    }
+   ]
+  },
+  "B31-012": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a clarify statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_help'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.67
+    }
+   ]
+  },
+  "B31-013": {
+   "behaviour": "B31",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a clarify statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'not_yet_recall'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "What do you mean? Attach the section, pipeline, claim or source you are asking about.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.93
+    }
+   ]
+  }
+ }
+}

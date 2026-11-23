@@ -23,6 +23,14 @@ export const ProposeOutcomes = createContext<
   ReadonlyMap<string, ProposeOutcome>
 >(new Map())
 
+/**
+ * The pipeline a section is confirmed part of, by name, or null. An owner
+ * belongs to the pipeline, so a finding of one is offered for it there.
+ */
+export const PipelineOfSection = createContext<
+  (sectionId: string) => { id: string; name: string } | null
+>(() => null)
+
 /*
  * What cite found in a journal, under the sentence that says so. Built from
  * stock parts ahead of a Figma design: the passage in the page's own words,
@@ -99,9 +107,15 @@ function ProposeConfirmation({
   onPropose,
 }: {
   finding: AgentFinding
-  onPropose?: (handle: string) => void
+  onPropose?: (handle: string, target?: string) => void
 }) {
   const outcome = use(ProposeOutcomes).get(finding.handle)
+  // An owner goes to the section's pipeline; a diameter or a build date to the
+  // section. Without a pipeline an owner can go to the section alone.
+  const pipeline =
+    finding.attribute === "owner"
+      ? use(PipelineOfSection)(finding.section_id)
+      : null
   let title: string
   let description: string
   let mark: "check" | "history" | null = null
@@ -128,8 +142,18 @@ function ProposeConfirmation({
   } else if (!finding.proposable) {
     title = "Not offered to propose"
     description = finding.not_proposable ?? ""
+  } else if (pipeline) {
+    title = `Propose this as the owner of ${pipeline.name}?`
+    description =
+      "An owner belongs to the pipeline, so it goes there. Writes a candidate claim with this citation to store; a person still accepts or rejects it."
+    action = true
+  } else if (finding.attribute === "owner") {
+    title = "Propose this as the owner of this section?"
+    description =
+      "It is in no pipeline yet, and Studio shows an owner on its pipeline. Make a pipeline first to put it there, or propose it for this section alone. A person still accepts or rejects it."
+    action = true
   } else {
-    title = `Propose this as ${WHAT[finding.attribute]}?`
+    title = `Propose this as ${WHAT[finding.attribute]} of this section?`
     description =
       "Writes a candidate claim with this citation to store. A person still accepts or rejects it."
     action = true
@@ -147,13 +171,33 @@ function ProposeConfirmation({
       </ItemContent>
       {action && (
         <ItemActions>
-          <Button
-            size="sm"
-            disabled={!onPropose}
-            onClick={() => onPropose?.(finding.handle)}
-          >
-            Propose
-          </Button>
+          {pipeline ? (
+            <>
+              <Button
+                size="sm"
+                disabled={!onPropose}
+                onClick={() => onPropose?.(finding.handle, pipeline.id)}
+              >
+                Propose for pipeline
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!onPropose}
+                onClick={() => onPropose?.(finding.handle)}
+              >
+                This section only
+              </Button>
+            </>
+          ) : (
+            <Button
+              size="sm"
+              disabled={!onPropose}
+              onClick={() => onPropose?.(finding.handle)}
+            >
+              Propose
+            </Button>
+          )}
         </ItemActions>
       )}
     </Item>
@@ -166,7 +210,7 @@ export function AgentFindingCard({
 }: {
   finding: AgentFinding
   /** Sends the Propose action; absent while the Agent is busy or offline. */
-  onPropose?: (handle: string) => void
+  onPropose?: (handle: string, target?: string) => void
 }) {
   const doubt = finding.flags.length > 0
   return (

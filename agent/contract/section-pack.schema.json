@@ -247,7 +247,14 @@
             "overlap",
             "parallel",
             "link",
-            "drawn_touching"
+            "drawn_touching",
+            "nearby",
+            "place",
+            "length",
+            "built",
+            "missing",
+            "together",
+            "network"
           ],
           "title": "What",
           "type": "string"
@@ -262,6 +269,13 @@
           },
           "title": "Rests On",
           "type": "array"
+        },
+        "values": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Values",
+          "type": "object"
         }
       },
       "required": [
@@ -274,7 +288,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Everything code can say about one section from store: the chat answers from it\nand cite takes it as its brief. Fields follow cite's input (ids, line type, name,\nstates, place names, observations). States and places are empty until place data\ncomes in (owner, 2026-11-14).",
+  "description": "Everything code can say about one section from store: the chat answers from it\nand cite takes it as its brief. Fields follow cite's input (ids, line type, name,\nstates, place names, observations). States and places are worked out from the traced\nline: today's towns, never a claim.",
   "properties": {
     "version": {
       "default": 1,

@@ -7,7 +7,6 @@ import { toast } from "sonner"
 import { Toaster } from "@/components/ui/sonner"
 import { testNetwork } from "@/test/network"
 
-import { useSettings } from "./settings"
 import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
 
@@ -25,6 +24,8 @@ vi.mock("@/data/load-network", async (original) => ({
   },
 }))
 vi.mock("./map/map-area", () => ({ MapArea: () => null }))
+// The inbox is hidden in Studio for now; these tests decide proposals in it.
+vi.mock("./panels/inbox-shown", () => ({ INBOX_SHOWN: true }))
 // The real change, counted: a decision pressed twice must be made once.
 const applied = vi.hoisted(() => ({
   count: 0,
@@ -57,7 +58,6 @@ beforeEach(() => {
   applied.keys = []
   applied.loseNext = false
   localStorage.clear()
-  useSettings.getState().reset()
   window.history.replaceState(null, "", "/")
   useStudio.setState(useStudio.getInitialState(), true)
   useCamera.setState(useCamera.getInitialState(), true)
@@ -254,7 +254,7 @@ describe("a section's menu", () => {
     // Back in North line: its row counts both sections again.
     expect(
       screen.getByRole("option", { name: /North line/ })
-    ).toHaveTextContent("/2")
+    ).toHaveTextContent(/2$/)
   })
 
   it("stays open when not saved, and Try again sends the same change with the same key", async () => {

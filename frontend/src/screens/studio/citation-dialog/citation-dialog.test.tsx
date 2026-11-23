@@ -4,14 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { citationPopupNetwork } from "@/test/network"
 
-import { useSettings } from "../settings"
 import { StudioScreen } from "../studio-screen"
 import { useCamera, useStudio } from "../studio-store"
 
 /*
- * The citation pop-up: opening it from a claim's source, moving between
- * claims, showing and finding a source, and closing it back to the row that
- * opened it.
+ * The sources pop-up: a click on a claim in the right panel opens where that
+ * one value comes from (Figma section 21). Its other claims are one line each,
+ * and a click swaps the pop-up to that claim. It closes back to the row.
  */
 
 vi.mock("@/data/load-network", async (original) => ({
@@ -34,177 +33,116 @@ async function openClaim(attribute: string) {
     .getAllByRole("treeitem")
     .find((item) => item.textContent?.startsWith(attribute))!
   await user.click(row)
-  return { user }
-}
-
-async function openCitation(attribute: string, sourceName: RegExp | string) {
-  const { user } = await openClaim(attribute)
-  const detail = screen.getByRole("region", {
-    name: `${attribute} of Elm to Fir`,
-  })
-  const sources = within(detail).getByRole("list", { name: "Sources" })
-  const source = within(sources).getByRole("button", { name: sourceName })
-  await user.click(source)
-  return { user, source }
+  return { user, row }
 }
 
 beforeEach(() => {
   localStorage.clear()
-  useSettings.getState().reset()
   window.history.replaceState(null, "", "/")
   useStudio.setState(useStudio.getInitialState(), true)
   useCamera.setState(useCamera.getInitialState(), true)
 })
 
-describe("the citation pop-up", () => {
-  it("opens named after the claim and the feature, showing 2 of 2", async () => {
-    await openCitation("Diameter", /Invented Gas Review, 1931/)
-    const dialog = screen.getByRole("dialog", {
-      name: "Diameter of Elm to Fir",
-    })
-    expect(within(dialog).getByText("2 of 3")).toBeInTheDocument()
+const dialog = () => screen.getByRole("dialog")
+const sources = () => within(dialog()).getByRole("list", { name: "Sources" })
+
+describe("the sources pop-up", () => {
+  it("opens on a click on a claim, named after the claim and its value", async () => {
+    await openClaim("Diameter")
+    expect(dialog()).toHaveAccessibleName("Diameter: 12 in")
+    expect(dialog()).toHaveTextContent("Elm to Fir")
+    expect(dialog()).toHaveTextContent(/\d+ sources?/)
+    expect(within(sources()).getAllByRole("listitem").length).toBeGreaterThan(0)
   })
 
-  it("disables Previous on the first cited claim, enables Next", async () => {
-    await openCitation("Geometry", /Invented trunk map, 1931/)
-    const dialog = screen.getByRole("dialog", {
-      name: "Geometry of Elm to Fir",
+  it("shows that claim's sources only, and its other claims one line each", async () => {
+    await openClaim("Diameter")
+    expect(sources()).not.toHaveTextContent("Invented trunk map, 1931")
+    const others = within(dialog()).getByRole("navigation", {
+      name: "Other claims of this section",
     })
     expect(
-      within(dialog).getByRole("button", { name: "Previous claim" })
-    ).toBeDisabled()
+      within(others).getByRole("button", { name: /^Geometry/ })
+    ).toBeVisible()
     expect(
-      within(dialog).getByRole("button", { name: "Next claim" })
-    ).toBeEnabled()
+      within(others).queryByRole("button", { name: /^Diameter/ })
+    ).toBeNull()
   })
 
-  it("steps to the next claim with Next or ArrowRight, and back with Previous or ArrowLeft", async () => {
-    const { user } = await openCitation("Geometry", /Invented trunk map, 1931/)
-    const hasDialogNamed = (name: string) =>
-      screen.queryByRole("dialog", { name }) !== null
-    await user.click(screen.getByRole("button", { name: "Next claim" }))
-    expect(hasDialogNamed("Diameter of Elm to Fir")).toBe(true)
-    await user.keyboard("{ArrowLeft}")
-    expect(hasDialogNamed("Geometry of Elm to Fir")).toBe(true)
-    await user.keyboard("{ArrowRight}")
-    expect(hasDialogNamed("Diameter of Elm to Fir")).toBe(true)
-    await user.click(screen.getByRole("button", { name: "Next claim" }))
-    expect(hasDialogNamed("Length of Elm to Fir")).toBe(true)
-    expect(screen.getByRole("button", { name: "Next claim" })).toBeDisabled()
-  })
-
-  it("ignores ArrowRight and ArrowLeft while focus is in the source list", async () => {
-    const { user } = await openCitation("Geometry", /Invented trunk map, 1931/)
-    const dialog = screen.getByRole("dialog", {
-      name: "Geometry of Elm to Fir",
-    })
-    const sources = within(dialog).getByRole("list", { name: "Sources" })
-    const sourceButton = within(sources).getByRole("button", {
-      name: /Invented trunk map, 1931/,
-    })
-    sourceButton.focus()
-    await user.keyboard("{ArrowRight}")
+  it("swaps to another claim in place, with no stepping", async () => {
+    const { user } = await openClaim("Diameter")
     expect(
-      screen.queryByRole("dialog", { name: "Geometry of Elm to Fir" })
-    ).toBeInTheDocument()
-    await user.keyboard("{ArrowLeft}")
-    expect(
-      screen.queryByRole("dialog", { name: "Geometry of Elm to Fir" })
-    ).toBeInTheDocument()
+      screen.queryByRole("button", { name: /Previous|Next/ })
+    ).not.toBeInTheDocument()
+    const others = within(dialog()).getByRole("navigation", {
+      name: "Other claims of this section",
+    })
+    await user.click(within(others).getByRole("button", { name: /^Geometry/ }))
+    expect(dialog()).toHaveAccessibleName(/^Geometry/)
+    expect(sources()).toHaveTextContent("Invented trunk map, 1931")
   })
 
   it("closes on Esc and returns focus to the row that opened it", async () => {
-    const { user, source } = await openCitation(
-      "Geometry",
-      /Invented trunk map, 1931/
-    )
+    const { user, row } = await openClaim("Geometry")
     await user.keyboard("{Escape}")
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
-    expect(source).toHaveFocus()
+    expect(row).toHaveFocus()
   })
 
   it("closes on Done and returns focus to the row that opened it", async () => {
-    const { user, source } = await openCitation(
-      "Geometry",
-      /Invented trunk map, 1931/
-    )
+    const { user, row } = await openClaim("Geometry")
     await user.click(screen.getByRole("button", { name: "Done" }))
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
-    expect(source).toHaveFocus()
+    expect(row).toHaveFocus()
   })
 
-  it("shows Open source only when the citation has a web address", async () => {
-    const { user } = await openCitation("Geometry", /Invented trunk map, 1931/)
-    expect(
-      screen.queryByRole("link", { name: "Open source" })
-    ).not.toBeInTheDocument()
-    await user.click(screen.getByRole("button", { name: "Next claim" }))
-    const link = screen.getByRole("link", { name: "Open source" })
+  it("links to a source only where that source has a web address", async () => {
+    await openClaim("Geometry")
+    expect(within(sources()).queryByRole("link")).toBeNull()
+    const { user } = { user: userEvent.setup() }
+    const others = within(dialog()).getByRole("navigation", {
+      name: "Other claims of this section",
+    })
+    await user.click(within(others).getByRole("button", { name: /^Diameter/ }))
+    const link = within(sources()).getByRole("link", { name: "Open source" })
     expect(link).toHaveAttribute("href", "https://example.invalid/review")
     expect(link).toHaveAttribute("target", "_blank")
     expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"))
   })
 
   it("shows the section on the map and closes, on Show on map", async () => {
-    const { user } = await openCitation("Geometry", /Invented trunk map, 1931/)
+    const { user } = await openClaim("Geometry")
     await user.click(screen.getByRole("button", { name: "Show on map" }))
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     expect(useStudio.getState().selectedSectionId).toBe("s-1")
   })
 
-  it("shows the open citation's details, including the no-quote scanned map note", async () => {
-    await openCitation("Geometry", /Invented trunk map, 1931/)
-    const dialog = screen.getByRole("dialog")
-    expect(within(dialog).getByText("Shown on")).toBeInTheDocument()
+  it("says what a map does for a claim, its edition, that a scan has no quote, and that a map is no build date", async () => {
+    await openClaim("Geometry")
     expect(
-      within(dialog).getAllByText("1931 edition, as of 30 June 1931").length
-    ).toBeGreaterThan(0)
-    expect(
-      within(dialog).getByText("No quote, scanned map")
+      within(sources()).getByText("Shown on · 1931 edition, as of 30 June 1931")
     ).toBeInTheDocument()
+    expect(within(sources()).getByText("No quote, scanned map")).toBeVisible()
+    expect(dialog()).toHaveTextContent("It does not say when it was built.")
   })
 
-  it("shows a cited quote under a Quote row", async () => {
-    await openCitation("Diameter", /Invented Gas Review, 1931/)
-    const dialog = screen.getByRole("dialog")
-    expect(within(dialog).getByText("Quote")).toBeInTheDocument()
-    expect(within(dialog).getByText('"12 IN."')).toBeInTheDocument()
+  it("shows the words a source quotes", async () => {
+    await openClaim("Diameter")
+    expect(within(sources()).getByText('"12 IN."')).toBeInTheDocument()
   })
 
-  it("truncates a long source title instead of stretching the dialog", async () => {
-    await openCitation("Length", /Invented Review of Regional Gas/)
-    const dialog = screen.getByRole("dialog")
-    const sources = within(dialog).getByRole("list", { name: "Sources" })
-    const row = within(sources).getByText(/Invented Review of Regional Gas/)
-    expect(row.className).toContain("truncate")
-    expect(row.className).toContain("min-w-0")
-    // Every ancestor up to DialogContent's own grid must carry min-w-0, or
-    // whichever one lacks it refuses to shrink below its text's full width
-    // and the dialog's header/footer buttons are pushed off-screen (Figma
-    // `315:359` keeps titles inside the dialog; frame 7, `362:13676`, shows
-    // the truncated case). DialogContent itself is a CSS grid, so each
-    // direct child (header row, content row, footer row) is a grid item
-    // that needs the same min-w-0 floor removed as a flex item would.
-    expect(sources.className).toContain("min-w-0")
-    const column = dialog.querySelector(".max-h-80")
-    expect(column).not.toBeNull()
-    expect(column!.className).toContain("min-w-0")
-    const contentRow = column!.parentElement!
-    expect(contentRow.className).toContain("min-w-0")
-    const header = screen
-      .getByRole("button", { name: "Previous claim" })
-      .closest("[data-slot='dialog-header']")!
-    expect(header.className).toContain("min-w-0")
-    const footer = screen
-      .getByRole("button", { name: "Done" })
-      .closest("[data-slot='dialog-footer']")!
-    expect(footer.className).toContain("min-w-0")
+  it("shows a source's title once and whole", async () => {
+    await openClaim("Length")
+    const titles = within(dialog()).getAllByText(
+      /Invented Review of Regional Gas/
+    )
+    expect(titles).toHaveLength(1)
+    expect(titles[0].className).toContain("break-words")
   })
 
-  it("gives every icon button an accessible name", async () => {
-    await openCitation("Geometry", /Invented trunk map, 1931/)
-    const dialog = screen.getByRole("dialog")
-    for (const button of within(dialog).getAllByRole("button")) {
+  it("gives every button an accessible name", async () => {
+    await openClaim("Geometry")
+    for (const button of within(dialog()).getAllByRole("button")) {
       expect(button).toHaveAccessibleName()
     }
   })

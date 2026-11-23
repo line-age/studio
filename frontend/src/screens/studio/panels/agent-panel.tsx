@@ -21,9 +21,11 @@ import type { ThreadItem } from "@/data/schema"
 import { ensureDetails, useDetailLookup } from "@/data/detail-store"
 import { dataSource } from "@/data/load-network"
 
+import { useSelectionAttachments } from "../add-to-agent"
 import { HidePanels } from "../panel-toggle"
 import { AgentConversation, type Agent } from "./agent-conversation"
 import { AgentInbox } from "./agent-inbox"
+import { INBOX_SHOWN } from "./inbox-shown"
 import { AttachPicker } from "./attach-picker"
 import { useRevealSection, useStudioData } from "../studio-data"
 import { useStudio, type SentQuestion } from "../studio-store"
@@ -326,6 +328,28 @@ export function AgentPanel() {
   const sent = useStudio((s) => s.sentQuestions)
   const send = useStudio((s) => s.sendQuestion)
   const messageRef = useRef<HTMLTextAreaElement>(null)
+  // While the Agent is open, what is selected is what the next question is
+  // about (the owner, 2026-11-22): it is attached as it is selected, and again
+  // after a question is sent, so a follow-up is about the same thing. Nothing
+  // selected leaves the attachments as they are (the picker still adds). A
+  // claim or a source handed over is more exact than the selection: then the
+  // selection is not added to it.
+  const selection = useStudio((s) => s.selection)
+  const selected = useSelectionAttachments()
+  const attachSelection = useStudio((s) => s.attachSelection)
+  const exact = useStudio((s) => s.agentRefs.length > 0)
+  const mirrored = useRef<ReadonlySet<string> | null>(null)
+  useEffect(() => {
+    if (selection.size === 0 || exact) return
+    // Only a change of selection attaches. Once sent, or taken off by the
+    // person, the same selection is not put back: a follow-up is about the
+    // last question's things anyway, and a removed attachment stays removed.
+    if (mirrored.current === selection) return
+    mirrored.current = selection
+    attachSelection(selected)
+    // `selected` is derived from `selection`; listing it would loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selection, exact, attachSelection])
   // On store's data the Agent service answers; on the sample nothing does.
   const fromStore = dataSource() === "store"
 
@@ -358,6 +382,7 @@ export function AgentPanel() {
           )
         }
         inputRef={messageRef}
+        onStop={agent?.working ? () => void agent.stop() : undefined}
         draft={draft === null ? undefined : { text: draft, nonce: asked }}
         onSend={(words) => {
           const s = useStudio.getState()
@@ -433,7 +458,7 @@ export function AgentPanel() {
       <PanelHeader title="Agent" divider>
         <HidePanels />
       </PanelHeader>
-      <AgentInbox />
+      {INBOX_SHOWN && <AgentInbox />}
       {fromStore ? (
         <AgentConversation composer={(agent) => composer(agent)} />
       ) : (

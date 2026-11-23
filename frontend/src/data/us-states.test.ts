@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
 
+import shared from "../../../agent/data/states-cases.json"
+
 import { statesOf } from "./us-states"
 
 describe("statesOf", () => {
@@ -40,5 +42,18 @@ describe("statesOf", () => {
         ],
       })
     ).toEqual([])
+  })
+})
+
+// The Agent places a line with the same outlines (agent/states.py): both sides
+// check these invented lines, so they cannot drift apart.
+describe("the states the Agent also gives", () => {
+  it.each(shared.cases)("$name", ({ lines, states }) => {
+    expect(
+      statesOf({
+        type: "MultiLineString",
+        coordinates: lines as [number, number][][],
+      })
+    ).toEqual(states)
   })
 })

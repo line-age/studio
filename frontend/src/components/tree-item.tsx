@@ -43,7 +43,7 @@ export function TreeItem({
     <div
       data-selected={selected || undefined}
       className={cn(
-        "flex h-9 cursor-default items-center gap-2 border-b border-border-subtle px-3 transition-colors duration-100 select-none [contain-intrinsic-size:auto_36px] [content-visibility:auto] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid",
+        "flex h-8 cursor-default items-center gap-2 border-b border-border-subtle px-3 transition-colors duration-100 select-none [contain-intrinsic-size:auto_32px] [content-visibility:auto] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid",
         selected ? "bg-selected" : menuTarget ? "bg-accent" : "hover:bg-muted",
         className
       )}

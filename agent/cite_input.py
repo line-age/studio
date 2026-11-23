@@ -46,6 +46,8 @@ class CiteAsk:
     places: list[str] = field(default_factory=list)
     years: tuple[int, int] | None = None
     ruled_out: list[tuple[str, str]] = field(default_factory=list)  # (store key, value)
+    # The towns are code's, found along the traced line (places.py), not the person's.
+    from_line: bool = False
 
 
 def _name_hint(features: list[dict[str, Any]]) -> str | None:
@@ -123,7 +125,8 @@ def build(
         "name": _name_hint([*own, *([pipeline] if pipeline else [])]) or feature.get("label"),
         "states": [],
         "places": list(ask.places),
-        "places_given": list(ask.places),
+        # Only towns the person named count as given; towns along the line are code's.
+        "places_given": [] if ask.from_line else list(ask.places),
         "observations": [{"year": year, "source": source}],
         "attributes": [TO_CITE[a] for a in ask.attributes],
         "ruled_out": [{"attribute": TO_CITE[a], "value": v} for a, v in ruled],

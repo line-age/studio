@@ -41,7 +41,7 @@ def test_every_example_is_valid(path):
 def test_a_fixed_line_in_an_example_is_the_line_code_writes():
     for path in (CONTRACT / "examples").glob("answer-*.json"):
         for statement in Answer.model_validate_json(path.read_text()).statements:
-            if statement.kind in ("refusal", "failure", "greeting"):
+            if statement.kind in ("refusal", "failure", "greeting", "not_yet", "help"):
                 assert statement.text in FIXED_LINES.values()
                 assert statement.refs == []
 
@@ -68,7 +68,7 @@ def claim(se=None, sl=None, ee=None, el=None, **more):
         (claim(se="1938-01-01"), "not before 1938"),
         (claim(sl="1932-12-31", el="1946-12-31"), "by 1932 until 1946 at the latest"),
         (claim(ee="1940-01-01"), "until at least 1940"),
-        (claim(), "with no date in store"),
+        (claim(), "with no date given"),
         # No bounds in store: the period as the source wrote it.
         (claim(valid_edtf="1938"), "in 1938"),
         (claim(valid_edtf="1932-03"), "in March 1932"),
@@ -114,10 +114,9 @@ def owner_of(read):
     return next(c for c in read.claims.values() if c["attribute_key"] == "owner")
 
 
-def draft(text, refs, kind="fact", attribute=None):
-    return Draft.model_validate(
-        {"statements": [{"kind": kind, "text": text, "refs": refs, "attribute": attribute}]}
-    )
+def draft(text, refs, kind="fact", attribute=None, topic=None):
+    statement = {"kind": kind, "text": text, "refs": refs, "attribute": attribute, "topic": topic}
+    return Draft.model_validate({"statements": [statement]})
 
 
 def test_slots_are_filled_from_the_claim_that_was_read(s02):
@@ -187,11 +186,44 @@ def test_a_refusal_is_the_fixed_line_whatever_the_model_wrote(s02):
     assert answer.statements[0].refs == []
 
 
+def test_a_background_refusal_is_its_own_fixed_line(s02):
+    answer = render(
+        draft("In the 1930s the biggest was...", [], kind="refusal", topic="background"), s02
+    )
+    assert answer.statements[0].text == FIXED_LINES["background"]
+
+
+@pytest.mark.parametrize("topic", ["network", "recall", "tracer", "help"])
+def test_a_not_yet_statement_is_its_topics_line_whatever_the_model_wrote(s02, topic):
+    answer = render(draft("It is about 40 miles long.", [], kind="not_yet", topic=topic), s02)
+    assert answer.statements[0].kind == "not_yet"
+    assert answer.statements[0].text == FIXED_LINES[f"not_yet_{topic}"]
+    assert answer.statements[0].refs == []
+
+
+@pytest.mark.parametrize("topic", [None, "background"])
+def test_a_not_yet_statement_without_one_of_its_topics_cannot_be_written(s02, topic):
+    with pytest.raises(Unfillable, match="topics"):
+        render(draft("", [], kind="not_yet", topic=topic), s02)
+
+
+def test_what_the_agent_can_do_is_codes_text_whatever_the_model_wrote(s02):
+    answer = render(draft("I can do anything.", [], kind="help", topic="capabilities"), s02)
+    assert answer.statements[0].kind == "help"
+    assert answer.statements[0].text == FIXED_LINES["capabilities"]
+
+
+@pytest.mark.parametrize("topic", [None, "network"])
+def test_a_help_statement_without_its_topic_cannot_be_written(s02, topic):
+    with pytest.raises(Unfillable, match="topics"):
+        render(draft("", [], kind="help", topic=topic), s02)
+
+
 def test_an_unknown_names_what_was_looked_for(s02):
     feature_id = next(iter(s02.features))
     answer = render(
         draft(
-            "Store does not say who operates this section.",
+            "No source says who operates this section.",
             [{"key": "f1", "type": "feature", "id": feature_id}],
             kind="unknown",
             attribute="operator",
@@ -200,7 +232,7 @@ def test_an_unknown_names_what_was_looked_for(s02):
     )
     statement = answer.statements[0]
     assert statement.attribute == "operator"
-    assert statement.text == "Store does not say who operates it."
+    assert statement.text == "No source says who operates it."
     assert statement.refs[0].type == "feature" and statement.refs[0].id == feature_id
 
 
@@ -244,25 +276,23 @@ def test_an_unknowns_sentence_is_code_s_whatever_the_model_wrote(s02):
     feature_id = next(iter(s02.features))
     answer = render(
         draft(
-            "Store does not say who owns it, but it was abandoned in the war.",
+            "No source says who owns it, but it was abandoned in the war.",
             [{"key": "f1", "type": "feature", "id": feature_id}],
             kind="unknown",
             attribute="operator",
         ),
         s02,
     )
-    assert answer.statements[0].text == "Store does not say who operates it."
+    assert answer.statements[0].text == "No source says who operates it."
 
 
 def test_an_unknown_about_one_of_several_things_names_it():
     from render import unknown_line
 
-    assert unknown_line("owner") == "Store does not say who owns it."
-    assert (
-        unknown_line("owner", "section 0fc87cac") == "Store does not say who owns section 0fc87cac."
-    )
+    assert unknown_line("owner") == "No source says who owns it."
+    assert unknown_line("owner", "section 0fc87cac") == "No source says who owns section 0fc87cac."
     assert unknown_line("diameter", "Sampletown lateral") == (
-        "Store does not say what the diameter of Sampletown lateral is."
+        "No source says what the diameter of Sampletown lateral is."
     )
 
 
@@ -272,3 +302,13 @@ def test_a_feature_name_slot_is_its_label_or_its_short_code(s02):
         draft("This is {f1.name}.", [{"key": "f1", "type": "feature", "id": feature_id}]), s02
     )
     assert answer.statements[0].text == "This is Sampletown lateral."
+
+
+def test_an_unknown_with_a_value_proposed_says_it_is_not_decided():
+    from render import unknown_line
+
+    assert unknown_line("owner", proposed=True) == "Who owns it is not decided yet."
+    assert unknown_line("diameter", "Sampletown lateral", proposed=True) == (
+        "The diameter of Sampletown lateral is not decided yet."
+    )
+    assert unknown_line(None, proposed=True) == "No source says."

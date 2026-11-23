@@ -22,11 +22,13 @@ import { cn } from "@/lib/utils"
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { usePanelWidth } from "../panel-width-context"
 import { usePipelineRowChanges, useSectionChanges } from "../pipeline-actions"
-import { useSettings } from "../settings"
+import { DEFAULT_REQUIRED } from "@/data/status"
 import { useSelectionGroups, useStudioData } from "../studio-data"
 import { listFollowsMap, useStudio } from "../studio-store"
 import { EmptyList, FoundSections } from "./list-parts"
+import { PipelineClaims } from "./pipeline-claims"
 import { listColumns } from "./list-columns"
+import { TABLE_SHOWN } from "./table-shown"
 
 /** Opening a search hit selects it, moves the map to it and ends the search. */
 export function useOpenHit() {
@@ -79,7 +81,7 @@ export function PipelineList({
   const { scope, network } = useStudioData()
   const hasSections = network.sections.length > 0
   const followsMap = useStudio(listFollowsMap)
-  const rule = useSettings((s) => s.requiredAttributes)
+  const rule = DEFAULT_REQUIRED
   const groups = useSelectionGroups()
   const select = useStudio((s) => s.select)
   const selectPipeline = useStudio((s) => s.selectPipeline)
@@ -89,6 +91,9 @@ export function PipelineList({
   const requestFit = useStudio((s) => s.requestFit)
   const selection = useStudio((s) => s.selection)
   const [descending, setDescending] = useState(false)
+  // Pipelines open to their own claims, as a section does on the right.
+  const openPipelines = useStudio((s) => s.openPipelineIds)
+  const togglePipeline = useStudio((s) => s.togglePipelineOpen)
   const attachments = useSelectionAttachments()
   const sectionChanges = useSectionChanges()
   const pipelineRowChanges = usePipelineRowChanges()
@@ -182,7 +187,7 @@ export function PipelineList({
   const hasCodes = scope !== "unplaced"
   // "Done" is about pipelines; a group in no pipeline shows its size there.
   const panelWidth = usePanelWidth()
-  const columns = listColumns(panelWidth?.width ?? 0, rule)
+  const columns = listColumns(TABLE_SHOWN ? (panelWidth?.width ?? 0) : 0, rule)
   // In the table the progress is a column of its own and lines up under its
   // head; in the plain list it is as wide as its words, to leave names room.
   const progressCell = (text: string) =>
@@ -193,6 +198,8 @@ export function PipelineList({
       hit && search ? search.open(hit) : pick(summary, shift)
     const checked = checkedOf.get(summary.id) ?? "unchecked"
     const found = hit?.sections ?? []
+    const own = summary.pipeline ?? null
+    const opened = own !== null && openPipelines.has(summary.id)
     // A pipeline no source names says so, and goes by its code.
     const name =
       summary.pipeline && summary.pipeline.name === null ? (
@@ -238,6 +245,8 @@ export function PipelineList({
             selected={checked !== "unchecked"}
             checked={checked}
             checkLabel={`Select ${summary.name}`}
+            expanded={own ? opened : undefined}
+            onToggle={own ? () => togglePipeline(summary.id) : undefined}
             onCheck={() => toggleRow(summary)}
             className={cn(hit && hit === activeHit && "bg-muted")}
             name={name}
@@ -272,53 +281,44 @@ export function PipelineList({
               </>
             }
             progress={
-              summary.unassigned ? (
-                // The table has a Sections column; the list has only this.
-                columns.detail ? (
+              columns.detail ? (
+                summary.unassigned ? (
                   // Grouped by edition no row has a progress: no column.
                   hasCodes && progressCell("")
                 ) : (
-                  <span
-                    title={summaryProgress(summary, "long")}
-                    className="type-ui-mono-xs"
-                  >
-                    {summaryProgress(summary)}
-                  </span>
+                  progressCell(summaryProgress(summary))
                 )
-              ) : summary.kind === "proposed" ? (
-                <span title={summaryProgress(summary, "long")}>
-                  {progressCell(summaryProgress(summary))}
-                </span>
-              ) : columns.detail ? (
-                progressCell(summaryProgress(summary))
               ) : (
-                // The narrow list leaves the name its room: "4/7", with what
-                // it counts in the title.
+                // The plain list says a row's size only, the same for everyone.
                 <span
                   title={summaryProgress(summary, "long")}
                   className="type-ui-mono-xs"
                 >
-                  {summaryProgress(summary).replace(" done", "")}
+                  {summaryProgress(summary)}
                 </span>
               )
             }
-            // One status: in the table, how the sections split, then the
-            // word for the whole, side by side under one head.
+            // The table splits its sections by status under one head; the
+            // plain list has no status, only a proposed pipeline's badge.
             statusWide={columns.bar}
             status={
-              <>
-                {columns.bar && (
-                  <StatusShareBar
-                    counts={summary.statusCounts}
-                    className="min-w-0 flex-1"
-                  />
-                )}
-                {summary.kind === "proposed" ? (
-                  <Badge variant="ai">Proposed</Badge>
-                ) : (
-                  <StatusBadge status={summary.status} />
-                )}
-              </>
+              columns.detail ? (
+                <>
+                  {columns.bar && (
+                    <StatusShareBar
+                      counts={summary.statusCounts}
+                      className="min-w-0 flex-1"
+                    />
+                  )}
+                  {summary.kind === "proposed" ? (
+                    <Badge variant="ai">Proposed</Badge>
+                  ) : (
+                    <StatusBadge status={summary.status} />
+                  )}
+                </>
+              ) : summary.kind === "proposed" ? (
+                <Badge variant="ai">Proposed</Badge>
+              ) : null
             }
             onClick={(event) =>
               (event.ctrlKey || event.metaKey) && !hit
@@ -331,6 +331,12 @@ export function PipelineList({
               if (event.key === " ") {
                 event.preventDefault()
                 toggleRow(summary)
+              } else if (own && event.key === "ArrowRight" && !opened) {
+                event.preventDefault()
+                togglePipeline(summary.id)
+              } else if (own && event.key === "ArrowLeft" && opened) {
+                event.preventDefault()
+                togglePipeline(summary.id)
               } else if (isActivate(event)) {
                 event.preventDefault()
                 open()
@@ -338,6 +344,11 @@ export function PipelineList({
             }}
           />
         </AddToAgentMenu>
+        {opened && (
+          <div role="group" aria-label={`Claims about ${summary.name}`}>
+            <PipelineClaims pipeline={own} className="pl-13.5" />
+          </div>
+        )}
         {hit && search && (
           <FoundSections
             pipelineId={summary.id}
@@ -370,9 +381,13 @@ export function PipelineList({
               </ListCell>
             ))}
             {columns.detail && hasCodes && <ListCell column="progress" />}
-            <span className={columns.bar ? "w-52 pl-3" : "w-21 text-right"}>
-              Status
-            </span>
+            {columns.detail ? (
+              <span className={columns.bar ? "w-52 pl-3" : "w-21 text-right"}>
+                Status
+              </span>
+            ) : (
+              <span className="text-right">Sections</span>
+            )}
           </span>
         }
         // Speaks for the rows shown only. A section the switch hides stays

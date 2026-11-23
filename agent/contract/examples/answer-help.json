@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "checked": true,
+  "statements": [
+    {
+      "kind": "help",
+      "text": "I can tell you about the sections and pipelines you select:\n- What is known, such as the owner, diameter and name, each with its source\n- What is still unknown or only proposed, and where to look next\n- Which map editions show a section, and the first one that does\n- Where it lies: its state, today's towns along it, and its length as drawn\n- What it is drawn touching, and which sections are nearby\n- A pipeline as a whole: its sections, how long they are drawn, where they lie, what they share and which lack a fact\n- The whole network: how many sections have no owner, are in a state, first appear on a year's map, or have a proposal waiting\n- What a word means here, and how to do a thing in Studio\n- How the sections you select compare: what they share, where they differ, which is shown earlier, which is longer\n\nI can also:\n- Search the trade journals for an owner, diameter or build date, and offer what I find for you to accept or reject\n- Make two or more sections one pipeline, once you confirm\n\nTo ask about something, select it on the map or in the list and press Ask the Agent, or type # here to pick it.\n\nNot yet: who traced a line, and changing what is recorded.",
+      "refs": []
+    }
+  ]
+}

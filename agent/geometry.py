@@ -43,6 +43,11 @@ def metres(a: Point, b: Point) -> float:
     return math.hypot((a[0] - b[0]) * kx, (a[1] - b[1]) * _M_PER_DEG_LAT)
 
 
+def length_m(lines: list[list[Point]]) -> float:
+    """How long the polylines are together, in metres, as drawn."""
+    return sum(metres(a, b) for line in lines for a, b in itertools.pairwise(line))
+
+
 def to_line(p: Point, lines: list[list[Point]]) -> float:
     """From a point to the nearest point of any of the polylines, in metres."""
     kx = _scale(p[1])

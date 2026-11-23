@@ -11,10 +11,12 @@ import { PanelWidthContext } from "./panel-width-context"
 import { PipelinesPanel } from "./panels/pipelines-panel"
 import { pickStatus, statusCount } from "@/test/status-filter"
 
-import { useSettings } from "./settings"
 import { StudioDataProvider } from "./studio-data"
 import { useStudio } from "./studio-store"
 import { TooltipProvider } from "@/components/ui/tooltip"
+
+// These tests are about the table, which is hidden for now.
+vi.mock("./panels/table-shown", () => ({ TABLE_SHOWN: true }))
 
 /*
  * The status counts are the whole edition; only the list follows the map,
@@ -92,7 +94,6 @@ const rows = () =>
 
 beforeEach(() => {
   localStorage.clear()
-  useSettings.getState().reset()
   useStudio.setState(useStudio.getInitialState(), true)
 })
 

@@ -25,14 +25,13 @@ import { SEARCH_INPUT_ID } from "../panels/pipelines-panel"
 import { AddToAgentMenu, useSelectionAttachments } from "../add-to-agent"
 import { useSectionChanges } from "../pipeline-actions"
 import { useLeftPanel } from "../left-panel-context"
-import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { useCamera, useStudio } from "../studio-store"
 import { linesInLoop, type Point } from "./lasso"
 import { readMapColors } from "./map-colors"
 import { addKeyName, holdsAddKey, mapClick } from "./click-selection"
 import { FollowMapToggle } from "./follow-map-toggle"
-import { DOTTED_EXTRA, LINE_WEIGHT, statusesDrawn } from "./line-style"
+import { LINE_WEIGHT } from "@/components/line-key"
 import { MapPickLabel } from "./map-pick-label"
 import { PickingBar } from "./pick-bar"
 import { SectionPeek } from "../peek/section-peek"
@@ -53,7 +52,6 @@ const FIT_OPTIONS = { padding: 96, maxZoom: 11 }
 const REFIT_WINDOW = 800
 
 /** Dash patterns are in units of the line width. Dotted needs round caps. */
-const DOTTED = [0.1, 2.4]
 const DASHED = [4, 3]
 
 type Feature = SectionFeature
@@ -92,10 +90,6 @@ export function StudioMap({ token }: { token: string }) {
 
   const layers = useStudio((s) => s.layers)
   const criteria = useCriteria()
-  // Solid or dotted follows the status, as chosen in Settings.
-  const lineStyle = useSettings((s) => s.lineStyle)
-  const solid = statusesDrawn(lineStyle, "solid")
-  const dotted = statusesDrawn(lineStyle, "dotted")
   const selected = useStudio((s) => s.selection)
   /** The section being read in the right panel, ticked or not. */
   const readingId = useStudio((s) => s.selectedSectionId)
@@ -646,7 +640,6 @@ export function StudioMap({ token }: { token: string }) {
                 <Layer
                   id="sections-solid"
                   type="line"
-                  filter={["in", ["get", "status"], ["literal", solid]]}
                   layout={{
                     "line-join": "round",
                   }}
@@ -666,33 +659,6 @@ export function StudioMap({ token }: { token: string }) {
                       LINE_WEIGHT.placed,
                       LINE_WEIGHT.unplaced,
                     ],
-                  }}
-                />
-                <Layer
-                  id="sections-dotted"
-                  type="line"
-                  filter={["in", ["get", "status"], ["literal", dotted]]}
-                  layout={{
-                    "line-cap": "round",
-                    "line-join": "round",
-                  }}
-                  paint={{
-                    "line-opacity": lineOpacity,
-                    "line-color": [
-                      "case",
-                      removedFilter,
-                      colors.ghost,
-                      selectedFilter,
-                      colors.selected,
-                      colors.line,
-                    ],
-                    "line-width": [
-                      "case",
-                      ["get", "placed"],
-                      LINE_WEIGHT.placed + DOTTED_EXTRA,
-                      LINE_WEIGHT.unplaced + DOTTED_EXTRA,
-                    ],
-                    "line-dasharray": DOTTED,
                   }}
                 />
                 {/* The section open in the right panel, drawn over the rest. */}

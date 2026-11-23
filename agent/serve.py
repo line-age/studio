@@ -7,7 +7,7 @@ AGENT_TRACING=true, in `.env` or the environment), then hands over to `langgraph
 `.env` with store pointed at `evals.serve_world`), so a trace never holds real data.
 
 `--real` runs it on a store with real data, on this machine only: settings from
-`.env.real` (git ignores it), tracing forced off whatever the files say, and its threads
+`.env.real` (git ignores it), tracing only if AGENT_TRACING=true there, and its threads
 kept apart in `.data/real/` so they never mix with QA's.
 """
 
@@ -18,7 +18,7 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
-from settings import ROOT, tracing_environment
+from settings import ROOT, tracing_environment, tracing_wanted
 
 QA_STORE = {"STORE_URL": "http://127.0.0.1:47191"}
 
@@ -42,6 +42,17 @@ def environment(env_file: str = ".env") -> dict[str, str]:
         for name in ("LANGSMITH_PROJECT", "LANGCHAIN_PROJECT"):
             env.pop(name, None)
     env.setdefault("LANGGRAPH_CLI_NO_ANALYTICS", "1")
+    return env
+
+
+def real_environment() -> dict[str, str]:
+    """`.env.real`'s settings. Tracing follows AGENT_TRACING there, off unless it says
+    true: the owner allowed real data in traces (2026-11-22). With tracing off, the
+    LangSmith key is dropped, so nothing can send a trace by another route."""
+    env = environment(".env.real")
+    if not tracing_wanted(env):
+        for name in ("LANGSMITH_API_KEY", "LANGCHAIN_API_KEY"):
+            env.pop(name, None)
     return env
 
 
@@ -78,13 +89,8 @@ def main() -> None:
         args = ["--port", "47190", *args]
     if "--no-browser" not in args:
         args.append("--no-browser")
-    env = environment(env_file)
+    env = real_environment() if real else environment(env_file)
     if real:
-        # Real data never goes into a trace (owner, 2026-11-14), whatever the files say.
-        env["AGENT_TRACING"] = "false"
-        env.update(tracing_environment(env))
-        for name in ("LANGSMITH_API_KEY", "LANGCHAIN_API_KEY"):
-            env.pop(name, None)
         (ROOT / ".data" / "real").mkdir(parents=True, exist_ok=True)
         os.chdir(ROOT / ".data" / "real")
     else:

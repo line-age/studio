@@ -77,10 +77,13 @@ export function EditSectionsDialog({
   open,
   onOpenChange,
   sections,
+  prefill,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   sections: Section[]
+  /** Values the form opens with, by attribute: still the person's to check and save. */
+  prefill?: Readonly<Record<string, string>>
 }) {
   if (sections.length === 0) return null
   return (
@@ -90,6 +93,7 @@ export function EditSectionsDialog({
       open={open}
       onOpenChange={onOpenChange}
       sections={sections}
+      prefill={prefill}
     />
   )
 }
@@ -98,10 +102,12 @@ function EditSectionsForm({
   open,
   onOpenChange,
   sections,
+  prefill,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   sections: Section[]
+  prefill?: Readonly<Record<string, string>>
 }) {
   const onDone = () => onOpenChange(false)
   const [excludedIds, setExcludedIds] = useState<ReadonlySet<string>>(new Set())
@@ -109,7 +115,7 @@ function EditSectionsForm({
   const bulk = sections.length > 1
   const storeMode = dataSource() === "store"
   const save = useSaveSectionEdits()
-  const [fields, setFields] = useState<Record<string, string>>({})
+  const [fields, setFields] = useState<Record<string, string>>({ ...prefill })
   const [note, setNote] = useState("")
   const [saving, setSaving] = useState(false)
 

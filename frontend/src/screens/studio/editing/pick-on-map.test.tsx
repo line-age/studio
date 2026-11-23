@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { testNetwork } from "@/test/network"
 
-import { useSettings } from "../settings"
 import { StudioScreen } from "../studio-screen"
 import { useCamera, useStudio } from "../studio-store"
 
@@ -22,7 +21,6 @@ vi.mock("@/data/load-network", async (original) => ({
 beforeEach(() => {
   vi.stubEnv("VITE_MAPBOX_TOKEN", "")
   localStorage.clear()
-  useSettings.getState().reset()
   window.history.replaceState(null, "", "/")
   useStudio.setState(useStudio.getInitialState(), true)
   useCamera.setState(useCamera.getInitialState(), true)

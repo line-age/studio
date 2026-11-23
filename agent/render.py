@@ -11,12 +11,14 @@ import re
 from decimal import Decimal
 from typing import Any
 
+import value_rules
 from schemas import (
     FIXED_KINDS,
     Answer,
     CitationRequest,
     Draft,
     DraftStatement,
+    EditOffer,
     Hint,
     Ref,
     Statement,
@@ -25,25 +27,150 @@ from schemas import (
 # Agreed by the owner. Evals match them exactly; changing one is a deliberate edit
 # with an eval run before and after.
 FIXED_LINES = {
-    "unrelated": "I can only help with what is in store, its sources and how Studio works.",
+    "unrelated": "I can only help with the pipeline data here, its sources and how Studio works.",
     "background": (
-        "I cannot answer that here. I only say what store, its sources or Studio's help hold."
+        "I cannot answer that here. I only say what the data, its sources or Studio's help hold."
     ),
-    "unknown": "Store does not say.",
+    "unknown": "No source says.",
     "check_failed": (
-        "I could not give an answer I can back with store. Try asking about one thing at a time."
+        "I could not give an answer I can back with the data. Try asking about one thing at a time."
     ),
-    "store_unreachable": "Store cannot be reached, so I cannot answer. Your question is kept.",
-    "store_refused": "Store refused the Agent's token. Your question is kept.",
+    "store_unreachable": "The data cannot be reached right now, so I cannot answer. Your question is kept.",
+    "store_refused": "I am not allowed to read the data right now. Your question is kept.",
     "model_failed": "The Agent could not finish. Your question is kept; try again.",
     "stopped": "Stopped. Nothing was answered.",
     "what_is_meant": (
         "What do you mean? Attach the section, pipeline, claim or source you are asking about."
     ),
-    "not_found": "Store no longer has that. Attach it again from the list or the map.",
-    "greeting": "Hello. Ask me about what store holds, its sources or how Studio works.",
+    "not_found": "That is no longer in the data. Attach it again from the list or the map.",
+    "greeting": "Hello. Ask me about the sections and pipelines you select, their sources or how Studio works.",
+    # What the Agent can do, for "What can you do?" (B10). Everything listed works
+    # today; change it when a behaviour lands or leaves. A line starting "- " is a list
+    # item in Studio; a blank line starts a new paragraph. No "store": a person does not
+    # know the word.
+    "capabilities": (
+        "I can tell you about the sections and pipelines you select:\n"
+        "- What is known, such as the owner, diameter and name, each with its source\n"
+        "- What is still unknown or only proposed, and where to look next\n"
+        "- Which map editions show a section, and the first one that does\n"
+        "- Where it lies: its state, today's towns along it, and its length as drawn\n"
+        "- What it is drawn touching, and which sections are nearby\n"
+        "- A pipeline as a whole: its sections, how long they are drawn, where they lie, "
+        "what they share and which lack a fact\n"
+        "- The whole network: how many sections have no owner, are in a state, first "
+        "appear on a year's map, or have a proposal waiting\n"
+        "- What a word means here, and how to do a thing in Studio\n"
+        "- How the sections you select compare: what they share, where they differ, "
+        "which is shown earlier, which is longer\n"
+        "\n"
+        "I can also:\n"
+        "- Search the trade journals for an owner, diameter or build date, and offer what "
+        "I find for you to accept or reject\n"
+        "- Make two or more sections one pipeline, once you confirm\n"
+        "\n"
+        "To ask about something, select it on the map or in the list and press Ask the "
+        "Agent, or type # here to pick it.\n"
+        "\n"
+        "Not yet: who traced a line, and changing what is recorded."
+    ),
+    # Why an answer says what it says (B40): one line per kind of worked-out fact.
+    "why_towns": (
+        "The towns are today's places that lie near the line as it is drawn. No source "
+        "names them, so they say where the line is, not which places it supplied."
+    ),
+    "why_map_year": (
+        "A map shows that a line was drawn by the year the map was made. It does not say "
+        "when the line was built, so a map year is never given as a build date."
+    ),
+    "why_touching": (
+        "Two lines drawn touching on the map may or may not be pipes that were joined. "
+        "No source says they were, so I only say they are drawn touching."
+    ),
+    "why_drawn_length": (
+        "The length is measured along the line as it is drawn on the map. It is not a "
+        "length a source gives, so it is said as drawn."
+    ),
+    "why_unknown": (
+        "Unknown means no source cited here gives the value yet. It is never filled with a guess."
+    ),
+    # What a word means here and how a thing is done in Studio (B42). The meanings are
+    # the project's glossary's; the steps are Studio's own menu words.
+    "help_section": (
+        "A section is a continuous stretch of line built and put in use at one time. It "
+        "is what facts are recorded for: each line you can select on the map is a section."
+    ),
+    "help_pipeline": (
+        "A pipeline is a line as a whole, made of one or more sections. Its name, owner "
+        "and operator are its own, kept apart from what is known about each section."
+    ),
+    "help_edition": (
+        "An edition is the source map as issued in one year. A section is first seen on "
+        "the earliest edition that shows it. That year says the line was there by then, "
+        "not when it was built."
+    ),
+    "help_claim": (
+        "A claim is one statement about one thing, such as who owned a section in certain "
+        "years. It is accepted, proposed and waiting for a decision, or rejected, and it "
+        "carries the source that says so."
+    ),
+    "help_citation": (
+        "A citation points to the exact place in a source, such as a journal issue and "
+        "page, that backs a claim."
+    ),
+    "help_proposal": (
+        "A proposal is a value or a link that a search or a person put forward and nobody "
+        "has decided on yet. Only a person accepts or rejects it."
+    ),
+    "help_lead": ("A lead is somewhere to look next, found by a fixed rule. It is never a fact."),
+    "help_make_pipeline": (
+        "To make a pipeline, select two or more sections on the map or in the list, "
+        "right-click and choose Make pipeline. Or select them and ask me to make them one "
+        "pipeline: I prepare it and you confirm."
+    ),
+    "help_edit": (
+        "To change what is recorded, right-click a section, or several, and choose Edit; "
+        "for a pipeline, choose Edit pipeline. I cannot make changes for you."
+    ),
+    "help_ask": (
+        "To ask about something, select it on the map or in the list and press Ask the "
+        "Agent, or type # here to pick it."
+    ),
+    "help_sources": (
+        "To see where a value comes from, click the fact in the right panel. Its sources "
+        "open in a pop-up, with the passage each one quotes and a link where there is one."
+    ),
+    "help_pipeline_facts": (
+        "A pipeline's name, owner and operator are under its row in the list: open the "
+        "row with its arrow. Each section's own facts are in the right panel."
+    ),
+    # An edit asked of the wrong thing: where Studio sets it.
+    "edit_on_pipeline": (
+        "A name, owner or operator is set on the pipeline, not on a section. Select the "
+        "pipeline and ask again."
+    ),
+    "edit_on_section": (
+        "A diameter is set on a section, not on a pipeline. Select the section and ask again."
+    ),
+    # What the Agent cannot do yet, one line per topic (B31). A line leaves when its
+    # behaviour is built; the wording waits for the owner's review of B31's cases.
+    "not_yet_network": (
+        "I cannot count or search across the whole network yet. Attach the sections you "
+        "mean, or use the list's filters."
+    ),
+    "not_yet_recall": "I do not keep earlier questions in mind. Ask again with the thing attached.",
+    "not_yet_tracer": (
+        "I cannot say who traced a section yet. The list's Traced by filter shows it."
+    ),
+    "not_yet_help": "I cannot explain Studio or its words yet. Help is in the top bar.",
 }
-UNKNOWN_OPENING = "Store does not say"
+UNKNOWN_OPENING = "No source says"
+# A help topic and the line that answers it: why an answer is worded as it is, what a
+# word means, how a thing is done.
+HELP_LINES = {k.split("_", 1)[1]: k for k in FIXED_LINES if k.startswith(("why_", "help_"))} | {
+    "capabilities": "capabilities"
+}
+WHY_TOPICS = tuple(k.removeprefix("why_") for k in FIXED_LINES if k.startswith("why_"))
+NOT_YET_TOPICS = tuple(k.removeprefix("not_yet_") for k in FIXED_LINES if k.startswith("not_yet_"))
 
 SLOT = re.compile(r"\{([A-Za-z]\w*)\.([a-z]+)\}")
 SLOT_FIELDS = ("value", "period", "status", "source", "quote", "locator")
@@ -94,17 +221,28 @@ NAMED_UNKNOWN_WORDS = {
 }
 
 
-def unknown_line(attribute: str | None, subject: str | None = None) -> str:
-    """ "Store does not say who owns it." With `subject`, it names what it is about."""
+UNDECIDED_ENDING = "is not decided yet."
+NOBODY_DECIDED = "Nobody has decided on it yet."
+
+
+def unknown_line(attribute: str | None, subject: str | None = None, proposed: bool = False) -> str:
+    """ "No source says who owns it." With `subject`, it names what it is about. With a
+    value `proposed` and waiting, a source does say something: "Who owns it is not
+    decided yet." """
     if not attribute:
         return f"{UNKNOWN_OPENING}."
     if subject:
         words = NAMED_UNKNOWN_WORDS.get(
             attribute, f"what the {attribute.replace('_', ' ')} of {{}} is"
-        )
-        return f"{UNKNOWN_OPENING} {words.format(subject)}."
-    rest = UNKNOWN_WORDS.get(attribute, f"what its {attribute.replace('_', ' ')} is")
-    return f"{UNKNOWN_OPENING} {rest}."
+        ).format(subject)
+    else:
+        words = UNKNOWN_WORDS.get(attribute, f"what its {attribute.replace('_', ' ')} is")
+    if proposed and attribute not in NAMED_UNKNOWN_WORDS:
+        what = attribute.replace("_", " ")
+        return f"{f'The {what} of {subject}' if subject else f'Its {what}'} {UNDECIDED_ENDING}"
+    if proposed:
+        return f"{words[0].upper()}{words[1:]} {UNDECIDED_ENDING}"
+    return f"{UNKNOWN_OPENING} {words}."
 
 
 class Unfillable(Exception):
@@ -118,7 +256,7 @@ def failure(line: str = "check_failed") -> Answer:
 
 # How a statement that is not a claim is marked when the answer is read as plain text.
 # Studio shows the same kinds as a grey prefix.
-KIND_PREFIX = {"worked_out": "Inferred: ", "lead": "Lead, not in store: "}
+KIND_PREFIX = {"worked_out": "Inferred: ", "lead": "Lead, not a fact: "}
 
 
 def as_text(answer: Answer) -> str:
@@ -213,14 +351,14 @@ def period_words(claim: dict[str, Any]) -> str:
     """When a claim holds, as the source gives it. A map only proves "by" its date.
 
     Worked from the claim's bounds; where store has none, from the period as the source
-    wrote it. "With no date in store" only when store has neither. A date this cannot
+    wrote it. "With no date given" only when store has neither. A date this cannot
     word truly is Unfillable, never left out.
     """
     se, sl = claim.get("start_earliest"), claim.get("start_latest")
     ee, el = claim.get("end_earliest"), claim.get("end_latest")
     if not any((se, sl, ee, el)):
         if not claim.get("valid_edtf"):
-            return "with no date in store"
+            return "with no date given"
         words = edtf_words(claim["valid_edtf"])
         if words is None:
             raise Unfillable(f"the period {claim['valid_edtf']!r} cannot be put into words")
@@ -241,7 +379,7 @@ def period_words(claim: dict[str, Any]) -> str:
         # A map's "by 1937" also says it was there in 1937; that adds nothing to say.
         end = f"until at least {_date_words(ee, closing=False)}"
     words = " ".join(part for part in (start, end) if part)
-    return words or "with no date in store"
+    return words or "with no date given"
 
 
 # Values ------------------------------------------------------------------------------------
@@ -264,7 +402,7 @@ def value_words(claim: dict[str, Any]) -> str:
 
 STATUS_WORDS = {
     ("accepted", None): "accepted",
-    ("candidate", "pipeline"): "proposed by a tool and not decided yet",
+    ("candidate", "pipeline"): "proposed and not decided yet",
     ("candidate", "person"): "proposed by a person and not decided yet",
     ("candidate", None): "proposed and not decided yet",
     ("rejected", None): "rejected",
@@ -317,7 +455,7 @@ LINK_WORDS = {
     "parallel_to": "Parallel pipe",
 }
 # A line traced as gone at the other end: Studio's proposed end and proposed cut.
-LINK_WORDS_GONE = {"same_as": "End, traced as gone", "overlaps": "Cut, traced as gone"}
+LINK_WORDS_GONE = {"same_as": "End, no longer shown", "overlaps": "Cut, no longer shown"}
 
 
 def is_traced_as_gone(feature: dict[str, Any]) -> bool:
@@ -350,7 +488,7 @@ def ref_label(feature_id: str, read: "Read") -> str:
     section, a section that was split, or a line traced as gone."""
     feature = read.features[feature_id]
     if is_traced_as_gone(feature):
-        return f"line traced as gone {short_id(feature_id)}"
+        return f"line no longer shown {short_id(feature_id)}"
     into = _counted_for(feature_id, read)
     if into and _split_from(feature_id, read):
         names = ", ".join(feature_name(read.features[s]) for s in into)
@@ -428,6 +566,22 @@ class Read:
         # What cite found earlier in this thread, by handle: F1 -> its record. Not read
         # from store in this run: carried verbatim by code, so it may be shown again.
         self.findings: dict[str, dict[str, Any]] = {}
+        # The features the question is about (attached, or carried from the last one).
+        # None when nobody said: then everything read in its own right counts.
+        self.asked_about: list[str] | None = None
+        # The person's own words in this question: the only place an edit's value may
+        # come from.
+        self.words: str = ""
+
+    def only_subject(self) -> str | None:
+        """The one thing the question is about, if there is exactly one: a person who
+        attached one section is told "it", not its code. Its pipeline, read with it, is
+        a second thing only in name."""
+        if self.asked_about is not None:
+            own = {holder(fid, self) for fid in self.asked_about if fid in self.features}
+        else:
+            own = {holder(fid, self) for fid in self.features if fid not in self.context_only}
+        return next(iter(own)) if len(own) == 1 else None
 
     def merge(self, section_id: str, merged: list[str]) -> None:
         self.scope.setdefault(section_id, [])
@@ -486,7 +640,7 @@ def source_line(claims: list[dict[str, Any]]) -> str:
     that store holds none. With several, each source is tied to its value."""
     if len(claims) == 1:
         where = source_of(claims[0])
-        return f"The source is {where}." if where else "Store holds no source for it."
+        return f"The source is {where}." if where else "No source is given for it."
     parts = [
         f"{where} for {value_words(c)}" if (where := source_of(c)) else f"none for {value_words(c)}"
         for c in claims
@@ -517,7 +671,8 @@ def claim_line(claim: dict[str, Any], read: Read, name_things: bool) -> str:
     what = claim["attribute_key"].replace("_", " ")
     value, period = value_words(claim), period_words(claim)
     whose = read.features[holder(claim["feature_id"], read)]
-    subject = feature_name(whose) if name_things or whose["id"] in read.context_only else None
+    named = (name_things and whose["id"] != read.only_subject()) or whose["id"] in read.context_only
+    subject = feature_name(whose) if named else None
     if whose.get("kind") == "line":
         # A pipeline's claim is never read as the section's: it always says whose it is.
         name = feature_name(whose)
@@ -526,9 +681,12 @@ def claim_line(claim: dict[str, Any], read: Read, name_things: bool) -> str:
     if status == "candidate":
         # Who proposed it comes from STATUS_WORDS ("proposed by a tool ..."), one wording.
         by = re.match(r"proposed by (a \w+)", status_words(claim))
-        who = by.group(1).capitalize() if by else "Someone"
         of = f" of {subject}" if subject else ""
-        line = f"{who} proposed {value} as the {what}{of}, {period}. Nobody has decided on it yet."
+        line = (
+            f"{by.group(1).capitalize()} proposed {value} as the {what}{of}, {period}."
+            if by
+            else f"{value} is proposed as the {what}{of}, {period}."
+        ) + " Nobody has decided on it yet."
     elif status == "rejected":
         of = f" for {subject}" if subject else ""
         line = f"One value{of}, {value}, was rejected as the {what}. It was given {period}."
@@ -549,9 +707,19 @@ def claim_line(claim: dict[str, Any], read: Read, name_things: bool) -> str:
 
 def render_statement(draft: DraftStatement, read: Read, name_things: bool = False) -> Statement:
     """Fill a draft statement's slots. Raises Unfillable; never invents."""
+    if draft.kind == "not_yet":
+        if draft.topic not in NOT_YET_TOPICS:
+            raise Unfillable("a not_yet statement needs one of its topics")
+        return Statement(kind="not_yet", text=FIXED_LINES[f"not_yet_{draft.topic}"])
+    if draft.kind == "help":
+        if draft.topic not in HELP_LINES:
+            raise Unfillable("a help statement needs one of its topics")
+        return Statement(kind="help", text=FIXED_LINES[HELP_LINES[draft.topic]])
+    if draft.kind == "refusal":
+        line = "background" if draft.topic == "background" else "unrelated"
+        return Statement(kind="refusal", text=FIXED_LINES[line])
     if draft.kind in FIXED_KINDS:
-        line = "unrelated" if draft.kind == "refusal" else draft.kind
-        return Statement(kind=draft.kind, text=FIXED_LINES[line])
+        return Statement(kind=draft.kind, text=FIXED_LINES[draft.kind])
     if draft.kind == "clarify":
         return Statement(kind="clarify", text=FIXED_LINES["what_is_meant"])
 
@@ -608,12 +776,27 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
             ),
         )
 
+    if draft.kind == "edit_offer":
+        return _edit_offer(draft, read)
+
+    if draft.kind == "answer":
+        return _answer(draft, read)
+
     if draft.kind == "unknown":
         # The model says which attribute; the sentence is code's, so nothing rides on it.
         refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]
         about = next((r.id for r in refs if r.type == "feature"), None)
-        subject = feature_name(read.features[about]) if name_things and about else None
-        text = unknown_line(draft.attribute, subject)
+        # The one attached thing is "it"; anything else (its pipeline) is named.
+        named = name_things and about and about != read.only_subject()
+        subject = feature_name(read.features[about]) if named else None
+        holders = {about, *read.scope.get(about, [])} if about else set()
+        proposed = any(
+            c["feature_id"] in holders
+            and c["attribute_key"] == draft.attribute
+            and c["status"] == "candidate"
+            for c in read.claims.values()
+        )
+        text = unknown_line(draft.attribute, subject, proposed)
         return Statement(kind="unknown", text=text, refs=refs, attribute=draft.attribute)
 
     if draft.kind == "finding":
@@ -624,6 +807,9 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
             raise Unfillable("a finding statement names one F handle from Cite so far")
         names = {fid: feature_name(f) for fid, f in read.features.items()}
         return finding_statement(read.findings[handles[0]], read, names)
+
+    if draft.kind == "worked_out" and draft.text.strip():
+        return _written_worked_out(draft, read)
 
     if draft.kind in ("worked_out", "lead"):
         # Code wrote the sentence when it worked the fact out or found the lead; the
@@ -639,7 +825,7 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
         refs = [_ref(_kind_of(i, read), i, read) for i in item["rests_on"]]
         return Statement(
             kind=draft.kind,
-            text=item["text"],
+            text=as_it(item["text"], read),
             refs=refs,
             attribute=item.get("attribute"),
             rule=item.get("rule"),
@@ -654,6 +840,155 @@ def render_statement(draft: DraftStatement, read: Read, name_things: bool = Fals
     text = one_full_stop(SLOT.sub(fill, draft.text).strip())
     refs = [_ref(ref.type, ref.id, read) for ref in draft.refs]
     return Statement(kind=draft.kind, text=text, refs=refs, attribute=draft.attribute)
+
+
+# A caution that holds for every line it could follow is said once per answer.
+SAID_ONCE = (
+    "Lines drawn touching do not prove the pipes joined.",
+    "A map year is not a build date.",
+)
+
+
+def say_once(answer: Answer) -> Answer:
+    """Drop a caution from every statement but the first that carries it: a caveat on
+    every line is noise. Run after the check, on an answer already allowed."""
+    for caution in SAID_ONCE:
+        seen = False
+        for statement in answer.statements:
+            if statement.text.endswith(f" {caution}"):
+                if seen:
+                    statement.text = statement.text[: -len(caution) - 1]
+                seen = True
+    # "Who owns it is not decided yet." already says what a proposal's own line repeats.
+    if any(s.text.endswith(UNDECIDED_ENDING) for s in answer.statements):
+        for statement in answer.statements:
+            statement.text = statement.text.removesuffix(f" {NOBODY_DECIDED}")
+    return answer
+
+
+def _answer(draft: DraftStatement, read: "Read") -> Statement:
+    """An answer in the model's own words. Shown as written; prose.py checks it. What it
+    rests on is worked out here, not taken from the model: the claims whose value it
+    states (their sources show beside it) and the sections and pipelines it names."""
+    import prose  # prose builds on this module
+
+    text = draft.text.strip()
+    if not text:
+        raise Unfillable("an answer needs its text")
+    refs = [_ref("claim", claim["id"], read) for claim in prose._claims_said(text, read)]
+    named = [
+        fid
+        for fid, feature in read.features.items()
+        if feature.get("kind") in ("section", "line")
+        and re.search(rf"(?<![\w-]){re.escape(feature_name(feature))}(?![\w-])", text)
+    ]
+    refs += [_ref("feature", fid, read) for fid in named]
+    return Statement(kind="answer", text=text, refs=refs)
+
+
+# Facts a person may set through Studio's Edit forms, by what the form is for: a
+# section's form has its diameter; name, owner and operator are the pipeline's.
+EDITABLE = {"section": ("diameter",), "line": ("name", "owner", "operator")}
+
+
+def _plain(text: str) -> str:
+    return " ".join(text.lower().split())
+
+
+def _edit_offer(draft: DraftStatement, read: "Read") -> Statement:
+    """The Edit form, filled in from the person's own words. The value is theirs or the
+    statement is not made: never one the model recalled, read or was handed by a finding."""
+    refs = [_ref(ref.type, ref.id, read) for ref in draft.refs if ref.type == "feature"]
+    features = [read.features[r.id] for r in refs]
+    kinds = {f.get("kind") for f in features}
+    if not features or len(kinds) != 1 or kinds - set(EDITABLE):
+        raise Unfillable("an edit is for attached sections, or for one attached pipeline")
+    kind = kinds.pop()
+    if kind == "line" and len(features) > 1:
+        raise Unfillable("an edit is for one pipeline at a time")
+    value = (draft.value or "").strip()
+    if not draft.attribute or not value:
+        raise Unfillable("an edit names the attribute and the value")
+    if draft.attribute not in EDITABLE[kind]:
+        other = "section" if kind == "line" else "line"
+        if draft.attribute in EDITABLE[other]:
+            # Asked of the wrong thing: say where it is set, in a fixed line.
+            line = "edit_on_pipeline" if kind == "section" else "edit_on_section"
+            return Statement(kind="refusal", text=FIXED_LINES[line])
+        what = "pipeline" if kind == "line" else "section"
+        raise Unfillable(f"the Edit form of a {what} has no {draft.attribute}")
+    if _plain(value) not in _plain(read.words):
+        raise Unfillable("an edit's value is copied from the person's own words, exactly")
+    rule = value_rules.RULES.get(draft.attribute) or {}
+    if rule.get("value_type") == "enum" and value not in rule["enum_values"]:
+        raise Unfillable(f"{value} is not a value of {draft.attribute}")
+    names = ", ".join(feature_name(f) for f in features)
+    text = (
+        f"I filled in the Edit form: {draft.attribute.replace('_', ' ')} {value} for "
+        f"{names}. Open it, check it, add the source and save. Nothing is changed until "
+        "you save."
+    )
+    offer = EditOffer(
+        target="pipeline" if kind == "line" else "sections",
+        feature_ids=[f["id"] for f in features],
+        attribute=draft.attribute,
+        value=value,
+    )
+    return Statement(kind="edit_offer", text=text, refs=refs, edit=offer)
+
+
+def as_it(text: str, read: "Read") -> str:
+    """A sentence code wrote, said to a person who attached one thing: "it", not its
+    code again. With several things read in their own right, the names stay."""
+    subject = read.only_subject()
+    if subject is None:
+        return text
+    name = feature_name(read.features[subject])
+    # A named pipeline is written "the pipeline Example trunk line": all of it is "it".
+    text = re.sub(rf"(?<![\w-])[Tt]he pipeline (?={re.escape(name)}(?![\w-]))", "", text)
+    for full, short in ((f"{name}'s", "its"), (name, "it")):
+        text = re.sub(rf"(^|(?<=[.:] )){re.escape(full)}(?![\w-])", short.capitalize(), text)
+        text = re.sub(rf"(?<![\w-]){re.escape(full)}(?![\w-])", short, text)
+    return text
+
+
+def _written_worked_out(draft: DraftStatement, read: "Read") -> Statement:
+    """A sentence the model wrote about what code worked out: every value enters through
+    a slot of a W handle ({w1.km}) or a feature's name ({f1.name}), filled here."""
+    keys = {ref.key: ref for ref in draft.refs}
+    if len(keys) != len(draft.refs):
+        raise Unfillable("a key is used for two things")
+    worked = {k: ref.id.strip().upper() for k, ref in keys.items() if ref.type == "worked_out"}
+    if not worked or any(h not in read.worked for h in worked.values()):
+        raise Unfillable("a worked_out statement names W handles from read_context")
+    if any(ref.type not in ("worked_out", "feature") for ref in draft.refs):
+        raise Unfillable("a worked_out statement holds W handles and features only, no claim")
+    used: set[str] = set()
+
+    def fill(match: re.Match[str]) -> str:
+        key, field = match.group(1), match.group(2)
+        ref = keys.get(key)
+        if ref is None:
+            raise Unfillable(f"the slot {match.group(0)} names a key that is not in refs")
+        if ref.type == "feature":
+            if field != "name" or ref.id not in read.features:
+                raise Unfillable(f"the slot {match.group(0)} is not a feature that was read")
+            return feature_name(read.features[ref.id])
+        values = read.worked[worked[key]].get("values") or {}
+        if field not in values:
+            has = ", ".join(sorted(values)) or "no values: leave its text empty"
+            raise Unfillable(f"{worked[key]} has no value {field!r}; it has {has}")
+        used.add(key)
+        return values[field]
+
+    text = one_full_stop(SLOT.sub(fill, draft.text).strip())
+    unused = [worked[k] for k in worked if k not in used]
+    if unused:
+        raise Unfillable(f"{', '.join(unused)} is in refs but no slot uses it")
+    rests = list(dict.fromkeys(i for h in worked.values() for i in read.worked[h]["rests_on"]))
+    return Statement(
+        kind="worked_out", text=text, refs=[_ref(_kind_of(i, read), i, read) for i in rests]
+    )
 
 
 def render(draft: Draft, read: Read) -> Answer:

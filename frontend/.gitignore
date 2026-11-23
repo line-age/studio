@@ -36,3 +36,4 @@ e2e/.results/
 visual/**/*-darwin.png
 visual/**/*-win32.png
 .vitest-attachments/
+.vitest/

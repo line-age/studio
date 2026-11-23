@@ -11,55 +11,30 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { formatCount } from "@/data/derive"
 
-import { useSettings, useSettingsOpen, type Settings } from "../settings"
-import { useStudioData } from "../studio-data"
 import { useStudio, type LayerId } from "../studio-store"
-import { legendText, styleName } from "./line-style"
 
 /**
  * The map key, behind one button among the map controls: how each line is
- * drawn and what that means: solid or dotted for status, heavy or thin for
- * in a pipeline or in none. Two of the lines can be hidden, each with its
- * eye; the eyes belong to the map and do not filter the list. How a status
- * is drawn is chosen in Settings, which the link at the bottom opens.
+ * drawn and what that means. Every section is solid: heavy in a pipeline,
+ * thin in none (Figma section 24). Two of the lines can be hidden, each with
+ * its eye; the eyes belong to the map and do not filter the list.
  */
 export function MapKey() {
-  const { network } = useStudioData()
   const layers = useStudio((s) => s.layers)
   const toggleLayer = useStudio((s) => s.toggleLayer)
-  const lineStyle = useSettings((s) => s.lineStyle)
-  const openSettings = useSettingsOpen((s) => s.setOpen)
-  return (
-    <MapKeyPopover
-      lineStyle={lineStyle}
-      waiting={network.proposedPaths.length}
-      layers={layers}
-      onToggleLayer={toggleLayer}
-      onOpenSettings={() => openSettings(true)}
-    />
-  )
+  return <MapKeyPopover layers={layers} onToggleLayer={toggleLayer} />
 }
 
 /** The map key's button and what it opens, given all it shows. */
 export function MapKeyPopover({
-  lineStyle,
-  waiting,
   layers,
   onToggleLayer,
-  onOpenSettings,
 }: {
-  /** How each status is drawn, from Settings: it names what Solid and Dotted mean. */
-  lineStyle: Settings["lineStyle"]
-  /** How many paths a tool proposes and a person has not decided. */
-  waiting: number
   /** Which of the two lines that can be hidden are shown. */
   layers: Record<LayerId, boolean>
   /** An eye was pressed: show or hide that line on the map. */
   onToggleLayer: (layer: LayerId) => void
-  /** "Change how lines are drawn": the key closes and Settings opens. */
-  onOpenSettings: () => void
 }) {
   const [open, setOpen] = useState(false)
   const popup = useRef<HTMLDivElement>(null)
@@ -89,60 +64,33 @@ export function MapKeyPopover({
           </PopoverTitle>
           <ul className="flex flex-col gap-0.5">
             <LayerRow
-              name={styleName("solid")}
-              meta={legendText(lineStyle, "solid")}
-              lineKey={<LineKey kind="solid" />}
-            />
-            <LayerRow
-              name={styleName("dotted")}
-              meta={legendText(lineStyle, "dotted")}
-              lineKey={<LineKey kind="dotted" />}
-            />
-            <LayerRow
-              name="Heavy"
-              meta="In a pipeline"
+              name="Sections in a pipeline"
               lineKey={<LineKey kind="heavy" />}
             />
             <LayerRow
-              name="Thin"
-              meta="Not in a pipeline"
+              name="Sections in no pipeline"
               lineKey={<LineKey kind="thin" />}
             />
             <LayerRow
-              name="Dashed"
-              label="proposed paths"
-              meta={`Proposed by a tool · ${formatCount(waiting)} waiting`}
+              name="Proposed path or end"
+              label="proposed paths and ends"
               lineKey={<LineKey kind="dashed" />}
               visible={layers.proposed}
               onVisibleChange={() => onToggleLayer("proposed")}
             />
+            <LayerRow name="Selected" lineKey={<LineKey kind="selected" />} />
             <LayerRow
-              name="Faint"
-              label="sections hidden by the filters"
-              meta="Hidden by the filters"
+              name="Left out by the filters"
+              label="sections left out by the filters"
               lineKey={<LineKey kind="ghost" />}
               visible={layers.faint}
               onVisibleChange={() => onToggleLayer("faint")}
             />
-            <LayerRow
-              name="Blue"
-              meta="Selected"
-              lineKey={<LineKey kind="selected" />}
-            />
           </ul>
-          <div className="border-t px-2 pt-2 pb-1">
-            <Button
-              variant="link"
-              size="xs"
-              className="h-auto p-0"
-              onClick={() => {
-                setOpen(false)
-                onOpenSettings()
-              }}
-            >
-              Change how lines are drawn
-            </Button>
-          </div>
+          <p className="px-2 pb-1 type-ui-xs text-muted-foreground">
+            Every section is drawn solid. Heavy or thin says whether it is in a
+            pipeline; dashes say what waits for a person.
+          </p>
         </PopoverContent>
       </Popover>
     </MapControl>

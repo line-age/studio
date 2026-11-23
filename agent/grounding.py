@@ -14,7 +14,15 @@ the evals for background and memory (B5) are for.
 import re
 from typing import Any
 
-from render import FIXED_LINES, SLOT, Read, holder, writes_itself
+from render import (
+    FIXED_LINES,
+    SLOT,
+    Read,
+    as_it,
+    holder,
+    render_statement,
+    writes_itself,
+)
 from schemas import Answer, Draft
 
 _UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.IGNORECASE)
@@ -92,32 +100,52 @@ ATTRIBUTE_WORDS = {
     "diameter": re.compile(r"\bdiameter\b", re.IGNORECASE),
     "name": re.compile(r"\b(called|named|name)\b", re.IGNORECASE),
 }
-FIXED = ("refusal", "failure", "greeting", "clarify")
+FIXED = ("refusal", "failure", "greeting", "clarify", "not_yet", "help")
 
 
 # Words that turn a clue into a claim: two traced lines meeting do not prove the pipes
 # joined, and when a map shows a line is never when it was built.
-_NEVER_SAID = re.compile(r"\b(connected|connects|connecting|joined|joins|built)\b", re.IGNORECASE)
+_NEVER_SAID = re.compile(
+    r"\b(connected|connects|connecting|joined|joins|built|serves|served|supplies|supplied)\b",
+    re.IGNORECASE,
+)
+
+# Words of the system, which a reviewer does not know (owner, 2026-11-22: nothing a
+# person reads names store). In the model's own words they are rejected.
+_INTERNAL = re.compile(
+    r"\b(store|stores|stored|printing|printings|candidate|candidates|handle|part_of|"
+    r"same_as|read_context|read_feature|traced as gone)\b",
+    re.IGNORECASE,
+)
 
 
 def own_words_problems(draft: Draft) -> list[str]:
     """What the model wrote outside slots: no digit, quotation, id, name or number word."""
     problems = []
     for n, statement in enumerate(draft.statements, 1):
+        if statement.kind == "answer":
+            continue  # written freely and checked whole, by prose.py
         if statement.kind in (
             *FIXED,
             "unknown",
             "citation_request",
-            "worked_out",
             "lead",
             "finding",
+            "edit_offer",
         ) or (writes_itself(statement)):
+            continue  # code writes the whole sentence
+        if statement.kind == "worked_out" and not statement.text.strip():
             continue  # code writes the whole sentence
         own = SLOT.sub(" ", statement.text)
         for word in _NEVER_SAID.findall(own):
             problems.append(
                 f"statement {n}: {word.lower()!r} in your own words; lines drawn touching do "
                 "not prove pipes joined, and a map date is never a build date"
+            )
+        for word in dict.fromkeys(w.lower() for w in _INTERNAL.findall(own)):
+            problems.append(
+                f"statement {n}: {word!r} is a word of the system, not the reviewer's; say "
+                '"the data", "no source says", "map", "proposed, not decided yet"'
             )
         if re.search(r"\d", own):
             problems.append(f"statement {n}: a number in your own words; use a slot")
@@ -300,16 +328,50 @@ def worked_out_problems(draft: Draft, answer: Answer, read: Read) -> list[str]:
             continue
         pool = read.worked if wrote.kind == "worked_out" else read.leads
         handles = [r.id.strip().upper() for r in wrote.refs if r.type == wrote.kind]
+        if wrote.kind == "worked_out" and wrote.text.strip():
+            # The model's own sentence: every W handle read in this run, a value of one
+            # in it, and nothing but what render makes of it.
+            slots = {key for key, _ in _slots(wrote.text)}
+            keys = {r.key for r in wrote.refs if r.type == "worked_out"}
+            if not handles or any(h not in pool for h in handles) or not (slots & keys):
+                problems.append(
+                    f"statement {n}: a worked-out sentence states a value of a W handle "
+                    "through a slot, such as {w1.km}"
+                )
+            elif shown.text != render_statement(wrote, read).text:
+                problems.append(f"statement {n}: a worked-out sentence was changed")
+            # Towns are today's, found near the drawn line: the sentence must say so.
+            own = SLOT.sub(" ", wrote.text).lower()
+            if any(f == "towns" for _, f in _slots(wrote.text)) and not re.search(
+                r"\b(today|today's)\b", own
+            ):
+                problems.append(
+                    f"statement {n}: say the towns are today's (\"near today's towns "
+                    '{w1.towns}"): they are not places a source names'
+                )
+            continue
         item = pool.get(handles[0]) if len(handles) == 1 else None
-        if item is None or shown.text != item["text"]:
+        if item is None or shown.text not in (item["text"], as_it(item["text"], read)):
             what = "a worked-out fact" if wrote.kind == "worked_out" else "a lead"
             problems.append(f"statement {n}: {what} is its handle's sentence, unchanged")
     return problems
 
 
+def _prose_problems(draft: Draft, read: Read) -> list[str]:
+    import prose
+
+    return [
+        problem
+        for n, statement in enumerate(draft.statements, 1)
+        if statement.kind == "answer"
+        for problem in prose.problems(statement.text, read, n)
+    ]
+
+
 def problems_of(draft: Draft, answer: Answer, read: Read) -> list[str]:
     return (
-        own_words_problems(draft)
+        _prose_problems(draft, read)
+        + own_words_problems(draft)
         + fact_problems(draft, read)
         + answer_problems(answer, read)
         + worked_out_problems(draft, answer, read)

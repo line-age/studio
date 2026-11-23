@@ -13,8 +13,13 @@
       38.1
     ]
   ],
-  "states": [],
-  "places": [],
+  "states": [
+    "Colorado"
+  ],
+  "places": [
+    "Moffat",
+    "Westcliffe"
+  ],
   "claims": [
     {
       "handle": "C3",
@@ -70,18 +75,23 @@
     {
       "handle": "W1",
       "what": "first_edition",
-      "text": "section 698a2811 is first traced on the 1932 printing, and is not traced on the earlier 1926 printing.",
+      "text": "section 698a2811 is first shown on the 1932 map, and is not shown on the earlier 1926 map.",
       "rests_on": [
         "48cc5a4d-1800-5993-9684-3d88af06e492"
-      ]
+      ],
+      "values": {
+        "year": "1932",
+        "before": "1926"
+      }
     },
     {
       "handle": "W2",
       "what": "not_traced_later",
-      "text": "Store does not say when section 698a2811 ended. No line traced as gone is confirmed for it, which is no proof that it lasted.",
+      "text": "No source says when section 698a2811 ended. No later map is confirmed to have dropped it, which is no proof that it lasted.",
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79"
-      ]
+      ],
+      "values": {}
     },
     {
       "handle": "W3",
@@ -89,16 +99,61 @@
       "text": "It is proposed, and not yet decided, that section 66522f8a is another trace of the same pipe as section 698a2811.",
       "rests_on": [
         "7a312cca-2930-51de-aeef-8ec558ecd767"
-      ]
+      ],
+      "values": {}
     },
     {
       "handle": "W4",
+      "what": "pipeline",
+      "text": "section 698a2811 is not in a pipeline.",
+      "rests_on": [
+        "777952cb-40a0-580a-8be9-2e4b9305bd79"
+      ],
+      "values": {}
+    },
+    {
+      "handle": "W5",
       "what": "drawn_touching",
       "text": "section fcf4207a is drawn touching section 698a2811: their ends meet. Lines drawn touching do not prove the pipes joined.",
       "rests_on": [
         "777952cb-40a0-580a-8be9-2e4b9305bd79",
         "b6618689-b54d-5157-9dac-d0e0e401a9d2"
-      ]
+      ],
+      "values": {}
+    },
+    {
+      "handle": "W6",
+      "what": "place",
+      "text": "section 698a2811's drawn line lies in Colorado.",
+      "rests_on": [
+        "777952cb-40a0-580a-8be9-2e4b9305bd79"
+      ],
+      "values": {
+        "states": "Colorado"
+      }
+    },
+    {
+      "handle": "W7",
+      "what": "place",
+      "text": "Along section 698a2811's drawn line, by today's towns: Moffat and Westcliffe.",
+      "rests_on": [
+        "777952cb-40a0-580a-8be9-2e4b9305bd79"
+      ],
+      "values": {
+        "towns": "Moffat and Westcliffe"
+      }
+    },
+    {
+      "handle": "W8",
+      "what": "length",
+      "text": "section 698a2811 is about 37 km (23 miles) long as drawn.",
+      "rests_on": [
+        "777952cb-40a0-580a-8be9-2e4b9305bd79"
+      ],
+      "values": {
+        "km": "37 km",
+        "miles": "23 miles"
+      }
     }
   ],
   "leads": [
@@ -142,7 +197,7 @@
     {
       "handle": "L4",
       "rule": "edition_window",
-      "text": "section 698a2811 is first traced on the 1932 printing and is not traced on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
+      "text": "section 698a2811 is first shown on the 1932 map and is not shown on the earlier 1926 one, so sources from 1926 to 1932 are where to look for when it first appears. A window to search, never a build date.",
       "attribute": null,
       "source": "Example Gazette pipeline map, 1932 printing",
       "rests_on": [

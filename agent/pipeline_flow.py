@@ -24,6 +24,8 @@ MAX_SECTIONS = 200
 # single line". A verb that makes, then "pipeline" (or "line", store's word for one)
 # with an article before it; a question about a pipeline ("is it in a pipeline?") has no
 # such verb.
+# "How do I make a pipeline?" asks for the steps, not for one to be made.
+HOW = re.compile(r"^\W*(how|where|what)\b|\bhow\s+(do|can|would|to)\b", re.IGNORECASE)
 WORDS = re.compile(
     r"\b(make|form|group|join|combine|put|turn|merge|propose)\b[^.?!]*\b(one|a|single|same|new)\s+"
     r"(?:new\s+)?(?:pipe)?line\b",
@@ -82,7 +84,7 @@ def asks_to_decide(words: str) -> bool:
 
 
 def asks_for_pipeline(words: str) -> bool:
-    return bool(WORDS.search(words))
+    return bool(WORDS.search(words)) and not HOW.search(words)
 
 
 def canonical(section_ids: list[str]) -> list[str] | None:

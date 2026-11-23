@@ -56,7 +56,7 @@ def test_a_proposal_says_who_proposed_it_and_that_nobody_decided(world):
     read = _read(world, "s03")
     proposed = _claim(world, read, "s03", "owner", "candidate")
     text = render(_picked(proposed["id"]), read).statements[0].text
-    assert text.startswith(("A tool proposed ", "A person proposed "))
+    assert text.startswith("A person proposed ") or " is proposed as the owner" in text
     assert "as the owner" in text and "Nobody has decided on it yet." in text
     assert render(_picked(proposed["id"]), read).statements[0].refs[0].source
 
@@ -75,7 +75,7 @@ def test_a_claim_held_through_a_merged_trace_is_said_of_the_section(world):
     from grounding import reads_from
     from tools import make_tools
 
-    read_feature, _ = make_tools(FakeStore(world).client())
+    read_feature, _, *_ = make_tools(FakeStore(world).client())
     read = reads_from([read_feature.func(world["codes"]["s13"])[1]])
     owner = _claim(world, read, "d13", "owner", "accepted")
     text = render(_picked(owner["id"]), read).statements[0].text
@@ -155,7 +155,7 @@ def test_one_section_with_a_merged_trace_is_one_thing(world):
     from grounding import reads_from
     from tools import make_tools
 
-    read_feature, _ = make_tools(FakeStore(world).client())
+    read_feature, _, *_ = make_tools(FakeStore(world).client())
     read = reads_from([read_feature.func(world["codes"]["s13"])[1]])
     on_trace = _claim(world, read, "d13", "owner", "accepted")
     on_section = _claim(world, read, "s13", "status", "accepted")

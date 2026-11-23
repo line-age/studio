@@ -15,7 +15,7 @@ GOLDEN = ROOT / "contract" / "examples" / "section-pack.json"
 
 def pack_of(code: str) -> SectionPack:
     world = load_world("small")
-    _, read_context = make_tools(FakeStore(world).client())
+    _, read_context, *_ = make_tools(FakeStore(world).client())
     return SectionPack.model_validate(read_context.func(world["codes"][code])[1]["pack"])
 
 
@@ -32,7 +32,8 @@ def test_the_golden_pack_is_what_the_code_makes():
 def test_the_pack_holds_what_cite_takes_in():
     pack = pack_of("s14")
     assert pack.network == "gas" and len(pack.endpoints) == 2
-    assert pack.states == [] and pack.places == []  # no place data yet
+    # Worked out from the traced line: its state, and today's towns along it.
+    assert pack.states == ["Colorado"] and pack.places == ["Moffat", "Westcliffe"]
     assert [n.meets for n in pack.neighbours] == ["end_to_end"]
     assert pack.neighbours[0].claims  # the neighbour's own claims, kept under it
     assert {lead.rule for lead in pack.leads} >= {"neighbour_source", "edition_window"}
@@ -42,7 +43,7 @@ def test_the_pack_reads_as_a_brief_and_says_only_what_it_holds():
     pack = pack_of("s14")
     text = brief(pack)
     assert text.startswith(f"Section: section {short_id(pack.section_id)}")
-    assert "States and places: Unknown" in text
+    assert "States: Colorado" in text and "Today's towns along it: Moffat, Westcliffe" in text
     assert "Worked out (not claims):" in text and "Leads (not in store; where to look):" in text
     for lead in pack.leads:
         assert lead.text in text

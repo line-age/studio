@@ -1,3 +1,4 @@
+import { BY_HAND_SOURCE } from "@/data/evidence"
 import { createContext, use, type ReactNode } from "react"
 
 import { Icon } from "@/components/icons/icon"
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/tooltip"
 import type { AgentAnswerRef, AgentStatement } from "@/data/agent/answer"
 
+import { useStudio } from "../studio-store"
 import { AgentFindingCard } from "./agent-finding"
 
 /** Proposes a finding by its handle; null while nothing may be sent. */
@@ -23,9 +25,9 @@ export const ProposePipeline = createContext<
   ((sectionIds: string[]) => void) | null
 >(null)
 
-export const ProposeFinding = createContext<((handle: string) => void) | null>(
-  null
-)
+export const ProposeFinding = createContext<
+  ((handle: string, target?: string) => void) | null
+>(null)
 
 /*
  * One statement of an answer (Figma section 13). Each kind of thing has its
@@ -39,13 +41,81 @@ export const ProposeFinding = createContext<((handle: string) => void) | null>(
 
 export const KIND_PREFIX: Partial<Record<AgentStatement["kind"], string>> = {
   worked_out: "Inferred",
-  lead: "Lead, not in store",
+  lead: "Lead, not a fact",
 }
 
 /** What a prefix means, shown on hover or focus. */
 export const KIND_MEANS: Partial<Record<AgentStatement["kind"], string>> = {
   worked_out:
     "Concluded from what store holds, such as which maps show the line. No source states this, so it is not a claim.",
+}
+
+/**
+ * The labels an answer may open a line with, so every answer has the same
+ * shape: what is known, what is proposed, what is not known, what the map
+ * shows. A line that starts with one is drawn with the label set apart.
+ */
+const LABELS = [
+  "Known",
+  "Proposed",
+  "Not known",
+  "On the map",
+  "Same",
+  "Different",
+  "Sections",
+  "Where to look",
+] as const
+const LABELLED = new RegExp(`^(${LABELS.join("|")}):\\s+(.*)$`)
+
+/**
+ * A text with line breaks: a blank line starts a paragraph, lines starting
+ * "- " are a bulleted list, and a line starting with one of LABELS is a
+ * labelled line. `inline` turns a line's words into nodes (names as links).
+ */
+function TextBlocks({
+  text,
+  inline = (line) => line,
+}: {
+  text: string
+  inline?: (line: string) => ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      {text.split(/\n\s*\n/).map((block, i) => {
+        const lines = block.split("\n")
+        const items = lines.filter((l) => l.startsWith("- "))
+        const rest = lines.filter((l) => !l.startsWith("- "))
+        const labelled = rest.filter((l) => LABELLED.test(l))
+        const lead = rest.filter((l) => !LABELLED.test(l))
+        return (
+          <div key={i} className="flex flex-col gap-1">
+            {lead.length > 0 && (
+              <p className="type-ui-sm">{inline(lead.join(" "))}</p>
+            )}
+            {labelled.map((line) => {
+              const [, label, words] = LABELLED.exec(line)!
+              return (
+                <p key={line} className="type-ui-sm">
+                  <span className="font-medium text-muted-foreground">
+                    {label}
+                  </span>
+                  {" · "}
+                  {inline(words)}
+                </p>
+              )
+            })}
+            {items.length > 0 && (
+              <ul className="flex list-disc flex-col gap-0.5 pl-5 type-ui-sm">
+                {items.map((item) => (
+                  <li key={item}>{inline(item.slice(2))}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 /** The things a sentence names that can be opened, by the words it uses. */
@@ -74,11 +144,20 @@ function escape(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
-/** The sentence with every name it holds turned into a link. */
+/** Said on a name Studio cannot open: the area it loaded leaves it out. */
+export const NOT_LOADED =
+  "Not open in Studio: it lies outside the area Studio loaded."
+
+/**
+ * The sentence with every name it holds turned into a link. A name Studio
+ * has not loaded (`loaded` false) stays plain text, with why on hover: a link
+ * that does nothing would look broken.
+ */
 function withLinks(
   text: string,
   names: Map<string, AgentAnswerRef>,
-  open: (ref: AgentAnswerRef) => void
+  open: (ref: AgentAnswerRef) => void,
+  loaded: (id: string) => boolean
 ): { nodes: ReactNode[]; linked: Set<string> } {
   const linked = new Set<string>()
   const keys = [...names.keys()].sort((a, b) => b.length - a.length)
@@ -88,6 +167,12 @@ function withLinks(
     const ref = names.get(part)
     if (!ref) return part
     linked.add(ref.id)
+    if (!loaded(ref.id))
+      return (
+        <span key={i} title={NOT_LOADED}>
+          {part}
+        </span>
+      )
     return (
       <button
         key={i}
@@ -135,6 +220,8 @@ function roleLine(claim: AgentAnswerRef): string | null {
  * the claim, the source, the passage it quotes, the claim's state, and a link to
  * the source, without leaving the chat.
  */
+/** The source Studio saves a hand-typed value under (data/store/write-edits.ts). */
+
 function SourceCitation({
   source,
   claim,
@@ -144,8 +231,15 @@ function SourceCitation({
   claim: AgentAnswerRef
   open: (ref: AgentAnswerRef) => void
 }) {
-  const state = claim.status ? STATE_BADGE[claim.status] : undefined
-  const role = roleLine(claim)
+  // A value typed into Studio's Edit form is saved under the source "Studio
+  // edit", because every value needs one. It is not a citation and is not shown
+  // as one: nothing was cited.
+  const byHand = source === BY_HAND_SOURCE
+  const shown = byHand ? "Entered by hand" : source
+  const state = claim.status && !byHand ? STATE_BADGE[claim.status] : undefined
+  const role = byHand
+    ? "Entered by hand in Studio. No source is cited."
+    : roleLine(claim)
   const link =
     "type-ui-xs-medium text-primary underline-offset-2 outline-none hover:underline focus-visible:shadow-focus-ring rounded-sm"
   return (
@@ -156,7 +250,11 @@ function SourceCitation({
         render={
           <button
             type="button"
-            aria-label={`Open the claim, from ${source}`}
+            aria-label={
+              byHand
+                ? "Entered by hand, open it"
+                : `Open the citation, from ${source}`
+            }
             onClick={() => open(claim)}
             className="max-w-full min-w-0 rounded-full outline-none focus-visible:shadow-focus-ring"
           />
@@ -168,7 +266,7 @@ function SourceCitation({
           className="max-w-full hover:bg-secondary-hover"
         >
           <Icon name="source" data-icon="inline-start" />
-          <span className="truncate">{source}</span>
+          <span className="truncate">{shown}</span>
         </Badge>
       </HoverCardTrigger>
       <HoverCardContent className="flex w-80 flex-col gap-2.5">
@@ -179,7 +277,7 @@ function SourceCitation({
               {role}
             </span>
           )}
-          <span className="type-ui-sm-medium">{source}</span>
+          <span className="type-ui-sm-medium">{shown}</span>
         </div>
         {claim.quote && (
           <blockquote
@@ -201,7 +299,7 @@ function SourceCitation({
         )}
         <div className="flex items-center gap-3 border-t border-border-subtle pt-2">
           <button type="button" onClick={() => open(claim)} className={link}>
-            Open the claim
+            {byHand ? "Open it" : "Open the citation"}
           </button>
           {claim.url && (
             <a
@@ -254,19 +352,33 @@ export function AgentStatementView({
   statement,
   name,
   open,
+  subject,
 }: {
   statement: AgentStatement
   name: (id: string) => string | null
   open: (ref: AgentAnswerRef) => void
+  /** The one thing the question was about: the sentence calls it "it". */
+  subject?: string
 }) {
   const propose = use(ProposeFinding)
   const proposePipeline = use(ProposePipeline)
+  const edit = useStudio((s) => s.edit)
+  // The form's fields are named as Studio shows them: "Diameter", "Owner".
+  const openEdit = (offer: NonNullable<AgentStatement["edit"]>) => {
+    const field =
+      offer.attribute.charAt(0).toUpperCase() + offer.attribute.slice(1)
+    const prefill = { [field]: offer.value }
+    edit(
+      offer.target === "pipeline"
+        ? { kind: "edit-pipeline", pipelineId: offer.feature_ids[0], prefill }
+        : { kind: "edit-sections", sectionIds: offer.feature_ids, prefill }
+    )
+  }
   const prefix = KIND_PREFIX[statement.kind]
-  const { nodes, linked } = withLinks(
-    statement.text,
-    namesIn(statement.refs, name),
-    open
-  )
+  // Only what Studio has loaded can be opened.
+  const loaded = (id: string) => name(id) !== null
+  const names = namesIn(statement.refs, name)
+  const { nodes, linked } = withLinks(statement.text, names, open, loaded)
   // One pill per source; a claim with none says so.
   const sources = new Map<string, AgentAnswerRef>()
   for (const ref of statement.refs) {
@@ -277,14 +389,25 @@ export function AgentStatementView({
   // A section or link the sentence does not name still opens from below it.
   const others = statement.refs.filter(
     (ref) =>
-      (ref.type === "feature" && !linked.has(ref.id)) || ref.type === "link"
+      (ref.type === "feature" &&
+        ref.id !== subject &&
+        !linked.has(ref.id) &&
+        loaded(ref.id)) ||
+      ref.type === "link"
   )
   return (
     <div className="flex flex-col gap-1" data-kind={statement.kind}>
-      <p className="type-ui-sm">
-        {prefix && <KindPrefix kind={statement.kind} prefix={prefix} />}
-        {nodes}
-      </p>
+      {statement.text.includes("\n") ? (
+        <TextBlocks
+          text={statement.text}
+          inline={(line) => withLinks(line, names, open, loaded).nodes}
+        />
+      ) : (
+        <p className="type-ui-sm">
+          {prefix && <KindPrefix kind={statement.kind} prefix={prefix} />}
+          {nodes}
+        </p>
+      )}
       {statement.kind === "pipeline_offer" && statement.pipeline && (
         <div className="flex">
           <Button
@@ -293,6 +416,13 @@ export function AgentStatementView({
             onClick={() => proposePipeline?.(statement.pipeline!.section_ids)}
           >
             Propose pipeline
+          </Button>
+        </div>
+      )}
+      {statement.kind === "edit_offer" && statement.edit && (
+        <div className="flex">
+          <Button size="sm" onClick={() => openEdit(statement.edit!)}>
+            Open Edit
           </Button>
         </div>
       )}

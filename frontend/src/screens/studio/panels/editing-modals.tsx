@@ -48,6 +48,7 @@ export function EditingModals() {
       <EditPipelineModal
         key={pipeline.id}
         pipeline={pipeline}
+        prefill={editing.prefill}
         onClose={close}
       />
     ) : null
@@ -65,6 +66,7 @@ export function EditingModals() {
       open={sections.length > 0}
       onOpenChange={(open) => !open && close()}
       sections={sections}
+      prefill={editing?.kind === "edit-sections" ? editing.prefill : undefined}
     />
   )
 }

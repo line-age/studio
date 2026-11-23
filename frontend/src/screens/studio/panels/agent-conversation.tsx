@@ -13,7 +13,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { geometryBounds, plural, sectionLabel } from "@/data/derive"
+import {
+  geometryBounds,
+  pipelineLabel,
+  plural,
+  sectionLabel,
+} from "@/data/derive"
 import { shortId } from "@/data/short-id"
 import { Icon } from "@/components/icons/icon"
 import { Badge } from "@/components/ui/badge"
@@ -33,7 +38,11 @@ import type { Question } from "@/data/question"
 import { useRevealSection, useStudioData } from "../studio-data"
 import { useStudio } from "../studio-store"
 import { AgentSources } from "./agent-sources"
-import { ProposeOutcomes, type ProposeOutcome } from "./agent-finding"
+import {
+  PipelineOfSection,
+  ProposeOutcomes,
+  type ProposeOutcome,
+} from "./agent-finding"
 import {
   AgentStatementView,
   ProposeFinding,
@@ -56,6 +65,7 @@ function useOpenAgentRef(): (ref: AgentAnswerRef) => void {
   const showPipelines = useStudio((s) => s.showPipelines)
   const reveal = useRevealSection()
   const requestFit = useStudio((s) => s.requestFit)
+  const openCitation = useStudio((s) => s.openCitation)
   return (ref) => {
     const featureId = ref.type === "feature" ? ref.id : ref.feature_id
     if (!featureId) return
@@ -73,8 +83,14 @@ function useOpenAgentRef(): (ref: AgentAnswerRef) => void {
     }
     const section = network.sections.find((s) => s.id === featureId)
     if (!section) return
-    reveal(section.id)
     const label = ref.attribute ? ATTRIBUTE_LABEL[ref.attribute] : undefined
+    // A source pill: its citation, in the citation pop-up, at once. The screen
+    // behind stays as it was; the pop-up's Show on map goes to the section.
+    if (ref.type === "claim" && label) {
+      openCitation(section.id, label)
+      return
+    }
+    reveal(section.id)
     if (label) selectAttribute(section.id, label)
     else selectSection(section.id)
     requestFit(geometryBounds(section.geometry))
@@ -107,23 +123,60 @@ function AnswerBody({
   name: (id: string) => string | null
   open: (ref: AgentAnswerRef) => void
 }) {
-  const attached = turn.question.about
-    .filter((i) => i.kind === "section" && i.id)
-    .map((i) => i.id as string)
+  const carried = turn.answer.carried ?? []
+  // What the answer is about: what was attached, or what was carried over.
+  const attached =
+    turn.question.about.length > 0
+      ? turn.question.about
+          .filter((i) => i.kind === "section" && i.id)
+          .map((i) => i.id as string)
+      : carried.map((ref) => ref.id)
   const statements = turn.answer.statements
-  // A fixed line (a question back, a refusal, a failure) is the whole answer.
+  // A fixed line (a question back, a refusal, a failure, something it cannot
+  // do yet, what it can do) is the whole answer. So is an answer the Agent
+  // wrote in its own words: it reads as written, never cut up by section.
   const fixed = statements.some((s) =>
-    ["clarify", "refusal", "failure", "greeting"].includes(s.kind)
+    [
+      "clarify",
+      "refusal",
+      "failure",
+      "greeting",
+      "not_yet",
+      "help",
+      "answer",
+      "edit_offer",
+    ].includes(s.kind)
+  )
+  const from = carried.length > 0 && (
+    <p className="type-ui-xs text-muted-foreground">
+      About{" "}
+      {carried.map((ref, i) => (
+        <span key={ref.id}>
+          {i > 0 && (i === carried.length - 1 ? " and " : ", ")}
+          <button
+            type="button"
+            onClick={() => open(ref)}
+            className="rounded-sm text-primary underline-offset-2 outline-none hover:underline focus-visible:shadow-focus-ring"
+          >
+            {name(ref.id) ?? ref.label ?? "a section"}
+          </button>
+        </span>
+      ))}
+      , from your last question.
+    </p>
   )
   if (attached.length < 2 || fixed)
     return (
       <>
+        {from}
         {statements.map((statement, i) => (
           <AgentStatementView
             key={i}
             statement={statement}
             name={name}
             open={open}
+            // The one thing asked about is "it" in the sentence: no chip for it.
+            subject={attached.length === 1 ? attached[0] : undefined}
           />
         ))}
       </>
@@ -227,13 +280,28 @@ function searchLeftUnfinished(statements: readonly AgentStatement[]): boolean {
   )
 }
 
-function asked(question: Question): string | null {
+/** How many attached things are named before the rest are counted. */
+const NAMED = 5
+
+/**
+ * What a question was about, by name: "Alder to Birch", or the first five and
+ * "+3 more". A thing Studio cannot name (not loaded here) is counted by kind.
+ */
+function asked(
+  question: Question,
+  name: (id: string) => string | null
+): string | null {
   const count = question.about.length
   if (count === 0) return null
   const kinds = new Set(question.about.map((i) => i.kind))
-  return kinds.size === 1
-    ? plural(count, [...kinds][0])
-    : plural(count, "thing")
+  const counted =
+    kinds.size === 1 ? plural(count, [...kinds][0]) : plural(count, "thing")
+  const names = question.about.map((i) =>
+    i.id && (i.kind === "section" || i.kind === "pipeline") ? name(i.id) : null
+  )
+  if (names.some((n) => n === null)) return counted
+  const shown = names.slice(0, NAMED).join(", ")
+  return count > NAMED ? `${shown} +${count - NAMED} more` : shown
 }
 
 function Turn({
@@ -254,7 +322,12 @@ function Turn({
     if (section) return sectionLabel(section)
     return network.pipelines.find((p) => p.id === id)?.name ?? null
   }
-  const about = asked(turn.question)
+  // The attachment names an unnamed pipeline as the list does, by its code.
+  const attachedName = (id: string) => {
+    const pipeline = network.pipelines.find((p) => p.id === id)
+    return pipeline ? pipelineLabel(pipeline) : name(id)
+  }
+  const about = asked(turn.question, attachedName)
   const now = last && working && !turn.answer
   // A search goes on after its first lines are shown: its steps stay live.
   const searchingNow = last && working && turn.answer !== null
@@ -306,21 +379,11 @@ function Conversation({
   composer: (agent: Agent) => React.ReactNode
 }) {
   const agent = useAgent()
-  const { network, reload } = useStudioData()
+  const { network, sectionById, reload } = useStudioData()
   const [confirmClear, setConfirmClear] = useState(false)
   // A hint, not a warning: the Agent reads no earlier turn, so a long chat does
   // not make answers worse; it buries the current turn and loads slower.
   const long = agent.turns.length >= LONG_CHAT_TURNS
-  // Clears the messages for everyone and keeps what cite found (code, no model).
-  const startFresh = () =>
-    void agent
-      .ask({
-        words: "Start fresh",
-        about: [],
-        network: network.name,
-        action: { kind: "fresh_start" },
-      })
-      .then(onCleared)
   const logRef = useRef<HTMLDivElement>(null)
   const last = agent.turns.at(-1)
   // After a finding is proposed, store holds a new candidate claim: read again.
@@ -334,13 +397,23 @@ function Conversation({
   }, [last, reload])
   const propose = agent.working
     ? null
-    : (handle: string) =>
+    : (handle: string, target?: string) =>
         void agent.ask({
           words: `Propose ${handle}`,
           about: [],
           network: network.name,
-          action: { kind: "propose", finding: handle },
+          action: {
+            kind: "propose",
+            finding: handle,
+            ...(target && { target }),
+          },
         })
+  // The pipeline a finding's section is confirmed part of, for an owner.
+  const pipelineOf = (sectionId: string) => {
+    const pipelineId = sectionById.get(sectionId)?.pipelineId
+    const pipeline = network.pipelines.find((p) => p.id === pipelineId)
+    return pipeline ? { id: pipeline.id, name: pipelineLabel(pipeline) } : null
+  }
   const proposePipeline = agent.working
     ? null
     : (sectionIds: string[]) =>
@@ -362,23 +435,9 @@ function Conversation({
             ? "The Agent is searching the journals"
             : agent.working
               ? "The Agent is reading store"
-              : "One conversation, kept by the Agent"}
+              : "Your conversation, kept by the Agent"}
         </span>
         <span className="flex gap-1">
-          {agent.working && (
-            <Button size="xs" variant="ghost" onClick={() => void agent.stop()}>
-              Stop
-            </Button>
-          )}
-          <Button
-            size="xs"
-            variant="ghost"
-            onClick={startFresh}
-            disabled={agent.working || agent.turns.length === 0}
-            title="Clear the messages and keep what cite found"
-          >
-            Start fresh
-          </Button>
           <Button
             size="xs"
             variant="ghost"
@@ -395,21 +454,19 @@ function Conversation({
           {agent.carried > 0
             ? `, ${plural(agent.carried, "finding")} kept`
             : ""}
-          . Start fresh clears the messages
-          {agent.carried > 0 ? " and keeps the findings" : ""}.
+          . Clear chat starts again.
         </p>
       )}
       <Dialog open={confirmClear} onOpenChange={setConfirmClear}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Clear the chat for everyone?</DialogTitle>
+            <DialogTitle>Clear your chat?</DialogTitle>
             <DialogDescription>
-              The conversation is shared by everyone using this Studio. Clearing
-              deletes every message and what cite found
+              This deletes your messages and what cite found
               {agent.carried > 0
                 ? ` (${plural(agent.carried, "finding")})`
                 : ""}
-              . Nothing in store changes. To keep the findings, use Start fresh.
+              . Nobody else's chat is touched, and nothing in the data changes.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -437,17 +494,19 @@ function Conversation({
       >
         <ProposePipeline value={proposePipeline}>
           <ProposeFinding value={propose}>
-            <ProposeOutcomes value={outcomesOf(agent.turns, agent.working)}>
-              {agent.turns.map((turn, i) => (
-                <Turn
-                  key={turn.id}
-                  turn={turn}
-                  working={agent.working}
-                  last={i === agent.turns.length - 1}
-                  liveSteps={agent.liveSteps}
-                />
-              ))}
-            </ProposeOutcomes>
+            <PipelineOfSection value={pipelineOf}>
+              <ProposeOutcomes value={outcomesOf(agent.turns, agent.working)}>
+                {agent.turns.map((turn, i) => (
+                  <Turn
+                    key={turn.id}
+                    turn={turn}
+                    working={agent.working}
+                    last={i === agent.turns.length - 1}
+                    liveSteps={agent.liveSteps}
+                  />
+                ))}
+              </ProposeOutcomes>
+            </PipelineOfSection>
           </ProposeFinding>
         </ProposePipeline>
         {agent.turns.length === 0 && <Marker>No conversation yet.</Marker>}

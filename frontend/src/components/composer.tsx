@@ -1,3 +1,4 @@
+import { SquareIcon } from "lucide-react"
 import { useId, useState, type ReactNode, type Ref } from "react"
 
 import { Icon } from "@/components/icons/icon"
@@ -7,11 +8,13 @@ import { cn } from "@/lib/utils"
 /**
  * The chat input of the Agent panel (Figma calls this component "Composer").
  * A soft filled box: the message on top, attach at bottom left, send at
- * bottom right.
+ * bottom right. While the Agent works, send is Stop (a filled square, as in
+ * shadcn's AI Elements prompt input).
  */
 export function Composer({
   placeholder,
   onSend,
+  onStop,
   onAttach,
   attachments,
   picker,
@@ -22,6 +25,8 @@ export function Composer({
   placeholder: string
   /** Returns false when the message was not taken; the words stay in the box. */
   onSend?: (message: string) => boolean | void
+  /** Given while the Agent works: the send button stops it instead. */
+  onStop?: () => void
   /** The attach button, and "#" typed at the start of a word. */
   onAttach?: () => void
   /** What attach opens, shown above the message while it is open. */
@@ -115,15 +120,27 @@ export function Composer({
         >
           <Icon name="plus" />
         </Button>
-        <Button
-          type="submit"
-          size="icon"
-          aria-label="Send"
-          disabled={empty}
-          className="rounded-full"
-        >
-          <Icon name="arrow-up" />
-        </Button>
+        {onStop ? (
+          <Button
+            type="button"
+            size="icon"
+            aria-label="Stop"
+            className="rounded-full"
+            onClick={onStop}
+          >
+            <SquareIcon className="size-3 fill-current" />
+          </Button>
+        ) : (
+          <Button
+            type="submit"
+            size="icon"
+            aria-label="Send"
+            disabled={empty}
+            className="rounded-full"
+          >
+            <Icon name="arrow-up" />
+          </Button>
+        )}
       </div>
     </form>
   )

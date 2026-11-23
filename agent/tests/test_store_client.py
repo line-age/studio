@@ -296,3 +296,41 @@ def test_the_token_is_not_sent_in_the_clear_to_another_machine(url):
 )
 def test_a_local_or_encrypted_store_address_is_accepted(url):
     StoreClient(url).close()
+
+
+# The Agent's own read token.
+
+
+def _seen_by_store(token: str) -> httpx.Request:
+    seen: list[httpx.Request] = []
+
+    def answer(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json=[])
+
+    StoreClient("http://store", transport=httpx.MockTransport(answer), token=token).links()
+    return seen[0]
+
+
+def test_the_agents_token_is_sent_to_store_as_a_bearer_header():
+    assert _seen_by_store("lgt_invented").headers["authorization"] == "Bearer lgt_invented"
+
+
+def test_with_no_token_no_header_is_sent():
+    assert "authorization" not in _seen_by_store("").headers
+
+
+def test_the_token_is_never_in_what_the_settings_print(monkeypatch):
+    import settings
+
+    monkeypatch.setenv("STORE_TOKEN", "lgt_invented")
+    loaded = settings.load()
+    assert loaded.store_token == "lgt_invented"
+    assert "lgt_invented" not in repr(loaded)
+
+
+def test_a_store_that_refuses_the_token_is_said_as_refused():
+    refuse = httpx.MockTransport(lambda request: httpx.Response(401))
+    with pytest.raises(StoreError) as error:
+        StoreClient("http://store", transport=refuse, token="lgt_wrong").links()
+    assert error.value.kind == "refused" and "lgt_wrong" not in str(error.value)

@@ -28,6 +28,22 @@ KEEPS = {
     **{b: ["B01", "B02", "B20"] for b in ("B21", "B22", "B23", "B24", "B25", "B26", "B27")},
     # Proposing a pipeline: a question about a pipeline still reads store (B18).
     "B28": ["B01", "B02", "B18"],
+    # Nearby sections: the attached one's own claims and what it touches still hold.
+    "B30": ["B01", "B02", "B19"],
+    # Not yet, unrelated, background: what is answered today keeps being answered.
+    **{b: ["B01", "B02", "B17", "B18", "B19", "B20", "B28", "B29"] for b in ("B31", "B04", "B05")},
+    # In a pipeline or not: what links say (B18) keeps being said.
+    "B37": ["B01", "B02", "B18"],
+    # Several sections together: one section's facts, maps and place keep being said.
+    **{b: ["B01", "B02", "B17", "B33", "B36"] for b in ("B38", "B39")},
+    # One thing asked, one thing said: everything a section answers keeps being answered.
+    # A pipeline as a whole: what a pipeline and its sections answer keeps being answered.
+    "B41": ["B01", "B02", "B18", "B33", "B37", "B39"],
+    # What a word means, how a thing is done: the not-yet lines and the offer keep working.
+    "B42": ["B01", "B10", "B28", "B31"],
+    # Across the network: what an attached thing answers, and the not-yet lines left, keep working.
+    "B43": ["B01", "B02", "B31", "B39"],
+    "B40": ["B01", "B02", "B17", "B19", "B20", "B33", "B36", "B37"],
 }
 LABELS = ("agent-draft", "person")
 # Behaviours about searching with cite: their cases always run with the fake cite.
@@ -43,6 +59,10 @@ MUST_KEYS = {
     # Searching with cite: how many bundles store took, and what reached cite last.
     "writes",
     "cite_sent",
+    # How the answer reads: at most this many statements; whether it says it is about
+    # the things of the person's last question (a follow-up).
+    "max_statements",
+    "carried",
 }
 MUST_NOT_KEYS = {"kinds", "refs", "tools", "text", "cite"}
 

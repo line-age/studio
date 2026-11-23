@@ -1,0 +1,687 @@
+{
+ "meta": {
+  "name": "baseline-B33",
+  "at": "2026-11-22T15:26:41+00:00",
+  "model": "anthropic:claude-opus-5-5",
+  "commit": "b3dee5e",
+  "prompt": "4355544db9bd",
+  "repeat": 1,
+  "experiment": "baseline-B33-b81bc1e6"
+ },
+ "cases": {
+  "B33-001": {
+   "behaviour": "B33",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "no worked_out statement; does not say '76 km'; does not say 'as drawn'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I cannot give a pipeline's length yet. Ask about its sections.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.79
+    }
+   ]
+  },
+  "B33-002": {
+   "behaviour": "B33",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "no worked_out statement; does not say '47 miles'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I cannot give a pipeline's length yet. Ask about its sections.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 0.99
+    }
+   ]
+  },
+  "B33-003": {
+   "behaviour": "B33",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "no worked_out statement; does not say 'Oklahoma'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I cannot say where a pipeline lies yet. Ask about its sections.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.54
+    }
+   ]
+  },
+  "B33-004": {
+   "behaviour": "B33",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "no worked_out statement; does not say 'Arkansas and Oklahoma'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I cannot say where a pipeline lies yet. Ask about its sections.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 5.69
+    }
+   ]
+  },
+  "B33-005": {
+   "behaviour": "B33",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "no worked_out statement; does not say \"by today's towns\""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I cannot say where a pipeline lies yet. Ask about its sections.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 2.37
+    }
+   ]
+  },
+  "B33-006": {
+   "behaviour": "B33",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "no worked_out statement; does not say 'Oklahoma and Texas'; does not say \"by today's towns\""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I cannot say where a pipeline lies yet. Ask about its sections.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.73
+    }
+   ]
+  },
+  "B33-007": {
+   "behaviour": "B33",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "no worked_out statement; does not say \"by today's towns\""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I cannot say where a pipeline lies yet. Ask about its sections.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.26
+    }
+   ]
+  },
+  "B33-008": {
+   "behaviour": "B33",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "does not rest on s02.owner.accepted; does not say 'Example Pipe Line Co.'; does not say '76 km'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I cannot give a pipeline's length yet. Ask about its sections.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [
+      [
+       "a not_yet statement must be the whole answer; leave it out or answer with it alone",
+       "draft: {\"statements\":[{\"kind\":\"fact\",\"topic\":null,\"attribute\":null,\"text\":\"\",\"refs\":[{\"key\":\"c1\",\"type\":\"claim\",\"id\":\"dbebb526-29da-5fd4-9149-fceba21dff4e\"}],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false},{\"kind\":\"not_yet\",\"topic\":\"length\",\"attribute\":null,\"text\":\"\",\"refs\":[],\"places\":[],\"years\":[],\"ruled_out\":[],\"without_places\":false}]}"
+      ]
+     ],
+     "seconds": 5.36
+    }
+   ]
+  },
+  "B33-009": {
+   "behaviour": "B33",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'what_is_meant'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "I cannot give a pipeline's length yet. Ask about its sections.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.31
+    }
+   ]
+  },
+  "B33-010": {
+   "behaviour": "B33",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": true,
+       "comment": ""
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": true,
+       "comment": ""
+      }
+     },
+     "answer": "I cannot give a pipeline's length yet. Ask about its sections.",
+     "tools": [
+      "read_feature"
+     ],
+     "blocked": [],
+     "seconds": 1.85
+    }
+   ]
+  },
+  "B33-011": {
+   "behaviour": "B33",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "no worked_out statement; does not say '45 km'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I cannot give a pipeline's length yet. Ask about its sections.",
+     "tools": [
+      "read_feature",
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.89
+    }
+   ]
+  },
+  "B33-012": {
+   "behaviour": "B33",
+   "split": "held_out",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": false,
+       "comment": "no worked_out statement; does not say 'Arkansas'"
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": true,
+       "comment": ""
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "required, forbidden"
+      }
+     },
+     "answer": "I cannot say where a pipeline lies yet. Ask about its sections.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.36
+    }
+   ]
+  }
+ }
+}

@@ -1,4 +1,4 @@
-import { act, render, screen, within } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -6,7 +6,6 @@ import { testNetwork } from "@/test/network"
 
 import { statusCount } from "@/test/status-filter"
 
-import { readSettings, useSettings } from "./settings"
 import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
 
@@ -31,7 +30,6 @@ const sidePanels = () =>
 
 beforeEach(() => {
   localStorage.clear()
-  useSettings.getState().reset()
   window.history.replaceState(null, "", "/")
   useStudio.setState(useStudio.getInitialState(), true)
   useCamera.setState(useCamera.getInitialState(), true)
@@ -163,43 +161,10 @@ describe("a shared link", () => {
 })
 
 describe("Settings", () => {
-  it("recounts every status at once when the rule changes, and keeps it", async () => {
-    const user = userEvent.setup()
+  it("is gone: nothing a person sets changes what others see", async () => {
     await renderScreen()
-    // Diameter and Build date are asked for: two sections in pipelines have both.
+    expect(screen.queryByRole("button", { name: "Settings" })).toBeNull()
+    // The status rule is the same for everyone.
     expect(await statusCount("Done")).toBe(2)
-
-    await user.click(screen.getByRole("button", { name: "Settings" }))
-    const dialog = screen.getByRole("dialog", { name: "Settings" })
-    const rule = within(dialog).getByRole("group", {
-      name: "Attributes that must be cited",
-    })
-    expect(
-      within(rule).getByRole("checkbox", { name: /Geometry/ })
-    ).toHaveAttribute("aria-disabled", "true")
-    for (const name of ["Diameter", "Build date"]) {
-      await user.click(within(rule).getByRole("checkbox", { name }))
-    }
-
-    // No reload: the statuses behind the dialog have already changed.
-    expect(useSettings.getState().requiredAttributes).toEqual([])
-    expect(readSettings().requiredAttributes).toEqual([])
-
-    // The map's lines are a setting too.
-    await user.click(
-      within(
-        within(dialog).getByRole("radiogroup", { name: "Line for In progress" })
-      ).getByRole("radio", { name: "Solid" })
-    )
-    expect(readSettings().lineStyle["in-progress"]).toBe("solid")
-
-    await user.keyboard("{Escape}")
-    expect(await statusCount("Done")).toBe(4)
-  })
-
-  it("sits immediately to the left of Help", async () => {
-    await renderScreen()
-    const settings = screen.getByRole("button", { name: "Settings" })
-    expect(settings.nextElementSibling).toHaveTextContent("Help")
   })
 })

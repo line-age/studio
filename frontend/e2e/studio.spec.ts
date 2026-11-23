@@ -104,7 +104,8 @@ test("a pipeline's sections change in a modal, and the list follows", async ({
   await expect(modal.getByText("Will remove 1 section")).toBeVisible()
   await modal.getByRole("button", { name: "Save changes" }).click()
   await expect(modal).toBeHidden()
-  await expect(row).toContainText("/6")
+  // The row counts its sections: seven before, six now.
+  await expect(row).toHaveText(/Calder Valley\s*6$/)
 })
 
 test("a pipeline is renamed in Edit pipeline", async ({ page }) => {

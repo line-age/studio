@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { parseNetwork } from "@/data/schema"
 import { evidenceNetwork } from "@/test/network"
 
-import { useSettings } from "./settings"
 import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
 
@@ -47,7 +46,7 @@ const answered = () => {
               },
             ],
           },
-          { text: "Store does not say when it was built." },
+          { text: "No source says when it was built." },
         ],
       },
     ],
@@ -86,7 +85,6 @@ async function menu(
 
 beforeEach(() => {
   localStorage.clear()
-  useSettings.getState().reset()
   window.history.replaceState(null, "", "/")
   useStudio.setState(useStudio.getInitialState(), true)
   useCamera.setState(useCamera.getInitialState(), true)
@@ -234,7 +232,7 @@ describe("asking the Agent", () => {
 
   it("asks about a proposal from under it, and decides nothing", async () => {
     const user = await open()
-    act(() => useStudio.getState().selectAttribute("s-6", "Last seen"))
+    act(() => useStudio.getState().openCitation("s-6", "Last seen"))
     await user.click(
       screen.getByRole("button", { name: /Ask the Agent about this/ })
     )
@@ -250,7 +248,8 @@ describe("asking the Agent", () => {
 
   it("attaches a pipeline's own claim and a source by right click", async () => {
     const user = await open()
-    await user.click(screen.getByRole("option", { name: /North line/ }))
+    screen.getByRole("option", { name: /North line/ }).focus()
+    await user.keyboard("{ArrowRight}")
     const own = screen.getByRole("group", { name: "Claims about North line" })
     const owner = within(own).getAllByText("Owner")[1].closest("div")!
     await menu(user, owner)
@@ -265,7 +264,7 @@ describe("asking the Agent", () => {
       },
     ])
 
-    act(() => useStudio.getState().selectAttribute("s-1", "Diameter"))
+    act(() => useStudio.getState().openCitation("s-1", "Diameter"))
     const sources = screen.getByRole("list", { name: "Sources" })
     await menu(user, within(sources).getByRole("listitem"))
     await user.click(screen.getByRole("menuitem", { name: "Ask" }))
@@ -286,7 +285,7 @@ describe("asking the Agent", () => {
       )
     )
     const log = within(agent()).getByRole("log")
-    expect(log).toHaveTextContent("Store does not say when it was built.")
+    expect(log).toHaveTextContent("No source says when it was built.")
 
     await user.click(
       within(log).getByRole("button", { name: /Diameter, proposed/ })
@@ -299,5 +298,35 @@ describe("asking the Agent", () => {
     await user.click(within(log).getByRole("button", { name: /^Open Owner/ }))
     expect(useStudio.getState().selectedPipelineId).toBe("p-1")
     expect(useStudio.getState().selection).toEqual(new Set(["s-1", "s-2"]))
+  })
+})
+
+describe("what is selected while the Agent is open", () => {
+  it("is what a question is about, and is let go once the question is sent", async () => {
+    const user = await open()
+    await user.click(screen.getByRole("button", { name: /^Agent/ }))
+    // Selected with the Agent already open: no "Ask the Agent" needed.
+    act(() => useStudio.getState().selectSection("s-2"))
+    expect(useStudio.getState().agentAttachments).toEqual([
+      { pipelineId: "p-1", sectionIds: ["s-2"] },
+    ])
+    await user.type(message(), "How long is it?")
+    await user.click(within(agent()).getByRole("button", { name: "Send" }))
+    const [{ question }] = useStudio.getState().sentQuestions
+    expect(question.about).toEqual([{ kind: "section", id: "s-2" }])
+    // Sent: the message box is empty again, and the same selection is not put back.
+    expect(useStudio.getState().agentAttachments).toEqual([])
+    // Selecting something else attaches that.
+    act(() => useStudio.getState().selectSection("s-1"))
+    expect(useStudio.getState().agentAttachments).toHaveLength(1)
+  })
+
+  it("stays off once the person takes it off", async () => {
+    const user = await open()
+    await user.click(screen.getByRole("button", { name: /^Agent/ }))
+    act(() => useStudio.getState().selectSection("s-2"))
+    expect(useStudio.getState().agentAttachments).toHaveLength(1)
+    act(() => useStudio.getState().detachFromAgent("p-1"))
+    expect(useStudio.getState().agentAttachments).toEqual([])
   })
 })

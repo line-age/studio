@@ -8,7 +8,6 @@ import { testNetwork } from "@/test/network"
 
 import { StudioDataProvider, useVisiblePipelines } from "../studio-data"
 import { useStudio } from "../studio-store"
-import { useSettingsOpen } from "../settings"
 import { FollowMapToggle } from "./follow-map-toggle"
 import { MapKey } from "./map-key"
 
@@ -35,7 +34,6 @@ async function renderControls() {
 
 beforeEach(() => {
   localStorage.clear()
-  useSettingsOpen.setState({ open: false })
   useStudio.setState(useStudio.getInitialState(), true)
 })
 
@@ -45,10 +43,10 @@ describe("map controls", () => {
     await renderControls()
     await user.click(screen.getByRole("button", { name: "Map key" }))
     for (const words of [
-      "Sufficient or done",
-      "Not started or in progress",
-      "Proposed by a tool · 0 waiting",
-      "Hidden by the filters",
+      "Sections in a pipeline",
+      "Sections in no pipeline",
+      "Proposed path or end",
+      "Left out by the filters",
       "Selected",
     ]) {
       expect(screen.getByText(words)).toBeVisible()
@@ -59,7 +57,7 @@ describe("map controls", () => {
     ).toHaveLength(2)
 
     const proposed = screen.getByRole("button", {
-      name: "Show proposed paths on the map",
+      name: "Show proposed paths and ends on the map",
     })
     expect(proposed).toHaveAttribute("aria-pressed", "true")
     await user.click(proposed)
@@ -67,22 +65,23 @@ describe("map controls", () => {
 
     // What the filters hide is not drawn until asked for.
     const faint = screen.getByRole("button", {
-      name: "Show sections hidden by the filters on the map",
+      name: "Show sections left out by the filters on the map",
     })
     expect(faint).toHaveAttribute("aria-pressed", "false")
     await user.click(faint)
     expect(useStudio.getState().layers.faint).toBe(true)
   })
 
-  it("opens Settings from the key, where the lines are chosen", async () => {
+  it("says every section is drawn solid, with no line to choose", async () => {
     const user = userEvent.setup()
     await renderControls()
     await user.click(screen.getByRole("button", { name: "Map key" }))
-    await user.click(
-      screen.getByRole("button", { name: "Change how lines are drawn" })
-    )
-    expect(useSettingsOpen.getState().open).toBe(true)
-    expect(screen.queryByText("Map key")).not.toBeInTheDocument()
+    expect(screen.queryByText("Solid")).toBeNull()
+    expect(screen.queryByText("Dotted")).toBeNull()
+    expect(
+      screen.queryByRole("button", { name: "Change how lines are drawn" })
+    ).toBeNull()
+    expect(screen.getByText("Sections in a pipeline")).toBeVisible()
   })
 
   it("turns the list following the map off and on again", async () => {

@@ -75,6 +75,28 @@ questions (B8). Behaviours are added one at a time, each with its eval first.
 - No em-dashes or en-dashes as separators. Use the glossary's words exactly (section,
   segment and edge are not interchangeable).
 
+## Spending on the model: ask first, every time
+
+Anything that calls a model costs money and is never run without asking. This holds for
+people and for agents working here.
+
+- **Before any run that calls a model** (a live eval, a scorecard, a search with cite, a
+  question asked of the running Agent in a loop), say what it is, how many questions and
+  about how many model calls, which model, and what that costs on that model. Then wait
+  for a yes. A yes covers that run only.
+- **The cost is worked out, not guessed:** model calls times tokens per call (the last
+  run's log in `evals/runs/`, or `tokens_in` and `tokens_out` in `evals/recorded/`) times
+  the model's current price per token, looked up at the time, never from memory. If the
+  price is not known, say so and give the tokens.
+- **The default costs nothing.** `uv run pytest -q` and
+  `uv run python -m evals.experiment --full --held-out` call no model: the second answers
+  every case from its recording.
+- **A live eval run is fixed:** 48 cases, 50 questions, each once, no retries, stopped by
+  the code at 60 model calls. It runs only with `--live --yes`. After a prompt or tool
+  change, record only the stale cases: `--live --stale --yes`.
+- **Never** more than one live run for one change, never a run repeated three times to
+  be sure, never cite in a batch: one search per explicit request.
+
 ## Layout
 
 | Path | What |
@@ -130,8 +152,9 @@ A trace holds what the Agent read from store, so tracing has one switch,
 This matters because, left alone, the server turns tracing on by itself as soon as it
 finds a LangSmith key, and a `LANGCHAIN_TRACING_V2=true` left in a shell beats
 `LANGSMITH_TRACING=false`. Started any other way with tracing on and the switch off, the
-graph refuses to load. On a store with real data, leave the switch off unless the project
-owner has said otherwise.
+graph refuses to load. On a store with real data (`serve.py --real`, `.env.real`), leave
+the switch off unless the project owner has said otherwise; `--real` drops the LangSmith
+key whenever it is off.
 
 Traces are addressed to an agent, not a project: `LANGSMITH_AGENT_ID` and
 `LANGSMITH_AGENT_ENVIRONMENT` (`lineage-studio-agent`, `local`). Do not also set

@@ -69,6 +69,43 @@
       "title": "CitationRequest",
       "type": "object"
     },
+    "EditOffer": {
+      "additionalProperties": false,
+      "description": "What an edit_offer fills Studio's Edit form with. The person checks it, adds the\nsource and saves; the Agent writes nothing.",
+      "properties": {
+        "target": {
+          "enum": [
+            "sections",
+            "pipeline"
+          ],
+          "title": "Target",
+          "type": "string"
+        },
+        "feature_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Feature Ids",
+          "type": "array"
+        },
+        "attribute": {
+          "title": "Attribute",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target",
+        "feature_ids",
+        "attribute",
+        "value"
+      ],
+      "title": "EditOffer",
+      "type": "object"
+    },
     "Finding": {
       "additionalProperties": false,
       "description": "A passage cite found and checked, for one attribute of one section. Not in store\nuntil the person proposes it; then it is a candidate claim, never more.",
@@ -507,6 +544,7 @@
       "properties": {
         "kind": {
           "enum": [
+            "answer",
             "fact",
             "unknown",
             "set",
@@ -523,7 +561,9 @@
             "searched",
             "ask_places",
             "proposed",
-            "pipeline_offer"
+            "pipeline_offer",
+            "edit_offer",
+            "not_yet"
           ],
           "title": "Kind",
           "type": "string"
@@ -604,6 +644,17 @@
             }
           ],
           "default": null
+        },
+        "edit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EditOffer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -632,6 +683,13 @@
         "$ref": "#/$defs/Statement"
       },
       "title": "Statements",
+      "type": "array"
+    },
+    "carried": {
+      "items": {
+        "$ref": "#/$defs/Ref"
+      },
+      "title": "Carried",
       "type": "array"
     }
   },

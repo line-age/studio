@@ -11,7 +11,6 @@ import { Hint } from "@/components/hint"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-  citedLabel,
   geometryBounds,
   listWords,
   pipelineLabel,
@@ -22,7 +21,6 @@ import type { Pipeline, Section } from "@/data/schema"
 import { actionKey } from "@/data/store/write"
 import { cn } from "@/lib/utils"
 
-import { useSettings } from "../settings"
 import { useStudioData } from "../studio-data"
 import { useStudio, type SectionsDraft } from "../studio-store"
 import { ModalSectionRow } from "./modal-section-row"
@@ -72,7 +70,6 @@ export function SectionsModal({
   onClose: () => void
 }) {
   const { network } = useStudioData()
-  const rule = useSettings((s) => s.requiredAttributes)
   const draftSections = useStudio((s) => s.draftSections)
   const startPicking = useStudio((s) => s.startPicking)
   const requestFit = useStudio((s) => s.requestFit)
@@ -132,7 +129,7 @@ export function SectionsModal({
         code={section.code}
         name={section.name}
         tone={out ? "removed" : "default"}
-        state={out ? "Will be removed" : citedLabel(section, rule)}
+        state={out ? "Will be removed" : null}
         action={out ? "Undo" : "Remove"}
         onAction={() => set(draft.add, toggle(draft.remove, section.id))}
       />

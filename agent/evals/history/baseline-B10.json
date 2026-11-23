@@ -1,0 +1,175 @@
+{
+ "meta": {
+  "name": "baseline-B10",
+  "at": "2026-11-22T15:18:30+00:00",
+  "model": "anthropic:claude-opus-5-5",
+  "commit": "4682a9a",
+  "prompt": "981cd9ba288b",
+  "repeat": 1,
+  "experiment": "baseline-B10-f9b03a52"
+ },
+ "cases": {
+  "B10-001": {
+   "behaviour": "B10",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'capabilities'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "I cannot explain Studio or its words yet. Help is in the top bar.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.67
+    }
+   ]
+  },
+  "B10-002": {
+   "behaviour": "B10",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 1,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'capabilities'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "I cannot explain Studio or its words yet. Help is in the top bar.",
+     "tools": [
+      "read_feature",
+      "read_context"
+     ],
+     "blocked": [],
+     "seconds": 1.71
+    }
+   ]
+  },
+  "B10-003": {
+   "behaviour": "B10",
+   "split": "dev",
+   "labeled_by": "agent-draft",
+   "attached": 0,
+   "cite": false,
+   "repeats": [
+    {
+     "feedback": {
+      "valid": {
+       "score": true,
+       "comment": ""
+      },
+      "no_ungrounded": {
+       "score": true,
+       "comment": ""
+      },
+      "required": {
+       "score": true,
+       "comment": ""
+      },
+      "forbidden": {
+       "score": false,
+       "comment": "has a not_yet statement"
+      },
+      "unknown_kept": {
+       "score": true,
+       "comment": ""
+      },
+      "tools_ok": {
+       "score": true,
+       "comment": ""
+      },
+      "fixed_line": {
+       "score": false,
+       "comment": "the answer is not exactly the line 'capabilities'"
+      },
+      "search": {
+       "score": true,
+       "comment": ""
+      },
+      "case_passed": {
+       "score": false,
+       "comment": "forbidden, fixed_line"
+      }
+     },
+     "answer": "I cannot explain Studio or its words yet. Help is in the top bar.",
+     "tools": [],
+     "blocked": [],
+     "seconds": 1.97
+    }
+   ]
+  }
+ }
+}

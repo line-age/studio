@@ -54,9 +54,9 @@ GOOD = {
             None,
         ),
     ],
-    "s01": [("unknown", "Store does not say who owns this section.", [("f1", "feature")], "owner")],
+    "s01": [("unknown", "No source says who owns this section.", [("f1", "feature")], "owner")],
     "s03": [
-        ("unknown", "Store does not say who owns this section.", [("f1", "feature")], "owner"),
+        ("unknown", "No source says who owns this section.", [("f1", "feature")], "owner"),
         (
             "fact",
             "A tool proposed {c1.value}, {c1.period}. Nobody has decided on it.",
@@ -65,7 +65,7 @@ GOOD = {
         ),
     ],
     "s04": [
-        ("unknown", "Store does not say who owns this section.", [("f1", "feature")], "owner"),
+        ("unknown", "No source says who owns this section.", [("f1", "feature")], "owner"),
         (
             "fact",
             "One value for the owner was rejected: {c1.value}.",
@@ -152,7 +152,7 @@ def test_an_unknown_is_ungrounded_when_a_merged_trace_holds_the_value(world):
         "statements": [
             {
                 "kind": "unknown",
-                "text": "Store does not say.",
+                "text": "No source says.",
                 "attribute": "owner",
                 "refs": [{"type": "feature", "id": s13}],
             }
@@ -363,3 +363,42 @@ def test_a_citation_request_rests_on_the_feature_it_asks_about(world):
         ]
     }
     assert ungrounded(answer, world) == []
+
+
+def test_the_review_table_has_a_row_per_case_with_what_the_world_holds():
+    from evals.cases import load
+    from evals.review import table
+
+    cases = [c for c in load() if c.behaviour == "B01"]
+    rows = table(cases).splitlines()
+    assert len(rows) == 2 + len(cases)
+    owned = next(r for r in rows if r.startswith("| B01-002"))
+    assert "owner Example Pipe Line Co. (accepted, 1932-03, cited to Example Gazette" in owned
+    assert "draft" in owned
+
+
+def test_the_review_table_says_when_an_attached_thing_is_not_in_store():
+    from evals.cases import Case
+    from evals.review import table
+
+    gone = Case(
+        id="B99-001",
+        behaviour="B99",
+        world="small",
+        question={"words": "Tell me", "about": [{"kind": "section", "id": "0" * 32}]},
+        must={"fixed_line": "gone"},
+        labeled_by="person",
+    )
+    row = table([gone]).splitlines()[-1]
+    assert "(not in store)" in row and "nothing attached" in row and "draft" not in row
+
+
+def test_a_search_may_name_the_towns_near_its_line_and_no_others():
+    from evals.fake_store import load_world
+    from evals.score import _towns_near
+
+    world = load_world("small")
+    towns = _towns_near(world, {world["codes"]["s01"]})
+    assert {"Tribbey", "Wewoka"} <= set(towns)
+    assert "Cañon City" not in towns
+    assert _towns_near(world, set()) == []

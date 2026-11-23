@@ -362,3 +362,21 @@ export function inheritedWords(featureIds: readonly string[]): string {
       : `${codes.slice(0, -1).join(", ")} and ${codes.at(-1)}`
   return `From ${which}, which a person linked to this section: its history. Each stays its own record.`
 }
+
+/** The source Studio saves a value typed by hand under: no source is cited. */
+export const BY_HAND_SOURCE = "Studio edit"
+
+/** What kind of source, in one word, for its card: Map, Journal, Source. */
+export function sourceKindWords(kind: string | undefined): string {
+  if (kind === "map_sheet") return "Map"
+  if (kind !== undefined && /journal|periodical|gazette|magazine/.test(kind))
+    return "Journal"
+  return "Source"
+}
+
+/** How many sources cite a claim. A value typed by hand cites none. */
+export function citedCount(
+  citations: readonly { source: string }[] | undefined
+): number {
+  return (citations ?? []).filter((c) => c.source !== BY_HAND_SOURCE).length
+}

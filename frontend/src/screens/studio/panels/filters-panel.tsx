@@ -8,6 +8,7 @@ import { PanelHeader } from "@/components/panel-header"
 import { YearPicker } from "@/components/year-picker"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   formatCount,
@@ -53,6 +54,15 @@ const THIS_YEAR = new Date().getFullYear()
  * The filters, shown in place of the list in the same panel so the map stays
  * in sight while they are set. `onBack` returns to the list.
  */
+
+/**
+ * The diameter filter as typed: "31", or "30, 31" for either. The filter holds
+ * diameters as the data words them ("31 in").
+ */
+export const fromInches = (typed: string): string[] =>
+  [...typed.matchAll(/\d+(?:\.\d+)?/g)].map((m) => `${Number(m[0])} in`)
+export const inchesOf = (diameters: readonly string[]): string =>
+  diameters.map((d) => d.replace(/\s*in$/, "")).join(", ")
 
 export function FiltersPanel({ onBack }: { onBack: () => void }) {
   // Only what this view reads, so panning the map does not redraw it.
@@ -311,6 +321,17 @@ export function FiltersPanel({ onBack }: { onBack: () => void }) {
             on={s.diameters.length > 0}
             onClear={() => s.setDiameters([])}
           >
+            {diameters.length > 0 && (
+              <Input
+                aria-label="Diameter in inches"
+                inputMode="decimal"
+                placeholder="Inches, for example 31"
+                value={inchesOf(s.diameters)}
+                onChange={(event) =>
+                  s.setDiameters(fromInches(event.target.value))
+                }
+              />
+            )}
             {diameters.length === 0 ? (
               <Hint>No section has a cited diameter yet.</Hint>
             ) : diameters.length > LONG_LIST ? (
