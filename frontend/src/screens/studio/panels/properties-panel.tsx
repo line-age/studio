@@ -44,6 +44,8 @@ import { useSectionChanges } from "../pipeline-actions"
 import { useSettings } from "../settings"
 import { useCriteria, useSelectionGroups, useStudioData } from "../studio-data"
 import { ClaimDetail } from "./claim-detail"
+import { SectionPeek } from "../peek/section-peek"
+import { usePeek, type PeekAnchor } from "../peek/use-peek"
 import { useStudio } from "../studio-store"
 
 export function PropertiesPanel() {
@@ -89,6 +91,14 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
   const [menuTargetIds, setMenuTargetIds] = useState<ReadonlySet<string>>(
     new Set()
   )
+  // Pointing at a section's row shows its card (Figma 524:23541), beside
+  // the row. An open right-click menu covers the rows, so the card goes.
+  // The map marks that section's line meanwhile.
+  const pointedId = useStudio((s) => s.pointedSectionId)
+  const setPointedId = useStudio((s) => s.pointAt)
+  useEffect(() => () => setPointedId(null), [setPointedId])
+  const peekAnchor = useRef<PeekAnchor | null>(null)
+  const peek = usePeek(pointedId, peekAnchor)
   const edit = useStudio((s) => s.edit)
   const showPipelines = useStudio((s) => s.showPipelines)
   const selectPipeline = useStudio((s) => s.selectPipeline)
@@ -284,6 +294,22 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
         }
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         onKeyDown={moveRovingFocus}
+        onPointerOver={(event) => {
+          // A finger has no hover: a touch opens the section instead.
+          const row =
+            event.pointerType !== "touch" && event.target instanceof Element
+              ? event.target.closest<HTMLElement>("[data-section]")
+              : null
+          if (row)
+            peekAnchor.current = {
+              kind: "row",
+              rect: row.getBoundingClientRect(),
+            }
+          setPointedId(row?.dataset.section ?? null)
+        }}
+        onPointerLeave={() => setPointedId(null)}
+        // The rows move under the pointer: the card would point at nothing.
+        onScroll={() => setPointedId(null)}
       >
         {groups.map((group) => (
           <Fragment key={group.summary.id}>
@@ -483,6 +509,7 @@ function SelectionProperties({ groups }: { groups: SelectionGroup[] }) {
       <PanelFooter>
         <span className="truncate">{selectionSize(groups)}</span>
       </PanelFooter>
+      <SectionPeek peek={peek} />
     </>
   )
 }

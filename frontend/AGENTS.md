@@ -334,6 +334,20 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   decided in the Agent's inbox; a proposed cut has no button anywhere (store would take a
   confirm with its default cut). Last seen stays Unknown until a person confirms the link in store; then it is
   cited to both maps (Figma `213:8036`).
+- Pointing at a section shows its hover card (`screens/studio/peek/`, Figma section 27,
+  `524:23541`; the owner, 2026-11-23): on the map beside the pointer, and beside a
+  section's row in the right panel, on the map's side. `sectionFacts`
+  (`src/data/section-facts.ts`) says what is in it: name and code, the pipeline or "In no
+  pipeline", then Owner (the pipeline's), Diameter, First seen, Last seen and Length
+  (worked out, in km). No counts of cited facts; a proposed value is never the value,
+  the card says a proposal waits. `usePeek` holds the timing (150 ms before it shows,
+  100 ms to fade out) and `placePeek` where it sits. It takes no pointer and changes
+  nothing: not the selection, the right panel or the link. Not shown while a loop is
+  drawn, sections are picked, the map moves, or a menu or a modal is open, nor for a
+  touch. A line traced as gone has no card: it is not a section. While the pointer is
+  on a row, the map marks that section's line with a wide halo (`pointedSectionId` in
+  the store; never the selection, never in the link). Pointing at a line does not mark
+  its row: the owner left that out.
 - One list, one rail item ("Network"), with a three-way switch above it: All, Pipelines,
   Unplaced (`panels/scope-switch.tsx`, a shadcn ToggleGroup: three buttons, one pressed, drawn as
   Figma has it, a grey track with the chosen one on a white pill; Figma section 18,
