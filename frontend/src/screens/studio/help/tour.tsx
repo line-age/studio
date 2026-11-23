@@ -213,7 +213,7 @@ function Running({ index }: { index: number }) {
         <div
           data-tour-ring
           style={drawn.ring}
-          className="pointer-events-none fixed z-50 rounded-md shadow-[0_0_0_100vmax_var(--overlay)] ring-2 ring-ring"
+          className="pointer-events-none fixed z-50 shadow-[0_0_0_100vmax_var(--overlay)]"
         />
       )}
       <TourCard

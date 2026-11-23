@@ -25,26 +25,29 @@ ab set viewport 1440 900
 ab open "$URL"
 ab eval "localStorage.clear()"; ab reload; sleep 4
 ab click @$(ref 'button "Skip"'); sleep 1.5
-cap "1 Preview" "The traced network" "every section, drawn solid or dotted by its status"
+cap "1 Preview" "The traced network" "every section solid: heavy in a pipeline, thin in none"
 ab click @$(ref 'combobox "Search'); ab keyboard type "Harlow"; sleep 1.5
 cap "2 Search" "Search the network" "by pipeline, section, code or value"
 ab press Escape; ab press Escape; sleep 0.8
 ab click @$(ref 'option "Select Calder'); sleep 2.5
-cap "3 Select" "Pick a pipeline" "its claims and sections open on the right"
+cap "3 Select" "Pick a pipeline" "its sections open on the right"
 ab click @$(ref 'treeitem "Select Calder Jct to Wexley'); sleep 1.5
-cap "4 Read" "Every fact is cited or Unknown" "never a guess"
-ab click @$(ref 'treeitem "Diameter'); sleep 1.2
-ab find text "Trunk gas lines map, 1937" click; sleep 1.5
-cap "5 Cite" "Open the source behind a claim" "edition, place on the map, the words it says"
+cap "4 Read" "Every claim is cited or Unknown" "never a guess"
+ab click @$(ref 'treeitem "Diameter'); sleep 1.5
+cap "5 Cite" "Open the sources behind a claim" "the map edition, where on it, the words it says"
 ab find role button click --name Done; sleep 0.8
-ab mouse move 1200 337; ab mouse down right; ab mouse up right; sleep 1
-cap "6 Edit" "Make pipelines, ask the Agent" "right-click any selection"
-ab press Escape; sleep 0.5
-ab click @$(ref 'button "Agent'); sleep 1; ab find text Decide click; sleep 1.5
-cap "7 Review" "Decide what tools and the Agent propose" "a person accepts or rejects; the AI only proposes"
+# Right click a section's row: where it is, read from the page.
+at=$(agent-browser eval "(()=>{const r=[...document.querySelectorAll('[role=treeitem]')].find(e=>e.textContent.includes('Wexley to Adair')).getBoundingClientRect();return Math.round(r.left+120)+' '+Math.round(r.top+r.height/2)})()" | tr -d '"')
+ab mouse move $at; ab mouse down right; ab mouse up right; sleep 1
+cap "6 Change" "Right-click to change or ask" "on a row, a section or a claim"
+ab click @$(ref 'menuitem "Edit"'); sleep 1.5
+cap "7 Edit" "Every change opens its own window" "it says what Save will do"
+ab find role button click --name Cancel; sleep 0.8
+ab click @$(ref 'button "Agent'); sleep 1.5
+cap "8 Ask" "Ask the Agent" "it answers from what is saved and changes nothing until you approve"
 agent-browser close >/dev/null || true
 
-# Seven frames, 2.6 s each, with a short fade between them.
+# Eight frames, 2.6 s each, with a short fade between them.
 D=2.6; X=0.35; IN=(); FC=""; prev="[0:v]"; off=0
 for i in $(seq 1 "$n"); do IN+=(-loop 1 -t $D -i "$F/$(printf %02d "$i").png"); done
 for i in $(seq 1 $((n - 1))); do

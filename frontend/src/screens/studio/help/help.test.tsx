@@ -44,8 +44,8 @@ describe("the Help tour", () => {
     useHelp.setState({ seen: false })
     const user = userEvent.setup()
     await renderScreen()
-    expect(await cardTitle()).toBe("What Studio is")
-    expect(within(await card()).getByText("1 of 10")).toBeVisible()
+    expect(await cardTitle()).toBe("Welcome to Studio")
+    expect(within(await card()).getByText("1 of 12")).toBeVisible()
 
     await user.click(screen.getByRole("button", { name: "Skip" }))
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
@@ -68,7 +68,7 @@ describe("the Help tour", () => {
     await user.click(screen.getByRole("button", { name: "Next" }))
     expect(await cardTitle()).toBe("The network")
     await user.click(screen.getByRole("button", { name: "Back" }))
-    expect(await cardTitle()).toBe("What Studio is")
+    expect(await cardTitle()).toBe("Welcome to Studio")
 
     await user.keyboard("{Escape}")
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
@@ -164,7 +164,9 @@ describe("the Help menu", () => {
     await user.click(
       await screen.findByRole("menuitem", { name: "Take the tour" })
     )
-    await waitFor(async () => expect(await cardTitle()).toBe("What Studio is"))
+    await waitFor(async () =>
+      expect(await cardTitle()).toBe("Welcome to Studio")
+    )
   })
 
   it("opens the Agent with the cursor in the message box", async () => {
@@ -192,7 +194,7 @@ describe("the Help dialog", () => {
 
     await user.click(within(dialog).getByRole("button", { name: "Show me" }))
     await waitFor(async () => expect(await cardTitle()).toBe("The map"))
-    expect(within(await card()).getByText("4 of 10")).toBeVisible()
+    expect(within(await card()).getByText("4 of 12")).toBeVisible()
   })
 
   it("lists the words", async () => {
@@ -211,6 +213,8 @@ describe("the Help dialog", () => {
     await user.click(
       within(dialog).getByRole("button", { name: "Take the tour again" })
     )
-    await waitFor(async () => expect(await cardTitle()).toBe("What Studio is"))
+    await waitFor(async () =>
+      expect(await cardTitle()).toBe("Welcome to Studio")
+    )
   })
 })

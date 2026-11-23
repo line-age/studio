@@ -3,13 +3,18 @@
 The service that answers [Lineage Studio](../README.md)'s chat. It reads
 [store](https://github.com/line-age/store) and says only what it read: every statement
 names the claim, citation or link it rests on, and where store has nothing the answer is
-"Store does not say". It writes nothing.
+"Store does not say". It writes one thing only, on a person's button: a finding they
+pressed Propose on, as a candidate claim.
 
 > **Status:** answers questions about the sections, pipelines, claims and proposals a
-> person attaches (B1, B2), and says what surrounds a section: which printings show it,
-> what ends it, its links, what it is drawn touching, and leads on where to look next
-> (B17 to B20). Every answer passes a code check. Studio's chat talks to it when Studio
-> runs on store's data. Whole-network questions, follow-ups and `cite` are not built yet.
+> person attaches; what surrounds a section (which printings show it, what ends it, its
+> links, what it is drawn touching, leads on where to look next); what is nearby, the
+> towns and states a line runs through and its length; several sections taken together;
+> a pipeline as a whole; the network by a rule; what a word means; and follow-ups on the
+> last question. Every answer passes a code check. A change asked for in words comes
+> back as a card that Studio makes on Approve; a search of the journals with `cite`
+> waits for Search, and a finding reaches store only on Propose. Studio's chat talks to
+> it when Studio runs on store's data.
 
 ```sh
 cd agent
@@ -20,25 +25,34 @@ uv run python serve.py                             # serve it on this machine, p
 
 It is built on LangChain's agent loop inside a LangGraph graph, served with
 `langgraph dev`, which is a development server: right beside a local store, not for a
-hosted deployment. Deep Agents (planning, working files) comes in with whole-network
-questions. The service has no sign-in, so keep its port on `127.0.0.1`. Tracing to
+hosted deployment. Deep Agents (planning, working files) is not used yet. The service has no sign-in, so keep its port on `127.0.0.1`. Tracing to
 LangSmith is off unless `AGENT_TRACING=true`.
 
 ## The graph
 
-What runs for one question.
+What runs for one message from Studio: a question, or the press of a button on a card
+(an action).
 
 ```mermaid
 flowchart TD
-    Q(["Studio: a question<br/>words + attached ids"]) --> ingress
+    Q(["Studio: a question (words + attached ids)<br/>or an action (a button on a card)"]) --> ingress
 
-    ingress["<b>ingress</b><br/>keep only a person's message<br/>clear the last answer"] --> read
+    ingress["<b>ingress</b><br/>keep only a person's message<br/>clear the last answer"]
+    ingress -->|a question| read
+    ingress -->|Propose on a finding| propose["<b>propose</b><br/>the one write: a candidate claim<br/>POST /bundles, cite's own token"]
+    ingress -->|Search on a search card| search["<b>search</b><br/>the request the thread kept, once"]
+    ingress -->|what came of a card| outcome["<b>outcome</b><br/>recorded in the thread<br/>no model, no write"]
+    ingress -->|Start fresh| fresh["<b>fresh_start</b><br/>the messages go<br/>what cite found stays"]
+    search --> cite["<b>cite_start, cite_wait, cite_report</b><br/>cite over HTTP, followed step by step<br/>code writes every sentence about a finding"]
+    cite --> F(["Studio: a card per finding<br/>Propose or Dismiss"])
 
     read["<b>read</b><br/>read what is attached and its pipelines, at once<br/>steps: what was read, what comes next"] --> answer
 
     subgraph answer["<b>answer</b> node"]
         parse["read the question<br/>check its shape and length"]
         parse -->|not a question Studio sends| fail
+        parse -->|a change asked in words| offer["<b>change_flow</b>, no model<br/>one change card, or a fixed line"]
+        parse -->|asks to look something up| soffer["a search card:<br/>section, years, towns<br/>nothing runs, nothing is spent"]
         parse --> context
 
         context["<b>read_context</b> for up to three sections<br/>printings, end, links, drawn touching (50 m)<br/>leads by seven fixed rules · the section pack"]
@@ -47,7 +61,7 @@ flowchart TD
 
         subgraph loop["model loop (create_agent), effort low"]
             model["model<br/>claude-haiku-5-5"]
-            tool["read_feature · read_context<br/>claims C1, worked out W1, leads L1"]
+            tool["read_feature · read_context · find_nearby<br/>sections_together · pipeline_sections<br/>find_sections · find_pipelines<br/>claims C1, worked out W1, leads L1"]
             model -->|tool call| tool
             tool --> model
         end
@@ -67,10 +81,13 @@ flowchart TD
     check -->|passes| finish
     gone --> finish
     fail --> finish
+    offer --> finish
+    soffer --> finish
     finish["<b>finish</b><br/>checked answer and steps on the reply<br/>id answer-&lt;question id&gt;"] --> A(["Studio: steps above, statements with sources and links,<br/>worked out and leads marked"])
 
     store[("store<br/>GET only")] -.- read
     store -.- tool
+    propose -.->|the only POST| store
 ```
 
 ## Section context
