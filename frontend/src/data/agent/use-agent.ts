@@ -4,6 +4,7 @@ import { useStream } from "@langchain/react"
 
 import type { Question } from "../question"
 import { studioFetch } from "../session"
+import { redact } from "./secrets"
 import { useSession } from "../session-context"
 import {
   agentAnswer,
@@ -141,6 +142,20 @@ export function useSharedThread(epoch: number): "ready" | "down" | "starting" {
   return state
 }
 
+/**
+ * The message a question is sent as. A key or token in the words is replaced first, so
+ * it never reaches the service, its saved runs or a trace.
+ */
+export function questionMessage(question: Question, id: string) {
+  const words = redact(question.words)
+  return {
+    type: "human" as const,
+    id,
+    content: words,
+    additional_kwargs: { question: { ...question, words } },
+  }
+}
+
 export function useAgent() {
   const threadId = useThreadId()
   const stream = useStream({
@@ -206,14 +221,7 @@ export function useAgent() {
       stream
         .submit(
           {
-            messages: [
-              {
-                type: "human",
-                id: crypto.randomUUID(),
-                content: question.words,
-                additional_kwargs: { question },
-              },
-            ],
+            messages: [questionMessage(question, crypto.randomUUID())],
           } as never,
           { multitaskStrategy: "reject", onError: failed }
         )

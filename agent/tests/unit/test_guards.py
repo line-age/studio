@@ -61,6 +61,17 @@ def test_ordinary_words_ids_and_codes_are_left_alone(words):
     assert redact(words) == (words, 0)
 
 
+def test_the_shared_examples_are_redacted_as_studio_redacts_them():
+    from src.agent.config import ROOT
+
+    shared = json.loads((ROOT / "contract" / "secret-patterns.json").read_text())
+    for example in shared["redacted"]:
+        sent = example["before"] + "".join(example["secret"]) + example["after"]
+        assert redact(sent)[0] == example["before"] + REDACTED + example["after"]
+    for words in shared["kept"]:
+        assert redact(words) == (words, 0)
+
+
 def test_a_very_long_run_of_letters_is_handled_quickly():
     import time
 
