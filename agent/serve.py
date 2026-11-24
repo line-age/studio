@@ -18,7 +18,7 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
-from settings import ROOT, tracing_environment, tracing_wanted
+from src.agent.config import ROOT, tracing_environment, tracing_wanted
 
 QA_STORE = {"STORE_URL": "http://127.0.0.1:47191"}
 
