@@ -67,7 +67,10 @@ function Form({
 export const NoChanges: Story = {
   args: { children: <Form /> },
   play: async () => {
-    await expect(await screen.findByText("No changes yet")).toBeVisible()
+    // The modal fades in: wait for it to show, not only to be there.
+    await waitFor(() =>
+      expect(screen.getByText("No changes yet")).toBeVisible()
+    )
     await expect(screen.getByRole("button", { name: "Save" })).toBeDisabled()
   },
 }

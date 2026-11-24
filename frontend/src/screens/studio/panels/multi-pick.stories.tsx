@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import type { ComponentProps } from "react"
-import { expect, fn, screen } from "storybook/test"
+import { expect, fn, screen, waitFor } from "storybook/test"
 
 import { controlled } from "@/test/controlled"
 
@@ -110,6 +110,9 @@ export const NoMatch: Story = {
   name: "No match",
   play: async ({ canvas, userEvent }) => {
     await userEvent.type(searchBox(canvas), "1850")
-    await expect(await screen.findByText("Nothing matches.")).toBeVisible()
+    // The empty line shows once the list has filtered: wait for it to show.
+    await waitFor(() =>
+      expect(screen.getByText("Nothing matches.")).toBeVisible()
+    )
   },
 }
