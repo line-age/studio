@@ -9,14 +9,25 @@ import { StudioScreen } from "./studio-screen"
 import { useCamera, useStudio } from "./studio-store"
 
 /*
- * On store's data only the Agent service answers. A message it cannot take,
- * because it is still answering or is not running, stays in the box and the
- * panel says why. Nothing is lost silently.
+ * On store's data only the Agent service answers. A message sent while it is
+ * still answering waits and goes when it finishes; one it cannot take (the
+ * service is not running, a second message while one waits) stays in the box
+ * and the panel says why. Nothing is lost silently.
  */
 
 const service = vi.hoisted(() => ({
   thread: "ready" as "ready" | "down" | "starting",
   working: false,
+  listeners: new Set<() => void>(),
+  subscribe(listener: () => void) {
+    service.listeners.add(listener)
+    return () => service.listeners.delete(listener)
+  },
+  /** The run ends (or starts), as the stream would say. */
+  setWorking(working: boolean) {
+    service.working = working
+    service.listeners.forEach((listener) => listener())
+  },
   fails: false,
   ask: vi.fn((_question: unknown, onFailed?: () => void) => {
     // A failure always arrives after the send, as from the network.
@@ -32,18 +43,21 @@ vi.mock("@/data/load-network", async (original) => ({
   loadNetwork: () => Promise.resolve(parseNetwork(evidenceNetwork())),
 }))
 vi.mock("./map/map-area", () => ({ MapArea: () => null }))
-vi.mock("@/data/agent/use-agent", () => ({
-  useSharedThread: () => service.thread,
-  useAgent: () => ({
-    turns: [],
-    liveSteps: [],
-    ask: service.ask,
-    stop: () => Promise.resolve(),
-    clear: () => Promise.resolve(),
-    working: service.working,
-    error: null,
-  }),
-}))
+vi.mock("@/data/agent/use-agent", async () => {
+  const { useSyncExternalStore } = await import("react")
+  return {
+    useSharedThread: () => service.thread,
+    useAgent: () => ({
+      turns: [],
+      liveSteps: [],
+      ask: service.ask,
+      stop: () => Promise.resolve(),
+      clear: () => Promise.resolve(),
+      working: useSyncExternalStore(service.subscribe, () => service.working),
+      error: null,
+    }),
+  }
+})
 
 async function open() {
   await act(async () => {
@@ -76,15 +90,48 @@ describe("a message the Agent cannot take", () => {
     expect(box).toHaveValue("")
   })
 
-  it("stays in the box while the Agent is still answering", async () => {
+  it("waits while the Agent is still answering, then is sent", async () => {
     service.working = true
     const { user, agent, box } = await open()
     await user.type(box, "And the diameter?{Enter}")
     expect(service.ask).not.toHaveBeenCalled()
-    expect(box).toHaveValue("And the diameter?")
+    expect(box).toHaveValue("")
     expect(
-      within(agent).getByText(/The Agent is still answering/)
+      within(agent).getByText(/Your message is sent when it finishes/)
     ).toBeInTheDocument()
+    act(() => service.setWorking(false))
+    await waitFor(() => expect(service.ask).toHaveBeenCalledOnce())
+    expect(service.ask.mock.calls[0][0]).toMatchObject({
+      words: "And the diameter?",
+    })
+  })
+
+  it("keeps a second message in the box while one waits", async () => {
+    service.working = true
+    const { user, agent, box } = await open()
+    await user.type(box, "And the diameter?{Enter}")
+    await user.type(box, "And the owner?{Enter}")
+    expect(box).toHaveValue("And the owner?")
+    expect(
+      within(agent).getByText(/Your message waits here/)
+    ).toBeInTheDocument()
+    act(() => service.setWorking(false))
+    await waitFor(() => expect(service.ask).toHaveBeenCalledOnce())
+  })
+
+  it("goes back to the box when the chat is cleared", async () => {
+    service.working = true
+    const { user, agent, box } = await open()
+    await user.type(box, "And the diameter?{Enter}")
+    await user.click(within(agent).getByRole("button", { name: "Clear chat" }))
+    await user.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: "Clear chat",
+      })
+    )
+    act(() => service.setWorking(false))
+    await waitFor(() => expect(box).toHaveValue("And the diameter?"))
+    expect(service.ask).not.toHaveBeenCalled()
   })
 
   it("stays in the box when the service is not running", async () => {

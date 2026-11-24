@@ -8,7 +8,7 @@ The service that answers [Lineage Studio](../README.md)'s chat: it reads
 Every statement names the claim, citation or link it rests on, and where store has
 nothing the answer is "Store does not say". It writes one thing only, on a person's
 button: a finding they pressed Propose on, as a candidate claim. Built with LangChain's
-agent loop (`create_agent`) inside a LangGraph graph, on Anthropic's Claude (Haiku 5.5
+agent loop (`create_agent`) inside a LangGraph graph, on Anthropic's Claude (Sonnet 5.5
 by default), served by the LangGraph server. Deep Agents (planning, working files) is
 not used yet.
 
@@ -51,7 +51,7 @@ Copy `.env.example` to `.env` (git ignores it). No key or token has a default.
 | Variable | What | Default |
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | The model's key | none |
-| `AGENT_MODEL` | The model | `anthropic:claude-haiku-5-5` |
+| `AGENT_MODEL` | The model | `anthropic:claude-sonnet-5-5` |
 | `STORE_URL` | Store, read with GET only | `http://localhost:47110` |
 | `STORE_TOKEN` | A read token for store; empty sends none | empty |
 | `STORE_CITE_TOKEN` | The one write: a pipeline token for `cite@<version>` | empty: Propose fails |
@@ -148,7 +148,7 @@ flowchart TD
         context --> loop
 
         subgraph loop["model loop (create_agent), effort low"]
-            model["model<br/>claude-haiku-5-5"]
+            model["model<br/>claude-sonnet-5-5"]
             tool["read_feature · read_context · find_nearby<br/>sections_together · pipeline_sections<br/>find_sections · find_pipelines<br/>claims C1, worked out W1, leads L1"]
             model -->|tool call| tool
             tool --> model

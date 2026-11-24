@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from src.agent.config import MAX_QUESTION_CHARS
+from src.agent.config import MAX_ATTACHED, MAX_QUESTION_CHARS
 from src.agent.deps import Deps
 from src.agent.prefetch import Prefetched
 from src.agent.question import last_message, question_of, to_read
@@ -25,7 +25,8 @@ def read(deps: Deps, state: AgentState) -> dict:
     if (
         question is None
         or not question.about
-        or len(question.words) > MAX_QUESTION_CHARS  # `answer` turns it away
+        or len(question.words) > MAX_QUESTION_CHARS  # `answer` turns these away
+        or len(question.about) > MAX_ATTACHED
     ):
         return {"steps": [{"text": "Writing the answer", "done": False}]}
     ids = to_read(question)

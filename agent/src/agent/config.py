@@ -28,6 +28,15 @@ MODEL_CALLS = TOOL_CALLS + 2
 # 2026-11-14).
 CONTEXT_FOR = 3
 
+# The most things one question may attach (as many as one change may hold). Past it
+# nothing is read: 200 sections come to about 98,000 tokens in, measured on a local store
+# on 2026-11-24 (estimate from characters), and every further model call sends it again.
+MAX_ATTACHED = 200
+# Features the model sees whole in one question; past them it sees each claim without its
+# citations, which code still shows with the answer. Citations were about 40% of a
+# section's claims as shown (60 sections, same store and day).
+FULL_VIEWS = 10
+
 # How much of the chat the model is shown, to know what the person means.
 HISTORY_TURNS = 4
 HISTORY_ANSWER_CHARS = 500
@@ -102,7 +111,7 @@ def refuse_undecided_tracing(env: Mapping[str, str] | None = None) -> None:
 
 def load() -> Settings:
     return Settings(
-        model=os.environ.get("AGENT_MODEL", "anthropic:claude-haiku-5-5"),
+        model=os.environ.get("AGENT_MODEL", "anthropic:claude-sonnet-5-5"),
         store_url=os.environ.get("STORE_URL", "http://localhost:47110").rstrip("/"),
         cite_url=os.environ.get("CITE_URL", "").rstrip("/"),
         store_token=os.environ.get("STORE_TOKEN", ""),
