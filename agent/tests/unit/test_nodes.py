@@ -1,6 +1,6 @@
-"""TEMPORARY: freezes the graph's behaviour on branches no other test reached, before
-`agent.py` is split into nodes (plan 2026-11-24-001, step A). Through `build_graph` only.
-Deleted once the split is merged; nothing here is a specification."""
+"""What each node says when something it relies on is missing or fails: through
+`build_graph`, offline. Written to freeze the nodes before agent.py was split; kept
+because each states a line a person must see."""
 
 import pytest
 from langchain_core.messages import HumanMessage
@@ -84,20 +84,6 @@ def test_a_pipeline_attached_reads_its_sections_and_says_so(world):
     out, _ = ask_raw(world, scripted(unknown_owner(l01)), question)
     assert "pipeline_sections" in out["tools"]
     assert any(s["text"].startswith("Read its ") for s in out["steps"])
-
-
-def test_nearby_and_network_tool_calls_leave_their_steps(world):
-    s01 = world["codes"]["s01"]
-    model = scripted(
-        [("find_nearby", {"section_id": s01}), ("find_pipelines", {}), ("find_sections", {})],
-        unknown_owner(s01),
-    )
-    question = {"words": "What is near it?", "about": [{"kind": "section", "id": s01}]}
-    out, _ = ask_raw(world, model, question)
-    steps = [s["text"] for s in out["steps"]]
-    # Tools the model calls leave no step of their own: only the first reads do.
-    assert out["tools"][2:] == ["find_nearby", "find_pipelines", "find_sections"]
-    assert steps[2:] == ["Writing the answer", "Checking the answer"]
 
 
 def test_a_feature_gone_by_the_models_own_read_is_not_found(world):
