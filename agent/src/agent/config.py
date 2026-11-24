@@ -102,7 +102,7 @@ def refuse_undecided_tracing(env: Mapping[str, str] | None = None) -> None:
 
 def load() -> Settings:
     return Settings(
-        model=os.environ.get("AGENT_MODEL", "anthropic:claude-haiku-5-5"),
+        model=os.environ.get("AGENT_MODEL", "anthropic:claude-sonnet-5-5"),
         store_url=os.environ.get("STORE_URL", "http://localhost:47110").rstrip("/"),
         cite_url=os.environ.get("CITE_URL", "").rstrip("/"),
         store_token=os.environ.get("STORE_TOKEN", ""),
