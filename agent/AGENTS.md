@@ -243,5 +243,10 @@ Measured with `@langchain/react` 1.2.14 `useStream` against `langgraph dev`
   in a container, a new container on the same volume. A hard kill straight after a run
   can lose the last seconds. On a real stack these files hold store's data: they are
   ignored by git and deleted with the volume.
+- **Old checkpoints are pruned on a deployment.** `langgraph.json` sets
+  `checkpointer.ttl` to `keep_latest` after a day (1,440 minutes), swept hourly: a thread
+  keeps its latest state and loses the older checkpoints, which nothing here reads (a
+  search writes one per pass of `cite_wait`). Chats are never deleted. `langgraph dev`
+  ignores it: its in-memory runtime does not sweep.
 - **Container.** `--host 0.0.0.0 --no-reload`, a named volume on `/app/.langgraph_api`,
   the host port bound to `127.0.0.1`. Removing the volume deletes the threads.
