@@ -10,8 +10,8 @@ from src.agent.graph import build_graph
 from src.answer.grounding import fact_problems, own_words_problems, problems_of, reads_from
 from src.answer.render import FIXED_LINES, render
 from src.answer.schemas import Draft
-from src.tools.make import Handles, make_tools
-from tests.support import scripted
+from src.tools.handles import Handles
+from tests.support import bound_tools, scripted
 
 
 @pytest.fixture
@@ -20,7 +20,7 @@ def world():
 
 
 def read_of(world, *codes):
-    tool = make_tools(FakeStore(world).client(), Handles())[0]
+    tool = bound_tools(FakeStore(world).client(), Handles())[0]
     artifacts = [
         tool.invoke(
             {
@@ -174,7 +174,7 @@ def test_an_attached_id_in_capitals_is_the_same_section(world):
 def test_a_merged_trace_that_is_gone_does_not_make_the_section_gone(world):
     broken = copy.deepcopy(world)
     del broken["features"][world["codes"]["d13"]]
-    tool = make_tools(FakeStore(broken).client(), Handles())[0]
+    tool = bound_tools(FakeStore(broken).client(), Handles())[0]
     shown = tool.invoke(
         {
             "type": "tool_call",

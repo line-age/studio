@@ -9,7 +9,7 @@ from evals.fake_store import FakeStore, load_world
 from src.answer.grounding import problems_of, reads_from
 from src.answer.render import render
 from src.answer.schemas import Draft
-from src.tools.make import make_tools
+from tests.support import bound_tools
 
 
 @pytest.fixture(scope="module")
@@ -18,7 +18,7 @@ def world():
 
 
 def together(world, *codes):
-    tool = make_tools(FakeStore(world).client())[3]
+    tool = bound_tools(FakeStore(world).client())[3]
     content, artifact = tool.func([world["codes"][c] for c in codes])
     said = {w["about"]: w["text"] for w in json.loads(content)["worked_out"]}
     return said, artifact
@@ -135,14 +135,14 @@ def test_sections_all_alike_are_said_as_all(world):
 
 
 def test_one_section_or_a_pipeline_is_not_taken_together(world):
-    tool = make_tools(FakeStore(world).client())[3]
+    tool = bound_tools(FakeStore(world).client())[3]
     assert tool.func([world["codes"]["s01"]]) == ("Give two or more sections.", {})
     content, artifact = tool.func([world["codes"]["s01"], world["codes"]["l01"]])
     assert content == "Only sections are taken together." and artifact == {}
 
 
 def test_a_section_that_is_gone_is_said_to_be_gone(world):
-    tool = make_tools(FakeStore(world).client())[3]
+    tool = bound_tools(FakeStore(world).client())[3]
     gone = "00000000-0000-4000-8000-00000000dead"
     _, artifact = tool.func([world["codes"]["s01"], gone])
     assert artifact == {"not_found": gone}

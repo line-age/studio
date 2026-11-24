@@ -13,7 +13,7 @@ from src.answer.schemas import Answer, CitationRequest, Ref, Statement
 from src.clients import store_writer
 from src.clients.store_client import StoreError
 from src.flows import change_flow, cite_flow
-from src.tools.make import _with_merged
+from src.tools.views import with_merged
 
 
 def _cards_in(state: AgentState) -> set[str]:
@@ -56,7 +56,7 @@ def propose(deps: Deps, state: AgentState) -> dict:
         return say("failure", cite_flow.CITE_LINES["store_write_failed"])
     try:
         feature = store.feature(f["section_id"])
-        merged, _ = _with_merged(store, feature)
+        merged, _ = with_merged(store, feature)
     except StoreError as error:
         return say("failure", FIXED_LINES[STORE_FAILURES.get(error.kind, "store_unreachable")])
     # Where it goes: its section, or the pipeline that section is confirmed part of.

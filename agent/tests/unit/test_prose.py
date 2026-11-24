@@ -7,7 +7,7 @@ from evals.fake_store import FakeStore, load_world
 from src.answer.grounding import problems_of, reads_from
 from src.answer.render import render
 from src.answer.schemas import Draft
-from src.tools.make import make_tools
+from tests.support import bound_tools
 
 
 @pytest.fixture(scope="module")
@@ -16,7 +16,7 @@ def world():
 
 
 def said(world, text, *codes, words="Tell me about it", pipeline=None):
-    tools = make_tools(FakeStore(world).client())
+    tools = bound_tools(FakeStore(world).client())
     artifacts = [tools[0].func(world["codes"][c])[1] for c in codes]
     artifacts += [tools[1].func(world["codes"][c])[1] for c in codes if c.startswith("s")]
     if pipeline:
@@ -91,7 +91,7 @@ def test_unknown_is_not_said_of_a_fact_that_was_read(world):
 
 
 def test_todays_towns_are_said_as_todays(world):
-    read_context = make_tools(FakeStore(world).client())[1]
+    read_context = bound_tools(FakeStore(world).client())[1]
     towns = next(
         w["text"].split(": ")[-1].rstrip(".").split(", ")[0].split(" and ")[0]
         for w in read_context.func(world["codes"]["s01"])[1]["worked_out"]

@@ -24,6 +24,10 @@ CITE_WINDOW_YEARS = 2
 TOOL_CALLS = 4
 MODEL_CALLS = TOOL_CALLS + 2
 
+# Full context for this many sections per question; the rest get their claims (owner,
+# 2026-11-14).
+CONTEXT_FOR = 3
+
 # How much of the chat the model is shown, to know what the person means.
 HISTORY_TURNS = 4
 HISTORY_ANSWER_CHARS = 500

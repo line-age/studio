@@ -7,7 +7,7 @@ from evals.fake_store import FakeStore, load_world
 from src.answer.grounding import problems_of, reads_from
 from src.answer.render import Unfillable, render
 from src.answer.schemas import Draft
-from src.tools.make import make_tools
+from tests.support import bound_tools
 
 
 @pytest.fixture(scope="module")
@@ -16,7 +16,7 @@ def world():
 
 
 def offered(world, words, attribute, value, *codes):
-    read_feature = make_tools(FakeStore(world).client())[0]
+    read_feature = bound_tools(FakeStore(world).client())[0]
     read = reads_from([read_feature.func(world["codes"][c])[1] for c in codes])
     read.words = words
     read.asked_about = [world["codes"][c] for c in codes]

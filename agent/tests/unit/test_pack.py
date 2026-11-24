@@ -7,15 +7,15 @@ from evals.fake_store import FakeStore, load_world
 from src.agent.config import ROOT
 from src.answer.render import short_id
 from src.answer.schemas import SectionPack
-from src.tools.make import make_tools
 from src.worked_out.pack import brief
+from tests.support import bound_tools
 
 GOLDEN = ROOT / "contract" / "examples" / "section-pack.json"
 
 
 def pack_of(code: str) -> SectionPack:
     world = load_world("small")
-    _, read_context, *_ = make_tools(FakeStore(world).client())
+    _, read_context, *_ = bound_tools(FakeStore(world).client())
     return SectionPack.model_validate(read_context.func(world["codes"][code])[1]["pack"])
 
 

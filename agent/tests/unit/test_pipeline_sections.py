@@ -10,7 +10,7 @@ from evals.score import _worked_out_problems
 from src.answer.grounding import problems_of, reads_from
 from src.answer.render import render
 from src.answer.schemas import Draft
-from src.tools.make import make_tools
+from tests.support import bound_tools
 
 
 @pytest.fixture(scope="module")
@@ -19,7 +19,7 @@ def world():
 
 
 def sections_of(world, code):
-    tool = make_tools(FakeStore(world).client())[4]
+    tool = bound_tools(FakeStore(world).client())[4]
     content, artifact = tool.func(world["codes"][code])
     said = {w["about"]: w["text"] for w in json.loads(content)["worked_out"]}
     return said, artifact
@@ -48,7 +48,7 @@ def test_a_pipeline_with_only_a_proposed_section_has_none_yet(world):
 
 
 def test_a_section_is_not_a_pipeline_and_a_gone_one_is_said_gone(world):
-    tool = make_tools(FakeStore(world).client())[4]
+    tool = bound_tools(FakeStore(world).client())[4]
     assert tool.func(world["codes"]["s01"]) == ("Only a pipeline has sections.", {})
     gone = "00000000-0000-4000-8000-00000000dead"
     assert tool.func(gone)[1] == {"not_found": gone}

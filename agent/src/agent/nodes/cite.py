@@ -16,7 +16,7 @@ from src.clients.cite_client import CiteBusy
 from src.clients.store_client import StoreError
 from src.flows import change_flow, cite_flow, cite_input
 from src.flows.cite_result import CiteResult
-from src.tools.make import _with_merged
+from src.tools.views import with_merged
 from src.worked_out import context
 
 
@@ -37,7 +37,7 @@ def _cite_input(deps: Deps, ask: cite_input.CiteAsk) -> dict[str, Any] | str:
     store = deps.store
     try:
         feature = store.feature(ask.section_id)
-        merged, _ = _with_merged(store, feature)
+        merged, _ = with_merged(store, feature)
         line_id = next(
             (
                 link["to_feature_id"]
@@ -93,7 +93,7 @@ def with_search(deps: Deps, state, draft, rendered, read, message, tools, seen, 
         # model's own attribute stands (an empty answer would say nothing is).
         try:
             feature = store.feature(section_id)
-            merged, _ = _with_merged(store, feature)
+            merged, _ = with_merged(store, feature)
             pipeline_id = change_flow.confirmed_pipeline(feature)
             pipeline = store.feature(pipeline_id) if pipeline_id else None
         except StoreError:
@@ -290,7 +290,7 @@ def cite_report(deps: Deps, state: AgentState) -> dict:
             records = cite_flow.findings_of(result, job["section_id"], len(findings) + 1)
             try:
                 feature = store.feature(job["section_id"])
-                cite_flow.mark_held(records, [feature, *_with_merged(store, feature)[0]])
+                cite_flow.mark_held(records, [feature, *with_merged(store, feature)[0]])
             except StoreError:
                 pass  # unread, a finding stays "not in store"; Propose checks again
             for record in records:

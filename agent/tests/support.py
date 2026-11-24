@@ -58,3 +58,34 @@ def scripted(*steps) -> ScriptedModel:
             ]
             messages.append(AIMessage(content="", tool_calls=calls))
     return ScriptedModel(messages=iter(messages))
+
+
+# The tools as one question's loop runs them: each bound to one context.
+
+
+class _Bound:
+    """One tool, called as `.func(...)` (content and artifact) or `.invoke(call)` (a
+    tool message), with the runtime the loop would give it."""
+
+    def __init__(self, tool, context) -> None:
+        self.tool, self.context, self.name = tool, context, tool.name
+
+    def func(self, *args, **kwargs):
+        from src.tools.question import runtime_for
+
+        return self.tool.func(*args, runtime=runtime_for(self.context, {}, None), **kwargs)
+
+    def invoke(self, call, config=None):
+        from src.tools.question import run_tool
+
+        return run_tool(self.tool, call, self.context, config or {})
+
+
+def bound_tools(store, handles=None, network=None) -> list:
+    """The tools in the order the model is shown them, all reading for one question."""
+    from src.tools import TOOLS
+    from src.tools.handles import Handles
+    from src.tools.question import QuestionContext
+
+    context = QuestionContext(store, handles if handles is not None else Handles(), network)
+    return [_Bound(t, context) for t in TOOLS]

@@ -4,12 +4,15 @@ once. A change asked in words is code's card, with no model."""
 import re
 from typing import Any
 
-from langchain.agents import create_agent
-from langchain.agents.structured_output import ProviderStrategy
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 
-from src.agent.config import HISTORY_ANSWER_CHARS, HISTORY_TURNS, MAX_QUESTION_CHARS
+from src.agent.config import (
+    CONTEXT_FOR,
+    HISTORY_ANSWER_CHARS,
+    HISTORY_TURNS,
+    MAX_QUESTION_CHARS,
+)
 from src.agent.deps import Deps
 from src.agent.nodes.change import change_offer
 from src.agent.nodes.cite import with_search
@@ -23,10 +26,9 @@ from src.answer.render import FIXED_LINES, Unfillable, failure, feature_name, re
 from src.answer.schemas import Answer, Draft, DraftRef, Question, Ref, Statement
 from src.clients.store_client import StoreError
 from src.flows import change_flow, cite_flow
-from src.middleware.limits import loop_middleware
 from src.prompts.retry import RETRY
-from src.prompts.system import SYSTEM
-from src.tools.make import CONTEXT_FOR, Handles, make_tools
+from src.tools import BY_NAME
+from src.tools.question import QuestionContext, run_tool
 
 _PROPOSE_WORDS = re.compile(
     r"\b(propose|proposing|save|add)\b.*\b(it|this|that|them|finding)\b", re.IGNORECASE
@@ -95,13 +97,10 @@ def _history(messages: list[Any], current: HumanMessage) -> str:
 
 def _read_attached(
     question: Question,
-    read_feature: Any,
-    read_context: Any,
+    context: QuestionContext,
     config: Any,
     pipelines: list[str] | None = None,
     steering: str | None = None,
-    sections_together: Any = None,
-    pipeline_sections: Any = None,
 ) -> list[Any]:
     """Read everything attached before the model starts, as if the model had asked: one
     model turn fewer. Then the pipelines those sections are in, and the first sections'
@@ -135,7 +134,7 @@ def _read_attached(
         }
         for n, fid in enumerate(sections[:CONTEXT_FOR])
     ]
-    if sections_together is not None and len(sections) > 1:
+    if len(sections) > 1:
         # Several sections: what they share and where they differ, worked out once.
         calls.append(
             {
@@ -145,25 +144,18 @@ def _read_attached(
                 "type": "tool_call",
             }
         )
-    if pipeline_sections is not None:
-        # An attached pipeline: its sections, counted and taken together, worked out once.
-        calls += [
-            {
-                "name": "pipeline_sections",
-                "args": {"pipeline_id": i.id},
-                "id": f"members_{n}",
-                "type": "tool_call",
-            }
-            for n, i in enumerate(question.about)
-            if i.kind == "pipeline" and i.id
-        ]
-    tools = {
-        "read_feature": read_feature,
-        "read_context": read_context,
-        "sections_together": sections_together,
-        "pipeline_sections": pipeline_sections,
-    }
-    results = [tools[call["name"]].invoke(call, config) for call in calls]
+    # An attached pipeline: its sections, counted and taken together, worked out once.
+    calls += [
+        {
+            "name": "pipeline_sections",
+            "args": {"pipeline_id": i.id},
+            "id": f"members_{n}",
+            "type": "tool_call",
+        }
+        for n, i in enumerate(question.about)
+        if i.kind == "pipeline" and i.id
+    ]
+    results = [run_tool(BY_NAME[call["name"]], call, context, config) for call in calls]
     return [AIMessage(content="", tool_calls=calls), *results]
 
 
@@ -200,19 +192,6 @@ def _passes(error: Exception) -> bool:
         return True
     return isinstance(error, anthropic.APIStatusError) and (
         error.status_code == 429 or error.status_code >= 500
-    )
-
-
-def _new_loop(deps: Deps, handles: Handles, reader: Any, network: str | None = None):
-    # Made for each question, so each question starts with tools that have read nothing.
-    tools = make_tools(reader, handles, network)
-    return tools, create_agent(
-        deps.model,
-        tools=tools,
-        system_prompt=SYSTEM,
-        response_format=ProviderStrategy(Draft),
-        middleware=loop_middleware(),
-        name="studio-agent-loop",
     )
 
 
@@ -262,7 +241,6 @@ def answer(deps: Deps, state: AgentState, config: RunnableConfig) -> dict:
     tools: list[str] = []
     artifacts: list[dict[str, Any]] = []
     blocked: list[list[str]] = []
-    handles = Handles()
     steps = Steps()
     steps.start("Reading the data")
     reader = (
@@ -270,19 +248,9 @@ def answer(deps: Deps, state: AgentState, config: RunnableConfig) -> dict:
         if taken is not None and not steering and not carried
         else Prefetched(store, to_read(question, steering))
     )
-    made, loop = _new_loop(deps, handles, reader, question.network)
-    read_feature, read_context, _, sections_together, pipeline_sections, *_ = made
+    context = QuestionContext(reader, network=question.network)
     try:
-        first_reads = _read_attached(
-            question,
-            read_feature,
-            read_context,
-            config,
-            reader.pipelines,
-            steering,
-            sections_together,
-            pipeline_sections,
-        )
+        first_reads = _read_attached(question, context, config, reader.pipelines, steering)
     except StoreError as error:
         return finish(
             failure(STORE_FAILURES.get(error.kind, "store_unreachable")),
@@ -316,15 +284,15 @@ def answer(deps: Deps, state: AgentState, config: RunnableConfig) -> dict:
         steps.start("Writing the answer" if attempt == 0 else "Writing the answer again")
         try:
             try:
-                result = loop.invoke({"messages": messages}, config)
+                result = deps.loop.invoke({"messages": messages}, config, context=context)
             except Exception as error:
                 if retried or not _passes(error):
                     raise
-                # Once per question. Fresh tools, so nothing from the failed try
-                # counts as already read; the handles stay, so C1 still means C1.
+                # Once per question. Nothing from the failed try counts as already
+                # read; the handles stay, so C1 still means C1.
                 retried = True
-                _, loop = _new_loop(deps, handles, reader, question.network)
-                result = loop.invoke({"messages": messages}, config)
+                context = context.fresh()
+                result = deps.loop.invoke({"messages": messages}, config, context=context)
         except StoreError as error:
             return finish(
                 failure(STORE_FAILURES.get(error.kind, "store_unreachable")),
@@ -354,7 +322,7 @@ def answer(deps: Deps, state: AgentState, config: RunnableConfig) -> dict:
             for statement in draft.statements:
                 for ref in statement.refs:
                     if ref.type == "claim":
-                        ref.id = handles.resolve(ref.id)
+                        ref.id = context.handles.resolve(ref.id)
             _point_unknowns_at_the_attached_thing(draft, question, read)
         if not isinstance(draft, Draft):
             problems = ["no answer in the required shape"]

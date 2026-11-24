@@ -11,7 +11,7 @@ from evals.score import _worked_out_problems
 from src.answer.grounding import problems_of, reads_from
 from src.answer.render import render
 from src.answer.schemas import Draft
-from src.tools.make import make_tools
+from tests.support import bound_tools
 
 RULES = [
     {},
@@ -53,7 +53,7 @@ def world(request):
 
 
 def find(world, **rules):
-    tool = make_tools(FakeStore(world).client())[5]
+    tool = bound_tools(FakeStore(world).client())[5]
     content, artifact = tool.func(**rules)
     return (json.loads(content)["worked_out"][0]["text"] if artifact else content), artifact
 
@@ -145,7 +145,7 @@ def test_the_sentence_passes_the_agents_own_check_and_names_link_to_sections():
 
 
 def pipelines(world, **rules):
-    tool = make_tools(FakeStore(world).client())[6]
+    tool = bound_tools(FakeStore(world).client())[6]
     content, artifact = tool.func(**rules)
     return (json.loads(content)["worked_out"][0]["text"] if artifact else content), artifact
 

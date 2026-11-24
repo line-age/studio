@@ -8,13 +8,13 @@ from evals.fake_store import FakeStore, load_world
 from src.answer.grounding import reads_from
 from src.answer.render import render, short_id
 from src.answer.schemas import Draft
-from src.tools.make import make_tools
+from tests.support import bound_tools
 
 
 def _read(*codes):
     world = load_world("small")
     store = FakeStore(world).client()
-    read_feature, _, *_ = make_tools(store)
+    read_feature, _, *_ = bound_tools(store)
     artifacts = [read_feature.func(world["codes"][code])[1] for code in codes]
     return world, reads_from(artifacts)
 

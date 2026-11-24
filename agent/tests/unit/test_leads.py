@@ -7,7 +7,7 @@ from evals.fake_store import FakeStore, load_world
 from src.answer.grounding import problems_of, reads_from
 from src.answer.render import render
 from src.answer.schemas import Draft
-from src.tools.make import make_tools
+from tests.support import bound_tools
 
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def world():
 
 
 def context_of(world, code):
-    _, read_context, *_ = make_tools(FakeStore(world).client())
+    _, read_context, *_ = bound_tools(FakeStore(world).client())
     return reads_from([read_context.func(world["codes"][code])[1]])
 
 
@@ -330,23 +330,23 @@ def test_two_independent_sources_for_one_value_rank_first():
 
 def test_a_twin_is_found_whichever_end_the_section_is(world):
     from evals.fake_store import FakeStore
-    from src.tools.make import make_tools
+    from tests.support import bound_tools
 
     store = FakeStore(world)
     s14, d19 = world["codes"]["s14"], world["codes"]["d19"]
     for link in store.world["features"][s14]["links"]:
         if link["relation"] == "same_as":
             link["from_feature_id"], link["to_feature_id"] = s14, d19
-    _, read_context, *_ = make_tools(store.client())
+    _, read_context, *_ = bound_tools(store.client())
     read = reads_from([read_context.func(s14)[1]])
     assert "proposed_link" in rules(read)
 
 
 def test_asking_context_of_a_pipeline_uses_no_slot(world):
     from evals.fake_store import FakeStore
-    from src.tools.make import make_tools
+    from tests.support import bound_tools
 
-    _, read_context, *_ = make_tools(FakeStore(world).client())
+    _, read_context, *_ = bound_tools(FakeStore(world).client())
     for _ in range(3):
         read_context.func(world["codes"]["l01"])
     _, artifact = read_context.func(world["codes"]["s14"])

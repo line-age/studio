@@ -367,17 +367,16 @@ def test_a_feature_read_twice_in_one_question_is_fetched_once(world):
 
 
 def test_the_model_cites_a_claim_by_its_handle_and_code_turns_it_into_the_id(world, monkeypatch):
-    from src.agent.nodes import answer as agent
-    from src.tools import make as tools
+    from src.tools import handles as tools
 
     made = []
+    original = tools.Handles.__init__
 
-    class Recording(tools.Handles):
-        def __init__(self):
-            super().__init__()
-            made.append(self)
+    def keep(self):
+        original(self)
+        made.append(self)
 
-    monkeypatch.setattr(agent, "Handles", Recording)
+    monkeypatch.setattr(tools.Handles, "__init__", keep)
     s02 = world["codes"]["s02"]
     owner = next(c for c in world["features"][s02]["claims"] if c["attribute_key"] == "owner")
 
@@ -438,7 +437,7 @@ def test_everything_attached_is_read_at_once_before_the_model_starts(world):
 def test_two_claims_read_at_once_never_share_a_handle():
     import threading
 
-    from src.tools.make import Handles
+    from src.tools.handles import Handles
 
     handles = Handles()
     ids = [f"claim-{n}" for n in range(4000)]
@@ -457,7 +456,7 @@ def test_two_claims_read_at_once_never_share_a_handle():
 
 
 def test_handles_follow_the_order_things_were_attached(world, monkeypatch):
-    from src.tools import make as tools_module
+    from src.tools import handles as tools_module
 
     codes = [world["codes"][c] for c in ("s05", "s02", "s03")]
     made = []
@@ -586,3 +585,57 @@ def test_past_the_tool_limit_the_model_answers_from_what_it_has(world):
     out, _ = ask(world, model, "Who owns it?", [s01])
 
     assert out["answer"]["statements"][0]["kind"] == "unknown"
+
+
+def test_questions_asked_at_once_each_keep_their_own_reads(world):
+    """The loop and its tools are built once; what a question read is its own."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    from langchain_core.messages import AIMessage
+    from langchain_core.outputs import ChatGeneration, ChatResult
+
+    from tests.support import ScriptedModel
+
+    def stated(claim):
+        return claim["status"] == "accepted" and claim.get("value_text")
+
+    class FirstValue(ScriptedModel):
+        """States the first accepted value it was shown, by its handle."""
+
+        def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+            read = next(m for m in messages if isinstance(m, ToolMessage))
+            handle = next(c["id"] for c in json.loads(read.content)["claims"] if stated(c))
+            draft = {
+                "statements": [
+                    {
+                        "kind": "fact",
+                        "text": "It is {c1.value}.",
+                        "refs": [{"key": "c1", "type": "claim", "id": handle}],
+                        "attribute": None,
+                    }
+                ]
+            }
+            return ChatResult(
+                generations=[ChatGeneration(message=AIMessage(content=json.dumps(draft)))]
+            )
+
+    codes = [
+        code
+        for code, fid in sorted(world["codes"].items())
+        if code.startswith("s") and any(stated(c) for c in world["features"][fid]["claims"])
+    ][:8]
+    assert len(codes) == 8
+    graph = build_graph(store=FakeStore(world).client(), model=FirstValue(messages=iter([])))
+
+    def one(n, code):
+        fid = world["codes"][code]
+        out, _ = ask(world, None, "What is it?", [fid], graph=graph, msg_id=f"q{n}")
+        return out
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        outs = list(pool.map(one, range(8), codes))
+    for code, out in zip(codes, outs, strict=True):
+        claims = world["features"][world["codes"][code]]["claims"]
+        [statement] = out["answer"]["statements"]
+        assert statement["kind"] == "fact", out["blocked"]
+        assert statement["refs"][0]["id"] == next(c["id"] for c in claims if stated(c))

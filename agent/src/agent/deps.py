@@ -1,5 +1,5 @@
-"""What the nodes share: store, the model, cite, the proposal writer, and the reads `read`
-hands to `answer`. Made once, when the graph is built."""
+"""What the nodes share: store, the model and its loop, cite, the proposal writer, and the
+reads `read` hands to `answer`. Made once, when the graph is built."""
 
 from dataclasses import dataclass, field
 from typing import Any
@@ -7,6 +7,7 @@ from typing import Any
 from langchain.chat_models import init_chat_model
 
 from src.agent.config import CITE_POLL_SECONDS, load
+from src.agent.loop import build_loop
 from src.agent.prefetch import Prefetched
 from src.clients import store_writer
 from src.clients.cite_client import CiteClient, CiteService
@@ -24,6 +25,8 @@ class Deps:
     # None: no proposal token, so Propose says the write failed.
     writer: Any
     cite_poll: float = CITE_POLL_SECONDS
+    # The model loop, with the tools: built once; a question passes its own context.
+    loop: Any = None
     # Reads `read` made for a question, handed to `answer` in the same process.
     prefetched: dict[str, Prefetched] = field(default_factory=dict)
 
@@ -61,4 +64,11 @@ def make_deps(
             max_retries=2,
             output_config={"effort": "low"},
         )
-    return Deps(store=store, model=model, cite=cite, writer=writer, cite_poll=cite_poll)
+    return Deps(
+        store=store,
+        model=model,
+        cite=cite,
+        writer=writer,
+        cite_poll=cite_poll,
+        loop=build_loop(model),
+    )

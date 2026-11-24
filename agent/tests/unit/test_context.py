@@ -84,9 +84,9 @@ def _answer_for(world, code):
     from src.answer.grounding import problems_of, reads_from
     from src.answer.render import render
     from src.answer.schemas import Draft
-    from src.tools.make import make_tools
+    from tests.support import bound_tools
 
-    _, read_context, *_ = make_tools(FakeStore(world).client())
+    _, read_context, *_ = bound_tools(FakeStore(world).client())
     read = reads_from([read_context.func(world["codes"][code])[1]])
     draft = Draft.model_validate(
         {
@@ -361,9 +361,9 @@ def _written(world, code, text, pick):
     from src.answer.grounding import problems_of, reads_from
     from src.answer.render import render
     from src.answer.schemas import Draft
-    from src.tools.make import make_tools
+    from tests.support import bound_tools
 
-    _, read_context, *_ = make_tools(FakeStore(world).client())
+    _, read_context, *_ = bound_tools(FakeStore(world).client())
     read = reads_from([read_context.func(world["codes"][code])[1]])
     handle = {
         key: next(h for h, w in read.worked.items() if value in (w.get("values") or {}))
@@ -459,9 +459,9 @@ def test_towns_in_a_written_sentence_are_said_to_be_todays(world):
 def test_it_is_what_was_attached_even_when_its_pipeline_was_read_too(world):
     from src.answer.grounding import reads_from
     from src.answer.render import as_it, feature_name
-    from src.tools.make import make_tools
+    from tests.support import bound_tools
 
-    read_feature, read_context, *_ = make_tools(FakeStore(world).client())
+    read_feature, read_context, *_ = bound_tools(FakeStore(world).client())
     section, pipeline = world["codes"]["s02"], world["codes"]["l01"]
     read = reads_from(
         [

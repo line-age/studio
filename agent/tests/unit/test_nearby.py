@@ -85,9 +85,9 @@ def _answer_for(world, code):
     from src.answer.grounding import problems_of, reads_from
     from src.answer.render import render
     from src.answer.schemas import Draft
-    from src.tools.make import make_tools
+    from tests.support import bound_tools
 
-    _, _, find_nearby, *_ = make_tools(FakeStore(world).client())
+    _, _, find_nearby, *_ = bound_tools(FakeStore(world).client())
     read = reads_from([find_nearby.func(world["codes"][code])[1]])
     draft = Draft.model_validate(
         {
@@ -117,9 +117,9 @@ def test_what_it_finds_passes_the_answer_check(world, code):
 
 def test_its_claims_are_the_neighbours_never_the_section_asked_about(world):
     from src.answer.grounding import reads_from
-    from src.tools.make import make_tools
+    from tests.support import bound_tools
 
-    _, _, find_nearby, *_ = make_tools(FakeStore(world).client())
+    _, _, find_nearby, *_ = bound_tools(FakeStore(world).client())
     _, artifact = find_nearby.func(world["codes"]["s20"])
     read = reads_from([artifact])
     # Read for context only: a neighbour's claim is never counted as s20's own.
@@ -127,9 +127,9 @@ def test_its_claims_are_the_neighbours_never_the_section_asked_about(world):
 
 
 def test_asked_twice_it_reads_once(world):
-    from src.tools.make import make_tools
+    from tests.support import bound_tools
 
-    _, _, find_nearby, *_ = make_tools(FakeStore(world).client())
+    _, _, find_nearby, *_ = bound_tools(FakeStore(world).client())
     find_nearby.func(world["codes"]["s14"])
     content, artifact = find_nearby.func(world["codes"]["s14"])
     assert "already looked" in content and artifact == {}
