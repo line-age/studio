@@ -4,7 +4,7 @@ import { shortId } from "./short-id"
 
 describe("a feature's short name", () => {
   it("is the same hash the Agent computes", () => {
-    // agent/tests/test_ref_labels.py pins the same value.
+    // agent/tests/unit/test_ref_labels.py pins the same value.
     expect(shortId("01a1a923-2283-41d1-7a93-9a959dcd3f22")).toBe(SAME_AS_AGENT)
   })
 

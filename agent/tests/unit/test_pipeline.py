@@ -1,5 +1,5 @@
 """The one bundle the Agent sends is store's bundle: a finding the person pressed Propose
-on. A change asked for in words is never written by the Agent (tests/test_change.py).
+on. A change asked for in words is never written by the Agent (tests/unit/test_change.py).
 """
 
 import json

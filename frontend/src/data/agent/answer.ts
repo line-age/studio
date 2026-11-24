@@ -46,7 +46,7 @@ export const agentStep = z.object({
 })
 export type AgentStep = z.infer<typeof agentStep>
 
-/** The fixed rules a lead is found by (studio/agent/schemas.py, LeadRule). */
+/** The fixed rules a lead is found by (studio/agent/src/answer/schemas.py, LeadRule). */
 const leadRule = z.enum([
   "neighbour_source",
   "neighbour_owner",
@@ -59,7 +59,7 @@ const leadRule = z.enum([
 
 /**
  * A passage cite found and checked for one attribute of one section: not in
- * store until the person presses Propose (studio/agent/schemas.py, Finding).
+ * store until the person presses Propose (studio/agent/src/answer/schemas.py, Finding).
  */
 export const agentFinding = z.object({
   handle: z.string(),
@@ -102,7 +102,7 @@ export type AgentFinding = z.infer<typeof agentFinding>
 
 /**
  * A change asked for in words, as the Agent's code read it
- * (studio/agent/schemas.py, ChangeOffer). Studio makes it on Approve through
+ * (studio/agent/src/answer/schemas.py, ChangeOffer). Studio makes it on Approve through
  * its own writes; the Agent writes nothing.
  */
 export const changeOffer = z.object({
@@ -129,7 +129,7 @@ export const changeOffer = z.object({
 })
 export type ChangeOffer = z.infer<typeof changeOffer>
 
-/** A search offered before it runs (studio/agent/schemas.py, SearchOffer). */
+/** A search offered before it runs (studio/agent/src/answer/schemas.py, SearchOffer). */
 export const searchOffer = z.object({
   id: z.string(),
   section_id: z.string(),

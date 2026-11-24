@@ -5,7 +5,7 @@
  * Not a slice of the id: store's ids share their first digits within one import (the
  * time) and run in sequence at the end (sections side by side differ by one digit), so
  * a slice names many sections the same or nearly so. The Agent computes the same hash
- * (`agent/render.py`, `short_id`), so a name in an answer is the name on screen.
+ * (`agent/src/answer/render.py`, `short_id`), so a name in an answer is the name on screen.
  */
 export function shortId(id: string): string {
   let h = 0x811c9dc5
