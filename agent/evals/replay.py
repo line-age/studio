@@ -86,13 +86,14 @@ class Replayed(GenericFakeChatModel):
 def key_of(case_json: str) -> str:
     """What a recording was made with: the prompt, the tools as the model sees them, and
     the case."""
-    import prompts
     from evals.fake_store import FakeStore, load_world
-    from tools import make_tools
+    from src.prompts.retry import RETRY
+    from src.prompts.system import SYSTEM
+    from src.tools.make import make_tools
 
     tools = make_tools(FakeStore(load_world("small")).client())
     described = [(t.name, t.description, json.dumps(t.args, sort_keys=True)) for t in tools]
-    blob = json.dumps([prompts.SYSTEM, prompts.RETRY, described, case_json], sort_keys=True)
+    blob = json.dumps([SYSTEM, RETRY, described, case_json], sort_keys=True)
     return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
 

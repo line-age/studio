@@ -24,7 +24,8 @@ from src.answer.schemas import Answer, Draft, DraftRef, Question, Ref, Statement
 from src.clients.store_client import StoreError
 from src.flows import change_flow, cite_flow
 from src.middleware.limits import loop_middleware
-from src.prompts import system as prompts
+from src.prompts.retry import RETRY
+from src.prompts.system import SYSTEM
 from src.tools.make import CONTEXT_FOR, Handles, make_tools
 
 _PROPOSE_WORDS = re.compile(
@@ -208,7 +209,7 @@ def _new_loop(deps: Deps, handles: Handles, reader: Any, network: str | None = N
     return tools, create_agent(
         deps.model,
         tools=tools,
-        system_prompt=prompts.SYSTEM,
+        system_prompt=SYSTEM,
         response_format=ProviderStrategy(Draft),
         middleware=loop_middleware(),
         name="studio-agent-loop",
@@ -390,6 +391,6 @@ def answer(deps: Deps, state: AgentState, config: RunnableConfig) -> dict:
         if attempt == 0:
             messages = [
                 *result["messages"],
-                HumanMessage(prompts.RETRY.format(problems="\n".join(f"- {p}" for p in problems))),
+                HumanMessage(RETRY.format(problems="\n".join(f"- {p}" for p in problems))),
             ]
     return finish(failure("check_failed"), message, tools, seen, blocked, steps=steps)

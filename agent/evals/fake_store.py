@@ -19,8 +19,8 @@ from typing import Any
 import httpx
 
 from evals.make_world import BUILDERS, render, scope
-from store_client import StoreClient
-from store_writer import ProposalClient
+from src.clients.store_client import StoreClient
+from src.clients.store_writer import ProposalClient
 
 WORLDS = Path(__file__).parent / "worlds"
 CITE_TOKEN = "lgt_invented_cite_token_for_tests"

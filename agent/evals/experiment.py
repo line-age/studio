@@ -60,8 +60,8 @@ def run_case(case: Case, budget: "replay.Budget | None" = None) -> dict[str, Any
     client into the fake store; it is timed from its last question."""
     from langgraph.checkpoint.memory import InMemorySaver
 
-    from agent import build_graph
     from evals.fake_cite import FakeCite
+    from src.agent.graph import build_graph
 
     world = load_world(case.world)
     store = FakeStore(world)
@@ -137,7 +137,7 @@ def run_case(case: Case, budget: "replay.Budget | None" = None) -> dict[str, Any
 
 
 def _meta(name: str, repeat: int) -> dict[str, Any]:
-    import prompts
+    from src.prompts.system import SYSTEM
 
     commit = subprocess.run(
         ["git", "rev-parse", "--short", "HEAD"],
@@ -151,7 +151,7 @@ def _meta(name: str, repeat: int) -> dict[str, Any]:
         "at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
         "model": os.environ.get("AGENT_MODEL", "anthropic:claude-haiku-5-5"),
         "commit": commit,
-        "prompt": hashlib.sha256(prompts.SYSTEM.encode()).hexdigest()[:12],
+        "prompt": hashlib.sha256(SYSTEM.encode()).hexdigest()[:12],
         "repeat": repeat,
     }
 

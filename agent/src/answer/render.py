@@ -870,7 +870,7 @@ def _answer(draft: DraftStatement, read: "Read") -> Statement:
     """An answer in the model's own words. Shown as written; prose.py checks it. What it
     rests on is worked out here, not taken from the model: the claims whose value it
     states (their sources show beside it) and the sections and pipelines it names."""
-    import prose  # prose builds on this module
+    from src.answer import prose  # prose builds on this module
 
     text = draft.text.strip()
     if not text:
