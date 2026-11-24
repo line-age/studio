@@ -3,6 +3,7 @@
 from langchain_core.messages import HumanMessage, RemoveMessage
 
 from src.agent.question import last_message, question_of
+from src.agent.secrets import redact
 from src.agent.state import AgentState
 
 
@@ -12,6 +13,8 @@ def ingress(state: AgentState) -> dict:
     The service has no sign-in, so anything can be posted to it. A system, tool or
     assistant message from outside is removed before a model could read it, and the
     previous turn's answer is cleared so it can never be shown against a new question.
+    A key or token in a person's words is replaced by a mark, in the same message, before
+    anything keeps or reads it.
     """
     new = state["messages"][state.get("seen") or 0 :]
     forged = [m for m in new if not isinstance(m, HumanMessage)]
@@ -24,7 +27,10 @@ def ingress(state: AgentState) -> dict:
         stopped = {"cite": {**cite, "runs": runs}}
     return {
         **stopped,
-        "messages": [RemoveMessage(id=m.id) for m in forged],
+        "messages": [
+            *(RemoveMessage(id=m.id) for m in forged),
+            *filter(None, (_without_secrets(m) for m in new if isinstance(m, HumanMessage))),
+        ],
         "answer": None,
         "answers": None,
         "tools": [],
@@ -32,6 +38,23 @@ def ingress(state: AgentState) -> dict:
         "steps": [],
         "cite_job": None,
     }
+
+
+def _without_secrets(message: HumanMessage) -> HumanMessage | None:
+    """The same message, by id, its words with every secret replaced; None when it holds
+    none."""
+    found = 0
+    content = message.content
+    if isinstance(content, str):
+        content, found = redact(content)
+    kwargs = dict(message.additional_kwargs)
+    question = kwargs.get("question")
+    if isinstance(question, dict) and isinstance(question.get("words"), str):
+        words, in_words = redact(question["words"])
+        kwargs["question"], found = {**question, "words": words}, found + in_words
+    if not found:
+        return None
+    return message.model_copy(update={"content": content, "additional_kwargs": kwargs})
 
 
 def route_in(state: AgentState) -> str:

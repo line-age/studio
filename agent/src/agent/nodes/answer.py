@@ -195,6 +195,12 @@ def _passes(error: Exception) -> bool:
     )
 
 
+def _cut_off(error: Exception) -> bool:
+    """The model stopped at its output limit, so its draft is not whole."""
+    message = getattr(error, "ai_message", None)
+    return getattr(message, "response_metadata", {}).get("stop_reason") == "max_tokens"
+
+
 def answer(deps: Deps, state: AgentState, config: RunnableConfig) -> dict:
     store, cite = deps.store, deps.cite
     seen = len(state["messages"])
@@ -302,6 +308,10 @@ def answer(deps: Deps, state: AgentState, config: RunnableConfig) -> dict:
                 steps=steps,
             )
         except Exception as error:  # noqa: BLE001 - the model or its output failed: say so
+            if _cut_off(error):
+                # Too long for the output limit: the same size would be cut off again.
+                blocked.append(["the answer was cut off at the output limit (max_tokens)"])
+                return finish(failure("check_failed"), message, tools, seen, blocked, steps=steps)
             blocked.append([f"the run failed: {type(error).__name__}: {str(error)[:300]}"])
             return finish(failure("model_failed"), message, tools, seen, blocked, steps=steps)
         run = result["messages"][len(messages) :]
