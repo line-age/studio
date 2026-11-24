@@ -43,6 +43,10 @@ FIXED_LINES = {
         "What do you mean? Attach the section, pipeline, claim or source you are asking about."
     ),
     "not_found": "That is no longer in the data. Attach it again from the list or the map.",
+    "too_many_attached": (
+        "That is more than 200 things at once. Attach 200 or fewer and ask again, or ask "
+        "about the network by a rule."
+    ),
     "greeting": "Hello. Ask me about the sections and pipelines you select, their sources or how Studio works.",
     # What the Agent can do, for "What can you do?" (B10). Everything listed works
     # today; change it when a behaviour lands or leaves. A line starting "- " is a list

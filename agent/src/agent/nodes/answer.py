@@ -11,6 +11,7 @@ from src.agent.config import (
     CONTEXT_FOR,
     HISTORY_ANSWER_CHARS,
     HISTORY_TURNS,
+    MAX_ATTACHED,
     MAX_QUESTION_CHARS,
 )
 from src.agent.deps import Deps
@@ -236,6 +237,10 @@ def answer(deps: Deps, state: AgentState, config: RunnableConfig) -> dict:
         # A go-ahead is a button, never words (plan D6).
         line = Statement(kind="refusal", text=cite_flow.CITE_LINES["propose_words"])
         return finish(Answer(statements=[line]), message, [], seen)
+    if len(question.about) > MAX_ATTACHED:
+        # Nothing is read: a change asked in words has its own limit, checked above.
+        blocked = [[f"{len(question.about)} things attached, over {MAX_ATTACHED}"]]
+        return finish(failure("too_many_attached"), message, [], seen, blocked)
     if question.about:
         steering = None
     # A follow-up: nothing attached and no search to steer, so the things of the

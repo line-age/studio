@@ -137,3 +137,99 @@ def test_an_answer_cut_off_by_the_output_limit_is_said_and_not_tried_again(world
     assert [s["text"] for s in out["answer"]["statements"]] == [FIXED_LINES["check_failed"]]
     assert any("cut off at the output limit" in line for b in out["blocked"] for line in b)
     assert model.calls == 1
+
+
+# A cap on what is read
+
+
+def ask_about(world, model, codes, words="Who owns these?"):
+    store = FakeStore(world)
+    graph = build_graph(store=store.client(), model=model, cite=None, writer=None)
+    question = {"words": words, "about": [{"kind": "section", "id": c} for c in codes]}
+    out = graph.invoke(
+        {"messages": [HumanMessage(words, id="q1", additional_kwargs={"question": question})]}
+    )
+    return out, store
+
+
+def test_more_than_two_hundred_attached_is_a_fixed_line_with_nothing_read(world):
+    from src.agent.config import MAX_ATTACHED
+
+    class Never(ScriptedModel):
+        def _generate(self, *args, **kwargs):
+            raise AssertionError("the model was asked")
+
+    codes = [f"00000000-0000-4000-8000-{n:012d}" for n in range(MAX_ATTACHED + 1)]
+    out, store = ask_about(world, Never(messages=iter([])), codes)
+    assert [s["text"] for s in out["answer"]["statements"]] == [FIXED_LINES["too_many_attached"]]
+    assert store.requests == []
+    assert str(MAX_ATTACHED) in FIXED_LINES["too_many_attached"]
+
+
+def test_a_change_on_too_many_sections_keeps_its_own_line(world):
+    from src.agent.config import MAX_ATTACHED
+    from src.flows import change_flow
+
+    codes = [f"00000000-0000-4000-8000-{n:012d}" for n in range(MAX_ATTACHED + 1)]
+    out, _ = ask_about(world, scripted(), codes, words="Make these a pipeline")
+    assert [s["text"] for s in out["answer"]["statements"]] == [change_flow.LINES["too_many"]]
+
+
+def test_past_the_first_features_the_model_sees_claims_without_their_citations(world):
+    from src.agent.config import FULL_VIEWS
+
+    sections = [fid for code, fid in sorted(world["codes"].items()) if code.startswith("s")]
+    assert len(sections) > FULL_VIEWS + 1
+    model = Watching(messages=iter(scripted(unknown_owner(sections[0])).messages))
+    ask_about(world, model, sections)
+    shown = model.shown[0]
+    views = [json.loads(line) for line in shown.split("\n") if line.startswith('{"id"')]
+    full, brief = views[:FULL_VIEWS], views[FULL_VIEWS:]
+    assert brief and all("citations_left_out" in v for v in brief)
+    assert all("citations" not in c for v in brief for c in v["claims"])
+    assert any(c["citations"] for v in full for c in v["claims"])
+    assert all("citations_left_out" not in v for v in full)
+
+
+def test_a_claim_shown_without_its_citations_is_still_stated_with_its_source(world):
+    from src.agent.config import FULL_VIEWS
+
+    sections = [fid for code, fid in sorted(world["codes"].items()) if code.startswith("s")]
+    late = next(
+        (fid, c)
+        for fid in sections[FULL_VIEWS:]
+        for c in world["features"][fid]["claims"]
+        if c["status"] == "accepted" and c.get("value_text") and c.get("citations")
+    )
+    fid, claim = late
+
+    class StatesIt(ScriptedModel):
+        def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+            handle = next(
+                c["id"]
+                for m in messages
+                if m.type == "tool" and m.name == "read_feature"
+                for v in [json.loads(m.content)]
+                if v["id"] == fid
+                for c in v["claims"]
+                if c.get("value_text") == claim["value_text"]
+            )
+            draft = {
+                "statements": [
+                    {
+                        "kind": "fact",
+                        "text": "It is {c1.value}.",
+                        "refs": [{"key": "c1", "type": "claim", "id": handle}],
+                        "attribute": None,
+                    }
+                ]
+            }
+            return ChatResult(
+                generations=[ChatGeneration(message=AIMessage(content=json.dumps(draft)))]
+            )
+
+    out, _ = ask_about(world, StatesIt(messages=iter([])), sections)
+    [statement] = out["answer"]["statements"]
+    assert statement["kind"] == "fact", out["blocked"]
+    ref = statement["refs"][0]
+    assert ref["id"] == claim["id"] and ref.get("source")
