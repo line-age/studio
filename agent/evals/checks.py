@@ -6,8 +6,8 @@ from pydantic import ValidationError
 
 from evals.cases import Case, claim_id
 from evals.score import ungrounded
-from render import FIXED_LINES
-from schemas import Answer
+from src.answer.render import FIXED_LINES
+from src.answer.schemas import Answer
 
 KEYS = (
     "valid",

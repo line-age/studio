@@ -11,7 +11,7 @@ import uuid
 from collections.abc import Callable
 from typing import Any
 
-from cite_client import CiteBusy
+from src.clients.cite_client import CiteBusy
 
 JOURNAL = "The Example Trade Journal"
 LINES = ["searching 6 planned queries", "reading The Example Trade Journal, 1931-03-12, p.41"]

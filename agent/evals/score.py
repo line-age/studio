@@ -12,14 +12,14 @@ import math
 import re
 from typing import Any
 
-import change_flow
-import geometry
-import value_rules
-from cite_flow import CITE_LINES, FOUND, IN_DOUBT, IN_STORE_WORDS
 from evals.make_world import scope
-from places import END_M, all_places
-from render import FIXED_LINES, feature_name
-from states import all_states, states_of
+from src.answer.render import FIXED_LINES, feature_name
+from src.clients import value_rules
+from src.flows import change_flow
+from src.flows.cite_flow import CITE_LINES, FOUND, IN_DOUBT, IN_STORE_WORDS
+from src.worked_out import geometry
+from src.worked_out.places import END_M, all_places
+from src.worked_out.states import all_states, states_of
 
 # Words a sentence may capitalise without having read them from store.
 VOCABULARY = {

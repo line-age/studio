@@ -11,6 +11,8 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+# Coverage data: holds this machine's paths.
+.coverage
 .ruff_cache/
 
 # Eval runs that were not saved on purpose to evals/history/.

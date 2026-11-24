@@ -57,7 +57,7 @@ questions (B8). Behaviours are added one at a time, each with its eval first.
   line. The offer carries its basis (each section's pipeline when offered); Studio
   checks it again before it writes and makes the change through its own menus' writes.
   The Agent never writes a person's change: there is no code path for it, and
-  `tests/test_change.py` says so. What came of a card comes back as the action
+  `tests/unit/test_change.py` says so. What came of a card comes back as the action
   `outcome` and is recorded in the thread, with no model and no write. Deciding what a
   tool proposed stays in the inbox; words that sound like a change code cannot read get
   a fixed line, never a guess.
@@ -67,7 +67,7 @@ questions (B8). Behaviours are added one at a time, each with its eval first.
   with that id starts cite, once. No towns and no name: the card comes with Search off.
 - **The bundles are store's.** `contract/store-bundle.schema.json` is store's `Bundle`
   as JSON Schema (from `store/model`, `Bundle.model_json_schema(by_alias=True)`);
-  `tests/test_pipeline.py` checks every bundle the Agent builds against it with every
+  `tests/unit/test_pipeline.py` checks every bundle the Agent builds against it with every
   object closed. Regenerate it when store's bundle changes.
 - **What a value may be is one file.** `contract/attribute-rules.json` is store's attribute
   registry (value type, enum words, feature kinds, networks) plus limits store does not
@@ -113,35 +113,29 @@ people and for agents working here.
 
 ## Layout
 
+Laid out as `langchain-ai/chat-langchain` lays out its agent (`src/agent`, `src/middleware`,
+`src/tools`, `src/prompts`). Modules import each other as `from src.<package> import ...`.
+
 | Path | What |
 | --- | --- |
-| `graph.py` | Exposes the graph to the server. Nothing else |
-| `agent.py` | The graph: take the question in (`ingress`), read what is attached and say so (`read`), then read its context, let the model draft, render, check, retry once (`answer`); a change asked in words is code's card, with no model. Actions: `propose`, `search` (starts a search an offer holds), `outcome` (what came of a card), `fresh_start`. Steps in plain words are kept in the state for Studio. No serving code, no checkpointer |
-| `tools.py` | The model's tools. `read_feature` reads a feature and the traces merged into it; `read_context` gives a section's worked-out facts (W1), leads (L1) and the section pack. Claims are shown by handle (C1) |
-| `context.py` | What code works out about a section: printings, its end, its links, what it is drawn touching |
-| `geometry.py` | Drawn touching, from the traced lines (the 50 m rule) |
-| `leads.py` | Leads by the seven fixed rules, ranked by distinct sources |
-| `pack.py` | The section pack, kept whole as cite's brief; `brief()` reads it out |
-| `cite_flow.py` | Searching with cite: the guard, the "Cite so far" block, and every sentence about a search (finding, searched, disagreement) |
-| `cite_input.py` | A section as cite takes it in: ids, name hint, first printing, the person's places, the window, ruled-out values |
-| `cite_client.py` | cite over HTTP: one search at a time in a background thread; cancelled when nothing polls it for 15 s |
-| `cite_result.py` | What the Agent reads of cite's result (`contract/cite-result.schema.json`) |
-| `store_writer.py` | The one write, `POST /bundles` only: a proposed finding (`bundle`) |
-| `change_flow.py` | A change asked for in words: the words code reads, its checks, the card (`change_offer`) and every fixed line about it |
-| `contract/composer-examples.json` | What Studio's empty message box writes as examples; Studio keeps a copy, tests keep them one |
-| `evals/fake_cite.py` | A scripted cite with invented results, for tests and evals |
-| `grounding.py` | The check every answer passes before it is shown, and what it cannot see |
-| `schemas.py` | The contract: the question, the draft the model writes, the answer Studio renders |
-| `render.py` | The fixed lines, and the one place values become words: fills the model's slots from what was read |
-| `contract/` | The question, the answer and the section pack as JSON Schema, with examples (one invented pack is the golden cite brief); checked against the code. Also store's bundle (`store-bundle.schema.json`), vendored |
-| `prompts.py` | The prompts, reviewed like code |
-| `settings.py` | Settings from the environment, and the tracing switch |
+| `graph.py` | Exposes the graph to the server (`langgraph.json`). Nothing else |
 | `serve.py` | Starts the service: decides tracing, then hands over to `langgraph dev` |
-| `store_client.py` | Store over HTTP, with no token. Only GET can leave it; it keeps a listed set of fields (no people's names), checks attribute keys and ids, and flags a list that may be cut off |
-| `evals/make_world.py` | Makes the invented store states (`worlds/`) that tests and evals run on |
-| `evals/fake_store.py` | Serves one world through the real store client; can be told to fail |
-| `evals/` | Cases, checks, gates, runs and reports: see `evals/README.md` |
-| `tests/` | Offline: no network, no key, no trace |
+| `src/agent/config.py` | Settings from the environment, the tracing switch, and every limit (tool and model calls per question, context per question, history shown, cite's polling) |
+| `src/agent/graph.py` | `build_graph`: the nodes and edges, wiring only. No serving code, no checkpointer |
+| `src/agent/deps.py` | What the nodes share, made once: store, the model and its loop, cite, the proposal writer, the reads `read` hands to `answer` |
+| `src/agent/loop.py` | The model loop (`create_agent`) with the tools, built once; a question passes its own context on each run |
+| `src/agent/state.py`, `question.py`, `prefetch.py`, `reply.py` | What a thread keeps; the question a message carries and what the thread says about it; store with the attached things fetched in parallel; the reply, `finish`, and the steps Studio shows |
+| `src/agent/nodes/` | One module per part of the graph: `ingress` (take the question in, route a button), `read` (say what is read), `answer` (read, draft, render, check, retry once), `change` (a change asked in words is code's card, no model), `cite` (the search card, then `cite_start`, `cite_wait`, `cite_report`), `actions` (`propose`, `search`, `outcome`, `fresh_start`) |
+| `src/middleware/` | What wraps the loop: the call limits and prompt caching |
+| `src/tools/` | The model's tools, each defined once: `read_feature` (`features.py`); `read_context`, `find_nearby` (`context.py`); `sections_together`, `pipeline_sections` (`together.py`); `find_sections`, `find_pipelines` (`network.py`). `TOOLS` lists them in the order the model sees them. A tool reads its question's `QuestionContext` (`question.py`: store, handles, what was read) through `ToolRuntime`; `run_tool` runs one outside the loop. Claims are shown by handle (C1, `handles.py`) |
+| `src/prompts/` | The system prompt and the retry prompt, reviewed like code |
+| `src/answer/` | `schemas.py` (the question, the draft the model writes, the answer Studio renders), `render.py` (the fixed lines, and the one place values become words), `prose.py` (an answer in the model's own words), `grounding.py` (the check every answer passes before it is shown) |
+| `src/worked_out/` | What code works out: `context.py` (printings, ends, links, drawn touching), `geometry.py` (the 50 m rule), `leads.py` (seven fixed rules), `pack.py` (the section pack, cite's brief), `together.py`, `network.py`, `states.py`, `places.py` |
+| `src/flows/` | `change_flow.py` (a change asked in words: what code reads, its checks, its card and lines), `cite_flow.py` (the search guard, "Cite so far", every sentence about a search), `cite_input.py` (a section as cite takes it in), `cite_result.py` (what is read of cite's result) |
+| `src/clients/` | `store_client.py` (store over HTTP, GET only, a listed set of fields), `store_writer.py` (the one write, `POST /bundles`), `cite_client.py` (one search at a time in a background thread), `value_rules.py` (what a value may be) |
+| `contract/` | The question, the answer and the section pack as JSON Schema, with examples (one invented pack is the golden cite brief); checked against the code. Also store's bundle (`store-bundle.schema.json`), vendored, and `composer-examples.json` (Studio keeps a copy) |
+| `evals/` | Cases, checks, gates, runs and reports (`evals/README.md`); `make_world.py` and `worlds/` (the invented store states), `fake_store.py`, `fake_cite.py` |
+| `tests/unit/`, `tests/evals/` | Offline: no network, no key, no trace. `tests/support.py` has the scripted model and `bound_tools` (the tools bound to one question) |
 | `Dockerfile` | The service for a local stack |
 
 ## Commands
@@ -151,6 +145,7 @@ people and for agents working here.
 | `uv sync` | Install |
 | `uv run ruff check . && uv run ruff format --check .` | Lint and format check |
 | `uv run pytest -q` | Offline tests. Free; runs in CI |
+| `uv run pytest -q --cov=src --cov-branch` | The same, with line and branch coverage |
 | `uv run python serve.py` | Serve the graph locally on port 47190. Always start it this way |
 | `uv run python -m evals.make_world` | Rewrite `evals/worlds/small.json` after changing the generator |
 
@@ -215,9 +210,12 @@ Measured with `@langchain/react` 1.2.14 `useStream` against `langgraph dev`
 
 - **Address.** `useStream({ apiUrl: location.origin + "/agent", assistantId: "agent",
   threadId })`. The proxy strips `/agent` and adds nothing: the service takes no token.
-- **One thread.** Every browser opens the thread whose id is `SHARED_THREAD_ID` in
-  `settings.py`. Create it with `threads.create({ threadId, ifExists: "do_nothing" })`.
-  Opening a thread that does not exist is a 404, so create before the hook mounts.
+- **One thread per person.** A signed-in person opens their own thread, whose id is a
+  hash of their login (`threadIdFor` in `frontend/src/data/agent/use-agent.ts`); with
+  nobody signed in, Studio opens the shared one (`SHARED_THREAD_ID`, in Studio and in
+  `src/agent/config.py`). The service does not check whose a thread is yet (sign-in plan,
+  step 4). Create it with `threads.create({ threadId, ifExists: "do_nothing" })`. Opening
+  a thread that does not exist is a 404, so create before the hook mounts.
 - **Streaming.** Events arrive through the Vite proxy as they are sent, not in one piece.
   nginx needs `proxy_buffering off` for the same.
 - **Reload.** A reload during a run shows the run still going and then its result.

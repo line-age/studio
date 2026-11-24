@@ -116,7 +116,7 @@ export interface QuestionAction {
   detail?: string
 }
 
-/** What came of a card (studio/agent/schemas.py, OutcomeState). */
+/** What came of a card (studio/agent/src/answer/schemas.py, OutcomeState). */
 export type OutcomeState =
   "done" | "declined" | "failed" | "out_of_date" | "dismissed"
 

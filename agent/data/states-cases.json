@@ -1,5 +1,5 @@
 {
-  "about": "Invented lines and the states each runs through. Checked by Studio (src/data/us-states.test.ts) and the Agent (tests/test_states.py): both must give the same answer.",
+  "about": "Invented lines and the states each runs through. Checked by Studio (src/data/us-states.test.ts) and the Agent (tests/unit/test_states.py): both must give the same answer.",
   "cases": [
     {"name": "inside one state", "lines": [[[-97.5, 35.5], [-96.5, 35.6]]], "states": ["Oklahoma"]},
     {"name": "across a border", "lines": [[[-97.5, 33.5], [-97.5, 34.5]]], "states": ["Oklahoma", "Texas"]},
