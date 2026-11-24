@@ -369,7 +369,7 @@ def test_two_owners_found_are_not_a_disagreement_and_no_name_ends_in_two_stops()
 
 
 def test_a_search_left_running_by_stop_is_recorded_as_stopped():
-    from agent import ingress
+    from src.agent.nodes.ingress import ingress
 
     state = {
         "messages": [],

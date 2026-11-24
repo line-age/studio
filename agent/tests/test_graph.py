@@ -367,8 +367,8 @@ def test_a_feature_read_twice_in_one_question_is_fetched_once(world):
 
 
 def test_the_model_cites_a_claim_by_its_handle_and_code_turns_it_into_the_id(world, monkeypatch):
-    import agent
     import tools
+    from src.agent.nodes import answer as agent
 
     made = []
 
@@ -524,7 +524,7 @@ def test_the_reply_keeps_what_the_agent_did_in_plain_words(world):
 
 
 def test_step_words_count_rightly():
-    from agent import read_words
+    from src.agent.reply import read_words
 
     assert read_words(1, 0) == "Read 1 section"
     assert read_words(0, 5) == "Read 5 pipelines"
@@ -548,7 +548,7 @@ def test_a_model_that_keeps_calling_tools_is_stopped_after_a_few_calls(world):
     """A loop with no limit once made hundreds of model calls for one question."""
     from langchain_core.messages import AIMessage
 
-    import agent as agent_module
+    from src.agent import config as agent_module
     from tests.support import ScriptedModel
 
     made = []
@@ -577,7 +577,7 @@ def test_a_model_that_keeps_calling_tools_is_stopped_after_a_few_calls(world):
 def test_past_the_tool_limit_the_model_answers_from_what_it_has(world):
     """A real question died after twelve tool calls with nothing written: the limit ended
     the loop. Now a call past the limit is refused and the next draft is the answer."""
-    import agent as agent_module
+    from src.agent import config as agent_module
 
     s01 = world["codes"]["s01"]
     again = [("find_sections", {})]

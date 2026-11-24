@@ -1,4 +1,5 @@
-"""Settings, read from the environment. No key or token has a default."""
+"""Settings, read from the environment, and the Agent's fixed limits. No key or token has
+a default."""
 
 import os
 from collections.abc import Mapping
@@ -16,6 +17,21 @@ MAX_QUESTION_CHARS = 4000
 
 # The most years one cite search reads (owner, 2026-11-14): about 104 weekly issues.
 CITE_WINDOW_YEARS = 2
+
+# The most tool calls one try at one question may make, and the most model calls. Past
+# the tool limit a call is refused and the model has to answer from what it has, so the
+# model limit leaves room for that answer.
+TOOL_CALLS = 4
+MODEL_CALLS = TOOL_CALLS + 2
+
+# How much of the chat the model is shown, to know what the person means.
+HISTORY_TURNS = 4
+HISTORY_ANSWER_CHARS = 500
+
+# How long one pass of `cite_wait` waits for news before the graph shows what it has.
+CITE_POLL_SECONDS = 2.0
+# Step lines kept from a search: the latest ones, as a person follows them.
+CITE_STEPS = 40
 
 
 @dataclass(frozen=True)
