@@ -11,6 +11,7 @@ from src.agent.config import (
     CONTEXT_FOR,
     HISTORY_ANSWER_CHARS,
     HISTORY_TURNS,
+    MAX_ATTACHED,
     MAX_QUESTION_CHARS,
 )
 from src.agent.deps import Deps
@@ -195,6 +196,12 @@ def _passes(error: Exception) -> bool:
     )
 
 
+def _cut_off(error: Exception) -> bool:
+    """The model stopped at its output limit, so its draft is not whole."""
+    message = getattr(error, "ai_message", None)
+    return getattr(message, "response_metadata", {}).get("stop_reason") == "max_tokens"
+
+
 def answer(deps: Deps, state: AgentState, config: RunnableConfig) -> dict:
     store, cite = deps.store, deps.cite
     seen = len(state["messages"])
@@ -230,6 +237,10 @@ def answer(deps: Deps, state: AgentState, config: RunnableConfig) -> dict:
         # A go-ahead is a button, never words (plan D6).
         line = Statement(kind="refusal", text=cite_flow.CITE_LINES["propose_words"])
         return finish(Answer(statements=[line]), message, [], seen)
+    if len(question.about) > MAX_ATTACHED:
+        # Nothing is read: a change asked in words has its own limit, checked above.
+        blocked = [[f"{len(question.about)} things attached, over {MAX_ATTACHED}"]]
+        return finish(failure("too_many_attached"), message, [], seen, blocked)
     if question.about:
         steering = None
     # A follow-up: nothing attached and no search to steer, so the things of the
@@ -302,6 +313,10 @@ def answer(deps: Deps, state: AgentState, config: RunnableConfig) -> dict:
                 steps=steps,
             )
         except Exception as error:  # noqa: BLE001 - the model or its output failed: say so
+            if _cut_off(error):
+                # Too long for the output limit: the same size would be cut off again.
+                blocked.append(["the answer was cut off at the output limit (max_tokens)"])
+                return finish(failure("check_failed"), message, tools, seen, blocked, steps=steps)
             blocked.append([f"the run failed: {type(error).__name__}: {str(error)[:300]}"])
             return finish(failure("model_failed"), message, tools, seen, blocked, steps=steps)
         run = result["messages"][len(messages) :]

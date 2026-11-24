@@ -6,6 +6,7 @@ from typing import Any
 from langchain.tools import ToolRuntime
 from langchain_core.tools import tool
 
+from src.agent.config import FULL_VIEWS
 from src.clients.store_client import StoreError
 from src.tools.question import QuestionContext
 from src.tools.views import feature_view, not_found, with_merged
@@ -32,8 +33,9 @@ def read_feature(
             return not_found(feature_id)
         raise
     merged, missing = with_merged(store, feature)
+    whole = len(question.features_read) < FULL_VIEWS
     question.features_read.add(feature_id)
-    view = feature_view(feature, merged, question.handles)
+    view = feature_view(feature, merged, question.handles, citations=whole)
     if missing:
         view["could_not_read"] = (
             f"{len(missing)} trace(s) merged into this section could not be read, so "

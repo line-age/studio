@@ -30,8 +30,16 @@ import { AgentConversation, type Agent } from "./agent-conversation"
 import { AgentInbox } from "./agent-inbox"
 import { INBOX_SHOWN } from "./inbox-shown"
 import { AttachPicker } from "./attach-picker"
+import { SendWhenFree } from "./send-when-free"
 import { useRevealSection, useStudioData } from "../studio-data"
 import { useStudio, type SentQuestion } from "../studio-store"
+
+/** A message sent while the Agent answers, with what was attached to it. */
+interface Waiting {
+  words: string
+  attachments: ReturnType<typeof useStudio.getState>["agentAttachments"]
+  refs: AgentRef[]
+}
 
 /*
  * The Agent panel: the conversation the fixture holds, then the questions
@@ -359,14 +367,62 @@ export function AgentPanel() {
   // A message the Agent could not take stays in the box; this says why, for
   // as long as the reason holds.
   const [held, setHeld] = useState<"working" | "down" | null>(null)
+  // A message sent while the Agent answers waits here, with what was attached,
+  // and goes as soon as the Agent is free (plan 2026-11-24-001, B). One at a time.
+  const [waiting, setWaiting] = useState<Waiting | null>(null)
+  const sendNow = (agent: Agent, { words, attachments, refs }: Waiting) => {
+    // A claim, a source or a proposal goes by its id: the sections they are on
+    // are read first, if they are not yet.
+    const sectionIds = [
+      ...new Set(
+        refs.flatMap((ref) =>
+          ref.kind === "claim"
+            ? ref.owner === "section"
+              ? [ref.ownerId]
+              : []
+            : [ref.sectionId]
+        )
+      ),
+    ]
+    void ensureDetails(sectionIds).then((details) => {
+      const question = buildQuestion({
+        words,
+        sections: attachments,
+        refs,
+        network,
+        details,
+      })
+      // If it never gets an answer, the words and what was attached come back
+      // to the box.
+      void agent.ask(question, () => {
+        // Never over words the person has typed since.
+        if (messageRef.current?.value.trim()) return
+        useStudio.getState().askAgent(attachments, { refs, words })
+      })
+    })
+  }
   // The attach picker is open above the message.
   const [picking, setPicking] = useState(false)
 
   const attachments = useStudio((s) => s.agentAttachments)
   const composer = (agent: Agent | null) => (
     <div className="flex shrink-0 flex-col gap-2 px-3 pb-3">
+      {waiting && agent?.working && (
+        <Marker>
+          The Agent is still answering. Your message is sent when it finishes.
+        </Marker>
+      )}
       {held === "working" && agent?.working && (
         <Marker>The Agent is still answering. Your message waits here.</Marker>
+      )}
+      {agent && waiting && (
+        <SendWhenFree
+          working={agent.working}
+          onFree={() => {
+            setWaiting(null)
+            sendNow(agent, waiting)
+          }}
+        />
       )}
       {held === "down" && fromStore && !agent && (
         <Marker>The Agent is not running. Your message waits here.</Marker>
@@ -401,39 +457,17 @@ export function AgentPanel() {
           const refs = s.agentRefs
           if (agent) {
             if (agent.working) {
-              setHeld("working")
-              return false
+              // One message waits at a time; a second stays in the box.
+              if (waiting) {
+                setHeld("working")
+                return false
+              }
+              setWaiting({ words, attachments, refs })
+              s.clearAgentDraft()
+              return
             }
             setHeld(null)
-            // A claim, a source or a proposal goes by its id: the sections
-            // they are on are read first, if they are not yet.
-            const sectionIds = [
-              ...new Set(
-                refs.flatMap((ref) =>
-                  ref.kind === "claim"
-                    ? ref.owner === "section"
-                      ? [ref.ownerId]
-                      : []
-                    : [ref.sectionId]
-                )
-              ),
-            ]
-            void ensureDetails(sectionIds).then((details) => {
-              const question = buildQuestion({
-                words,
-                sections: attachments,
-                refs,
-                network,
-                details,
-              })
-              // If it never gets an answer, the words and what was attached
-              // come back to the box.
-              void agent.ask(question, () => {
-                // Never over words the person has typed since.
-                if (messageRef.current?.value.trim()) return
-                useStudio.getState().askAgent(attachments, { refs, words })
-              })
-            })
+            sendNow(agent, { words, attachments, refs })
             s.clearAgentDraft()
             return
           }
@@ -475,7 +509,17 @@ export function AgentPanel() {
       </PanelHeader>
       {INBOX_SHOWN && <AgentInbox />}
       {fromStore ? (
-        <AgentConversation composer={(agent) => composer(agent)} />
+        <AgentConversation
+          composer={(agent) => composer(agent)}
+          // A message waiting to be sent goes back to the box, not into a
+          // chat being cleared.
+          onClear={() => {
+            if (!waiting) return
+            const { attachments, refs, words } = waiting
+            setWaiting(null)
+            useStudio.getState().askAgent(attachments, { refs, words })
+          }}
+        />
       ) : (
         <>
           <div

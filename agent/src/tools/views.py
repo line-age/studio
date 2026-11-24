@@ -25,15 +25,20 @@ _CLAIM_FIELDS = (
 )
 
 
-def claim_view(claim: dict[str, Any], handles: Handles) -> dict[str, Any]:
+def claim_view(claim: dict[str, Any], handles: Handles, citations: bool = True) -> dict[str, Any]:
     view = {k: claim[k] for k in _CLAIM_FIELDS if claim.get(k) is not None}
     view["id"] = handles.of(claim["id"])
     if claim.get("value_geom"):
         view["value"] = "a traced line (not shown, never a value to state)"
-    view["citations"] = [
-        {k: c[k] for k in ("role", "source_title", "source_kind", "locator", "quote") if c.get(k)}
-        for c in claim.get("citations") or []
-    ]
+    if citations:
+        view["citations"] = [
+            {
+                k: c[k]
+                for k in ("role", "source_title", "source_kind", "locator", "quote")
+                if c.get(k)
+            }
+            for c in claim.get("citations") or []
+        ]
     view["reviews"] = [r["verdict"] for r in claim.get("reviews") or []]
     return view
 
@@ -46,16 +51,24 @@ def own_claims(feature: dict[str, Any], handles: Handles) -> list[dict[str, Any]
 
 
 def feature_view(
-    feature: dict[str, Any], merged: list[dict[str, Any]], handles: Handles
+    feature: dict[str, Any],
+    merged: list[dict[str, Any]],
+    handles: Handles,
+    citations: bool = True,
 ) -> dict[str, Any]:
-    return {
+    """A feature as the model sees it; without `citations`, its claims' sources are left
+    out (code still shows them with the answer)."""
+    view = {
         "id": feature["id"],
         "kind": feature["kind"],
         "label": feature.get("label"),
         "dates": feature.get("dates"),
-        "claims": [claim_view(c, handles) for c in feature["claims"]],
+        "claims": [claim_view(c, handles, citations) for c in feature["claims"]],
         "held_through_a_merged_trace": [
-            {"trace_id": m["id"], "claims": [claim_view(c, handles) for c in m["claims"]]}
+            {
+                "trace_id": m["id"],
+                "claims": [claim_view(c, handles, citations) for c in m["claims"]],
+            }
             for m in merged
         ],
         "links": [
@@ -63,6 +76,13 @@ def feature_view(
             for link in feature["links"]
         ],
     }
+    if not citations:
+        view["citations_left_out"] = (
+            "Many things were read for this question, so this one's claims are shown "
+            "without their citations. Pick claims by handle as usual; code shows each "
+            "claim's source with the answer."
+        )
+    return view
 
 
 def _merged_into(feature: dict[str, Any]) -> list[str]:
