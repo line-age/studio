@@ -404,9 +404,11 @@ export type Agent = ReturnType<typeof useAgent>
 /** The live conversation, then the composer. Remounted after "Clear chat". */
 function Conversation({
   onCleared,
+  onClear,
   composer,
 }: {
   onCleared: () => void
+  onClear?: () => void
   composer: (agent: Agent) => React.ReactNode
 }) {
   const agent = useAgent()
@@ -535,6 +537,7 @@ function Conversation({
               size="sm"
               onClick={() => {
                 setConfirmClear(false)
+                onClear?.()
                 void agent.clear().then(onCleared)
               }}
             >
@@ -580,8 +583,11 @@ function Conversation({
 
 export function AgentConversation({
   composer,
+  onClear,
 }: {
   composer: (agent: Agent | null) => React.ReactNode
+  /** The person confirmed Clear chat; runs before the chat is cleared. */
+  onClear?: () => void
 }) {
   const [epoch, setEpoch] = useState(0)
   const thread = useSharedThread(epoch)
@@ -603,6 +609,7 @@ export function AgentConversation({
     <Conversation
       key={epoch}
       onCleared={() => setEpoch((e) => e + 1)}
+      onClear={onClear}
       composer={composer}
     />
   )

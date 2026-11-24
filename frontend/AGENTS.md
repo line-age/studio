@@ -616,7 +616,12 @@ This is a Vite SPA. The Vercel skills are written for Next.js as well. Do not fo
   app's `/agent` path (`src/data/agent/`, `panels/agent-conversation.tsx`): one shared
   thread, kept by the service, shown again after a reload, with Stop, "Start fresh" (the
   action `fresh_start`: the messages go, what cite found stays, so Propose and steering
-  still work) and "Clear chat" (asks first: it clears the chat for everyone). From 12 turns
+  still work) and "Clear chat" (asks first: it clears the chat for everyone). A message sent
+  while the Agent answers waits, with what was attached, and goes when it finishes
+  (`panels/send-when-free.tsx`; one at a time, a second stays in the box; Clear chat puts
+  it back in the box). A key or token in the words is replaced before any question
+  leaves the browser (`data/agent/secrets.ts`, the Agent's `contract/secret-patterns.json`,
+  held equal by a test). From 12 turns
   a quiet line suggests starting fresh; no colour, since the Agent reads no earlier turn.
   Only an answer the service checked is shown. Its contract is
   `agent/contract/`, whose examples the tests read. An answer is shown as Figma
