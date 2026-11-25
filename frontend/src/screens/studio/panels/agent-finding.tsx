@@ -43,9 +43,13 @@ const IN_STORE_WORDS = {
   rejected: "Already rejected",
 } as const
 
-/** Where it was found: the document, then the source it is held by. */
+/**
+ * Where it was found: the document, its date when the title does not already
+ * carry it, then the source it is held by.
+ */
 function reference(f: AgentFinding): string {
-  return `${f.title} · ${f.source}`
+  const dated = f.date && !f.title.includes(f.date) ? `, ${f.date}` : ""
+  return `${f.title}${dated} · ${f.source}`
 }
 
 /** "0.85, 4 of 5 checks": the number is a count of checks, never a chance. */

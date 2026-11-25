@@ -204,6 +204,21 @@ describe("how sure a finding is", () => {
     expect(it.queryByRole("img")).toBeNull()
     expect(it.queryByRole("button", { name: "Show the page" })).toBeNull()
   })
+
+  it("adds the document's date when its title does not carry it", async () => {
+    const undatedTitle = {
+      ...first,
+      finding: { ...first.finding!, title: "Invented Gas Review" },
+    }
+    await renderInStudio(
+      <AgentStatementView statement={undatedTitle} name={name} open={vi.fn()} />
+    )
+    expect(
+      within(card()).getByText(
+        `Invented Gas Review, ${first.finding!.date} · ${first.finding!.source}`
+      )
+    ).toBeVisible()
+  })
 })
 
 describe("a lead", () => {
