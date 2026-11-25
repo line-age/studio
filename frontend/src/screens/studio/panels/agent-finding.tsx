@@ -12,11 +12,6 @@ import {
   type DecisionTone,
 } from "@/components/decision-card"
 import { Button } from "@/components/ui/button"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import type { AgentFinding } from "@/data/agent/answer"
 import { sectionLabel } from "@/data/derive"
 
@@ -42,69 +37,28 @@ export const PipelineOfSection = createContext<
   (sectionId: string) => { id: string; name: string } | null
 >(() => null)
 
-/** The part of the page around the passage, with the passage marked. */
-function PageCrop({ finding }: { finding: AgentFinding }) {
-  const { highlight, image_url, page_width, page_height } = finding
-  if (!image_url || !page_width || !page_height || highlight.length === 0)
-    return null
-  // The same crop cite's own report draws: the passage with a margin round it.
-  const x0 = Math.max(0, Math.min(...highlight.map((b) => b.x0)) - 0.05)
-  const x1 = Math.min(1, Math.max(...highlight.map((b) => b.x1)) + 0.05)
-  const y0 = Math.max(0, Math.min(...highlight.map((b) => b.y0)) - 0.04)
-  const y1 = Math.min(1, Math.max(...highlight.map((b) => b.y1)) + 0.04)
-  const rw = x1 - x0
-  const rh = y1 - y0
-  const pct = (n: number) => `${(n * 100).toFixed(4)}%`
-  return (
-    <div
-      className="relative w-full overflow-hidden rounded-md border border-border-subtle"
-      style={{ aspectRatio: (rw * page_width) / (rh * page_height) }}
-    >
-      <img
-        src={image_url}
-        alt={`The page, ${finding.page}`}
-        loading="lazy"
-        className="absolute max-w-none"
-        style={{ width: pct(1 / rw), left: pct(-x0 / rw), top: pct(-y0 / rh) }}
-      />
-      {highlight.map((b, i) => (
-        <div
-          key={i}
-          aria-hidden
-          className="absolute bg-state-note-subtle/60 outline-2 outline-state-note-foreground/60 outline-solid"
-          style={{
-            left: pct((b.x0 - x0) / rw),
-            top: pct((b.y0 - y0) / rh),
-            width: pct((b.x1 - b.x0) / rw),
-            height: pct((b.y1 - b.y0) / rh),
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-
 const IN_STORE_WORDS = {
   accepted: "Already accepted",
   candidate: "Already proposed",
   rejected: "Already rejected",
 } as const
 
-/** An issue's date as the Agent words it: "1 March 1932". */
-export function issueDate(iso: string): string {
-  const [year, month, day] = iso.slice(0, 10).split("-").map(Number)
-  if (!year || !month || !day) return iso
-  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  })
+/**
+ * Where it was found: the document, its date when the title does not already
+ * carry it, then the source it is held by.
+ */
+function reference(f: AgentFinding): string {
+  const dated = f.date && !f.title.includes(f.date) ? `, ${f.date}` : ""
+  return `${f.title}${dated} · ${f.source}`
 }
 
-function reference(f: AgentFinding): string {
-  const issue = f.volume && f.number ? `, vol. ${f.volume} no. ${f.number}` : ""
-  return `${f.journal}${issue}, ${f.page} · ${issueDate(f.date)}`
+/** "0.85, 4 of 5 checks": the number is a count of checks, never a chance. */
+function confidenceWords(f: AgentFinding): string {
+  const passed = f.checks.filter((c) => c.passed).length
+  const score = f.confidence.toFixed(2)
+  return f.checks.length === 0
+    ? score
+    : `${score}, ${passed} of ${f.checks.length} checks`
 }
 
 /** The card's title: what was found, as a fact would read. */
@@ -114,32 +68,12 @@ function titleOf(f: AgentFinding): string {
   return `Built: ${f.date_words}`
 }
 
-/** The page with the passage marked, in a pop-up beside the card. */
-function ShowThePage({ finding }: { finding: AgentFinding }) {
-  if (!finding.image_url || finding.highlight.length === 0) return null
-  return (
-    <Popover>
-      <PopoverTrigger
-        render={
-          <button
-            type="button"
-            className="rounded-sm type-ui-xs-medium text-link underline-offset-2 outline-none hover:underline focus-visible:shadow-focus-ring"
-          />
-        }
-      >
-        Show the page
-      </PopoverTrigger>
-      <PopoverContent className="w-96">
-        <PageCrop finding={finding} />
-      </PopoverContent>
-    </Popover>
-  )
-}
-
 /*
- * What cite found in a journal, as one card (Figma section 29, board B): the
- * value as the title, the page's own words, the source, and where it would
- * go. Propose writes a candidate claim, never an accepted one; the card then
+ * What cite found in a source, as one card (Figma section 29, board B, without
+ * the page image: cite reads text only): the value as the title, the page's
+ * own words, the source, how sure it is and why, and where it would go. A
+ * lead scored below what a finding needs: it is shown with its link and is
+ * never proposed. Propose writes a candidate claim, never an accepted one; the card then
  * points to the inbox, where a person decides it. An owner goes to the
  * section's pipeline unless the person says this section only. Dismiss
  * writes nothing and is kept in the thread.
@@ -202,21 +136,21 @@ export function AgentFindingCard({
   else if (!finding.proposable)
     shown = {
       tone: "closed",
-      title: "Not offered to propose",
+      title: finding.lead
+        ? "A lead, not offered to propose"
+        : "Not offered to propose",
       detail: finding.not_proposable ?? undefined,
     }
 
   const busy = !onPropose || cards.report === null
-  const links = (
-    <span className="flex items-center gap-3">
-      {pipeline && shown === null && outcome?.state !== "pending" && (
-        <DecisionCardLink onClick={() => setSectionOnly((v) => !v)}>
-          {sectionOnly ? `To ${pipeline.name}` : "This section only"}
-        </DecisionCardLink>
-      )}
-      <ShowThePage finding={finding} />
-    </span>
-  )
+  const links =
+    pipeline && shown === null && outcome?.state !== "pending" ? (
+      <DecisionCardLink onClick={() => setSectionOnly((v) => !v)}>
+        {sectionOnly ? `To ${pipeline.name}` : "This section only"}
+      </DecisionCardLink>
+    ) : undefined
+  const passed = finding.checks.filter((c) => c.passed)
+  const notPassed = finding.checks.filter((c) => !c.passed)
 
   return (
     <DecisionCard by={by} label={`Finding ${finding.handle}: ${title}`}>
@@ -224,9 +158,11 @@ export function AgentFindingCard({
         by={by}
         title={title}
         who={
-          toPipeline
-            ? "Found by cite, not saved. An owner belongs to the pipeline, so Propose sends it there."
-            : "Found by cite, not saved. Propose sends it to be decided."
+          finding.lead
+            ? "A lead found by cite, not saved. Too little ties it to this section to propose it."
+            : toPipeline
+              ? "Found by cite, not saved. An owner belongs to the pipeline, so Propose sends it there."
+              : "Found by cite, not saved. Propose sends it to be decided."
         }
         aside={
           <DecisionCardLink href={finding.url}>Open page</DecisionCardLink>
@@ -243,6 +179,19 @@ export function AgentFindingCard({
         )}
         <DecisionCardRow label="Page says">“{finding.quote}”</DecisionCardRow>
         <DecisionCardRow label="Source">{reference(finding)}</DecisionCardRow>
+        <DecisionCardRow label="How sure">
+          {confidenceWords(finding)}
+        </DecisionCardRow>
+        {passed.length > 0 && (
+          <DecisionCardRow label="Passed">
+            {passed.map((c) => c.label).join(". ")}.
+          </DecisionCardRow>
+        )}
+        {notPassed.length > 0 && (
+          <DecisionCardRow label="Missing">
+            {notPassed.map((c) => c.label).join(". ")}.
+          </DecisionCardRow>
+        )}
         {finding.places_matched.length > 0 && (
           <DecisionCardRow label="Matched">
             {finding.places_matched

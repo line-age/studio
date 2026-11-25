@@ -16,7 +16,7 @@ from evals.make_world import scope
 from src.answer.render import FIXED_LINES, feature_name
 from src.clients import value_rules
 from src.flows import change_flow
-from src.flows.cite_flow import CITE_LINES, FOUND, IN_DOUBT, IN_STORE_WORDS
+from src.flows.cite_flow import CITE_LINES, FOUND, IN_DOUBT, IN_STORE_WORDS, LEAD
 from src.worked_out import geometry
 from src.worked_out.places import END_M, all_places
 from src.worked_out.states import all_states, states_of
@@ -802,12 +802,14 @@ def _cite_problems(
         lead = (
             f"Found, already in store as {IN_STORE_WORDS[held]}:"
             if held
-            else (IN_DOUBT if f.get("flags") else FOUND) + ":"
+            else (LEAD if f.get("lead") else IN_DOUBT if f.get("flags") else FOUND) + ":"
         )
         if not text.startswith(lead):
             problems.append(f"{where}: a finding does not say whether it is in store")
-        if not held and bool(f.get("flags")) != text.startswith(IN_DOUBT):
+        if not held and not f.get("lead") and bool(f.get("flags")) != text.startswith(IN_DOUBT):
             problems.append(f"{where}: a finding in doubt must say so, and only then")
+        if f.get("lead") and f.get("proposable"):
+            problems.append(f"{where}: a lead must never be offered to Propose")
         return problems
     if kind == "ask_places":
         return [] if text == CITE_LINES["ask_places"] else [f"{where}: not code's line"]
@@ -907,7 +909,7 @@ def ungrounded(
             offer = statement.get("search") or {}
             if world["features"].get(offer.get("section_id"), {}).get("kind") != "section":
                 problems.append(f"{where}: section {offer.get('section_id')} is not in store")
-            if not re.match(r"^Search the journals for the .+$", text):
+            if not re.match(r"^Search our sources for the .+$", text):
                 problems.append(f"{where}: not code's line")
             continue
         if kind == "change_offer":

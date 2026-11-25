@@ -1,35 +1,5 @@
 {
   "$defs": {
-    "Box": {
-      "additionalProperties": false,
-      "description": "A highlight rectangle, 0 to 1 of the page image.",
-      "properties": {
-        "x0": {
-          "title": "X0",
-          "type": "number"
-        },
-        "y0": {
-          "title": "Y0",
-          "type": "number"
-        },
-        "x1": {
-          "title": "X1",
-          "type": "number"
-        },
-        "y1": {
-          "title": "Y1",
-          "type": "number"
-        }
-      },
-      "required": [
-        "x0",
-        "y0",
-        "x1",
-        "y1"
-      ],
-      "title": "Box",
-      "type": "object"
-    },
     "ChangeBasis": {
       "additionalProperties": false,
       "description": "What a section was when the offer was made. Studio compares it with what it reads\nbefore it writes: a section that moved since is out of date, and nothing is sent.",
@@ -275,47 +245,15 @@
           "title": "Quote",
           "type": "string"
         },
-        "journal": {
-          "title": "Journal",
+        "source": {
+          "title": "Source",
           "type": "string"
         },
-        "volume": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Volume"
-        },
-        "number": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Number"
+        "title": {
+          "title": "Title",
+          "type": "string"
         },
         "date": {
-          "title": "Date",
-          "type": "string"
-        },
-        "page": {
-          "title": "Page",
-          "type": "string"
-        },
-        "url": {
-          "title": "Url",
-          "type": "string"
-        },
-        "image_url": {
           "anyOf": [
             {
               "type": "string"
@@ -325,38 +263,29 @@
             }
           ],
           "default": null,
-          "title": "Image Url"
+          "title": "Date"
         },
-        "page_width": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Page Width"
+        "url": {
+          "title": "Url",
+          "type": "string"
         },
-        "page_height": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Page Height"
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
         },
-        "highlight": {
+        "checks": {
           "items": {
-            "$ref": "#/$defs/Box"
+            "$ref": "#/$defs/FindingCheck"
           },
-          "title": "Highlight",
+          "title": "Checks",
           "type": "array"
+        },
+        "lead": {
+          "default": false,
+          "title": "Lead",
+          "type": "boolean"
         },
         "flags": {
           "items": {
@@ -421,12 +350,37 @@
         "value",
         "date_words",
         "quote",
-        "journal",
-        "date",
-        "page",
-        "url"
+        "source",
+        "title",
+        "url",
+        "confidence"
       ],
       "title": "Finding",
+      "type": "object"
+    },
+    "FindingCheck": {
+      "additionalProperties": false,
+      "description": "One check behind a finding's confidence, in words a person reads.",
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "passed"
+      ],
+      "title": "FindingCheck",
       "type": "object"
     },
     "FindingFlag": {
@@ -717,6 +671,16 @@
           "default": true,
           "title": "Ready",
           "type": "boolean"
+        },
+        "web_searches": {
+          "default": 6,
+          "title": "Web Searches",
+          "type": "integer"
+        },
+        "pages": {
+          "default": 6,
+          "title": "Pages",
+          "type": "integer"
         }
       },
       "required": [

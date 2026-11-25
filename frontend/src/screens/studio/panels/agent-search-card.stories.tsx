@@ -6,7 +6,7 @@ import { inStudio, type CardStoryArgs } from "@/test/studio-story"
 import { AgentSearchCard } from "./agent-search-card"
 
 /**
- * A search of the journals, offered before it runs (Figma section 29, board
+ * A search of our sources, offered before it runs (Figma section 29, board
  * A), on the invented test network. Only Search spends; the card follows it.
  */
 type Args = React.ComponentProps<typeof AgentSearchCard> & CardStoryArgs
@@ -18,7 +18,7 @@ const meta = {
   // The grey block's colours: a token question for Figma (see DecisionCard).
   parameters: { a11y: { test: "todo" } },
   args: {
-    title: "Search the journals for the owner",
+    title: "Search our sources for the owner",
     offer: {
       id: "search-1",
       section_id: "s-1",
@@ -27,6 +27,8 @@ const meta = {
       places: ["Alder", "Birch"],
       from_line: true,
       ready: true,
+      web_searches: 6,
+      pages: 6,
     },
     onReport: fn(),
     onStart: fn(),
@@ -68,6 +70,8 @@ export const NeedsTowns: Story = {
       places: [],
       from_line: false,
       ready: false,
+      web_searches: 6,
+      pages: 6,
     },
   },
   play: async ({ canvas }) => {

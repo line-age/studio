@@ -14,31 +14,49 @@ from typing import Any
 from src.clients.cite_client import CiteBusy
 
 JOURNAL = "The Example Trade Journal"
-LINES = ["searching 6 planned queries", "reading The Example Trade Journal, 1931-03-12, p.41"]
+SOURCE = {"domain": "example.org", "name": "Example Archive"}
+LINES = [
+    "corpus: not available yet",
+    "searching the web: Sampleton Exampleville pipe line 1931 (4 results)",
+    "reading The Example Trade Journal 1931-03-12: Vol 12 Iss 3",
+]
+CUTOFF = 0.6
+WEIGHTS = {
+    "quote_on_page": 0.40,
+    "company_near": 0.20,
+    "town_near": 0.15,
+    "date_fits": 0.10,
+    "second_source": 0.15,
+}
 
 
 def citation(
-    n: int, date: str, page: str, text: str, places: list[str] | None = None
+    n: int, date: str | None, page: str, text: str, places: list[str] | None = None
 ) -> dict[str, Any]:
+    """A quote on an invented journal issue; `page` only tells two quotes apart."""
+    item = f"example-trade-journal-{date or 'undated'}-{n}"
     return {
-        "id": f"sim_example-trade-journal_{date}_12_{n}:40:3-24",
-        "journal": JOURNAL,
-        "issue_id": f"sim_example-trade-journal_{date}_12_{n}",
+        "id": f"{item}:{page}",
+        "source": SOURCE["domain"],
+        "source_name": SOURCE["name"],
+        "document": f"https://example.org/details/{item}",
+        "title": f"{JOURNAL} {date}: Vol 12 Iss {n}" if date else JOURNAL,
         "date": date,
-        "volume": 12,
-        "number": n,
-        "leaf": 40,
-        "printed_page": page,
-        "printed_page_confidence": 95.0,
         "quote": text,
         "page_text": text,
-        "url": f"https://example.org/details/example-trade-journal-{date}/page/n40",
-        "image_url": f"https://example.org/download/example-trade-journal-{date}/page/n40.jpg",
-        "page_width": 3600,
-        "page_height": 5000,
-        "highlight": [{"x0": 0.1, "y0": 0.3, "x1": 0.6, "y1": 0.32}],
+        "passage": text,
+        "url": f"https://example.org/details/{item}?q=%22{page}%22",
         "places_matched": places or [],
     }
+
+
+def checks(**passed: bool) -> list[dict[str, Any]]:
+    """The five checks, the quote always on the page; the rest pass unless said."""
+    out = []
+    for name, weight in WEIGHTS.items():
+        ok = True if name == "quote_on_page" else passed.get(name, name != "second_source")
+        out.append({"name": name, "passed": ok, "adds": weight if ok else 0.0, "note": ""})
+    return out
 
 
 def claim(
@@ -48,30 +66,44 @@ def claim(
     cites: dict[str, Any],
     sense: str = "laying",
     flags: dict[str, str] | None = None,
+    **passed: bool,
 ) -> dict[str, Any]:
     flags = flags or {}
+    behind = checks(**passed)
+    confidence = round(sum(c["adds"] for c in behind), 2)
+    lead = confidence < CUTOFF or "judge_unclear" in flags
     return {
         "id": f"{attribute}:{value}:{cites['id']}",
         "attribute": attribute,
         "value": value,
         "normalized": normalized,
         "date_sense": sense,
-        "status": "flagged" if flags else "verified",
+        "kind": "lead" if lead else "finding",
+        "confidence": confidence,
+        "checks": behind,
         "flags": list(flags),
         "flag_reasons": flags,
         "citation_ids": [cites["id"]],
     }
 
 
-def searched(attribute: str, issues: int = 104) -> dict[str, Any]:
-    return {
-        "attribute": attribute,
-        "journal": JOURNAL,
-        "searches": 9,
-        "issues_read": issues,
-        "first_issue": "1930-01-02",
-        "last_issue": "1931-12-24",
-    }
+def searched(section: dict[str, Any], citations: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The two steps of every search: corpus, not available yet, then the web."""
+    window = section.get("search_window") or {}
+    years = [window["from"], window["to"]] if window else None
+    places = " ".join(section.get("places") or [])
+    read = len({c["document"] for c in citations}) or 2
+    return [
+        {"step": "corpus", "ran": False, "why_not": "not available yet"},
+        {
+            "step": "web",
+            "ran": True,
+            "queries": [f"{places} pipe line".strip(), f"{places} gas line laid".strip()],
+            "sources": [{**SOURCE, "results": 7, "pages_read": read, "not_read": 0}],
+            "pages_read": read,
+            "years": years,
+        },
+    ]
 
 
 def result(
@@ -85,8 +117,11 @@ def result(
     comes back unknown, with what was searched."""
     found = {c["attribute"] for c in claims}
     asked = section.get("attributes") or ["YearConstructed", "Ownership", "Size", "LineType"]
+    steps = searched(section, citations)
+    if status != "ok":
+        steps[1] = {"step": "web", "ran": False, "why_not": "the search failed"}
     return {
-        "schema_version": "0.3",
+        "schema_version": "0.4",
         "status": status,
         "reason": "" if status == "ok" else "invented failure",
         "section": copy.deepcopy(section),
@@ -96,7 +131,14 @@ def result(
             {"attribute": a, "note": "No verified passage."} for a in asked if a not in found
         ],
         "attempts": attempts or [],
-        "searched": [searched(a) for a in asked],
+        "searched": steps,
+        "not_read": [],
+        "limits": {
+            "web_searches": {"used": 2, "allowed": 6},
+            "pages_read": {"used": steps[1].get("pages_read", 0), "allowed": 6},
+            "model_calls": {"used": 5, "allowed": 10},
+        },
+        "cutoff": CUTOFF,
     }
 
 
@@ -124,7 +166,6 @@ def owner_found(section: dict[str, Any]) -> dict[str, Any]:
                 ["low_confidence_no_places"],
                 {"low_confidence_no_places": reason},
             )
-            c["status"] = "flagged"
     ruled = {(r["attribute"], r["value"]) for r in section.get("ruled_out") or []}
     attempts = [
         {
@@ -166,10 +207,8 @@ def two_diameters(section: dict[str, Any]) -> dict[str, Any]:
             {"inches": 12.0},
             two,
             sense="in_operation",
-            flags={
-                "judge_unclear": "the passage could be about the branch line",
-                "location_unconfirmed": "none of the section's places is in the quote",
-            },
+            flags={"judge_unclear": "the passage could be about the branch line"},
+            town_near=False,
         ),
     ]
     return result(section, claims, [one, two])
@@ -185,6 +224,22 @@ def built_by(section: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def weak_lead(section: dict[str, Any]) -> dict[str, Any]:
+    """An owner on an undated page that names no town of the section and no company
+    known for it: the quote is there, little ties it to the section. A lead."""
+    page = citation(7, None, "12", "The Other Gas Co. owns a line in the district.")
+    lead = claim(
+        "Ownership",
+        "Other Gas Co.",
+        {"owner": "other gas"},
+        page,
+        company_near=False,
+        town_near=False,
+        date_fits=False,
+    )
+    return result(section, [lead], [page])
+
+
 def failed(section: dict[str, Any]) -> dict[str, Any]:
     return result(section, [], [], status="failed")
 
@@ -194,6 +249,7 @@ SCRIPTS: dict[str, Script] = {
     "nothing_found": nothing_found,
     "two_diameters": two_diameters,
     "built_by": built_by,
+    "weak_lead": weak_lead,
     "failed": failed,
 }
 

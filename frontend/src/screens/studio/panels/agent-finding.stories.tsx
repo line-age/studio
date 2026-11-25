@@ -21,13 +21,27 @@ const finding: AgentFinding = {
   value: "Alder Gas Co.",
   date_words: "by March 1932",
   quote: "The Alder Gas Co. has completed its line from Alder to Birch.",
-  journal: "Invented Gas Review",
-  volume: 32,
-  number: 3,
+  source: "Invented Archive",
+  title: "Invented Gas Review 1932-03-01: Vol 32 Iss 3",
   date: "1932-03-01",
-  page: "p. 41",
   url: "https://example.org/review/32/3/41",
-  highlight: [],
+  confidence: 0.85,
+  checks: [
+    {
+      label: "The quote is on the page, word for word",
+      passed: true,
+      note: "",
+    },
+    { label: "The company is named in the passage", passed: true, note: "" },
+    {
+      label: "A town of the section is named in the passage",
+      passed: true,
+      note: "",
+    },
+    { label: "The date fits the years searched", passed: true, note: "" },
+    { label: "A second source says the same", passed: false, note: "" },
+  ],
+  lead: false,
   flags: [],
   places_matched: ["Alder", "Birch"],
   places_given: ["Birch"],
@@ -101,6 +115,28 @@ export const InDoubt: Story = {
         { flag: "towns", reason: "The page names the line by its towns." },
       ],
     },
+  },
+}
+
+/** A lead: too little ties it to the section. Shown with its link, never proposed. */
+export const Lead: Story = {
+  args: {
+    finding: {
+      ...finding,
+      lead: true,
+      confidence: 0.4,
+      checks: finding.checks.map((c, i) => ({ ...c, passed: i === 0 })),
+      places_matched: [],
+      places_given: [],
+      proposable: false,
+      not_proposable:
+        "its confidence, 0.40, is below what a finding needs (0.60)",
+    },
+  },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByText("0.40, 1 of 5 checks")).toBeVisible()
+    await expect(canvas.queryByRole("button", { name: "Propose" })).toBeNull()
+    await expect(canvas.getByRole("link", { name: /Open page/ })).toBeVisible()
   },
 }
 

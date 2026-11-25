@@ -75,31 +75,28 @@ STATUS_OF_SENSE = {
 
 
 def bundle(record: dict[str, Any], feature: str | None = None) -> dict[str, Any]:
-    """A finding as store's bundle (plan S8): the issue as source, the page as citation
-    with the page's own words, and one candidate claim, on `feature` (its section unless
+    """A finding as store's bundle (plan S8): the document as source, the quote as
+    citation with the document's own words, and one candidate claim, on `feature` (its section unless
     given). External keys under the system `cite`, so sending it again changes nothing."""
     f = record["finding"]
     on = feature or f["section_id"]
-    number = (
-        f", vol. {f['volume']} no. {f['number']}" if f.get("volume") and f.get("number") else ""
-    )
-    issue = record.get("issue_id") or _key(f["journal"], f["date"])
+    issue = _key(record.get("document") or f["url"])
     source = {
         "ref": "issue",
         "kind": "issue",
-        "title": f"{f['journal']}{number}",
-        "published_edtf": f["date"],
+        "title": f["title"],
         "external_key": {"system": "cite", "key": f"source/{issue}"},
     }
+    if f.get("date"):
+        source["published_edtf"] = f["date"]
     citation = {
         "ref": "page",
         "source": "issue",
-        "locator": f["page"],
         "quote": f["quote"],
         "url": f["url"],
         "external_key": {
             "system": "cite",
-            "key": f"citation/{issue}/{_key(f['page'], f['quote'])}",
+            "key": f"citation/{issue}/{_key(f['quote'])}",
         },
     }
     claim: dict[str, Any] = {
@@ -128,6 +125,6 @@ def bundle(record: dict[str, Any], feature: str | None = None) -> dict[str, Any]
     value = claim.get("value_text") or claim.get("value_num")
     claim["external_key"] = {
         "system": "cite",
-        "key": f"claim/{on}/{claim['attribute']}/{_key(value, issue, f['page'])}",
+        "key": f"claim/{on}/{claim['attribute']}/{_key(value, issue, f['quote'])}",
     }
     return {"sources": [source], "citations": [citation], "claims": [claim]}

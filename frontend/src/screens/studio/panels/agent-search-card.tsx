@@ -19,7 +19,7 @@ import { useStudioData } from "../studio-data"
 import { AgentCards } from "./agent-cards"
 
 /*
- * A search of the journals, offered before it runs (Figma section 29, board
+ * A search of our sources, offered before it runs (Figma section 29, board
  * A). It costs money and minutes, so only Search starts it; Not now and
  * Change towns spend nothing. Change towns puts a sentence in the message box
  * for the person to finish: towns may come only from their own words, store
@@ -41,7 +41,7 @@ export function AgentSearchCard({
   title,
   offer,
 }: {
-  /** The Agent's words: "Search the journals for the owner". */
+  /** The Agent's words: "Search our sources for the owner". */
   title: string
   offer: SearchOffer
 }) {
@@ -69,6 +69,10 @@ export function AgentSearchCard({
       </DecisionCardRow>
       <DecisionCardRow label="Years">{yearsWords(offer.years)}</DecisionCardRow>
       <DecisionCardRow label="Towns">{towns}</DecisionCardRow>
+      <DecisionCardRow label="Searches">
+        Our corpus of the journals is not available yet. The web, our sources
+        only: at most {offer.web_searches} searches and {offer.pages} pages.
+      </DecisionCardRow>
     </DecisionCardRows>
   )
 
@@ -83,7 +87,7 @@ export function AgentSearchCard({
         />
         {rows}
         <DecisionCardProgress
-          label="Searching the journals"
+          label="Searching our sources"
           steps={
             run?.state === "searching" && run.steps.length > 0
               ? run.steps
@@ -112,7 +116,7 @@ export function AgentSearchCard({
         {rows}
         <DecisionCardOutcome tone="done" title="Done">
           {found === 0
-            ? "Nothing was found. What was read is below."
+            ? "Nothing was found. What was searched is below."
             : `Found ${found === 1 ? "1 passage" : `${found} passages`}, below.`}
         </DecisionCardOutcome>
       </DecisionCard>

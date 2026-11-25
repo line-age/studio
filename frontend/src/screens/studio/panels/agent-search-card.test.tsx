@@ -51,10 +51,16 @@ describe("a search card", () => {
   it("reads out the search, and starts it only on Search", async () => {
     const { user, value } = await show(offer)
     const card = within(screen.getByRole("article"))
-    expect(card.getByText("Search the journals for the owner")).toBeVisible()
+    expect(card.getByText("Search our sources for the owner")).toBeVisible()
     expect(card.getByText(/A paid search by cite/)).toBeVisible()
     expect(card.getByText("1931 and 1932")).toBeVisible()
     expect(card.getByText("Sampleton")).toBeVisible()
+    // What will be searched and the most it may do, before the press.
+    expect(
+      card.getByText(
+        /Our corpus of the journals is not available yet\. The web, our sources only: at most 6 searches and 6 pages\./
+      )
+    ).toBeVisible()
     expect(value.start).not.toHaveBeenCalled()
     await user.click(screen.getByRole("button", { name: "Search" }))
     expect(value.start).toHaveBeenCalledWith(offer.search!.id)
@@ -96,7 +102,7 @@ describe("a search card", () => {
     const { user } = await show(offer, value)
     expect(
       screen.getByRole("heading", {
-        name: "Searching the journals for the owner",
+        name: "Searching our sources for the owner",
       })
     ).toBeVisible()
     expect(screen.getByText("Reading page 14 of 23")).toBeVisible()
@@ -108,7 +114,7 @@ describe("a search card", () => {
   it.each<[SearchRun, string]>([
     [
       { state: "done", statements: [] },
-      "Nothing was found. What was read is below.",
+      "Nothing was found. What was searched is below.",
     ],
     [
       {

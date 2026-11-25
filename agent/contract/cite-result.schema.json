@@ -35,85 +35,69 @@
       "title": "CiteAttempt",
       "type": "object"
     },
-    "CiteBox": {
-      "description": "A highlight rectangle, 0 to 1 of the page image.",
+    "CiteCheck": {
+      "description": "One check behind a claim's confidence. cite's code decides each; no model does.",
       "properties": {
-        "x0": {
-          "title": "X0",
+        "name": {
+          "enum": [
+            "quote_on_page",
+            "company_near",
+            "town_near",
+            "date_fits",
+            "second_source"
+          ],
+          "title": "Name",
+          "type": "string"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "adds": {
+          "title": "Adds",
           "type": "number"
         },
-        "y0": {
-          "title": "Y0",
-          "type": "number"
-        },
-        "x1": {
-          "title": "X1",
-          "type": "number"
-        },
-        "y1": {
-          "title": "Y1",
-          "type": "number"
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
         }
       },
       "required": [
-        "x0",
-        "y0",
-        "x1",
-        "y1"
+        "name",
+        "passed",
+        "adds"
       ],
-      "title": "CiteBox",
+      "title": "CiteCheck",
       "type": "object"
     },
     "CiteCitation": {
+      "description": "One quote on one document cite fetched as text: a journal issue, a web page.",
       "properties": {
         "id": {
           "title": "Id",
           "type": "string"
         },
-        "journal": {
-          "title": "Journal",
+        "source": {
+          "title": "Source",
           "type": "string"
         },
-        "issue_id": {
-          "title": "Issue Id",
+        "source_name": {
+          "title": "Source Name",
+          "type": "string"
+        },
+        "document": {
+          "title": "Document",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
           "type": "string"
         },
         "date": {
-          "format": "date",
-          "title": "Date",
-          "type": "string"
-        },
-        "volume": {
           "anyOf": [
             {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Volume"
-        },
-        "number": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Number"
-        },
-        "leaf": {
-          "title": "Leaf",
-          "type": "integer"
-        },
-        "printed_page": {
-          "anyOf": [
-            {
+              "format": "date",
               "type": "string"
             },
             {
@@ -121,19 +105,7 @@
             }
           ],
           "default": null,
-          "title": "Printed Page"
-        },
-        "printed_page_confidence": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Printed Page Confidence"
+          "title": "Date"
         },
         "page_text": {
           "title": "Page Text",
@@ -142,49 +114,6 @@
         "url": {
           "title": "Url",
           "type": "string"
-        },
-        "image_url": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Image Url"
-        },
-        "page_width": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Page Width"
-        },
-        "page_height": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Page Height"
-        },
-        "highlight": {
-          "items": {
-            "$ref": "#/$defs/CiteBox"
-          },
-          "title": "Highlight",
-          "type": "array"
         },
         "places_matched": {
           "items": {
@@ -196,10 +125,10 @@
       },
       "required": [
         "id",
-        "journal",
-        "issue_id",
-        "date",
-        "leaf",
+        "source",
+        "source_name",
+        "document",
+        "title",
         "page_text",
         "url"
       ],
@@ -256,13 +185,26 @@
           "title": "Date Sense",
           "type": "string"
         },
-        "status": {
+        "kind": {
           "enum": [
-            "verified",
-            "flagged"
+            "finding",
+            "lead"
           ],
-          "title": "Status",
+          "title": "Kind",
           "type": "string"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "checks": {
+          "items": {
+            "$ref": "#/$defs/CiteCheck"
+          },
+          "title": "Checks",
+          "type": "array"
         },
         "flags": {
           "items": {
@@ -292,7 +234,8 @@
         "attribute",
         "value",
         "date_sense",
-        "status",
+        "kind",
+        "confidence",
         "citation_ids"
       ],
       "title": "CiteClaim",
@@ -322,64 +265,124 @@
       "title": "CiteClaimIn",
       "type": "object"
     },
-    "CiteSearched": {
+    "CiteLimits": {
       "properties": {
-        "attribute": {
-          "enum": [
-            "YearConstructed",
-            "Ownership",
-            "Size",
-            "LineType"
-          ],
-          "title": "Attribute",
-          "type": "string"
+        "web_searches": {
+          "$ref": "#/$defs/CiteUsed"
         },
-        "journal": {
-          "title": "Journal",
-          "type": "string"
+        "pages_read": {
+          "$ref": "#/$defs/CiteUsed"
         },
-        "searches": {
-          "title": "Searches",
-          "type": "integer"
-        },
-        "issues_read": {
-          "title": "Issues Read",
-          "type": "integer"
-        },
-        "first_issue": {
-          "anyOf": [
-            {
-              "format": "date",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "First Issue"
-        },
-        "last_issue": {
-          "anyOf": [
-            {
-              "format": "date",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Last Issue"
+        "model_calls": {
+          "$ref": "#/$defs/CiteUsed"
         }
       },
       "required": [
-        "attribute",
-        "journal",
-        "searches",
-        "issues_read"
+        "web_searches",
+        "pages_read",
+        "model_calls"
       ],
-      "title": "CiteSearched",
+      "title": "CiteLimits",
+      "type": "object"
+    },
+    "CiteNotRead": {
+      "description": "An address cite tried to read and could not.",
+      "properties": {
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "title": "Source",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "reason"
+      ],
+      "title": "CiteNotRead",
+      "type": "object"
+    },
+    "CiteSearchStep": {
+      "description": "One step of a search, run or not. Corpus comes first and is not available yet;\nthe web step searches the listed sources only.",
+      "properties": {
+        "step": {
+          "enum": [
+            "corpus",
+            "web"
+          ],
+          "title": "Step",
+          "type": "string"
+        },
+        "ran": {
+          "title": "Ran",
+          "type": "boolean"
+        },
+        "why_not": {
+          "default": "",
+          "title": "Why Not",
+          "type": "string"
+        },
+        "queries": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Queries",
+          "type": "array"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/CiteSourceSearched"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "pages_read": {
+          "default": 0,
+          "title": "Pages Read",
+          "type": "integer"
+        },
+        "years": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Years"
+        },
+        "errors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        }
+      },
+      "required": [
+        "step",
+        "ran"
+      ],
+      "title": "CiteSearchStep",
       "type": "object"
     },
     "CiteSection": {
@@ -414,6 +417,39 @@
       "title": "CiteSection",
       "type": "object"
     },
+    "CiteSourceSearched": {
+      "properties": {
+        "domain": {
+          "title": "Domain",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "results": {
+          "default": 0,
+          "title": "Results",
+          "type": "integer"
+        },
+        "pages_read": {
+          "default": 0,
+          "title": "Pages Read",
+          "type": "integer"
+        },
+        "not_read": {
+          "default": 0,
+          "title": "Not Read",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "domain",
+        "name"
+      ],
+      "title": "CiteSourceSearched",
+      "type": "object"
+    },
     "CiteUnknown": {
       "properties": {
         "attribute": {
@@ -437,11 +473,29 @@
       ],
       "title": "CiteUnknown",
       "type": "object"
+    },
+    "CiteUsed": {
+      "properties": {
+        "used": {
+          "title": "Used",
+          "type": "integer"
+        },
+        "allowed": {
+          "title": "Allowed",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "used",
+        "allowed"
+      ],
+      "title": "CiteUsed",
+      "type": "object"
     }
   },
   "properties": {
     "schema_version": {
-      "const": "0.3",
+      "const": "0.4",
       "title": "Schema Version",
       "type": "string"
     },
@@ -500,10 +554,40 @@
     },
     "searched": {
       "items": {
-        "$ref": "#/$defs/CiteSearched"
+        "$ref": "#/$defs/CiteSearchStep"
       },
       "title": "Searched",
       "type": "array"
+    },
+    "not_read": {
+      "items": {
+        "$ref": "#/$defs/CiteNotRead"
+      },
+      "title": "Not Read",
+      "type": "array"
+    },
+    "limits": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CiteLimits"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "cutoff": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cutoff"
     }
   },
   "required": [

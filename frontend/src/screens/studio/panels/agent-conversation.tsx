@@ -491,7 +491,7 @@ function Conversation({
       <div className="flex items-center justify-between px-3 pt-2">
         <span className="type-ui-xs text-muted-foreground">
           {agent.searching
-            ? "The Agent is searching the journals"
+            ? "The Agent is searching our sources"
             : agent.working
               ? "The Agent is reading store"
               : "Your conversation, kept by the Agent"}

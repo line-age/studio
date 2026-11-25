@@ -8,12 +8,14 @@ import pytest
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
 
+from evals import fake_cite
 from evals.fake_cite import FakeCite
 from evals.fake_store import FakeStore, load_world
 from src.agent.graph import build_graph
 from src.answer.schemas import Answer
 from src.flows import cite_flow
 from src.flows.cite_flow import CITE_LINES
+from src.flows.cite_result import CiteResult
 from src.worked_out import context
 from tests.support import scripted
 
@@ -117,7 +119,7 @@ def test_ask_and_find_shows_the_finding_in_codes_words(world):
 
     answer = Answer.model_validate(out["answer"])
     assert answer.checked and kinds(out)[:2] == ["citation_request", "finding"]
-    assert answer.statements[0].text.startswith("Searching the journals for the owner of")
+    assert answer.statements[0].text.startswith("Searching our sources on the web for the owner of")
     finding = answer.statements[1]
     assert finding.text.startswith(f"{cite_flow.FOUND}: Example Pipe Line Co. as the owner")
     assert finding.finding.handle == "F1" and finding.finding.places_given == [
@@ -228,10 +230,14 @@ def test_searched_not_found_names_what_was_read_and_leaves_out_an_outage(world):
     out = chat.ask("Find the owner, through Sampleton.", [s01])
     texts = [s["text"] for s in out["answer"]["statements"] if s["kind"] == "searched"]
     assert texts[0].startswith("Searched, not found: the owner of")
-    assert (
-        "The Example Trade Journal, 104 issues from 2 January 1930 to 24 December 1931" in texts[0]
+    assert texts[0].endswith("Not found here does not mean it does not exist.")
+    # What was searched, step by step: corpus first (not yet), then the web.
+    assert texts[1] == "Our corpus of the journals: not searched, not available yet."
+    assert texts[2].startswith(
+        "Searched the web, our sources only: 2 searches (Sampleton pipe line;"
     )
-    assert texts[1].startswith("cite turned down 1 other proposed value:")
+    assert "Pages read: Example Archive (2)." in texts[2]
+    assert texts[3].startswith("cite turned down 1 other proposed value:")
 
 
 def test_sources_that_disagree_are_shown_side_by_side_and_doubt_has_its_reasons(world):
@@ -244,8 +250,12 @@ def test_sources_that_disagree_are_shown_side_by_side_and_doubt_has_its_reasons(
     out = chat.ask("Find the diameter, through Sampleton.", [s01])
     statements = Answer.model_validate(out["answer"]).statements
     found = [s for s in statements if s.kind == "finding"]
-    assert [f.text.split(":")[0] for f in found] == [cite_flow.FOUND, cite_flow.IN_DOUBT]
-    assert [f.flag for f in found[1].finding.flags] == ["judge_unclear", "location_unconfirmed"]
+    assert [f.text.split(":")[0] for f in found] == [cite_flow.FOUND, cite_flow.LEAD]
+    assert [f.flag for f in found[1].finding.flags] == ["judge_unclear"]
+    # The reviewer was not sure: a lead, never proposed, whatever it scores.
+    assert found[1].finding.lead and not found[1].finding.proposable
+    assert found[1].finding.confidence == 0.7 and found[0].finding.confidence == 0.85
+    assert "the reviewer was not sure" in found[1].finding.not_proposable
     assert any(s.kind == "worked_out" and "disagree" in s.text for s in statements)
 
 
@@ -271,7 +281,9 @@ def test_propose_writes_one_candidate_only_on_the_action_and_never_from_words(wo
     assert claim["citations"] == [{"citation": "page", "role": "states"}]
     assert claim["external_key"]["system"] == "cite"
     assert bundle["citations"][0]["quote"].startswith("The Example Pipe Line Co. is laying")
-    assert bundle["citations"][0]["locator"] == "p. 41"
+    assert bundle["citations"][0]["url"].startswith("https://example.org/details/")
+    assert bundle["sources"][0]["title"] == "The Example Trade Journal 1931-03-12: Vol 12 Iss 3"
+    assert bundle["sources"][0]["published_edtf"] == "1931-03-12"
 
 
 def test_a_build_date_found_as_by_is_shown_and_cannot_be_proposed(world):
@@ -364,8 +376,8 @@ def test_two_owners_found_are_not_a_disagreement_and_no_name_ends_in_two_stops()
     result = CiteResult.model_validate(raw)
     records = cite_flow.findings_of(result, "s", 1)
     statements = cite_flow.report(result, records, ["owner"], "s", "section x")
-    assert [s.kind for s in statements] == ["finding", "finding"]
-    assert all(".." not in s.text for s in statements)
+    assert [s.kind for s in statements] == ["finding", "finding", "searched", "searched"]
+    assert all(".. " not in s.text and not s.text.endswith("..") for s in statements)
 
 
 def test_a_search_left_running_by_stop_is_recorded_as_stopped():
@@ -474,7 +486,7 @@ def test_a_search_is_offered_and_nothing_runs_until_search_is_pressed(world):
     chat = Chat(world, request(s01, places=["Sampleton"]), cite=FakeCite("owner_found"))
     out = chat.ask("Find who owned it; it runs through Sampleton.", [s01], press=False)
     offer = offered(out)
-    assert offer["text"] == "Search the journals for the owner"
+    assert offer["text"] == "Search our sources for the owner"
     assert offer["search"]["section_id"] == s01
     assert offer["search"]["places"] == ["Sampleton"]
     assert offer["search"]["years"]  # the years cite will read, known before it runs
@@ -571,9 +583,7 @@ def test_naming_no_attribute_searches_for_every_one_missing(world):
     out = chat.ask("Find a citation for it; it runs through Sampleton.", [s01], press=False)
     offer = offered(out)
     assert offer["search"]["attributes"] == ["owner", "diameter", "status"]
-    assert offer["text"] == (
-        "Search the journals for the owner, the diameter and when it was built"
-    )
+    assert offer["text"] == ("Search our sources for the owner, the diameter and when it was built")
 
 
 def test_naming_an_attribute_searches_for_that_one_only(world):
@@ -603,3 +613,96 @@ def test_nothing_missing_is_said_and_nothing_is_searched(world):
     )
     assert isinstance(verdict, cite_flow.Refused)
     assert verdict.line == CITE_LINES["nothing_missing"]
+
+
+# Confidence, leads and what was searched (cite 0.4)
+
+
+def test_a_finding_shows_its_confidence_and_the_checks_behind_it(world):
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01, places=["Sampleton"]))
+    out = chat.ask("Find the owner, through Sampleton.", [s01])
+    finding = next(s for s in out["answer"]["statements"] if s["kind"] == "finding")
+    f = finding["finding"]
+    assert finding["text"].endswith("Confidence 0.85.")
+    assert (f["confidence"], f["lead"], f["proposable"]) == (0.85, False, True)
+    assert [(c["label"], c["passed"]) for c in f["checks"]] == [
+        ("The quote is on the page, word for word", True),
+        ("The company is named in the passage", True),
+        ("A town of the section is named in the passage", True),
+        ("The date fits the years searched", True),
+        ("A second source says the same", False),
+    ]
+    assert (f["source"], f["title"]) == (
+        "Example Archive",
+        "The Example Trade Journal 1931-03-12: Vol 12 Iss 3",
+    )
+
+
+def test_a_lead_is_shown_with_its_source_and_is_never_proposed(world):
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01, places=["Sampleton"]), cite=FakeCite("weak_lead"))
+    out = chat.ask("Find the owner, through Sampleton.", [s01])
+    finding = next(s for s in out["answer"]["statements"] if s["kind"] == "finding")
+    f = finding["finding"]
+    assert finding["text"].startswith(f"{cite_flow.LEAD}: Other Gas Co. as the owner of")
+    assert "in an undated document" in finding["text"]
+    assert finding["text"].endswith("Confidence 0.40.")
+    assert (f["lead"], f["proposable"], f["date"]) == (True, False, None)
+    assert f["not_proposable"] == "its confidence, 0.40, is below what a finding needs (0.60)"
+    assert f["url"] and f["quote"]
+    refused = chat.ask("Propose F1", action={"kind": "propose", "finding": "F1"})
+    assert refused["answer"]["statements"][0]["text"].startswith("This finding cannot be proposed")
+    assert chat.writer.bundles == []
+
+
+def test_an_owner_on_an_undated_document_is_not_offered_to_propose():
+    section = {"section_id": "s", "places": [], "places_given": []}
+    page = fake_cite.citation(4, None, "9", "The Example Pipe Line Co. owns the Sampleton line.")
+    raw = fake_cite.result(
+        section,
+        [fake_cite.claim("Ownership", "Example Pipe Line Co.", {"owner": "example"}, page)],
+        [page],
+    )
+    [record] = cite_flow.findings_of(CiteResult.model_validate(raw), "s", 1)
+    f = record["finding"]
+    assert (f["lead"], f["proposable"]) == (False, False)
+    assert f["not_proposable"].startswith("the document has no date")
+
+
+def test_every_search_says_what_was_searched_found_or_not(world):
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01, places=["Sampleton"]))
+    out = chat.ask("Find the owner, through Sampleton.", [s01])
+    searched = [s["text"] for s in out["answer"]["statements"] if s["kind"] == "searched"]
+    assert searched[0] == "Our corpus of the journals: not searched, not available yet."
+    assert searched[1].startswith("Searched the web, our sources only: 2 searches")
+
+
+def test_a_search_that_could_not_run_is_never_worded_as_not_found(world):
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01, places=["Sampleton"]), cite=FakeCite("failed"))
+    out = chat.ask("Find the owner, through Sampleton.", [s01])
+    searched = [s["text"] for s in out["answer"]["statements"] if s["kind"] == "searched"]
+    assert searched[0] == CITE_LINES["failed"]
+    assert "The web, our sources only: not searched, the search failed." in searched
+    assert not any("not found" in text for text in searched)
+
+
+def test_pages_a_source_refused_are_said_and_not_counted_as_searched():
+    section = {"section_id": "s", "places": ["Sampleton"], "places_given": ["Sampleton"]}
+    raw = fake_cite.result({**section, "attributes": ["Ownership"]}, [], [])
+    raw["not_read"] = [
+        {"url": "https://refused.example/a", "source": "refused.example", "reason": "refused"},
+        {"url": "https://elsewhere.example/b", "source": "", "reason": "not on the list"},
+    ]
+    lines = cite_flow.searched_lines(CiteResult.model_validate(raw))
+    assert lines[-1].startswith("Could not be read: 1 page a source refused")
+
+
+def test_the_search_card_says_the_most_a_search_may_do(world):
+    s01 = world["codes"]["s01"]
+    chat = Chat(world, request(s01, places=["Sampleton"]))
+    out = chat.ask("Find the owner, through Sampleton.", [s01], press=False)
+    offer = next(s for s in out["answer"]["statements"] if s["kind"] == "search_offer")
+    assert (offer["search"]["web_searches"], offer["search"]["pages"]) == (6, 6)
