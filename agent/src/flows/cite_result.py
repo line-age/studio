@@ -22,33 +22,28 @@ class _Read(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
 
-class CiteBox(_Read):
-    """A highlight rectangle, 0 to 1 of the page image."""
-
-    x0: float
-    y0: float
-    x1: float
-    y1: float
-
-
 class CiteCitation(_Read):
+    """One quote on one document cite fetched as text: a journal issue, a web page."""
+
     id: str
-    journal: str
-    issue_id: str
-    date: dt.date
-    volume: int | None = None
-    number: int | None = None
-    leaf: int
-    printed_page: str | None = None
-    printed_page_confidence: float | None = None
-    # The page's own words the quote aligned to: what is shown and what store keeps.
+    source: str  # the listed source's domain
+    source_name: str
+    document: str  # the document's own address: the same for every quote from it
+    title: str
+    date: dt.date | None = None
+    # The document's own words the quote aligned to: what is shown and what store keeps.
     page_text: str
-    url: str
-    image_url: str | None = None
-    page_width: int | None = None
-    page_height: int | None = None
-    highlight: list[CiteBox] = Field(default_factory=list)
+    url: str  # opens the document, at the quote where the source can
     places_matched: list[str] = Field(default_factory=list)
+
+
+class CiteCheck(_Read):
+    """One check behind a claim's confidence. cite's code decides each; no model does."""
+
+    name: Literal["quote_on_page", "company_near", "town_near", "date_fits", "second_source"]
+    passed: bool
+    adds: float
+    note: str = ""
 
 
 class CiteClaim(_Read):
@@ -57,7 +52,11 @@ class CiteClaim(_Read):
     value: str
     normalized: dict[str, str | int | float | None] = Field(default_factory=dict)
     date_sense: DateSense
-    status: Literal["verified", "flagged"]
+    # A finding can be proposed; a lead scored below cite's cut-off, or its reviewer was
+    # not sure, and it cannot.
+    kind: Literal["finding", "lead"]
+    confidence: float = Field(ge=0, le=1)
+    checks: list[CiteCheck] = Field(default_factory=list)
     flags: list[str] = Field(default_factory=list)
     flag_reasons: dict[str, str] = Field(default_factory=dict)
     citation_ids: list[str] = Field(min_length=1)
@@ -74,13 +73,45 @@ class CiteAttempt(_Read):
     reason: str
 
 
-class CiteSearched(_Read):
-    attribute: CiteAttribute
-    journal: str
-    searches: int
-    issues_read: int
-    first_issue: dt.date | None = None
-    last_issue: dt.date | None = None
+class CiteSourceSearched(_Read):
+    domain: str
+    name: str
+    results: int = 0
+    pages_read: int = 0
+    not_read: int = 0
+
+
+class CiteSearchStep(_Read):
+    """One step of a search, run or not. Corpus comes first and is not available yet;
+    the web step searches the listed sources only."""
+
+    step: Literal["corpus", "web"]
+    ran: bool
+    why_not: str = ""
+    queries: list[str] = Field(default_factory=list)
+    sources: list[CiteSourceSearched] = Field(default_factory=list)
+    pages_read: int = 0
+    years: tuple[int, int] | None = None
+    errors: list[str] = Field(default_factory=list)
+
+
+class CiteNotRead(_Read):
+    """An address cite tried to read and could not."""
+
+    url: str
+    source: str = ""
+    reason: str
+
+
+class CiteUsed(_Read):
+    used: int
+    allowed: int
+
+
+class CiteLimits(_Read):
+    web_searches: CiteUsed
+    pages_read: CiteUsed
+    model_calls: CiteUsed
 
 
 class CiteUnknown(_Read):
@@ -95,7 +126,7 @@ class CiteSection(_Read):
 
 
 class CiteResult(_Read):
-    schema_version: Literal["0.3"]
+    schema_version: Literal["0.4"]
     status: Literal["ok", "invalid", "failed"]
     reason: str = ""
     section: CiteSection | None = None
@@ -103,4 +134,7 @@ class CiteResult(_Read):
     claims: list[CiteClaim] = Field(default_factory=list)
     unknowns: list[CiteUnknown] = Field(default_factory=list)
     attempts: list[CiteAttempt] = Field(default_factory=list)
-    searched: list[CiteSearched] = Field(default_factory=list)
+    searched: list[CiteSearchStep] = Field(default_factory=list)
+    not_read: list[CiteNotRead] = Field(default_factory=list)
+    limits: CiteLimits | None = None
+    cutoff: float | None = None

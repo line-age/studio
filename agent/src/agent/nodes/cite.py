@@ -228,7 +228,7 @@ def cite_start(deps: Deps, state: AgentState) -> dict:
     out = replace_reply(state, statements, cite_job={**job, "run": run.id}, cite=cite_state)
     out["steps"] = [
         *out["steps"],
-        {"text": "Searching the journals", "done": False, "by": "cite"},
+        {"text": "Searching our sources", "done": False, "by": "cite"},
     ]
     return out
 

@@ -1,5 +1,5 @@
 {
-  "schema_version": "0.3",
+  "schema_version": "0.4",
   "status": "ok",
   "reason": "",
   "section": {
@@ -25,29 +25,16 @@
   },
   "citations": [
     {
-      "id": "sim_example-trade-journal_1931-03-12_12_3:40:3-24",
-      "journal": "The Example Trade Journal",
-      "issue_id": "sim_example-trade-journal_1931-03-12_12_3",
+      "id": "example-trade-journal-1931-03-12-3:41",
+      "source": "example.org",
+      "source_name": "Example Archive",
+      "document": "https://example.org/details/example-trade-journal-1931-03-12-3",
+      "title": "The Example Trade Journal 1931-03-12: Vol 12 Iss 3",
       "date": "1931-03-12",
-      "volume": 12,
-      "number": 3,
-      "leaf": 40,
-      "printed_page": "41",
-      "printed_page_confidence": 95.0,
       "quote": "The Example Pipe Line Co. is laying a 10-in. line from Sampleton to Exampleville.",
       "page_text": "The Example Pipe Line Co. is laying a 10-in. line from Sampleton to Exampleville.",
-      "url": "https://example.org/details/example-trade-journal-1931-03-12/page/n40",
-      "image_url": "https://example.org/download/example-trade-journal-1931-03-12/page/n40.jpg",
-      "page_width": 3600,
-      "page_height": 5000,
-      "highlight": [
-        {
-          "x0": 0.1,
-          "y0": 0.3,
-          "x1": 0.6,
-          "y1": 0.32
-        }
-      ],
+      "passage": "The Example Pipe Line Co. is laying a 10-in. line from Sampleton to Exampleville.",
+      "url": "https://example.org/details/example-trade-journal-1931-03-12-3?q=%2241%22",
       "places_matched": [
         "Sampleton",
         "Exampleville"
@@ -56,33 +43,99 @@
   ],
   "claims": [
     {
-      "id": "Ownership:Example Pipe Line Co.:sim_example-trade-journal_1931-03-12_12_3:40:3-24",
+      "id": "Ownership:Example Pipe Line Co.:example-trade-journal-1931-03-12-3:41",
       "attribute": "Ownership",
       "value": "Example Pipe Line Co.",
       "normalized": {
         "owner": "example pipe line"
       },
       "date_sense": "laying",
-      "status": "verified",
+      "kind": "finding",
+      "confidence": 0.85,
+      "checks": [
+        {
+          "name": "quote_on_page",
+          "passed": true,
+          "adds": 0.4,
+          "note": ""
+        },
+        {
+          "name": "company_near",
+          "passed": true,
+          "adds": 0.2,
+          "note": ""
+        },
+        {
+          "name": "town_near",
+          "passed": true,
+          "adds": 0.15,
+          "note": ""
+        },
+        {
+          "name": "date_fits",
+          "passed": true,
+          "adds": 0.1,
+          "note": ""
+        },
+        {
+          "name": "second_source",
+          "passed": false,
+          "adds": 0.0,
+          "note": ""
+        }
+      ],
       "flags": [],
       "flag_reasons": {},
       "citation_ids": [
-        "sim_example-trade-journal_1931-03-12_12_3:40:3-24"
+        "example-trade-journal-1931-03-12-3:41"
       ]
     },
     {
-      "id": "Size:10-in.:sim_example-trade-journal_1931-03-12_12_3:40:3-24",
+      "id": "Size:10-in.:example-trade-journal-1931-03-12-3:41",
       "attribute": "Size",
       "value": "10-in.",
       "normalized": {
         "inches": 10.0
       },
       "date_sense": "laying",
-      "status": "verified",
+      "kind": "finding",
+      "confidence": 0.85,
+      "checks": [
+        {
+          "name": "quote_on_page",
+          "passed": true,
+          "adds": 0.4,
+          "note": ""
+        },
+        {
+          "name": "company_near",
+          "passed": true,
+          "adds": 0.2,
+          "note": ""
+        },
+        {
+          "name": "town_near",
+          "passed": true,
+          "adds": 0.15,
+          "note": ""
+        },
+        {
+          "name": "date_fits",
+          "passed": true,
+          "adds": 0.1,
+          "note": ""
+        },
+        {
+          "name": "second_source",
+          "passed": false,
+          "adds": 0.0,
+          "note": ""
+        }
+      ],
       "flags": [],
       "flag_reasons": {},
       "citation_ids": [
-        "sim_example-trade-journal_1931-03-12_12_3:40:3-24"
+        "example-trade-journal-1931-03-12-3:41"
       ]
     }
   ],
@@ -90,20 +143,44 @@
   "attempts": [],
   "searched": [
     {
-      "attribute": "Ownership",
-      "journal": "The Example Trade Journal",
-      "searches": 9,
-      "issues_read": 104,
-      "first_issue": "1930-01-02",
-      "last_issue": "1931-12-24"
+      "step": "corpus",
+      "ran": false,
+      "why_not": "not available yet"
     },
     {
-      "attribute": "Size",
-      "journal": "The Example Trade Journal",
-      "searches": 9,
-      "issues_read": 104,
-      "first_issue": "1930-01-02",
-      "last_issue": "1931-12-24"
+      "step": "web",
+      "ran": true,
+      "queries": [
+        "Sampleton Exampleville pipe line",
+        "Sampleton Exampleville gas line laid"
+      ],
+      "sources": [
+        {
+          "domain": "example.org",
+          "name": "Example Archive",
+          "results": 7,
+          "pages_read": 1,
+          "not_read": 0
+        }
+      ],
+      "pages_read": 1,
+      "years": null
     }
-  ]
+  ],
+  "not_read": [],
+  "limits": {
+    "web_searches": {
+      "used": 2,
+      "allowed": 6
+    },
+    "pages_read": {
+      "used": 1,
+      "allowed": 6
+    },
+    "model_calls": {
+      "used": 5,
+      "allowed": 10
+    }
+  },
+  "cutoff": 0.6
 }

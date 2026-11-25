@@ -324,10 +324,10 @@ export const ProposedByATool: Story = {
 /** Searching: cite's steps and a bar; Stop ends it (section 29, A4). */
 export const Searching: Story = {
   render: () => (
-    <DecisionCard by="agent" label="Searching the journals for the owner">
+    <DecisionCard by="agent" label="Searching our sources for the owner">
       <DecisionCardHead
         by="agent"
-        title="Searching the journals for the owner"
+        title="Searching our sources for the owner"
         who="cite is reading the pages. The answer comes here when it is done."
       />
       <DecisionCardRows>
@@ -340,7 +340,7 @@ export const Searching: Story = {
         </DecisionCardRow>
       </DecisionCardRows>
       <DecisionCardProgress
-        label="Searching the journals"
+        label="Searching our sources"
         steps={[
           "Found 23 pages that name Harlow or Brecken",
           "Reading page 14 of 23",
@@ -357,7 +357,7 @@ export const Searching: Story = {
   ),
   play: async ({ canvas }) => {
     await expect(
-      canvas.getByRole("progressbar", { name: "Searching the journals" })
+      canvas.getByRole("progressbar", { name: "Searching our sources" })
     ).toBeVisible()
   },
 }

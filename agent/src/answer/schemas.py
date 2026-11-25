@@ -7,6 +7,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.agent.config import CITE_PAGE_READS, CITE_WEB_SEARCHES
+
 CONTRACT_VERSION = 2
 
 StatementKind = Literal[
@@ -323,13 +325,12 @@ class FindingFlag(_Strict):
     reason: str
 
 
-class Box(_Strict):
-    """A highlight rectangle, 0 to 1 of the page image."""
+class FindingCheck(_Strict):
+    """One check behind a finding's confidence, in words a person reads."""
 
-    x0: float
-    y0: float
-    x1: float
-    y1: float
+    label: str
+    passed: bool
+    note: str = ""
 
 
 class Finding(_Strict):
@@ -342,18 +343,20 @@ class Finding(_Strict):
     value: str
     # When, as the passage gives it: "laying in 1939", "completed in 1939", "by 1939".
     date_words: str
-    # The page's own words, as aligned by cite's verifier.
+    # The document's own words, as aligned by cite's verifier.
     quote: str
-    journal: str
-    volume: int | None = None
-    number: int | None = None
-    date: str
-    page: str
+    # Where it was found: the source's name and the document's title.
+    source: str
+    title: str
+    # The document's date, when the source gives one.
+    date: str | None = None
     url: str
-    image_url: str | None = None
-    page_width: int | None = None
-    page_height: int | None = None
-    highlight: list[Box] = Field(default_factory=list)
+    # How sure, 0 to 1: the checks that passed, counted by cite's code. Not a
+    # probability.
+    confidence: float = Field(ge=0, le=1)
+    checks: list[FindingCheck] = Field(default_factory=list)
+    # A lead scored below the cut-off or its reviewer was not sure: shown, never proposed.
+    lead: bool = False
     flags: list[FindingFlag] = Field(default_factory=list)
     places_matched: list[str] = Field(default_factory=list)
     # Of those, the ones the person typed in.
@@ -361,7 +364,7 @@ class Finding(_Strict):
     # Store already holds this value for the section, and with which status: then it
     # is not "not in store", and Propose is not offered.
     in_store: Literal["accepted", "candidate", "rejected"] | None = None
-    # Whether Propose may write it, and if not, why (a "by" build date, plan D12).
+    # Whether Propose may write it, and if not, why (a lead; a "by" build date, plan D12).
     proposable: bool = True
     not_proposable: str | None = None
 
@@ -436,6 +439,9 @@ class SearchOffer(_Strict):
     from_line: bool = False
     # False: nothing to search by yet (no towns, no name); Search stays off.
     ready: bool = True
+    # The most the search may do: web searches of our sources, and pages read.
+    web_searches: int = CITE_WEB_SEARCHES
+    pages: int = CITE_PAGE_READS
 
 
 class Statement(_Strict):

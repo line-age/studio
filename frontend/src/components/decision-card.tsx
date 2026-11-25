@@ -139,7 +139,7 @@ export function DecisionCardProgress({
 }: {
   /** What it has done so far, in plain words; the last is the one going on. */
   steps: readonly string[]
-  /** What the bar is, for a screen reader: "Searching the journals". */
+  /** What the bar is, for a screen reader: "Searching our sources". */
   label: string
 }) {
   return (

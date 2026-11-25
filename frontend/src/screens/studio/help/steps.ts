@@ -141,7 +141,7 @@ export const HELP_WORDS: readonly HelpWord[] = [
   {
     term: "Finding",
     meaning:
-      "What a search of the journals found for a claim: the page's own words. It is saved only when you press Propose, and then as a proposal.",
+      "What a search of our sources found for a claim: the page's own words. It is saved only when you press Propose, and then as a proposal.",
   },
   {
     term: "Unknown",

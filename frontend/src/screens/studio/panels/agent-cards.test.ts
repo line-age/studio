@@ -32,7 +32,7 @@ function turn(
 
 const started: AgentStatement = {
   kind: "citation_request",
-  text: "Searching the journals",
+  text: "Searching our sources",
   refs: [],
   request: {
     feature_id: "s",

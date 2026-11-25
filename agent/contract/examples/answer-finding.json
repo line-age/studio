@@ -4,7 +4,7 @@
   "statements": [
     {
       "kind": "citation_request",
-      "text": "Searching the journals for the diameter of section 06a875ca, by Sampleton, reading 1931 to 1932. This takes a few minutes.",
+      "text": "Searching our sources on the web for the diameter of section 06a875ca, by Sampleton, for 1931 to 1932. Our corpus of the journals is not available yet.",
       "refs": [
         {
           "type": "feature",
@@ -37,7 +37,7 @@
     },
     {
       "kind": "finding",
-      "text": "Found, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41.",
+      "text": "Found, not in store: 10-in. as the diameter of section 06a875ca, as of 12 March 1931. The Example Trade Journal 1931-03-12: Vol 12 Iss 3 (Example Archive). Confidence 0.85.",
       "refs": [
         {
           "type": "feature",
@@ -47,7 +47,11 @@
           "status": null,
           "asserter": null,
           "label": "section 06a875ca",
-          "source": "The Example Trade Journal, vol. 12 no. 3, 12 March 1931, p. 41"
+          "source": "The Example Trade Journal 1931-03-12: Vol 12 Iss 3 (Example Archive)",
+          "quote": null,
+          "url": null,
+          "role": null,
+          "as_of": null
         }
       ],
       "attribute": "diameter",
@@ -60,23 +64,39 @@
         "value": "10-in.",
         "date_words": "as of 12 March 1931",
         "quote": "A 10-in. line is being laid to Sampleton.",
-        "journal": "The Example Trade Journal",
-        "volume": 12,
-        "number": 3,
+        "source": "Example Archive",
+        "title": "The Example Trade Journal 1931-03-12: Vol 12 Iss 3",
         "date": "1931-03-12",
-        "page": "p. 41",
-        "url": "https://example.org/details/example-trade-journal-1931-03-12/page/n40",
-        "image_url": "https://example.org/download/example-trade-journal-1931-03-12/page/n40.jpg",
-        "page_width": 3600,
-        "page_height": 5000,
-        "highlight": [
+        "url": "https://example.org/details/example-trade-journal-1931-03-12-3?q=%2241%22",
+        "confidence": 0.85,
+        "checks": [
           {
-            "x0": 0.1,
-            "y0": 0.3,
-            "x1": 0.6,
-            "y1": 0.32
+            "label": "The quote is on the page, word for word",
+            "passed": true,
+            "note": ""
+          },
+          {
+            "label": "The company is named in the passage",
+            "passed": true,
+            "note": ""
+          },
+          {
+            "label": "A town of the section is named in the passage",
+            "passed": true,
+            "note": ""
+          },
+          {
+            "label": "The date fits the years searched",
+            "passed": true,
+            "note": ""
+          },
+          {
+            "label": "A second source says the same",
+            "passed": false,
+            "note": ""
           }
         ],
+        "lead": false,
         "flags": [],
         "places_matched": [
           "Sampleton"
@@ -84,13 +104,18 @@
         "places_given": [
           "Sampleton"
         ],
+        "in_store": null,
         "proposable": true,
         "not_proposable": null
-      }
+      },
+      "pipeline": null,
+      "edit": null,
+      "change": null,
+      "search": null
     },
     {
       "kind": "finding",
-      "text": "Found, in doubt: 12-in. as the diameter of section 06a875ca, as of 7 May 1931. The Example Trade Journal, vol. 12 no. 9, 7 May 1931, p. 18.",
+      "text": "A lead, not a finding: 12-in. as the diameter of section 06a875ca, as of 7 May 1931. The Example Trade Journal 1931-05-07: Vol 12 Iss 9 (Example Archive). Confidence 0.70.",
       "refs": [
         {
           "type": "feature",
@@ -100,7 +125,11 @@
           "status": null,
           "asserter": null,
           "label": "section 06a875ca",
-          "source": "The Example Trade Journal, vol. 12 no. 9, 7 May 1931, p. 18"
+          "source": "The Example Trade Journal 1931-05-07: Vol 12 Iss 9 (Example Archive)",
+          "quote": null,
+          "url": null,
+          "role": null,
+          "as_of": null
         }
       ],
       "attribute": "diameter",
@@ -113,42 +142,59 @@
         "value": "12-in.",
         "date_words": "as of 7 May 1931",
         "quote": "The 12-in. line to Sampleton is in operation.",
-        "journal": "The Example Trade Journal",
-        "volume": 12,
-        "number": 9,
+        "source": "Example Archive",
+        "title": "The Example Trade Journal 1931-05-07: Vol 12 Iss 9",
         "date": "1931-05-07",
-        "page": "p. 18",
-        "url": "https://example.org/details/example-trade-journal-1931-05-07/page/n40",
-        "image_url": "https://example.org/download/example-trade-journal-1931-05-07/page/n40.jpg",
-        "page_width": 3600,
-        "page_height": 5000,
-        "highlight": [
+        "url": "https://example.org/details/example-trade-journal-1931-05-07-9?q=%2218%22",
+        "confidence": 0.7,
+        "checks": [
           {
-            "x0": 0.1,
-            "y0": 0.3,
-            "x1": 0.6,
-            "y1": 0.32
+            "label": "The quote is on the page, word for word",
+            "passed": true,
+            "note": ""
+          },
+          {
+            "label": "The company is named in the passage",
+            "passed": true,
+            "note": ""
+          },
+          {
+            "label": "A town of the section is named in the passage",
+            "passed": false,
+            "note": ""
+          },
+          {
+            "label": "The date fits the years searched",
+            "passed": true,
+            "note": ""
+          },
+          {
+            "label": "A second source says the same",
+            "passed": false,
+            "note": ""
           }
         ],
+        "lead": true,
         "flags": [
           {
             "flag": "judge_unclear",
             "reason": "the passage could be about the branch line"
-          },
-          {
-            "flag": "location_unconfirmed",
-            "reason": "none of the section's places is in the quote"
           }
         ],
         "places_matched": [],
         "places_given": [],
-        "proposable": true,
-        "not_proposable": null
-      }
+        "in_store": null,
+        "proposable": false,
+        "not_proposable": "the reviewer was not sure the passage is about this section"
+      },
+      "pipeline": null,
+      "edit": null,
+      "change": null,
+      "search": null
     },
     {
       "kind": "worked_out",
-      "text": "The sources disagree on the diameter: 10-in. and 12-in.. Both are shown; neither is picked.",
+      "text": "The sources disagree on the diameter: 10-in. and 12-in. Both are shown; neither is picked.",
       "refs": [
         {
           "type": "feature",
@@ -158,13 +204,77 @@
           "status": null,
           "asserter": null,
           "label": "section 06a875ca",
-          "source": null
+          "source": null,
+          "quote": null,
+          "url": null,
+          "role": null,
+          "as_of": null
         }
       ],
       "attribute": null,
       "request": null,
       "rule": null,
-      "finding": null
+      "finding": null,
+      "pipeline": null,
+      "edit": null,
+      "change": null,
+      "search": null
+    },
+    {
+      "kind": "searched",
+      "text": "Our corpus of the journals: not searched, not available yet.",
+      "refs": [
+        {
+          "type": "feature",
+          "id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "section 06a875ca",
+          "source": null,
+          "quote": null,
+          "url": null,
+          "role": null,
+          "as_of": null
+        }
+      ],
+      "attribute": null,
+      "request": null,
+      "rule": null,
+      "finding": null,
+      "pipeline": null,
+      "edit": null,
+      "change": null,
+      "search": null
+    },
+    {
+      "kind": "searched",
+      "text": "Searched the web, our sources only: 2 searches (Sampleton pipe line; Sampleton gas line laid). Pages read: Example Archive (2). Years asked for: 1931 to 1932.",
+      "refs": [
+        {
+          "type": "feature",
+          "id": "0fc87cac-291d-5c57-9d84-7b1c734d02ec",
+          "feature_id": null,
+          "attribute": null,
+          "status": null,
+          "asserter": null,
+          "label": "section 06a875ca",
+          "source": null,
+          "quote": null,
+          "url": null,
+          "role": null,
+          "as_of": null
+        }
+      ],
+      "attribute": null,
+      "request": null,
+      "rule": null,
+      "finding": null,
+      "pipeline": null,
+      "edit": null,
+      "change": null,
+      "search": null
     }
   ]
 }

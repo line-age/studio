@@ -1,5 +1,5 @@
 {
-  "schema_version": "0.3",
+  "schema_version": "0.4",
   "status": "ok",
   "reason": "",
   "section": {
@@ -50,12 +50,44 @@
   ],
   "searched": [
     {
-      "attribute": "Ownership",
-      "journal": "The Example Trade Journal",
-      "searches": 9,
-      "issues_read": 104,
-      "first_issue": "1930-01-02",
-      "last_issue": "1931-12-24"
+      "step": "corpus",
+      "ran": false,
+      "why_not": "not available yet"
+    },
+    {
+      "step": "web",
+      "ran": true,
+      "queries": [
+        "Sampleton Exampleville pipe line",
+        "Sampleton Exampleville gas line laid"
+      ],
+      "sources": [
+        {
+          "domain": "example.org",
+          "name": "Example Archive",
+          "results": 7,
+          "pages_read": 2,
+          "not_read": 0
+        }
+      ],
+      "pages_read": 2,
+      "years": null
     }
-  ]
+  ],
+  "not_read": [],
+  "limits": {
+    "web_searches": {
+      "used": 2,
+      "allowed": 6
+    },
+    "pages_read": {
+      "used": 2,
+      "allowed": 6
+    },
+    "model_calls": {
+      "used": 5,
+      "allowed": 10
+    }
+  },
+  "cutoff": 0.6
 }

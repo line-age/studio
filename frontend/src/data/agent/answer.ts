@@ -37,7 +37,7 @@ export const agentAnswerRef = z.object({
 
 /**
  * One thing the Agent did for an answer, in plain words (its chain of thought).
- * `by: "cite"` marks a line from a search of the journals.
+ * `by: "cite"` marks a line from a search of our sources.
  */
 export const agentStep = z.object({
   text: z.string(),
@@ -67,27 +67,30 @@ export const agentFinding = z.object({
   attribute: z.enum(["owner", "diameter", "built"]),
   value: z.string(),
   date_words: z.string(),
-  /** The page's own words, as cite's verifier aligned them. */
+  /** The document's own words, as cite's verifier aligned them. */
   quote: z.string(),
-  journal: z.string(),
-  volume: z.number().nullable().optional(),
-  number: z.number().nullable().optional(),
-  date: z.string(),
-  page: z.string(),
+  /** Where it was found: the source's name and the document's title. */
+  source: z.string(),
+  title: z.string(),
+  /** The document's date, when the source gives one. */
+  date: z.string().nullable().optional(),
   url: z.string(),
-  image_url: z.string().nullable().optional(),
-  page_width: z.number().nullable().optional(),
-  page_height: z.number().nullable().optional(),
-  highlight: z
+  /**
+   * How sure, 0 to 1: the checks that passed, counted by cite's code. It is
+   * not a probability.
+   */
+  confidence: z.number(),
+  checks: z
     .array(
       z.object({
-        x0: z.number(),
-        y0: z.number(),
-        x1: z.number(),
-        y1: z.number(),
+        label: z.string(),
+        passed: z.boolean(),
+        note: z.string().default(""),
       })
     )
     .default([]),
+  /** Below the cut-off, or the reviewer was not sure: shown, never proposed. */
+  lead: z.boolean().default(false),
   flags: z
     .array(z.object({ flag: z.string(), reason: z.string() }))
     .default([]),
@@ -141,6 +144,9 @@ export const searchOffer = z.object({
   from_line: z.boolean().default(false),
   /** False: nothing to search by yet; Search stays off. */
   ready: z.boolean().default(true),
+  /** The most the search may do: web searches of our sources, pages read. */
+  web_searches: z.number().default(6),
+  pages: z.number().default(6),
 })
 export type SearchOffer = z.infer<typeof searchOffer>
 

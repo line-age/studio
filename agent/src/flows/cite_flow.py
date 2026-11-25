@@ -1,4 +1,4 @@
-"""Searching the journals with cite, from the chat: everything but the graph's wiring.
+"""Searching our sources with cite, from the chat: everything but the graph's wiring.
 
 - The guard (plan D8): a search request is checked by code before cite is asked. Every
   place, year and turned-down value must be in the person's words, in what store holds
@@ -20,15 +20,32 @@ from dataclasses import dataclass
 from typing import Any
 
 from src.answer.render import Read, feature_name, one_full_stop, value_words
-from src.answer.schemas import Box, DraftStatement, Finding, FindingFlag, Ref, Statement
+from src.answer.schemas import (
+    DraftStatement,
+    Finding,
+    FindingCheck,
+    FindingFlag,
+    Ref,
+    Statement,
+)
 from src.flows.cite_input import FROM_CITE, TO_CITE, WORDS, CiteAsk, years_in
-from src.flows.cite_result import CiteClaim, CiteResult
+from src.flows.cite_result import CiteClaim, CiteResult, CiteSearchStep
 from src.worked_out.context import route_lines
 from src.worked_out.places import towns_along
 
 # Agreed words (plan D13). Evals match them exactly.
 FOUND = "Found, not in store"
 IN_DOUBT = "Found, in doubt"
+# Below cite's cut-off, or its reviewer was not sure: shown with its source, never proposed.
+LEAD = "A lead, not a finding"
+# Each check behind the confidence, as a person reads it.
+CHECK_WORDS = {
+    "quote_on_page": "The quote is on the page, word for word",
+    "company_near": "The company is named in the passage",
+    "town_near": "A town of the section is named in the passage",
+    "date_fits": "The date fits the years searched",
+    "second_source": "A second source says the same",
+}
 # Found again: store already holds it (as accepted, a candidate or rejected).
 FOUND_IN_STORE = "Found, already in store as {status}"
 IN_STORE_WORDS = {"accepted": "accepted", "candidate": "a candidate", "rejected": "rejected"}
@@ -162,7 +179,7 @@ def check_request(
         return Refused(CITE_LINES["not_yet"].format(what=what))
     said = _fold(" ".join(words))
     found_values = {_fold(str(f["finding"]["value"])) for f in findings.values()}
-    found_years = {y for f in findings.values() for y in years_in(f["finding"]["date"])}
+    found_years = {y for f in findings.values() for y in years_in(f["finding"].get("date") or "")}
     store_values = {
         _fold(value_words(c))
         for c in read.claims.values()
@@ -241,11 +258,11 @@ _OFFER_WORDS = {"owner": "the owner", "diameter": "the diameter", "status": "whe
 
 
 def offer_line(attributes: list[str]) -> str:
-    """The search card's title: "Search the journals for the owner, the diameter and
+    """The search card's title: "Search our sources for the owner, the diameter and
     when it was built"."""
     words = [_OFFER_WORDS.get(a, f"the {_what(a)}") for a in attributes]
     joined = words[0] if len(words) == 1 else f"{', '.join(words[:-1])} and {words[-1]}"
-    return f"Search the journals for {joined}"
+    return f"Search our sources for {joined}"
 
 
 def looking_line(ask: CiteAsk, subject: str) -> str:
@@ -257,8 +274,8 @@ def looking_line(ask: CiteAsk, subject: str) -> str:
     else:
         places = f", by {', '.join(ask.places)}" if ask.places else ", with no towns"
     return (
-        f"Searching the journals for the {what} of {subject}{places}, reading "
-        f"{_years(ask.years)}. This takes a few minutes."
+        f"Searching our sources on the web for the {what} of {subject}{places}, for "
+        f"{_years(ask.years)}. Our corpus of the journals is not available yet."
     )
 
 
@@ -275,33 +292,45 @@ DATE_WORDS = {
 
 
 def reference(f: Finding) -> str:
-    number = f", vol. {f.volume} no. {f.number}" if f.volume and f.number else ""
-    return f"{f.journal}{number}, {_day(f.date)}, {f.page}"
+    """Where it was found: the document, its date when it has one and is not already in
+    the title, and the source."""
+    dated = f", {_day(f.date)}" if f.date and f.date not in f.title else ""
+    return f"{f.title}{dated} ({f.source})"
 
 
 def finding_sentence(f: Finding, subject: str) -> str:
     if f.in_store:
         lead = FOUND_IN_STORE.format(status=IN_STORE_WORDS[f.in_store])
+    elif f.lead:
+        lead = LEAD
     else:
         lead = IN_DOUBT if f.flags else FOUND
     if f.attribute == "built":
         said = f"{subject}, {f.date_words}"
     else:
         said = f"{f.value} as the {f.attribute} of {subject}, {f.date_words}"
-    return one_full_stop(f"{lead}: {said}. {reference(f)}.")
+    return one_full_stop(f"{lead}: {said}. {reference(f)}. Confidence {f.confidence:.2f}.")
 
 
-def _page(printed: str | None, confidence: float | None, leaf: int) -> str:
-    if not printed:
-        return f"leaf {leaf}"
-    return f"p. {printed}" + (" (approx.)" if (confidence or 0) < 60 else "")
-
-
-def _date_words(claim: CiteClaim, issue: dt.date) -> str:
+def _date_words(claim: CiteClaim, printed: dt.date | None) -> str:
     if claim.attribute == "YearConstructed":
         year = claim.normalized.get("year") or claim.value
         return DATE_WORDS[claim.date_sense].format(year=year)
-    return f"as of {_day(issue.isoformat())}"
+    return f"as of {_day(printed.isoformat())}" if printed else "in an undated document"
+
+
+def _not_proposable(claim: CiteClaim, printed: dt.date | None, cutoff: float | None) -> str | None:
+    """Why Propose is not offered, or None when it is."""
+    if claim.kind == "lead":
+        if "judge_unclear" in claim.flags:
+            return "the reviewer was not sure the passage is about this section"
+        below = f" ({cutoff:.2f})" if cutoff is not None else ""
+        return f"its confidence, {claim.confidence:.2f}, is below what a finding needs{below}"
+    if claim.attribute == "YearConstructed" and claim.date_sense == "by":
+        return "the passage says only that the line was there by that year, not when it was built"
+    if claim.attribute != "YearConstructed" and printed is None:
+        return "the document has no date, so there is no date to record it as of"
+    return None
 
 
 def findings_of(result: CiteResult, section_id: str, next_handle: int) -> list[dict[str, Any]]:
@@ -317,7 +346,7 @@ def findings_of(result: CiteResult, section_id: str, next_handle: int) -> list[d
         if page is None:
             continue
         store_key = FROM_CITE[claim.attribute]
-        by = claim.attribute == "YearConstructed" and claim.date_sense == "by"
+        why_not = _not_proposable(claim, page.date, result.cutoff)
         finding = Finding(
             handle=f"F{next_handle + len(out)}",
             section_id=section_id,
@@ -325,28 +354,24 @@ def findings_of(result: CiteResult, section_id: str, next_handle: int) -> list[d
             value=claim.value,
             date_words=_date_words(claim, page.date),
             quote=page.page_text,
-            journal=page.journal,
-            volume=page.volume,
-            number=page.number,
-            date=page.date.isoformat(),
-            page=_page(page.printed_page, page.printed_page_confidence, page.leaf),
+            source=page.source_name,
+            title=page.title,
+            date=page.date.isoformat() if page.date else None,
             url=page.url,
-            image_url=page.image_url,
-            page_width=page.page_width,
-            page_height=page.page_height,
-            highlight=[Box(**b.model_dump()) for b in page.highlight],
+            confidence=claim.confidence,
+            checks=[
+                FindingCheck(label=CHECK_WORDS[c.name], passed=c.passed, note=c.note)
+                for c in claim.checks
+            ],
+            lead=claim.kind == "lead",
             flags=[
                 FindingFlag(flag=f, reason=claim.flag_reasons.get(f, "flagged by cite"))
                 for f in claim.flags
             ],
             places_matched=page.places_matched,
             places_given=[p for p in page.places_matched if p in given],
-            proposable=not by,
-            not_proposable=(
-                "the passage says only that the line was there by that year, not when it was built"
-                if by
-                else None
-            ),
+            proposable=why_not is None,
+            not_proposable=why_not,
         )
         out.append(
             {
@@ -354,7 +379,7 @@ def findings_of(result: CiteResult, section_id: str, next_handle: int) -> list[d
                 "normalized": claim.normalized,
                 "date_sense": claim.date_sense,
                 "store_key": store_key,
-                "issue_id": page.issue_id,
+                "document": page.document,
             }
         )
     return out
@@ -441,7 +466,12 @@ def report(
     feature = Ref(type="feature", id=section_id, label=subject)
     if result.status != "ok":
         line = CITE_LINES["invalid" if result.status == "invalid" else "failed"]
-        return [Statement(kind="searched", text=line, refs=[feature])]
+        # A search that could not run says so, with what did and did not run: it is
+        # never worded as "not found".
+        return [
+            Statement(kind="searched", text=text, refs=[feature])
+            for text in [line, *searched_lines(result)]
+        ]
     names = {section_id: subject}
     out = [finding_statement(r, None, names) for r in records]
     # Sources that disagree: kept side by side, never picked (house rule).
@@ -469,24 +499,19 @@ def report(
     for attribute in ask_attributes:
         if attribute in found:
             continue
-        mine = [s for s in result.searched if s.attribute == TO_CITE[attribute]]
-        parts = [
-            f"{s.searches} searches of {s.journal}, {s.issues_read} issues from "
-            f"{_day(s.first_issue.isoformat())} to {_day(s.last_issue.isoformat())}"
-            if s.first_issue and s.last_issue
-            else f"{s.searches} searches of {s.journal}, no issues read"
-            for s in mine
-        ] or ["nothing was searched"]
         out.append(
             Statement(
                 kind="searched",
                 text=f"Searched, not found: the {_what(attribute)} of {subject}. "
-                + "; ".join(parts)
-                + ".",
+                "Not found here does not mean it does not exist.",
                 refs=[feature],
                 attribute=attribute,
             )
         )
+    # What was searched, step by step, whatever was found: corpus first, then the web.
+    out += [
+        Statement(kind="searched", text=line, refs=[feature]) for line in searched_lines(result)
+    ]
     # Passages cite read and turned down, in one line. An outage is not a verdict.
     turned_down = [
         a
@@ -506,6 +531,46 @@ def report(
             )
         )
     return out
+
+
+def searched_lines(result: CiteResult) -> list[str]:
+    """One line a step, in code's words: whether it ran, and what it covered."""
+    lines = []
+    for step in result.searched:
+        lines.append(_corpus_line(step) if step.step == "corpus" else _web_line(step))
+    refused = [n for n in result.not_read if n.source]
+    if refused:
+        n = len(refused)
+        lines.append(
+            f"Could not be read: {n} page{'' if n == 1 else 's'} a source refused or that "
+            "holds no text. They are not counted as searched."
+        )
+    return lines
+
+
+def _corpus_line(step: CiteSearchStep) -> str:
+    if step.ran:
+        return "Searched our corpus of the journals."
+    return f"Our corpus of the journals: not searched, {step.why_not or 'not available'}."
+
+
+def _web_line(step: CiteSearchStep) -> str:
+    if not step.ran:
+        return f"The web, our sources only: not searched, {step.why_not or 'not asked for'}."
+    n = len(step.queries)
+    read = [s for s in step.sources if s.pages_read]
+    where = ", ".join(f"{s.name} ({s.pages_read})" for s in read) or "none"
+    years = f" Years asked for: {_years(step.years)}." if step.years else ""
+    words = "; ".join(step.queries)
+    failed = (
+        f" {len(step.errors)} kind{'' if len(step.errors) == 1 else 's'} of search error."
+        if step.errors
+        else ""
+    )
+    return one_full_stop(
+        f"Searched the web, our sources only: {n} search{'' if n == 1 else 'es'}"
+        f"{f' ({words})' if words else ''}. Pages read: {where}.{years}{failed}"
+    )
 
 
 # What the model is told -------------------------------------------------------------------

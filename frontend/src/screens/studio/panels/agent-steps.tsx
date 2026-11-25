@@ -47,10 +47,10 @@ export function AgentSteps({
   const searched = steps.some((step) => step.by === "cite")
   const label = working
     ? searched
-      ? "Searching the journals"
+      ? "Searching our sources"
       : "Reading the data"
     : searched
-      ? "Searched the journals"
+      ? "Searched our sources"
       : reads === 0
         ? "Wrote and checked the answer"
         : `Read ${reads} ${reads === 1 ? "thing" : "things"}`

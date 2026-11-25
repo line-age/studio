@@ -24,7 +24,7 @@ not used yet.
 - **A code check on every answer** before it is shown; a draft that fails goes back to
   the model once, then a fixed line.
 - **A change asked for in words** comes back as a card that Studio makes on Approve.
-- **Searching the journals with `cite`** waits for the person's Search; a finding
+- **Searching our sources with `cite`** waits for the person's Search; a finding
   reaches store only on Propose.
 
 ## Quick start

@@ -38,7 +38,7 @@ leaves them Unknown. Machines propose; a person decides.
 | **Cite**    | Open the sources behind any claim                          | Claim rows, the sources pop-up           |
 | **Edit**    | Make and edit pipelines, type a section's values           | Right-click menu, each in its own window |
 | **Approve** | Approve a change or a search the Agent prepared as a card  | Agent chat                               |
-| **Propose** | Save what a search of the journals found, as a proposal    | The finding's card in the chat           |
+| **Propose** | Save what a search of our sources found, as a proposal     | The finding's card in the chat           |
 
 The Help button in the top bar runs a tour of the screen and has a page on each area.
 
@@ -46,16 +46,16 @@ The Help button in the top bar runs a tour of the screen and has a page on each 
 flowchart LR
     subgraph record["The archival record"]
         maps["Map scans<br/>one per edition"]
-        press["Trade journals"]
+        press["Trade journals<br/>and other sources"]
     end
 
     maps -->|traced by hand| backport["backport<br/>traces in as sections"]
     maps -.->|later| georef["georef<br/>scans served for review"]
-    press -->|"scanned pages, Internet Archive"| citeagent
+    press -->|"web search of a short list of sources, read as text"| citeagent
     press -.->|later| corpus["corpus<br/>passages, ranked"]
     corpus -.-> citeagent
 
-    citeagent["<b>Cite agent</b><br/>searches the journals for one section"]
+    citeagent["<b>Cite agent</b><br/>searches our sources for one section"]
 
     backport --> store
     tools["tools<br/>proposed ends, cuts, pipelines"] --> store
@@ -93,8 +93,11 @@ not say". Code checks each answer before it is shown.
 
 **The Cite agent** finds what store does not know yet. When you ask the Agent to look
 something up, it asks you for towns along the line and hands the section to Cite. Cite
-searches scanned trade journals and returns findings: the page's own words, the passage
-marked on the page, a link, and why it may be wrong.
+searches the web, limited to a short list of sources, reads pages as text and returns
+findings: the page's own words, a link, and how sure it is from 0 to 1, with the checks
+behind that number. A result that scores too low is shown as a lead and cannot be
+proposed. Every search says what was searched; our own corpus of the journals is asked
+first and is not available yet.
 
 Neither writes on its own. Everything that waits on a person is a card in the chat:
 

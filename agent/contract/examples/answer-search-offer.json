@@ -4,7 +4,7 @@
   "statements": [
     {
       "kind": "search_offer",
-      "text": "Search the journals for the owner",
+      "text": "Search our sources for the owner",
       "refs": [
         {
           "type": "feature",

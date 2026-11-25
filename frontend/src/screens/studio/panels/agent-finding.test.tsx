@@ -12,7 +12,8 @@ import { AgentStatementView, ProposeFinding } from "./agent-statement"
 /*
  * What cite found, as one card (Figma section 29, board B), from the
  * service's own invented example: the value as the title, the page's words,
- * the source, where it goes, why it is in doubt, Propose and Dismiss.
+ * the source, how sure it is and why, where it goes, why it is in doubt,
+ * Propose and Dismiss. A lead is shown and never proposed.
  */
 
 const EXAMPLES = import.meta.glob(
@@ -179,10 +180,56 @@ describe("a finding store already holds", () => {
   })
 })
 
-describe("an issue's date", () => {
-  it("reads as the Agent words it, and a date it cannot read stays as given", async () => {
-    const { issueDate } = await import("./agent-finding")
-    expect(issueDate("1932-03-01")).toBe("1 March 1932")
-    expect(issueDate("1932")).toBe("1932")
+describe("how sure a finding is", () => {
+  it("shows the confidence, how many checks passed and which did not", async () => {
+    await renderInStudio(
+      <AgentStatementView statement={first} name={name} open={vi.fn()} />
+    )
+    const it = within(card())
+    expect(it.getByText("0.85, 4 of 5 checks")).toBeVisible()
+    expect(
+      it.getByText(/^The quote is on the page, word for word\./)
+    ).toBeVisible()
+    expect(it.getByText("A second source says the same.")).toBeVisible()
+  })
+
+  it("names the document and the source it is held by, and shows no page image", async () => {
+    await renderInStudio(
+      <AgentStatementView statement={first} name={name} open={vi.fn()} />
+    )
+    const it = within(card())
+    expect(
+      it.getByText(`${first.finding!.title} · ${first.finding!.source}`)
+    ).toBeVisible()
+    expect(it.queryByRole("img")).toBeNull()
+    expect(it.queryByRole("button", { name: "Show the page" })).toBeNull()
+  })
+})
+
+describe("a lead", () => {
+  const lead = findings[1]
+
+  it("says it is a lead and why, keeps its link, and offers no Propose", async () => {
+    await renderInStudio(
+      <AgentCards value={cards()}>
+        <ProposeFinding value={vi.fn()}>
+          <AgentStatementView statement={lead} name={name} open={vi.fn()} />
+        </ProposeFinding>
+      </AgentCards>
+    )
+    const it = within(screen.getByRole("article", { name: /^Finding F2/ }))
+    expect(it.getByText(/^A lead found by cite, not saved/)).toBeVisible()
+    expect(it.getByRole("status")).toHaveTextContent(
+      "A lead, not offered to propose"
+    )
+    expect(it.getByRole("status")).toHaveTextContent(
+      lead.finding!.not_proposable!
+    )
+    expect(it.getByRole("link", { name: /Open page/ })).toHaveAttribute(
+      "href",
+      lead.finding!.url
+    )
+    expect(it.queryByRole("button", { name: "Propose" })).toBeNull()
+    expect(it.getByRole("button", { name: "Dismiss" })).toBeVisible()
   })
 })

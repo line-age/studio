@@ -17,6 +17,10 @@ MAX_QUESTION_CHARS = 4000
 
 # The most years one cite search reads (owner, 2026-11-14): about 104 weekly issues.
 CITE_WINDOW_YEARS = 2
+# The most one search may do, as cite sets it (its agent_limits.py). Said on the search
+# card before the press; what a run used comes back in cite's result.
+CITE_WEB_SEARCHES = 6
+CITE_PAGE_READS = 6
 
 # The most tool calls one try at one question may make, and the most model calls. Past
 # the tool limit a call is refused and the model has to answer from what it has, so the
